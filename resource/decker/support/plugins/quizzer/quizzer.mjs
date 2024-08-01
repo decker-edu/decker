@@ -54,7 +54,6 @@ function parseQuizzes(reveal) {
         quizObject.question = question.innerHTML;
       }
       const lists = quizzer.querySelectorAll(":scope > ul");
-      console.log(":scope > ul:", lists.length);
       for (const list of lists) {
         const choiceObject = {
           votes: 1,
@@ -127,6 +126,9 @@ function createHostInterface(reveal) {
       qrDialog.close();
     }
   });
+  qrDialog.addEventListener("click", (event) => {
+    qrDialog.close();
+  });
   qrDialog.appendChild(qrCanvas);
   qrDialog.appendChild(qrLink);
   document.body.appendChild(qrDialog);
@@ -152,6 +154,7 @@ function createHostInterface(reveal) {
   });
 
   stateSpan.className = "quizzer-state-info";
+  stateSpan.hidden = true;
 
   anchors.placeButton(qrButton, "BOTTOM_CENTER");
   anchors.placeButton(stateButton, "BOTTOM_CENTER");
@@ -160,9 +163,6 @@ function createHostInterface(reveal) {
 
 function onStateUpdate(connections, done) {
   stateSpan.innerText = `${done} / ${connections}`;
-  if (quizState === "ACTIVE") {
-    stateSpan.hidden = false;
-  }
 }
 
 async function initializeHost() {
@@ -188,10 +188,10 @@ async function initializeHost() {
       quizState = "WAITING";
       stateSpan.hidden = true;
       const resultContainer = document.createElement("div");
+      resultContainer.classList.add("quizzer-results-container");
       if (currentQuiz && currentQuiz.type === "choice") {
-        resultContainer.classList.add("quizzer-choice-results-container");
         const entryContainer = document.createElement("div");
-        entryContainer.classList.add("quizzer-choice-result");
+        entryContainer.classList.add("quizzer-result");
         const canvas = document.createElement("canvas");
         entryContainer.appendChild(canvas);
         resultContainer.appendChild(entryContainer);
@@ -234,10 +234,9 @@ async function initializeHost() {
         });
       }
       if (currentQuiz && currentQuiz.type === "freetext") {
-        resultContainer.classList.add("quizzer-freetext-results-container");
         for (const words of result) {
           const entryContainer = document.createElement("div");
-          entryContainer.classList.add("quizzer-freetext-result");
+          entryContainer.classList.add("quizzer-result");
           const canvas = document.createElement("canvas");
           canvas.width = 512;
           canvas.height = 256;
@@ -259,10 +258,9 @@ async function initializeHost() {
         }
       }
       if (currentQuiz && currentQuiz.type === "selection") {
-        resultContainer.classList.add("quizzer-selection-results-container");
         for (const selection of result) {
           const entryContainer = document.createElement("div");
-          entryContainer.classList.add("quizzer-selection-result");
+          entryContainer.classList.add("quizzer-result");
           const canvas = document.createElement("canvas");
           entryContainer.appendChild(canvas);
           resultContainer.appendChild(entryContainer);
@@ -319,10 +317,14 @@ async function initializeHost() {
         const svg = d3
           .select(resultContainer)
           .append("svg")
-          .attr("width", width)
-          .attr("height", height)
-          .attr("viewBox", [0, 0, width, height]);
-        resultContainer.classList.add("quizzer-assignment-results-container");
+          .attr("class", "quizzer-result")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
+          );
         const nodes = [];
         const links = [];
         const choices = currentQuiz.choices;
@@ -348,54 +350,37 @@ async function initializeHost() {
             const value = entry.assignments[assignment];
             const source = nodes.find((node) => node.name === assignment).node;
             const target = nodes.find((node) => node.name === entry.label).node;
-            const link = { source: source, target: target, value: value + 1 };
+            const link = { source: source, target: target, value: value };
             links.push(link);
           }
         }
-        const testNodes = [
-          { node: 0, name: "src0" },
-          { node: 1, name: "src1" },
-          { node: 2, name: "sink0" },
-        ];
-        const testLinks = [
-          { source: 0, target: 2, value: 4 },
-          { source: 1, target: 2, value: 6 },
-        ];
-        const path = generator.links();
-        const json = { nodes: testNodes, links: testLinks };
-        //          generator.nodes(testNodes).links(testLinks);
+        const json = { nodes: nodes, links: links };
         generator.extent([
           [16, 16],
           [width - 16, height - 16],
         ]);
         var graph = generator(json);
-        console.log(graph);
         var link = svg
           .append("g")
           .selectAll(".link")
-          .data(testLinks)
+          .data(graph.links)
           .enter()
           .append("path")
           .attr("class", "link")
           .attr("d", d3.sankeyLinkHorizontal())
-          .style("stroke-width", function (d) {
-            return Math.max(1, d.dy);
-          })
+          .style("stroke-width", (d) => d.width)
           .sort(function (a, b) {
-            return b.dy - a.dy;
+            return b.y1 - b.y0 - (a.y1 - a.y0);
           });
 
         // add in the nodes
         var node = svg
           .append("g")
           .selectAll(".node")
-          .data(testNodes)
+          .data(graph.nodes)
           .enter()
           .append("g")
           .attr("class", "node")
-          .attr("transform", function (d) {
-            return "translate(" + d.x0 + "," + d.y0 + ")";
-          })
           .call(
             d3
               .drag()
@@ -430,9 +415,9 @@ async function initializeHost() {
         // add in the title for the nodes
         node
           .append("text")
-          .attr("x", -6)
+          .attr("x", (d) => d.x1 + 16)
           .attr("y", function (d) {
-            return d.dy / 2;
+            return d.y0 + (d.y1 - d.y0) / 2;
           })
           .attr("dy", ".35em")
           .attr("text-anchor", "end")
@@ -448,6 +433,7 @@ async function initializeHost() {
 
         // the function for moving the nodes
         function dragmove(d) {
+          console.log(d);
           d3.select(this).attr(
             "transform",
             "translate(" +
@@ -490,7 +476,7 @@ async function onSlideChange(event) {
   stateSpan.innerText = "";
   qrButton.hidden = false;
   stateButton.hidden = false;
-  stateSpan.hidden = false;
+  stateSpan.hidden = true;
 }
 
 const Plugin = {

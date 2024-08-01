@@ -1,5 +1,11 @@
 import Client from "./client.mjs";
 
+import { solveFreeTextQuiz, solveSelectionQuiz } from "./solver.mjs";
+
+import localization from "./localization.mjs";
+
+const l10n = localization();
+
 let selectedAnswer = null;
 let draggedAnswer = null;
 let dropTarget = null;
@@ -36,9 +42,9 @@ function createQuizContainer() {
   const solutionContainer = document.createElement("div");
   solutionContainer.className = "solution-container";
   const solveButton = document.createElement("button");
-  solveButton.innerText = "Lösung überprüfen";
+  solveButton.innerText = l10n.checkSolution;
   solveButton.type = "submit";
-  solveButton.ariaLabel = "Lösung überprüfen";
+  solveButton.ariaLabel = l10n.checkSolution;
   solutionContainer.appendChild(solveButton);
   container.appendChild(questionContainer);
   container.questionContainer = questionContainer;
@@ -50,6 +56,58 @@ function createQuizContainer() {
   container.solutionContainer = solutionContainer;
   container.solver = solveButton;
   return container;
+}
+
+function createPlaceholderPair(number) {
+  const span = document.createElement("span");
+  const wrapper = document.createElement("div");
+
+  const replacer = document.createElement("input");
+  replacer.type = "text";
+  replacer.placeholder = l10n.placeholder + number;
+  replacer.addEventListener("keyup", (event) => {
+    if (replacer.value !== "") {
+      span.innerText = replacer.value;
+    } else {
+      span.innerText = `[${replacer.placeholder}]`;
+    }
+  });
+  replacer.dataset["number"] = number;
+
+  span.innerText = `[${replacer.placeholder}]`;
+
+  wrapper.classList.add("input-wrapper");
+  wrapper.appendChild(replacer);
+
+  return [span, replacer, wrapper];
+}
+
+function createSelectElement(options) {
+  const select = document.createElement("select");
+  const placeholder = document.createElement("option");
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.innerText = "Pick One ...";
+  placeholder.reason = "Please select an answer!";
+  placeholder.correct = false;
+  select.appendChild(placeholder);
+  for (const option of options) {
+    const item = document.createElement("option");
+    item.innerText = option.label;
+    item.reason = option.reason;
+    item.correct = option.correct;
+    select.appendChild(item);
+  }
+  // Use an input-wrapper to align the checkmark.
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("input-wrapper");
+  wrapper.appendChild(select);
+
+  const popover = document.createElement("div");
+  popover.className = "solution-popover";
+  wrapper.appendChild(popover);
+
+  return [select, wrapper];
 }
 
 export default {
@@ -305,32 +363,9 @@ export default {
       }
       if (/\[#[0-9]+\]/.test(token)) {
         // If it was a placeholder token, insert a select box.
-        const selection = document.createElement("select");
-        const placeholder = document.createElement("option");
-        placeholder.disabled = true;
-        placeholder.selected = true;
-        placeholder.innerText = "Pick One ...";
-        placeholder.reason = "Please select an answer!";
-        placeholder.correct = false;
-        selection.appendChild(placeholder);
-        selections.push(selection);
         const options = quiz.choices[boxNumber++].options;
-        for (const option of options) {
-          const item = document.createElement("option");
-          item.innerText = option.label;
-          item.reason = option.reason;
-          item.correct = option.correct;
-          selection.appendChild(item);
-        }
-        // Use an input-wrapper to align the checkmark.
-        const wrapper = document.createElement("div");
-        wrapper.classList.add("input-wrapper");
-        wrapper.appendChild(selection);
-
-        const popover = document.createElement("div");
-        popover.className = "solution-popover";
-        wrapper.appendChild(popover);
-
+        const [select, wrapper] = createSelectElement(options);
+        selections.push(select);
         container.question.appendChild(wrapper);
       } else {
         // If not, add the token as plain text.
@@ -339,42 +374,23 @@ export default {
         container.question.appendChild(span);
       }
     }
-    container.solver.onclick = () => {
-      for (const selection of selections) {
-        const wrapper = selection.closest(".input-wrapper");
-        let checkmark = wrapper.querySelector(".checkmark");
-        if (!checkmark) {
-          checkmark = document.createElement("span");
-          checkmark.classList.add("checkmark", "fas", "fa-times");
-          wrapper.appendChild(checkmark);
-        }
-        wrapper.classList.add("wrong");
-        checkmark.classList.add("fa-times");
-
-        const item = selection.options[selection.selectedIndex];
-        const popover = wrapper.querySelector(".solution-popover");
-        popover.innerText = item.reason;
-        if (item.correct) {
-          wrapper.classList.remove("wrong");
-          wrapper.classList.add("correct");
-          checkmark.classList.remove("fa-times");
-          checkmark.classList.add("fa-check");
-        }
-      }
-    };
+    container.solver.addEventListener("click", (event) => {
+      solveSelectionQuiz(selections);
+    });
     parent.appendChild(container);
   },
 
   renderFreeTextQuiz(parent, quiz) {
     const container = createQuizContainer();
+
     if (!quiz.question) {
-      container.question.style.color = "var(--accent0)";
-      container.question.innerText =
-        "Fehler: Dieses Quiz besitzt keinen Fragetext.";
+      container.classList.add("error");
+      container.question.innerText = l10n.errorMissingQuestion;
       parent.appendChild(container);
       container.removeChild(container.solutionContainer);
       return;
     }
+
     const split = quiz.question.split(/(\[#[0-9]+\])/g);
     const replacers = [];
 
@@ -384,27 +400,11 @@ export default {
         continue;
       }
       if (/\[#[0-9]+\]/.test(token)) {
-        const replacer = document.createElement("input");
-        replacer.type = "text";
-        replacer.placeholder = "Placeholder #" + placeholderNumber;
-        const span = document.createElement("span");
-        span.innerText = `[${replacer.placeholder}]`;
-        replacer.addEventListener("keyup", (event) => {
-          if (replacer.value !== "") {
-            span.innerText = replacer.value;
-          } else {
-            span.innerText = `[${replacer.placeholder}]`;
-          }
-        });
-        replacer.dataset["number"] = placeholderNumber;
-        replacers.push(replacer);
-
-        const wrapper = document.createElement("div");
-        wrapper.classList.add("input-wrapper");
-        wrapper.appendChild(replacer);
+        const [span, replacer, wrapper] =
+          createPlaceholderPair(placeholderNumber);
         container.answers.appendChild(wrapper);
-
         container.question.appendChild(span);
+        replacers.push(replacer);
         placeholderNumber++;
       } else {
         const span = document.createElement("span");
@@ -412,30 +412,9 @@ export default {
         container.question.appendChild(span);
       }
     }
-    container.solver.onclick = () => {
-      for (const input of replacers) {
-        const wrapper = input.closest(".input-wrapper");
-        let checkmark = wrapper.querySelector(".checkmark");
-        if (!checkmark) {
-          checkmark = document.createElement("span");
-          checkmark.classList.add("checkmark", "fas", "fa-times");
-          wrapper.appendChild(checkmark);
-        }
-        wrapper.classList.add("wrong");
-        checkmark.classList.add("fa-times");
-        const number = input.dataset["number"];
-        const choices = quiz.choices[Number.parseInt(number) - 1];
-        for (const option of choices.options) {
-          if (option.label === input.value && option.correct === true) {
-            wrapper.classList.remove("wrong");
-            wrapper.classList.add("correct");
-            checkmark.classList.remove("fa-times");
-            checkmark.classList.add("fa-check");
-            break;
-          }
-        }
-      }
-    };
+    container.solver.addEventListener("click", (event) => {
+      solveFreeTextQuiz(replacers);
+    });
     parent.appendChild(container);
   },
 

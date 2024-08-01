@@ -14,8 +14,12 @@
 .quizzer .question-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;  
+  justify-content: center;
   align-items: center;
+}
+
+.quizzer-container.error .question-container {
+  color: var(--color-error);
 }
 
 .quizzer .answer-container {
@@ -310,12 +314,10 @@ button[hidden] {
   font-size: 2rem;
 }
 
-.quizzer-assignment-results-container,
-.quizzer-freetext-results-container,
-.quizzer-selection-results-container,
-.quizzer-choice-results-container {
+.quizzer-results-container {
   display: flex;
   flex-direction: row;
+  justify-content: center;
 
   z-index: 1024;
 
@@ -331,12 +333,12 @@ button[hidden] {
   width: 80vw;
 }
 
-.quizzer-assignment-result,
-.quizzer-selection-result,
-.quizzer-choice-result,
-.quizzer-freetext-result {
+.quizzer-result {
   position: relative;
   text-align: center;
+}
+
+.quizzer-result:has(canvas) {
   flex: 1 0 0;
 }
 
@@ -362,4 +364,8 @@ button[hidden] {
 
 .link:hover {
   stroke-opacity: .5;
+}
+
+.print-pdf dialog {
+  display: none !important;
 }
