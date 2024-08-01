@@ -21,4 +21,24 @@ Probably many lines.
 print(42)
 ```
 
+# Live Coding Prelude
+
+## Prelude
+
+``` {#prelude.java .live-code-prelude-}
+import static java.lang.System.out;
+##CODE##
+```
+
+```.java
+import static java.lang.System.out;
+##CODE##
+```
+
+## Live Code
+
+``` {.live-code- language="java" template="#prelude.java"}
+out.println(42);
+```
+
 [§live-code-server](https://codapi.tramberend.de/v1)

@@ -372,8 +372,7 @@ mapMetaM f meta = do
 mapMetaValuesM ::
   (MonadFail m, MonadIO m) => (Text -> m Text) -> MetaValue -> m MetaValue
 mapMetaValuesM f v = do
-  mapped <- map' v
-  return mapped
+  map' v
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList
@@ -414,8 +413,7 @@ mapMetaWithKey f meta = do
     map' _ v = return v
     join x y = Text.intercalate "." $ filter (not . Text.null) [x, y]
 
--- | Reads a single meta data file. If something goes wrong, an empty Meta
--- structure is returned.
+-- | Reads a single meta data file.
 readMetaDataFile :: FilePath -> IO (Either String Meta)
 readMetaDataFile file = do
     result <- Y.decodeFileEither file

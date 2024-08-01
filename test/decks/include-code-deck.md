@@ -35,7 +35,7 @@ includeCode (Pandoc meta blocks) = do
 
 ## Inclusion
 
-![](/src/Text/Decker/Filter/Media.hs){.haskell .numberLines .code}
+![](/src/Text/Decker/Filter/Media.hs){.haskell .code}
 
 # Include a tagged snippet (Image syntax)
 
@@ -47,9 +47,13 @@ includeCode (Pandoc meta blocks) = do
 
 ## Inclusion
 
-![](/src/Text/Decker/Filter/Media.hs#include-even-shorter){.haskell .numberLines .code}
+![](/src/Text/Decker/Filter/Media.hs#include-even-shorter){.haskell .code}
 
 --------------------------------------------------------------------------------
+
+# Detent all the things
+
+![](/src/Text/Decker/Filter/Media.hs#dedent-test){.haskell .code}
 
 # Many small code blocks
 

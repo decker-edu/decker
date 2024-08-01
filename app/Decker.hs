@@ -358,7 +358,7 @@ createPublicManifest :: Action ()
 createPublicManifest = do
   let manifestPath = publicDir <> "/" <> "manifest.json"
   putNormal $ "# writing manifest (to " <> manifestPath <> ")"
-  liftIO $ writeFile manifestPath "" -- make sure manifest.json is listed in the manifest make sure manifest.json is listed in the manifest
+  liftIO $ writeFile manifestPath "" -- make sure manifest.json is listed in the manifest
   liftIO $ createDirectoryIfMissing True publicDir
   allFiles <- liftIO $ fastGlobFiles' [] (const True) publicDir
   allFilesWithMeta <- Map.fromList <$> mapM readMeta allFiles

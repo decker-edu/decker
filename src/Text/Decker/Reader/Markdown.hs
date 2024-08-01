@@ -97,6 +97,9 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path
+    -- >>= (\(Pandoc meta blocks) -> 
+    --         do  putStrLn $ path <> "\n" <> show meta
+    --             return (Pandoc meta blocks))
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
@@ -110,7 +113,8 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   let pathToSupport = makeRelativeTo documentPath "support"
   let meta' =
         addMetaField "projectPath" pathToProject
-          $ addMetaField "supportPath" pathToSupport meta
+          $ addMetaField "supportPath" pathToSupport
+            $ addMetaField "documentPath" documentPath meta
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.

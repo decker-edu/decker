@@ -6,7 +6,7 @@ save-polls: true
 
 # enable some experimental features
 experiments:
-    fragment-templates: true
+  fragment-templates: true
 
 palette:
   colors:
@@ -76,8 +76,8 @@ css-variables:
 
 template:
   css:
-    - "/support/vendor/codapi-js/snippet.css"
+    - /support/vendor/codapi-js/snippet.css
     - /support/css/hljs.css
     - /support/css/codapi.css
   js:
-    - "/support/vendor/codapi-js/snippet.js"
+    - /support/vendor/codapi-js/snippet.js
