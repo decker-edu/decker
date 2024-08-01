@@ -12,14 +12,14 @@
 */
 
 codapi-output pre {
-  font-family: monospace;
-  line-break: after-white-space;
-  white-space: pre-wrap;
-  -webkit-nbsp-mode: space;
-  line-height: 1.3;
-  padding: 0.5em;
-  resize: vertical;
-  min-height: 2em;
+    font-family: monospace;
+    line-break: after-white-space;
+    white-space: pre-wrap;
+    -webkit-nbsp-mode: space;
+    line-height: 1.3;
+    padding: 0.5em;
+    resize: vertical;
+    min-height: 2em;
 }
 
 ::-webkit-resizer {
@@ -28,43 +28,43 @@ codapi-output pre {
 }
 
 codapi-toolbar {
-  color: var(--accent5);
+    color: var(--accent5);
 }
 
 codapi-toolbar button {
-  padding: 0;
-  border: none;
-  background: none;
-  line-height: 1.35;
-  color: var(--color-blue);
-  cursor: pointer;
-  display: inline-block;
-  vertical-align: middle;
-  outline: 0;
-  overflow: hidden;
-  padding: 0.5em 1em;
-  position: relative;
-  text-decoration: none;
-  text-align: center;
-  -webkit-appearance: none;
-  appearance: none;
-  font-family: inherit;
-  font-size: 100%;
-  line-height: 1.15;
-  margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    line-height: 1.35;
+    color: var(--color-blue);
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+    outline: 0;
+    overflow: hidden;
+    padding: 0.5em 1em;
+    position: relative;
+    text-decoration: none;
+    text-align: center;
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0;
 }
 
 codapi-toolbar button::after {
-  content: " ▶";
+    content: " ▶";
 }
 
 codapi-status {
-  color: var(--accent2);
-  margin-left: 1em;
+    color: var(--accent2);
+    margin-left: 1em;
 }
 
 codapi-ref {
-  display: none;
+    display: none;
 }
 
 figure.live-code pre {
@@ -72,12 +72,16 @@ figure.live-code pre {
     min-height: 2em;
 }
 
+figure.live-code pre code {
+    caret-color: var(--shade7);
+}
+
 /* Add badges to figures */
 figure.live-code {
     position: relative;
 }
 
-figure.live-code > pre::before {
+figure.live-code>pre::before {
     position: absolute;
     content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXJhZGlvIj48cGF0aCBkPSJNNC45IDE5LjFDMSAxNS4yIDEgOC44IDQuOSA0LjkiLz48cGF0aCBkPSJNNy44IDE2LjJjLTIuMy0yLjMtMi4zLTYuMSAwLTguNSIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjIiLz48cGF0aCBkPSJNMTYuMiA3LjhjMi4zIDIuMyAyLjMgNi4xIDAgOC41Ii8+PHBhdGggZD0iTTE5LjEgNC45QzIzIDguOCAyMyAxNS4xIDE5LjEgMTkiLz48L3N2Zz4=");
     top: 0;
