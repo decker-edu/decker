@@ -72,12 +72,17 @@ runDeckerArgs args theRules = do
         if null targets
           then theRules
           else want targets >> withoutActions theRules
-  meta <- readMetaDataFile globalMetaFileName
-  context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
-  case targets of
-    [command] | command `elem` commands -> runCommand context command rules
-    _ -> runTargets context targets rules
+  deckerMeta <- readMetaDataFile deckerMetaFile
+  case deckerMeta of
+    Right meta -> do
+      context <- initContext flags meta
+      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
+      case targets of
+          [command] | command `elem` commands -> runCommand context command rules
+          _ -> runTargets context targets rules
+    Left err -> do
+        putStrLn "ERROR: cannot find `decker.yaml`"
+        exitFailure
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do

@@ -11,7 +11,6 @@ module Text.Decker.Internal.Meta
     adjustMetaValueM,
     embedMetaMeta,
     fromPandocMeta,
-    globalMetaFileName,
     isMetaSet,
     lookupInDictionary,
     lookupMeta,
@@ -51,9 +50,6 @@ import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
 import Text.Decker.Internal.Common (pandocReaderOpts)
-
--- | Name of the one global meta data file
-globalMetaFileName = "decker.yaml"
 
 -- TODO: extract this value from global meta data.
 replaceLists :: [[Text]]
@@ -221,8 +217,7 @@ adjustMetaStringsBelow func = adjustMetaValue (mapMetaValues func)
 adjustMetaStringsBelowM ::
   (MonadFail m, MonadIO m) => (Text -> m Text) -> Text -> Meta -> m Meta
 adjustMetaStringsBelowM action key meta = do
-  adjusted <- adjustMetaValueM (mapMetaValuesM action) key meta
-  return adjusted
+  adjustMetaValueM (mapMetaValuesM action) key meta
 
 -- | Adds a meta value to the list found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created.
@@ -421,11 +416,12 @@ mapMetaWithKey f meta = do
 
 -- | Reads a single meta data file. If something goes wrong, an empty Meta
 -- structure is returned.
-readMetaDataFile :: FilePath -> IO Meta
-readMetaDataFile file =
-  catch
-    (toPandocMeta <$> Y.decodeFileThrow file)
-    $ \(SomeException _) -> return nullMeta
+readMetaDataFile :: FilePath -> IO (Either String Meta)
+readMetaDataFile file = do
+    result <- Y.decodeFileEither file
+    case result of
+        Right yaml -> return $ Right $ toPandocMeta yaml
+        Left err -> return $ Left $ show err
 
 embedMetaMeta :: Pandoc -> Pandoc
 embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks

@@ -56,7 +56,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
   ( FromMetaValue (..),
-    globalMetaFileName,
     lookupMetaOrElse,
   )
 import Text.Decker.Project.Glob
@@ -153,7 +152,7 @@ findProjectRoot = do
   where
     search :: FilePath -> FilePath -> IO FilePath
     search dir start = do
-      hasYaml <- Directory.doesFileExist (dir </> globalMetaFileName)
+      hasYaml <- Directory.doesFileExist (dir </> deckerMetaFile)
       hasGit <- Directory.doesDirectoryExist (dir </> ".git")
       if
         | hasYaml || hasGit -> return dir

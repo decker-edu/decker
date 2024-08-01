@@ -23,12 +23,14 @@ import Text.Decker.Internal.Meta (lookupMetaOrElse, readMetaDataFile)
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Pandoc (Meta)
+import Text.Pandoc.Builder (nullMeta)
 
 -- | Rules for transcribiung videos. Mp4 videos are transcribed using
 -- whisper.ccp if they have not yet been transcribed.
 transcriptionRules :: Rules ()
 transcriptionRules = do
-  meta <- liftIO $ readMetaDataFile deckerMetaFile
+  meta <- liftIO $ fromRight nullMeta <$> readMetaDataFile deckerMetaFile
+
   gpu <- newResource "GPU" 1
   (_, getDeps, _) <- prepCaches
   want ["vtts"]
