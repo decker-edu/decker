@@ -7,26 +7,12 @@
     text-rendering: optimizeLegibility;
 }
 
-@font-face {
-    font-family: "Comic Mono";
-    src: url("../fonts/comic-mono-latin-400-normal.woff2") format("woff2-variations");
-    font-weight: 400;
-    text-rendering: optimizeLegibility;
-}
-
-@font-face {
-    font-family: "Comic Mono";
-    src: url("../fonts/comic-mono-latin-700-normal.woff2") format("woff2-variations");
-    font-weight: 700;
-    text-rendering: optimizeLegibility;
-}
-
 body.deck {
     font-size: 40px;
     font-family: "Recursive", sans-serif;
     font-variation-settings:
         "MONO" 0,
-        "CASL" 0.6;
+        "CASL" 0.5;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -40,7 +26,7 @@ body.index {
     font-family: "Recursive", sans-serif;
     font-variation-settings:
         "MONO" 0,
-        "CASL" 0.6;
+        "CASL" 0.5;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -49,14 +35,13 @@ body.index {
 
 /* Inline code */
 code {
-    /* font-family: "Recursive", monospace; */
-    /* font-variation-settings: */
-    /* "MONO" 1, */
-    /* "CASL" 0.5; */
-    font-family: "Comic Mono", monospace;
-    font-weight: bold;
+    font-family: "Recursive", monospace;
+    font-variation-settings:
+        "MONO" 1,
+        "CASL" 0.4;
+    font-weight: 600;
     font-size: 100%;
-    caret-color: var(--accent0);
+    caret-color: var(--shade7);
     padding: 0.2em;
 }
 
@@ -529,4 +514,3 @@ li.task-no input[type="checkbox"] {
     padding: 0;
     margin-bottom: 0;
 }
-

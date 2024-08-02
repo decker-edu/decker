@@ -8,6 +8,8 @@ save-polls: true
 experiments:
   fragment-templates: true
 
+highlightjs: "xcode"
+
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
