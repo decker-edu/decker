@@ -120,7 +120,7 @@ wrapBoxes slide@(Slide header body dir) = do
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap [] = []
     wrap ((Header 2 attr@(id, cls, kvs) text) : blocks)
-      | "details" `elem` cls = [makeDetail attr text blocks]
+      | "details" `elem` cls = [makeFramedDetail attr text blocks]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks)
       | "notes" `elem` cls =
           [ tag "aside" $

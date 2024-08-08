@@ -5,7 +5,7 @@ pre code.hljs {
 
 .hljs {
     color: var(--shade7);
-    background: var(--shade1);
+    background: var(--code-background-color);
 }
 
 .hljs ::selection,

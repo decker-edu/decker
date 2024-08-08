@@ -1,6 +1,8 @@
 <div class="media">
     <figure class="live-code">
-        <pre class="live-code language-$language$"><code id="$rnd-id$" class="language-$language$">$code$</code></pre>
+        <div class="live-code">
+            <pre class="live-code language-$language$"><code id="$rnd-id$" class="live-code language-$language$">$code$</code></pre>
+        </div>
         <codapi-snippet id="$id$" engine="$if(engine)$$engine$$else$codapi$endif$"
             sandbox="$if(sandbox)$$sandbox$$else$$language$$endif$" editor="external" selector="#$rnd-id$" $attribs$>
         </codapi-snippet>
@@ -19,6 +21,7 @@
             }
 
             let code = document.querySelector("#$rnd-id$");
+            code.setAttribute("data-highlighted", "");
 
             // initial highlighting
             highlight(code);
