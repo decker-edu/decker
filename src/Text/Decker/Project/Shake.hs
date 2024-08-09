@@ -10,6 +10,7 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
+    runClean
   )
 where
 
