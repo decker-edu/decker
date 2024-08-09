@@ -26,10 +26,14 @@ codapi-output {
 }
 
 codapi-output pre {
+    position: unset;
     line-break: after-white-space;
     white-space: pre-wrap;
     -webkit-nbsp-mode: space;
     padding: 0em;
+}
+
+codapi-output pre {
 }
 
 /* unfortunately the resizer cannot be resized */
