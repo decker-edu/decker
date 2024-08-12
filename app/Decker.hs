@@ -38,6 +38,7 @@ import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
+import Text.Decker.Project.ActionContext (actionContext, extra, Flags (LectureFlag))
 
 main :: IO ()
 main = do
@@ -341,40 +342,42 @@ deckerRules = do
       need $ Map.keys (deps ^. resources)
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
     phony "publish" $ do
-      need ["support"]
       meta <- getGlobalMeta
-      getDeps >>= needTargets' [decks, pages]
-      createPublicManifest
-      let src = publicDir ++ "/"
-      case lookupMeta "publish.rsync.destination" meta of
-        Just destination -> publishWithRsync src destination meta
-        _ -> do
-          let host = lookupMetaOrFail "rsync-destination.host" meta
-          let path = lookupMetaOrFail "rsync-destination.path" meta
-          let dst = intercalate ":" [host, path]
-          ssh [host, "mkdir -p", path] Nothing
-          rsync [src, dst] Nothing
-  withTargetDocs "Publish only non-draft decks to the configured destination using rsync." $
-    phony "publish-selected" $ do
-      meta <- getGlobalMeta
-      case lookupMeta "publish.rsync.destination" meta of
-        Just (destination :: String) -> do
-            -- clean out the public dir
-            liftIO $ runClean False
-            -- includes index and static resources
+      context <- actionContext
+      let flags = context ^. extra
+      if LectureFlag `elem` flags
+        then do
+        case lookupMeta "publish.rsync.destination" meta of
+            Just (destination :: String) -> do
+                -- clean out the public dir
+                liftIO $ runClean False
+                -- includes index and static resources
+                need ["support"]
+                deps <- getDeps
+                let deckSrcs = Map.elems $ deps ^. decks
+                selected <- buildIndex (publicDir </> "index.json") meta deckSrcs
+                let decks = calcTargets deckSuffix deckHTMLSuffix selected
+                let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
+                let pages = calcTargets pageSuffix pageHTMLSuffix selected
+                let pagesPdf = calcTargets pageSuffix pagePDFSuffix selected
+                need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages <> Map.keys pagesPdf)
+                createPublicManifest
+                let src = publicDir ++ "/"
+                publishWithRsync src destination meta
+            _ -> putError "publish.rsync.destination not configured"
+        else do
             need ["support"]
-            deps <- getDeps
-            let deckSrcs = Map.elems $ deps ^. decks
-            selected <- buildIndex (publicDir </> "index.json") meta deckSrcs
-            let decks = calcTargets deckSuffix deckHTMLSuffix selected
-            let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
-            let pages = calcTargets pageSuffix pageHTMLSuffix selected
-            let pagesPdf = calcTargets pageSuffix pagePDFSuffix selected
-            need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages <> Map.keys pagesPdf)
+            getDeps >>= needTargets' [decks, pages]
             createPublicManifest
             let src = publicDir ++ "/"
-            putNormal "publishWithRsync src destination meta"
-        _ -> putError "publish.rsync.destination not configured"
+            case lookupMeta "publish.rsync.destination" meta of
+                Just destination -> publishWithRsync src destination meta
+                _ -> do
+                    let host = lookupMetaOrFail "rsync-destination.host" meta
+                    let path = lookupMetaOrFail "rsync-destination.path" meta
+                    let dst = intercalate ":" [host, path]
+                    ssh [host, "mkdir -p", path] Nothing
+                    rsync [src, dst] Nothing
 
 createPublicManifest :: Action ()
 createPublicManifest = do
