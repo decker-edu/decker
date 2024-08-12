@@ -24,6 +24,7 @@ module Text.Decker.Internal.Meta
     mergePandocMeta,
     pandocMeta,
     readMetaDataFile,
+    writeMetaDataFile,
     readMetaValue,
     setMetaValue,
     toPandocMeta',
@@ -243,22 +244,40 @@ addMetaValue key value meta =
 
 -- | Adds a meta value to the map found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created.
-addMetaKeyValue :: Text -> Text -> MetaValue -> Meta -> Meta
-addMetaKeyValue loc key value meta =
+addMetaKeyValue' :: ToMetaValue a => Text -> Text -> a -> Meta -> Meta
+addMetaKeyValue' loc key value meta =
   case add (splitKey loc) (MetaMap (unMeta meta)) of
     MetaMap map -> Meta map
     _ -> meta
   where
-    add [] (MetaMap m) = MetaMap $ M.insert key value m
-    add [""] (MetaMap m) = MetaMap $ M.insert key value m
+    mValue = toMetaValue value
+    add [] (MetaMap m) = MetaMap $ M.insert key mValue m
+    add [""] (MetaMap m) = MetaMap $ M.insert key mValue m
     add (k : p) (MetaMap m) =
       case M.lookup k m of
-        Just value -> MetaMap $ M.insert k (add p value) m
+        Just mValue -> MetaMap $ M.insert k (add p mValue) m
         _ -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
     add _ _ =
       throw $
         InternalException $
           "Cannot add meta value to non list at: " <> toString loc
+
+addMetaKeyValue :: ToMetaValue a => Text -> a -> Meta -> Meta
+addMetaKeyValue loc value meta =
+  case add (splitKey loc) (MetaMap (unMeta meta)) of
+    MetaMap map -> Meta map
+    _ -> meta
+  where
+    mValue = toMetaValue value
+    add [key] (MetaMap m) = MetaMap $ M.insert key mValue m
+    add (key : p) (MetaMap m) =
+      case M.lookup key m of
+        Just mValue -> MetaMap $ M.insert key (add p mValue) m
+        _ -> MetaMap $ M.insert key (add p $ MetaMap M.empty) m
+    add _ _ =
+      throw $
+        InternalException $
+          "Cannot add meta value at: " <> toString loc
 
 pandocMeta :: (Text -> Meta -> Maybe a) -> Pandoc -> Text -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m
@@ -420,6 +439,11 @@ readMetaDataFile file = do
     case result of
         Right yaml -> return $ Right $ toPandocMeta yaml
         Left err -> return $ Left $ show err
+
+-- | Writes a single meta data file.
+writeMetaDataFile :: FilePath -> Meta -> IO ()
+writeMetaDataFile file meta = do
+    Y.encodeFile file (fromPandocMeta meta)
 
 embedMetaMeta :: Pandoc -> Pandoc
 embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks

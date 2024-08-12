@@ -38,6 +38,7 @@ import Text.Pandoc.Filter
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Decker.Filter.Select (dropSolutionBlocks)
 
 data FilterPosition = Before | After deriving (Show, Eq)
 
@@ -188,6 +189,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         processNotes,
         pauseDots,
         wrapBoxes,
+        dropSolutionBlocks meta, 
         processNotes,
         incrementalBlocks,
         selectActiveSlideContent,

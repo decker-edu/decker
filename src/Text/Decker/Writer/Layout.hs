@@ -94,7 +94,7 @@ writePandocFile :: WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile options out pandoc@(Pandoc meta blocks) = do
   let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile
-  let meta' = addMetaKeyValue "" "decker-meta-url" (MetaString $ toText metaFile) meta
+  let meta' = addMetaKeyValue "decker-meta-url" (toText metaFile) meta
   let metaJson = encodePretty $ fromPandocMeta meta'
   liftIO $ BS.writeFile metaPath metaJson
   -- liftIO $ do
