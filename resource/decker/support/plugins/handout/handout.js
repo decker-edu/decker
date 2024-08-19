@@ -25,6 +25,18 @@ handoutContainer.appendChild(handoutSlides);
 
 let storedMetaViewport = undefined;
 
+let viewButton = undefined;
+
+let localization = {
+  activate_handout_mode: "Activate Handout Mode",
+  deactivate_handout_mode: "Deactivate Handout Mode",
+};
+
+if (navigator.language === "de") {
+  localization.activate_handout_mode = "Handout Modus anschalten";
+  localization.deactivate_handout_mode = "Handout Modus abschalten";
+}
+
 function activateHandoutMode() {
   /* Store and modify viewport meta tag to allow mobile device zooming */
   const meta = document.querySelector("meta[name=viewport]");
@@ -41,6 +53,16 @@ function activateHandoutMode() {
     meta.setAttribute("content", unlimited);
   }
   const currentSlide = Reveal.getCurrentSlide();
+
+  // Switch state of view menu button
+  if (viewButton) {
+    viewButton.ariaPressed = true;
+    viewButton.ariaLabel = localization.deactivate_handout_mode;
+    const span = viewButton.querySelector("span");
+    if (span) {
+      span.innerText = localization.deactivate_handout_mode;
+    }
+  }
 
   // Store current reveal config and disable everything but keyboard shortcuts
   const currentConfiguration = Reveal.getConfig();
@@ -146,6 +168,17 @@ function disassembleHandoutMode() {
   if (meta) {
     meta.setAttribute("content", storedMetaViewport);
   }
+
+  // Change state of view menu button
+  if (viewButton) {
+    viewButton.ariaPressed = false;
+    viewButton.ariaLabel = localization.activate_handout_mode;
+    const span = viewButton.querySelector("span");
+    if (span) {
+      span.innerText = localization.activate_handout_mode;
+    }
+  }
+
   // Restore configuration
   Reveal.configure(previousRevealConfiguration);
 
@@ -507,12 +540,10 @@ function createButtons() {
   // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
   if (menu && menu.addViewButton) {
-    menu.addViewButton(
+    viewButton = menu.addViewButton(
       "menu-handout-button",
       "fa-file-arrow-down",
-      navigator.language === "de"
-        ? "Handout-Modus umschalten"
-        : "Toggle Handout Mode",
+      localization.activate_handout_mode,
       toggleHandoutMode
     );
   }

@@ -9,6 +9,8 @@ let Reveal;
 
 let a11yMode;
 
+let viewButton = undefined;
+
 function addScreenReaderSlideNumbers() {
   const slides = document.querySelectorAll(".slides > section");
   slides.forEach((slide, h) => {
@@ -98,6 +100,12 @@ function toggleA11YMode() {
   a11yMode = !a11yMode;
 
   if (a11yMode) {
+    viewButton.ariaPressed = true;
+    viewButton.ariaLabel = localization.deactivate_accessibility;
+    const span = viewButton.querySelector("span");
+    if (span) {
+      span.innerHTML = localization.deactivate_accessibility;
+    }
     document.documentElement.classList.add("a11y");
     const videos = document.getElementsByTagName("VIDEO");
     for (const video of videos) {
@@ -111,6 +119,12 @@ function toggleA11YMode() {
       `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
     );
   } else {
+    viewButton.ariaPressed = false;
+    viewButton.ariaLabel = localization.activate_accessibility;
+    const span = viewButton.querySelector("span");
+    if (span) {
+      span.innerHTML = localization.activate_accessibility;
+    }
     document.documentElement.classList.remove("a11y");
     const videos = document.getElementsByTagName("VIDEO");
     for (const video of videos) {
@@ -127,12 +141,14 @@ function toggleA11YMode() {
 }
 
 const localization = {
-  toggle_accessibility: "Toggle Accessibility Features",
+  activate_accessibility: "Activate Accessibility Features",
+  deactivate_accessibility: "Deactivate Accessibility Features",
   slide: "Slide",
 };
 
 if (navigator.language === "de") {
-  localization.toggle_accessibility = "Barrierefreie Funktionen umschalten";
+  localization.activate_accessibility = "Barrierefreie Funktionen anschalten";
+  localization.deactivate_accessibility = "Barrierefreie Funktionen abschalten";
   localization.slide = "Folie";
 }
 
@@ -159,11 +175,11 @@ const Plugin = {
     );
     reveal.addEventListener("ready", () => {
       const menuPlugin = reveal.getPlugin("decker-menu");
-      if (menuPlugin) {
-        menuPlugin.addViewButton(
+      if (!!menuPlugin && !!menuPlugin.addViewButton) {
+        viewButton = menuPlugin.addViewButton(
           "decker-menu-a11y-button",
           "fa-universal-access",
-          localization.toggle_accessibility,
+          localization.activate_accessibility,
           toggleA11YMode
         );
       }

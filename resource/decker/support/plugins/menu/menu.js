@@ -551,11 +551,11 @@ class SlideMenu {
     const span = document.createElement("span");
     span.innerText = title;
     button.appendChild(span);
-    button.title = title;
     button.setAttribute("aria-label", title);
     button.setAttribute("role", "menuitem");
     button.addEventListener("click", callback);
     this.views.area.appendChild(button);
+    return button;
   }
 
   clearCurrentSlideMark() {
@@ -675,7 +675,7 @@ const plugin = () => {
       };
 
       this.addViewButton = (id, icon, title, callback) => {
-        menu.addViewButton(id, icon, title, callback);
+        return menu.addViewButton(id, icon, title, callback);
       };
 
       this.updateCurrentSlideMark = (slide) => {

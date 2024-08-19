@@ -96,6 +96,10 @@
   cursor: pointer;
 }
 
+.view-button[aria-pressed="true"] {
+  background-color: var(--accent3);
+}
+
 .view-button i {
   display: block;
   font-size: 4em;

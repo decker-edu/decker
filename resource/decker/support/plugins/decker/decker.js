@@ -5,6 +5,9 @@ const deckPathname = location.pathname;
 const printMode = /print-pdf/gi.test(window.location.search);
 const presenterStartup = /presenter/gi.test(window.location.search);
 
+// view menu button
+let viewButton = undefined;
+
 // Fix some decker-specific things when slides are loaded
 function onStart(deck) {
   fixAutoplayWithStart();
@@ -24,11 +27,11 @@ function onStart(deck) {
     preparePresenterMode(deck);
 
     const menuPlugin = deck.getPlugin("decker-menu");
-    if (menuPlugin) {
-      menuPlugin.addViewButton(
+    if (!!menuPlugin && !!menuPlugin.addViewButton) {
+      viewButton = menuPlugin.addViewButton(
         "decker-menu-presenter-button",
         "fa-chalkboard-teacher",
-        localization.toggle_presenter_mode,
+        localization.activate_presenter_mode,
         togglePresenterMode
       );
     }
@@ -412,8 +415,20 @@ function togglePresenterMode() {
 
   if (presenterMode) {
     viewportElement.classList.add("presenter-mode");
+    viewButton.ariaPressed = true;
+    viewButton.ariaLabel = localization.deactivate_presenter_mode;
+    const span = viewButton.querySelector("span");
+    if (span) {
+      span.innerHTML = localization.deactivate_presenter_mode;
+    }
   } else {
     viewportElement.classList.remove("presenter-mode");
+    viewButton.ariaPressed = false;
+    viewButton.ariaLabel = localization.activate_presenter_mode;
+    const span = viewButton.querySelector("span");
+    if (span) {
+      span.innerHTML = localization.activate_presenter_mode;
+    }
   }
 
   for (let callback of listeners) {
@@ -467,11 +482,13 @@ function preparePresenterMode(deck) {
 }
 
 const localization = {
-  toggle_presenter_mode: "Toggle Presenter Mode",
+  activate_presenter_mode: "Activate Presenter Mode",
+  deactivate_presenter_mode: "Deactivate Presenter Mode",
 };
 
 if (navigator.language === "de") {
-  localization.toggle_presenter_mode = "Präsentationsmodus umschalten";
+  localization.activate_presenter_mode = "Präsentationsmodus anschalten";
+  localization.deactivate_presenter_mode = "Präsentationsmodus abschalten";
 }
 
 const Plugin = {
