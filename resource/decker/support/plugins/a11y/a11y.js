@@ -9,6 +9,32 @@ let Reveal;
 
 let a11yMode;
 
+function addScreenReaderSlideNumbers() {
+  const slides = document.querySelectorAll(".slides > section");
+  slides.forEach((slide, h) => {
+    const subslides = slide.querySelectorAll("section");
+    if (subslides.length > 0) {
+      subslides.forEach((subslide, v) => {
+        addScreenReaderSlideNumber(subslide, h, v);
+      });
+      return;
+    }
+    addScreenReaderSlideNumber(slide, h);
+  });
+}
+
+function addScreenReaderSlideNumber(slide, h, v) {
+  const header = slide.querySelector("h1");
+  if (header) {
+    const innerHTML = header.innerHTML;
+    const replacementHTML = `<span class="sr-only">${localization.slide} ${
+      h + 1
+    }${v ? "." + v : ""}, </span>${innerHTML}`;
+    header.innerHTML = replacementHTML;
+    console.log(replacementHTML);
+  }
+}
+
 /**
  * Adds inert to all inactive slides and adds an on-slidechanged callback to reveal
  * to toggle inert on the slides changed.
@@ -102,10 +128,12 @@ function toggleA11YMode() {
 
 const localization = {
   toggle_accessibility: "Toggle Accessibility Features",
+  slide: "Slide",
 };
 
 if (navigator.language === "de") {
   localization.toggle_accessibility = "Barrierefreie Funktionen umschalten";
+  localization.slide = "Folie";
 }
 
 const a11y = /a11y/gi.test(window.location.search);
@@ -114,10 +142,10 @@ const Plugin = {
   id: "a11y",
   init: (reveal) => {
     Reveal = reveal;
-    // This may no longer be necessary if we clearly recommend the handout mode to people using assistive technology
-    // fixTabsByInert();
+    fixTabsByInert();
     addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
+    addScreenReaderSlideNumbers();
     reveal.addKeyBinding(
       {
         keyCode: 65,
