@@ -30,6 +30,17 @@ makeDetail attr summary detail =
           (addClasses ["block"] attr)
           (sum <> detail)
 
+makeFramedDetail :: Attr -> [Inline] -> [Block] -> Block
+makeFramedDetail attr summary detail =
+  let sum = case summary of
+        [] -> []
+        text -> [tag "summary" $ Div nullAttr [Plain text]]
+   in Div ("", ["details-frame"], []) 
+        [tag "details" $
+            Div
+                (addClasses ["block"] attr)
+                (sum <> detail)]
+
 processDetailHeader :: Pandoc -> Decker Pandoc
 processDetailHeader (Pandoc meta blocks) =
   return $ Pandoc meta $ processDetailHeader' 1 blocks
@@ -44,5 +55,5 @@ processDetailHeader' level blocks = concatMap process sections
     isBlockStart level (Header n attr text) | n <= level = True
     isBlockStart _ _ = False
     transformDetail ((Header n attr@(id, cls, kvs) text) : rest)
-      | "details" `elem` cls = [makeDetail attr text rest]
+      | "details" `elem` cls = [makeFramedDetail attr text rest]
     transformDetail blocks = blocks

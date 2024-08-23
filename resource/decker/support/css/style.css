@@ -426,3 +426,20 @@ button.fa-button::-moz-focus-inner {
   outline: none;
   border: none;
 }
+
+/* details that pop up. per default only with wrapped details 
+elements from H2 boxes. */
+div.details-frame:has(details.popup) {
+    position: relative;
+    height: 1.8em;
+}
+
+div.details-frame details[open].popup {
+    position: absolute;
+    background-color: var(--accent4-bbg);
+    box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+    border-radius: var(--block-border-radius);
+    z-index: 2;
+    padding: 0.8em;
+    margin: -0.8em;
+}

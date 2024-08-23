@@ -1,0 +1,43 @@
+<div class="media">
+    <figure class="live-code">
+        <div class="live-code">
+            <pre class="live-code language-$language$"><code id="$rnd-id$" class="live-code language-$language$">$code$</code></pre>
+        </div>
+        <codapi-snippet id="$id$" engine="$if(engine)$$engine$$else$codapi$endif$"
+            sandbox="$if(sandbox)$$sandbox$$else$$language$$endif$" editor="external" selector="#$rnd-id$" $attribs$>
+        </codapi-snippet>
+        <script type="module">
+            // TODO include highlightjs as submodule
+            import hljs from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/highlight.min.js';
+            import $language$ from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/languages/$language$.min.js';
+
+            hljs.configure({
+                ignoreUnescapedHTML: true
+            });
+            hljs.registerLanguage('$language$', $language$);
+            let highlight = code => {
+                code.removeAttribute("data-highlighted");
+                hljs.highlightElement(code);
+            }
+
+            let code = document.querySelector("#$rnd-id$");
+            code.setAttribute("data-highlighted", "");
+
+            // initial highlighting
+            highlight(code);
+
+            // import dynamically because we need to construct the module selector.
+            import(Decker.meta.supportPath + "/vendor/codejar/codejar.js")
+                .then((codejar) => {
+                    codejar.CodeJar(code, highlight);
+                    // CodeJar fiddles with the style attribute of out code element. Reset that.
+                    code.style.whiteSpace = "pre";
+                    code.style.overflowX = "scroll";
+                    code.style.overflowY = "scroll";
+                });
+        </script>
+        <figcaption>
+            $caption$
+        </figcaption>
+    </figure>
+</div>

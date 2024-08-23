@@ -38,6 +38,7 @@ import Text.Pandoc.Filter
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Decker.Filter.Select (dropSolutionBlocks)
 
 data FilterPosition = Before | After deriving (Show, Eq)
 
@@ -120,7 +121,7 @@ wrapBoxes slide@(Slide header body dir) = do
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap [] = []
     wrap ((Header 2 attr@(id, cls, kvs) text) : blocks)
-      | "details" `elem` cls = [makeDetail attr text blocks]
+      | "details" `elem` cls = [makeFramedDetail attr text blocks]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks)
       | "notes" `elem` cls =
           [ tag "aside" $
@@ -188,6 +189,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         processNotes,
         pauseDots,
         wrapBoxes,
+        dropSolutionBlocks meta, 
         processNotes,
         incrementalBlocks,
         selectActiveSlideContent,

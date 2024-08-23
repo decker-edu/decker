@@ -36,6 +36,8 @@ import Text.Pandoc
 import Text.Printf
 import Text.URI (URI, unRText, uriFragment)
 import Text.URI qualified as URI
+import Data.List.Extra (minimum)
+import Data.Char (isSpace)
 
 fragmentRelated =
   [ "fragment",
@@ -291,9 +293,16 @@ includeCodeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 includeCodeBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   code <- lift $ readLocalUri uri
-  let text = maybe code (extractSnippetFrom code . unRText) (uriFragment uri)
+  let text = maybe code (dedent . extractSnippetFrom code . unRText) (uriFragment uri)
   codeBlock text caption
 
+dedent :: Text -> Text
+dedent snippet =
+    -- ---8<|--- dedent-test
+    let lines = Text.lines snippet
+        indent = minimum $ map (Text.length . Text.takeWhile isSpace) (filter (not . Text.null) lines)
+    in  Text.unlines $ map (Text.drop indent) lines
+    
 data Extract = Waiting | CollectingSnip [Text] | CollectingPara [Text] | Done [Text] deriving (Show)
 
 -- ---8<|--- include-even-shorter

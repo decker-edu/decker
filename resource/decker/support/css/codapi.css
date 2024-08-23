@@ -1,0 +1,123 @@
+/*
+<codapi-snippet sandbox="python" editor="basic">
+    <codapi-toolbar>
+        <button>Run</button>
+        <a href="#edit">Edit</a>
+        <codapi-status> ✓ Done </codapi-status>
+    </codapi-toolbar>
+    <codapi-output>
+        <pre><code>Hello, World!</code></pre>
+    </codapi-output>
+    </codapi-snippet>
+    */
+
+codapi-output {
+    /* anchor for the close button (link) */
+    position: relative;
+    margin-top: 0.5em;
+
+    /* resizable and scrollable */
+    resize: vertical;
+    overflow: scroll;
+
+    background-color: var(--code-background-color);
+    min-height: 2em;
+    max-height: calc(var(--code-block-max-height)/2);
+}
+
+codapi-output pre {
+    position: unset;
+    line-break: after-white-space;
+    white-space: pre-wrap;
+    -webkit-nbsp-mode: space;
+    padding: 0em;
+}
+
+codapi-output pre {
+}
+
+/* unfortunately the resizer cannot be resized */
+::-webkit-resizer {
+    border: none;
+    background-image: repeating-linear-gradient(135deg, var(--shade1), var(--code-background-color), var(--accent3));
+}
+
+/* anchor to the codapi output div */
+codapi-toolbar {
+    position: absolute;
+    top: 0em;
+    right: 0em;
+}
+
+/* we will style this ourselves */
+codapi-toolbar button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+codapi-toolbar button::after {
+    content: " ▶";
+}
+
+/* make the run button and the close link look and behave the same  */
+codapi-toolbar button:hover,
+codapi-output a[href="#close"]:hover {
+    background-color: var(--accent3-bg);
+}
+
+/* style th elink and the button the same */
+codapi-toolbar button,
+codapi-output a[href="#close"] {
+    cursor: pointer;
+    z-index: 2;
+
+    border: none;
+    border-radius: var(--block-border-radius);
+    padding: 0.2em 0.4em;
+    margin: 0;
+
+    display: inline-block;
+    position: absolute;
+    top: 0.4em;
+    right: 0.4em;
+    width: auto;
+    height: auto;
+    line-height: normal;
+
+    color: var(--accent3);
+    background-color: var(--accent3-bbg);
+    overflow: hidden;
+    text-decoration: none;
+    white-space: nowrap;
+
+    text-align: center;
+    vertical-align: middle;
+    font-size: 80%;
+}
+
+/* don't show the status */
+codapi-status {
+    display: none;
+}
+
+/* don't show the Codapi link */
+codapi-ref {
+    display: none;
+}
+
+/* anchor for the run button */
+figure.live-code {
+    position: relative;
+}
+
+div.live-code {
+    resize: vertical;
+    overflow: scroll;
+    min-height: 3em;
+    max-height: var(--code-block-max-height);
+    background: var(--code-background-color);
+}
+
+div.live-code pre code {
+    caret-color: var(--shade7);
+}

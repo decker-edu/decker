@@ -30,6 +30,7 @@ module Text.Decker.Project.Project
     toMetaValue,
     readTargetsFile,
     alwaysExclude,
+    calcTargets
   )
 where
 
@@ -166,22 +167,6 @@ setProjectDirectory = do
   Directory.setCurrentDirectory projectDir
   putStrLn $ "# Running decker in: " <> projectDir
 
-deckSuffix = "-deck.md"
-
-deckHTMLSuffix = "-deck.html"
-
-deckPDFSuffix = "-deck.pdf"
-
-pageSuffix = "-page.md"
-
-pageHTMLSuffix = "-page.html"
-
-pagePDFSuffix = "-page.pdf"
-
-handoutHTMLSuffix = "-handout.html"
-
-handoutPDFSuffix = "-handout.pdf"
-
 sourceRegexes :: [String] =
   [ "-deck.md\\'",
     "-page.md\\'",
@@ -253,11 +238,15 @@ scanTargets meta = do
       }
   where
     publicDep src = (publicDir </> src, src)
-    calcTargets = calcTargets' publicDir
-    calcPrivateTargets = calcTargets' privateDir
-    calcTarget baseDir srcSuffix targetSuffix source =
-      baseDir </> replaceSuffix srcSuffix targetSuffix source
-    calcTargets' baseDir srcSuffix targetSuffix sources =
-      Map.fromList
-        $ map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s))
-        $ filter (srcSuffix `List.isSuffixOf`) sources
+
+calcTargets = calcTargets' publicDir
+
+calcPrivateTargets = calcTargets' privateDir
+
+calcTarget baseDir srcSuffix targetSuffix source =
+    baseDir </> replaceSuffix srcSuffix targetSuffix source
+
+calcTargets' baseDir srcSuffix targetSuffix sources =
+    Map.fromList
+    $ map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s))
+    $ filter (srcSuffix `List.isSuffixOf`) sources

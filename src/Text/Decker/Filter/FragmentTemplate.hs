@@ -10,9 +10,14 @@ import Text.Decker.Filter.Monad (Filter, meta, FilterState (templates))
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Meta (lookupMetaOrElse )
 import Text.Decker.Internal.Exception (DeckerException (..))
-import Text.Pandoc hiding (lookupMeta, newStdGen, getTemplate)
-import Text.Pandoc.Shared
-import Text.Pandoc.Walk
+import Text.Pandoc
+    ( Inline(RawInline, Link),
+      Block(RawBlock, Para, Plain, CodeBlock),
+      Pandoc(..),
+      renderTemplate,
+      Template )
+import Text.Pandoc.Shared ( stringify )
+import Text.Pandoc.Walk ( Walkable(walkM) )
 import Text.Regex.TDFA.Text ()
 import Text.Decker.Internal.URI (makeProjectPath)
 import Text.DocTemplates (compileTemplateFile, toContext, Context)
@@ -21,10 +26,11 @@ import Control.Exception (throw)
 import Control.Concurrent.STM (modifyTVar)
 import Data.Aeson (toJSON)
 import System.FilePath ((<.>))
-import Text.DocLayout
+import Text.DocLayout ( render )
 import Text.Decker.Internal.Common (supportDir)
 import Development.Shake.FilePath ((</>))
 import Control.Exception.Base (handle)
+import Text.Decker.Filter.Local (needFile)
 
 expandFragmentTemplates :: Pandoc -> Filter Pandoc
 expandFragmentTemplates  document@(Pandoc meta blocks) =
@@ -106,7 +112,8 @@ getTemplate filename = do
   templates <- liftIO $ readTVarIO tvar
   case Map.lookup filename templates of
     Nothing -> do
-      template <- readTemplateFile (filename  <.> "html")
+      template <- do
+        readTemplateFile (filename  <.> "html")
       atomically $ modifyTVar tvar (Map.insert filename template)
       return template
     Just template -> return template
@@ -123,12 +130,18 @@ readTemplateFile filename = do
   -- tries two template locations in order and tries the second one only if the
   -- first one cannot be found. if the template cannot be found ist throws on
   -- either.
-  template <- liftIO $
+  (path, template) <- liftIO $
     handle (\(SomeException _) ->
       handle (\(SomeException err)->
                 throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err))
-             $ compileTemplateFile path2) $ compileTemplateFile path1
+             $ compileTemplate path2) $ compileTemplate path1
   case template of
-    Right template -> return template
+    Right template -> do
+        needFile path
+        return template
     Left err -> do
       return $ throw (ResourceException $ "Cannot parse template file: " <> filename <> ": " <> show err)
+  where 
+    compileTemplate path = do
+        t <- compileTemplateFile path
+        return (path, t)

@@ -43,6 +43,7 @@ import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
 import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
+import Text.Decker.Filter.Select (filterSelectedSlides)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -54,6 +55,7 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= mergeDocumentMeta globalMeta
     >>= processMeta
     >>= processCites
+    >>= runNewFilter disp filterSelectedSlides docPath
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docPath
@@ -97,6 +99,9 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path
+    -- >>= (\(Pandoc meta blocks) -> 
+    --         do  putStrLn $ path <> "\n" <> show meta
+    --             return (Pandoc meta blocks))
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
@@ -110,7 +115,8 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   let pathToSupport = makeRelativeTo documentPath "support"
   let meta' =
         addMetaField "projectPath" pathToProject
-          $ addMetaField "supportPath" pathToSupport meta
+          $ addMetaField "supportPath" pathToSupport
+            $ addMetaField "documentPath" documentPath meta
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
