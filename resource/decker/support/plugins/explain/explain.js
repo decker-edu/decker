@@ -798,6 +798,7 @@ function stopRecording() {
     Reveal.getPlugin("whiteboard").saveAnnotations();
   }
 
+  enableViewButton();
   return true;
 }
 
@@ -1770,6 +1771,13 @@ function setupCallbacks() {
   });
 }
 
+function enableViewButton() {
+  if (viewButton) {
+    viewButton.disabled = false;
+  }
+  return true;
+}
+
 // export the plugin
 const Plugin = {
   id: "explain",
@@ -1820,7 +1828,7 @@ const Plugin = {
       RECORDER_READY: {
         name: "RECORDER_READY",
         transition: {
-          cancel: { action: null, next: "INIT" },
+          cancel: { action: enableViewButton, next: "INIT" },
           record: { action: startRecording, next: "RECORDING" },
         },
       },
