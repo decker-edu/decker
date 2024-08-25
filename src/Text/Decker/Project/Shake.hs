@@ -10,6 +10,7 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
+    runClean
   )
 where
 
@@ -19,7 +20,6 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch hiding (try)
-import Data.Aeson hiding (Error)
 import Data.ByteString.Char8 qualified as BS
 import Data.ByteString.UTF8 qualified as UTF8
 import Data.Char
@@ -54,7 +54,9 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
-import Text.Pandoc hiding (Verbosity)
+import Text.Pandoc ( Meta )
+import qualified Data.HashMap.Strict as Map
+import Text.Pandoc.Definition (nullMeta)
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -72,12 +74,17 @@ runDeckerArgs args theRules = do
         if null targets
           then theRules
           else want targets >> withoutActions theRules
-  meta <- readMetaDataFile globalMetaFileName
-  context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
-  case targets of
-    [command] | command `elem` commands -> runCommand context command rules
-    _ -> runTargets context targets rules
+  deckerMeta <- readMetaDataFile deckerMetaFile
+  case deckerMeta of
+    Right meta -> do
+      context <- initContext flags meta
+      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
+      case targets of
+          [command] | command `elem` commands -> runCommand context command rules
+          _ -> runTargets context targets rules
+    Left err -> do
+        putStrLn "ERROR: cannot find `decker.yaml`"
+        exitFailure
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
@@ -285,7 +292,12 @@ deckerFlags =
       ['P']
       ["poser"]
       (GetOpt.NoArg $ Right PoserFlag)
-      "Transcode recordings immediately to MP4."
+      "Transcode recordings immediately to MP4.",
+    GetOpt.Option
+      ['l']
+      ["lecture"]
+      (GetOpt.NoArg $ Right LectureFlag)
+      "Enable lecture publishing."
   ]
 
 parsePortArg :: String -> Either String Flags
@@ -320,9 +332,12 @@ addMetaFlags flags meta =
 extractMetaIntoFile :: [Flags] -> IO ()
 extractMetaIntoFile flags = do
   let metaFlags = HashMap.fromList $ map (\(MetaValueFlag k v) -> (k, v)) $ filter aMetaValue flags
-  let json = decodeUtf8 $ encode metaFlags
+  let metaFlags' = if LectureFlag `elem` flags
+                    then Map.insert "lecture.publish" "yes" metaFlags
+                    else metaFlags
+  let meta = HashMap.foldrWithKey (\key val m -> addMetaKeyValue (toText key) (toText val) m) nullMeta metaFlags'
   argsFile <- metaArgsFile
-  writeFileChanged argsFile json
+  writeMetaDataFile argsFile meta  
 
 aMetaValue (MetaValueFlag _ _) = True
 aMetaValue _ = False

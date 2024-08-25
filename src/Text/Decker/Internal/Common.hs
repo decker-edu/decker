@@ -120,3 +120,19 @@ metaArgsFile = (</> "meta-args.yaml") <$> transientDir
 externalStatusFile = (</> "external-programs.json") <$> transientDir
 
 indexSource = "index.md"
+
+deckSuffix = "-deck.md"
+
+deckHTMLSuffix = "-deck.html"
+
+deckPDFSuffix = "-deck.pdf"
+
+pageSuffix = "-page.md"
+
+pageHTMLSuffix = "-page.html"
+
+pagePDFSuffix = "-page.pdf"
+
+handoutHTMLSuffix = "-handout.html"
+
+handoutPDFSuffix = "-handout.pdf"

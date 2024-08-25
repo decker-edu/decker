@@ -6,12 +6,15 @@ save-polls: true
 
 # enable some experimental features
 experiments:
-    fragment-templates: true
+  # fragment templates are needed for Codapi live-code support
+  fragment-templates: true
+
+# highlightjs: "xcode"
 
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
-      - "#fbf7ef"
+      - "#f3f1eb"
       - "#f1e9d2"
       - "#8faaab"
       - "#98a8a8"
@@ -73,11 +76,3 @@ reveal:
 
 css-variables:
   block-border-radius: 0.2em;
-
-template:
-  css:
-    - "/support/vendor/codapi-js/snippet.css"
-    - /support/css/hljs.css
-    - /support/css/codapi.css
-  js:
-    - "/support/vendor/codapi-js/snippet.js"
