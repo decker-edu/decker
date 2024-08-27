@@ -25,6 +25,13 @@
   border-bottom: 2px solid var(--menu-border-color);
 }
 
+.menu-header-buttons {
+  width: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
 .menu-header button {
   border: none;
   background: none;

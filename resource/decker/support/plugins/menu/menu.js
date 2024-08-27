@@ -108,7 +108,8 @@ class SlideMenu {
       this.disableKeybinds();
       this.glass.classList.add("show");
       if (event && event.detail === 0) {
-        setTimeout(() => this.menu.close_button.focus(), 500);
+        this.menu.close_button.focus();
+        //        setTimeout(() => this.menu.close_button.focus(), 500);
       }
       document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
     }
@@ -131,15 +132,15 @@ class SlideMenu {
     }
   }
 
-  toggleViews() {
+  toggleViews(event) {
     if (this.views.container.inert) {
-      this.openViews();
+      this.openViews(event);
     } else {
-      this.closeViews();
+      this.closeViews(event);
     }
   }
 
-  openViews() {
+  openViews(event) {
     this.views.container.inert = false;
     this.menu.slide_list.inert = true;
     this.menu.views_button.setAttribute(
@@ -150,6 +151,10 @@ class SlideMenu {
       "aria-label",
       this.localization.close_views_label
     );
+    if (event && event.detail === 0) {
+      this.views.area.firstElementChild.focus();
+      //        setTimeout(() => this.menu.close_button.focus(), 500);
+    }
   }
 
   closeViews() {
