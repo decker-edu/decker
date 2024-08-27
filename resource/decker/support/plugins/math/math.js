@@ -180,6 +180,8 @@ const Plugin = {
       macros = Object.assign(macros, options.macros);
     }
 
+    const language = Decker.meta.lang || navigator.language;
+
     /* MathJax configuration object */
     window.MathJax = {
       startup: {
@@ -231,6 +233,9 @@ const Plugin = {
           incremental: [1000, incrementalDocument, incrementalItem, false],
           adjustLinks: [1001, adjustLinksDocument, adjustLinksItem, false],
           fixmml: [1002, fixAssistiveMML, "", false],
+        },
+        sre: {
+          locale: language === "de" ? "de" : "en",
         },
         enableMenu: a11y,
         menuOptions: {
