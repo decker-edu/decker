@@ -39,7 +39,7 @@ let recordingResumeTime;
 let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimesPlay;
 
 // view menu button
-let viewButton;
+let pluginButton;
 
 let uiState;
 
@@ -554,7 +554,7 @@ async function setupRecorder() {
     openRecordPanel();
 
     // disable view menu button
-    viewButton.disabled = true;
+    pluginButton.disabled = true;
 
     return true;
   } catch (e) {
@@ -1772,8 +1772,8 @@ function setupCallbacks() {
 }
 
 function enableViewButton() {
-  if (viewButton) {
-    viewButton.disabled = false;
+  if (pluginButton) {
+    pluginButton.disabled = false;
   }
   return true;
 }
@@ -1890,8 +1890,8 @@ const Plugin = {
     }
     deck.addEventListener("ready", () => {
       const menuPlugin = deck.getPlugin("decker-menu");
-      if (menuPlugin) {
-        viewButton = menuPlugin.addViewButton(
+      if (menuPlugin && !!menuPlugin.addPluginButton) {
+        pluginButton = menuPlugin.addPluginButton(
           "decker-menu-recording-button",
           "fa-video",
           localization.init_recording,

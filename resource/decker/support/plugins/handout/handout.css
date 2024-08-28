@@ -141,3 +141,80 @@ html.handout .decker-anchor #handout-plus,
 html.handout .decker-anchor #handout-minus {
   display: inline-block;
 }
+
+#menu-handout-button {
+  position: relative;
+  --dwidth: var(--icon-size);
+  --dheight: calc(var(--dwidth) * 9 / 16);
+  --dcenterx: calc((100% / 2) - (0.5 * var(--dwidth)));
+  --dcentery: calc((100% / 2) - (0.5 * var(--dheight)));
+  --dhspace: calc(100% - 2 * var(--dheight));
+}
+
+#menu-handout-button div {
+  box-sizing: content-box;
+  background-color: var(--menu-header-text-color);
+  box-shadow: 0.125rem 0.125rem var(--menu-header-background-color);
+  border-radius: 0.15rem;
+  width: var(--dwidth);
+  height: var(--dheight);
+  transition: top 0.3s ease-in-out, left 0.3s ease-in-out, opacity 0.3s linear;
+}
+
+#menu-handout-button:hover div {
+  background-color: var(--accent3);
+}
+
+#menu-handout-button[aria-pressed="true"] div {
+  box-shadow: none;
+}
+
+#menu-handout-button[aria-pressed="true"]:hover div {
+  background-color: var(--foreground-color);
+}
+
+#menu-handout-button .first-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery) - 0.53 * var(--dheight));
+  left: calc(var(--dcenterx) - 0.3 * var(--dwidth));
+  z-index: 512;
+}
+
+#menu-handout-button .second-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery));
+  left: calc(var(--dcenterx));
+  z-index: 511;
+}
+
+#menu-handout-button .third-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery) + 0.53 * var(--dheight));
+  left: calc(var(--dcenterx) + 0.3 * var(--dwidth));
+  z-index: 510;
+}
+
+#menu-handout-button:hover .first-anim-rect,
+#menu-handout-button[aria-pressed="true"] .first-anim-rect {
+  position: absolute;
+  top: calc(var(--dhspace) / 3);
+  left: var(--dcenterx);
+  z-index: 512;
+}
+
+#menu-handout-button:hover .second-anim-rect,
+#menu-handout-button[aria-pressed="true"] .second-anim-rect{
+  position: absolute;
+  top: calc(var(--dhspace) / 3 * 2 + var(--dheight));
+  left: var(--dcenterx);
+  z-index: 511;
+}
+
+#menu-handout-button:hover .third-anim-rect,
+#menu-handout-button[aria-pressed="true"] .third-anim-rect{
+  position: absolute;
+  top: 100%;
+  left: var(--dcenterx);
+  opacity: 0;
+  z-index: 510;
+}

@@ -25,7 +25,7 @@ handoutContainer.appendChild(handoutSlides);
 
 let storedMetaViewport = undefined;
 
-let viewButton = undefined;
+let pluginButton = undefined;
 
 let localization = {
   activate_handout_mode: "Activate Handout Mode",
@@ -55,13 +55,9 @@ function activateHandoutMode() {
   const currentSlide = Reveal.getCurrentSlide();
 
   // Switch state of view menu button
-  if (viewButton) {
-    viewButton.ariaPressed = true;
-    viewButton.ariaLabel = localization.deactivate_handout_mode;
-    const span = viewButton.querySelector("span");
-    if (span) {
-      span.innerText = localization.deactivate_handout_mode;
-    }
+  if (pluginButton) {
+    pluginButton.ariaPressed = true;
+    pluginButton.setLabel(localization.deactivate_handout_mode);
   }
 
   // Store current reveal config and disable everything but keyboard shortcuts
@@ -170,13 +166,9 @@ function disassembleHandoutMode() {
   }
 
   // Change state of view menu button
-  if (viewButton) {
-    viewButton.ariaPressed = false;
-    viewButton.ariaLabel = localization.activate_handout_mode;
-    const span = viewButton.querySelector("span");
-    if (span) {
-      span.innerText = localization.activate_handout_mode;
-    }
+  if (pluginButton) {
+    pluginButton.ariaPressed = false;
+    pluginButton.setLabel(localization.activate_handout_mode);
   }
 
   // Restore configuration
@@ -530,6 +522,15 @@ function toggleHandoutMode() {
   } else {
     disassembleHandoutMode();
   }
+  if (handoutSlideMode) {
+    Decker.flash.message(
+      `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`
+    );
+  } else {
+    Decker.flash.message(
+      `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
+    );
+  }
 }
 
 /**
@@ -539,13 +540,22 @@ function toggleHandoutMode() {
 function createButtons() {
   // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
-  if (menu && menu.addViewButton) {
-    viewButton = menu.addViewButton(
+  if (menu && !!menu.addPluginButton) {
+    pluginButton = menu.addPluginButton(
       "menu-handout-button",
-      "fa-file-arrow-down",
+      "animated-button",
       localization.activate_handout_mode,
       toggleHandoutMode
     );
+    const first = document.createElement("div");
+    first.className = "first-anim-rect";
+    const second = document.createElement("div");
+    second.className = "second-anim-rect";
+    const third = document.createElement("div");
+    third.className = "third-anim-rect";
+    pluginButton.appendChild(first);
+    pluginButton.appendChild(second);
+    pluginButton.appendChild(third);
   }
 
   // add zoom in/out buttons
@@ -594,16 +604,6 @@ const Plugin = {
 
       Decker.tripleClick(() => {
         toggleHandoutMode();
-
-        if (handoutSlideMode) {
-          Decker.flash.message(
-            `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`
-          );
-        } else {
-          Decker.flash.message(
-            `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
-          );
-        }
       })
     );
     if (a11y || handout) {

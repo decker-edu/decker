@@ -6,7 +6,7 @@ const printMode = /print-pdf/gi.test(window.location.search);
 const presenterStartup = /presenter/gi.test(window.location.search);
 
 // view menu button
-let viewButton = undefined;
+let pluginButton = undefined;
 
 // Fix some decker-specific things when slides are loaded
 function onStart(deck) {
@@ -27,8 +27,8 @@ function onStart(deck) {
     preparePresenterMode(deck);
 
     const menuPlugin = deck.getPlugin("decker-menu");
-    if (!!menuPlugin && !!menuPlugin.addViewButton) {
-      viewButton = menuPlugin.addViewButton(
+    if (!!menuPlugin && !!menuPlugin.addPluginButton) {
+      pluginButton = menuPlugin.addPluginButton(
         "decker-menu-presenter-button",
         "fa-chalkboard-teacher",
         localization.activate_presenter_mode,
@@ -415,20 +415,12 @@ function togglePresenterMode() {
 
   if (presenterMode) {
     viewportElement.classList.add("presenter-mode");
-    viewButton.ariaPressed = true;
-    viewButton.ariaLabel = localization.deactivate_presenter_mode;
-    const span = viewButton.querySelector("span");
-    if (span) {
-      span.innerHTML = localization.deactivate_presenter_mode;
-    }
+    pluginButton.ariaPressed = true;
+    pluginButton.setLabel(localization.deactivate_presenter_mode);
   } else {
     viewportElement.classList.remove("presenter-mode");
-    viewButton.ariaPressed = false;
-    viewButton.ariaLabel = localization.activate_presenter_mode;
-    const span = viewButton.querySelector("span");
-    if (span) {
-      span.innerHTML = localization.activate_presenter_mode;
-    }
+    pluginButton.ariaPressed = false;
+    pluginButton.setLabel(localization.activate_presenter_mode);
   }
 
   for (let callback of listeners) {

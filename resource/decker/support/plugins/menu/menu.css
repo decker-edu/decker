@@ -9,14 +9,11 @@
 }
 
 .menu-header {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   z-index: 258;
 
   min-height: var(--common-menu-header-height);
-  max-height: var(--common-menu-header-height);
   padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
   color: var(--menu-header-text-color);
@@ -25,17 +22,19 @@
   border-bottom: 2px solid var(--menu-border-color);
 }
 
-.menu-header-buttons {
-  width: 100%;
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
+.menu-header-button-group {
+  grid-column: 2 / 6;
+  display: grid;
+  grid-template-columns: subgrid;
 }
 
 .menu-header button {
-  border: none;
   background: none;
   color: var(--menu-header-text-color);
+}
+
+#decker-menu-close-button {
+  grid-column: 1 / 1;
 }
 
 .menu-header button:hover {
@@ -46,17 +45,18 @@
   color: var(--icon-active-color);
 }
 
-@keyframes turning {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(359deg);
-  }
+.menu-header button[aria-pressed="true"] {
+  background-color: var(--accent3);
+  border: 1px inset var(--foreground-color);
+  border-radius: 0.25rem;
 }
 
-#decker-menu-settings-button:hover {
-  animation: 2s turning linear infinite;
+.menu-header button[aria-pressed="true"]:hover {
+  color: var(--foreground-color);
+}
+
+.menu-header button:disabled {
+  color: var(--shade1);
 }
 
 .menu-settings,

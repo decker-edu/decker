@@ -9,7 +9,7 @@ let Reveal;
 
 let a11yMode;
 
-let viewButton = undefined;
+let pluginButton = undefined;
 
 function addScreenReaderSlideNumbers() {
   const slides = document.querySelectorAll(".slides > section");
@@ -33,7 +33,6 @@ function addScreenReaderSlideNumber(slide, h, v) {
       h + 1
     }${v ? "." + v : ""}, </span>${innerHTML}`;
     header.innerHTML = replacementHTML;
-    console.log(replacementHTML);
   }
 }
 
@@ -100,9 +99,9 @@ function toggleA11YMode() {
   a11yMode = !a11yMode;
 
   if (a11yMode) {
-    viewButton.ariaPressed = true;
-    viewButton.ariaLabel = localization.deactivate_accessibility;
-    const span = viewButton.querySelector("span");
+    pluginButton.ariaPressed = true;
+    pluginButton.ariaLabel = localization.deactivate_accessibility;
+    const span = pluginButton.querySelector("span");
     if (span) {
       span.innerHTML = localization.deactivate_accessibility;
     }
@@ -119,9 +118,9 @@ function toggleA11YMode() {
       `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
     );
   } else {
-    viewButton.ariaPressed = false;
-    viewButton.ariaLabel = localization.activate_accessibility;
-    const span = viewButton.querySelector("span");
+    pluginButton.ariaPressed = false;
+    pluginButton.ariaLabel = localization.activate_accessibility;
+    const span = pluginButton.querySelector("span");
     if (span) {
       span.innerHTML = localization.activate_accessibility;
     }
@@ -175,8 +174,8 @@ const Plugin = {
     );
     reveal.addEventListener("ready", () => {
       const menuPlugin = reveal.getPlugin("decker-menu");
-      if (!!menuPlugin && !!menuPlugin.addViewButton) {
-        viewButton = menuPlugin.addViewButton(
+      if (!!menuPlugin && !!menuPlugin.addPluginButton) {
+        pluginButton = menuPlugin.addPluginButton(
           "decker-menu-a11y-button",
           "fa-universal-access",
           localization.activate_accessibility,

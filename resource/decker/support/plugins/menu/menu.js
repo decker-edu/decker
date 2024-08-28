@@ -24,12 +24,12 @@ class SlideMenu {
       container: undefined,
       home_button: undefined,
       search_button: undefined,
-      pdf_button: undefined,
+      print_button: undefined,
       color_button: undefined,
       close_button: undefined,
       slide_list: undefined,
     };
-    this.views = {
+    this.plugin_buttons = {
       container: undefined,
     };
     this.glass = undefined;
@@ -121,7 +121,6 @@ class SlideMenu {
    */
   closeMenu(event) {
     if (!this.inert) {
-      this.closeViews();
       this.inert = true;
       this.reveal.getRevealElement().inert = false;
       this.enableKeybinds();
@@ -130,44 +129,6 @@ class SlideMenu {
         this.open_button.focus();
       }
     }
-  }
-
-  toggleViews(event) {
-    if (this.views.container.inert) {
-      this.openViews(event);
-    } else {
-      this.closeViews(event);
-    }
-  }
-
-  openViews(event) {
-    this.views.container.inert = false;
-    this.menu.slide_list.inert = true;
-    this.menu.views_button.setAttribute(
-      "title",
-      this.localization.close_views_label
-    );
-    this.menu.views_button.setAttribute(
-      "aria-label",
-      this.localization.close_views_label
-    );
-    if (event && event.detail === 0) {
-      this.views.area.firstElementChild.focus();
-      //        setTimeout(() => this.menu.close_button.focus(), 500);
-    }
-  }
-
-  closeViews() {
-    this.views.container.inert = true;
-    this.menu.slide_list.inert = false;
-    this.menu.views_button.setAttribute(
-      "title",
-      this.localization.open_views_label
-    );
-    this.menu.views_button.setAttribute(
-      "aria-label",
-      this.localization.open_views_label
-    );
   }
 
   /**
@@ -459,14 +420,14 @@ class SlideMenu {
     let template = document.createElement("template");
     template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-labeledby="decker-menu-button" inert>
       <div class="menu-header">
-        <div class="menu-header-buttons">
-          <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
-          </button>
+        <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
+        </button>
+        <div class="menu-header-button-group">
           <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem">
           </button>
           <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem">
           </button>
-          <button id="decker-menu-views-button" class="fa-button fas fa-window-maximize" title="${this.localization.open_views_label}" aria-label="${this.localization.open_views_label}" role="menuitem" aria-haspopup="menu" aria-controls="decker-view-menu">
+          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem">
           </button>
           <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem">
           </button>
@@ -483,8 +444,8 @@ class SlideMenu {
     this.menu.search_button = container.querySelector(
       "#decker-menu-search-button"
     );
-    this.menu.views_button = container.querySelector(
-      "#decker-menu-views-button"
+    this.menu.print_button = container.querySelector(
+      "#decker-menu-print-button"
     );
     this.menu.color_button = container.querySelector(
       "#decker-menu-color-button"
@@ -492,6 +453,8 @@ class SlideMenu {
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
     );
+
+    this.plugin_buttons = container.querySelector(".menu-header-button-group");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -503,9 +466,12 @@ class SlideMenu {
     this.menu.search_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.views_button.addEventListener("click", (event) => {
-      this.toggleViews(event);
-    });
+    this.menu.print_button.addEventListener("click", (event) =>
+      this.printPDF()
+    );
+    this.menu.print_button.addEventListener("click", (event) =>
+      this.closeMenu(event)
+    );
     this.menu.color_button.addEventListener("click", (event) =>
       colorScheme.toggleColor()
     );
@@ -514,7 +480,6 @@ class SlideMenu {
     );
 
     this.initializeSlideList();
-    this.initializeViewMenu();
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
@@ -546,20 +511,19 @@ class SlideMenu {
     }
   }
 
-  addViewButton(id, icon, title, callback) {
+  addPluginButton(id, icon, title, callback) {
     const button = document.createElement("button");
     button.id = id;
-    button.classList.add("view-button");
-    const awesome = document.createElement("i");
-    awesome.classList.add("fas", icon);
-    button.appendChild(awesome);
-    const span = document.createElement("span");
-    span.innerText = title;
-    button.appendChild(span);
+    button.classList.add("fa-button", "fas", icon);
+    button.title = title;
     button.setAttribute("aria-label", title);
     button.setAttribute("role", "menuitem");
     button.addEventListener("click", callback);
-    this.views.area.appendChild(button);
+    this.plugin_buttons.appendChild(button);
+    button.setLabel = function (value) {
+      button.setAttribute("aria-label", value);
+      button.title = value;
+    };
     return button;
   }
 
@@ -585,28 +549,6 @@ class SlideMenu {
     this.clearCurrentSlideMark();
     this.setCurrentSlideMark(slide);
   }
-
-  initializeViewMenu() {
-    const template = document.createElement("template");
-    template.innerHTML = String.raw`<div id="decker-view-menu" class="menu-views" inert>
-      <div class="view-button-area">
-        <button id="decker-menu-print-button" class="view-button" role="menuitem">
-          <i class="fas fa-print"></i>
-          <span>${this.localization.print_pdf_label}</span>
-        </button>
-      </div>    
-    </div>`;
-    this.views.container = template.content.firstElementChild;
-    this.menu.container.appendChild(this.views.container);
-    this.views.area = this.views.container.querySelector(".view-button-area");
-    this.views.pdf_button = this.views.container.querySelector(
-      "#decker-menu-print-button"
-    );
-    this.views.pdf_button.addEventListener("click", (event) => this.printPDF());
-    this.views.pdf_button.addEventListener("click", (event) =>
-      this.closeMenu(event)
-    );
-  }
 }
 
 const printMode = /print-pdf/gi.test(window.location.search);
@@ -619,7 +561,7 @@ const plugin = () => {
     getListItemByID: undefined,
     updateCurrentSlideMark: undefined,
     addMenuButton: undefined,
-    addViewButton: undefined,
+    addPluginButton: undefined,
     inhibitKeyboard: undefined,
     init(reveal) {
       if (printMode) return;
@@ -679,8 +621,8 @@ const plugin = () => {
         menu.addMenuButton(id, icon, title, callback);
       };
 
-      this.addViewButton = (id, icon, title, callback) => {
-        return menu.addViewButton(id, icon, title, callback);
+      this.addPluginButton = (id, icon, title, callback) => {
+        return menu.addPluginButton(id, icon, title, callback);
       };
 
       this.updateCurrentSlideMark = (slide) => {
