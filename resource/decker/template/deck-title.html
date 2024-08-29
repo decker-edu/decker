@@ -2,10 +2,7 @@
   <div class="decker">
     <div class="alignment">
       <header>
-        <h1 class="title">$title$</h1>
-        $if(subtitle)$
-        <h2 class="subtitle">$subtitle$</h2>
-        $endif$
+        $deck-header.html()$
       </header>
 
 <!-- Leave this here for debug purposes
@@ -60,7 +57,7 @@
       </div>
       $endif$
       $if(showDeckerLink)$
-      <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
+      <a class="decker-link" href="https://github.com/decker-edu/decker/">🚀 by Decker</a>
       $endif$
     </div>
   </div>

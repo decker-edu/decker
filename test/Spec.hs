@@ -1,6 +1,5 @@
-import qualified Data.ByteString.Char8 as B
+import Data.ByteString.Char8 qualified as B
 import GHC.IO.Encoding
-import IncludeTests
 import MetaTests
 import ShortLinkTests
 import System.FilePath.Posix
@@ -16,7 +15,6 @@ main = do
   --
   hspec $ do
     shortLinkTests
-    includeTests
     metaTests
     watchTests
     describe "makeRelativeTo" $

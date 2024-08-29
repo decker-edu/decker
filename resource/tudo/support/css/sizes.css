@@ -1,0 +1,27 @@
+.xx-small {
+  font-size: 0.35em;
+}
+
+.x-small {
+  font-size: 0.5em;
+}
+
+.small {
+  font-size: 0.7em;
+}
+
+.normal {
+  font-size: var(--root-font-size);
+}
+
+.large {
+  font-size: 1.2em;
+}
+
+.x-large {
+  font-size: 1.4em;
+}
+
+.xx-large {
+  font-size: 1.6em;
+}

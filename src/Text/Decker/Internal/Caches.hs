@@ -2,7 +2,7 @@ module Text.Decker.Internal.Caches where
 
 import Data.IORef ()
 import Data.String ()
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Development.Shake
 import Text.Decker.Internal.Common
 import Text.Decker.Project.Project
@@ -16,8 +16,9 @@ type Cache a = Action a
 
 prepCaches :: Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
 prepCaches = do
+  targets <- liftIO targetsFile
   getGlobalMeta <- ($ deckerMetaFile) <$> newCache readDeckerMeta
-  getDeps <- ($ targetsFile) <$> newCache readTargetsFile
+  getDeps <- ($ targets) <$> newCache readTargetsFile
   getTemplate <-
     newCache
       ( \path -> do

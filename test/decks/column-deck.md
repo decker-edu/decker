@@ -3,6 +3,7 @@ author: Henrik
 center: true
 subtitle: On decker slides
 title: Column Layout
+lang: en-EN
 ---
 
 # Grid Column Slides
@@ -45,7 +46,7 @@ Some Text
 
 ## Fixed Layouts {.top}
 
--   Just like Powerpoint and Keynote (This is the full-width top row)
+-   Just like PowerPoint and Keynote (This is the full-width top row)
 
 ## Syntax {.left grow="2"}
 
@@ -81,7 +82,7 @@ Some final text
 
 ## Fixed Layouts {.bottom}
 
--   Just like Powerpoint and Keynote (This is full width again)
+-   Just like PowerPoint and Keynote (This is full width again)
 
 ## Syntax {.left grow="2"}
 

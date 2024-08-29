@@ -12,13 +12,13 @@ module Text.Decker.Filter.Decker2 (mediaFilter2, runFilter2) where
 
 import Relude
 import Text.Decker.Filter.Header
-import Text.Decker.Filter.Local
 import Text.Decker.Filter.Media
 import Text.Decker.Filter.Monad
-import Text.Decker.Filter.Util (oneImagePerLine)
+import Text.Decker.Filter.Util (oneImagePerLine, single)
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
+import Data.Map.Strict as Map
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -134,13 +134,14 @@ unprocessed (_, cls, _) = "processed" `notElem` cls
 -- the filter. The filter runs in the Filter monad and has access to options
 -- and meta data via `gets` and `puts`.
 runFilter2 ::
-  Walkable a Pandoc =>
+  (Walkable a Pandoc) =>
   Disposition ->
   (a -> Filter a) ->
   Pandoc ->
   IO Pandoc
 runFilter2 dispo filter pandoc@(Pandoc meta _) = do
   mutex <- newMVar 0
-  (Pandoc _ blocks, FilterState meta _ _) <-
-    runStateT (walkM filter pandoc) (FilterState meta dispo mutex)
+  templates <- newTVarIO Map.empty
+  (Pandoc _ blocks, FilterState meta _ _ _) <-
+    runStateT (walkM filter pandoc) (FilterState meta dispo mutex templates)
   return $ Pandoc meta blocks

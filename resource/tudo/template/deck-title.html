@@ -2,10 +2,7 @@
   <div class="decker">
     <div class="alignment">
       <header class="background-on-accent">
-        <h1 class="title">$title$</h1>
-        $if(subtitle)$
-        <h2 class="subtitle">$subtitle$</h2>
-        $endif$
+        $deck-header.html()$
       </header>
 
       $if(teaser)$
@@ -41,7 +38,7 @@
       <div class="logos">
         $if(includeTULogo)$
         <div class="logo">
-          <img src="./$decker-support-dir$/assets/tu-logo-light.svg">
+          <img src="./$decker-support-dir$/assets/tu-logo-light.svg" alt="Logo der TU Dortmund">
         </div>
         $endif$
         $if(logos)$
@@ -53,7 +50,7 @@
         $endif$
         </div>
       $if(showDeckerLink)$
-      <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
+      <a class="decker-link" href="https://github.com/decker-edu/decker/">🚀 by Decker</a>
       $endif$
     </div>
   </div>

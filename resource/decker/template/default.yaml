@@ -1,12 +1,38 @@
+# Compiler Config
+
+# enable some experimental features
+experiments:
+  # fragment templates are needed for Codapi live-code support
+  fragment-templates: false
+
 runtime-path-variables:
-  - logos
-  - affiliation
-  - author
-  - authors
-  - teaser
-  - rpv-test.leaf-path
-  - rpv-test.leaf-no-path
-  - rpv-test.branch
+  - "logos" # find title-page logos
+  - "affiliation" # find title-page logos of affiliations
+  - "author" # find title-page photos of authors
+  - "authors" # as above
+  - "teaser" # find title-page teaser images
+  - "template" # find custom deck and page js and css files
+  - "rpv-test.leaf-path" # TODO test value, should be moved somewhere else
+  - "rpv-test.leaf-no-path" # TODO test value, should be moved somewhere else
+  - "rpv-test.branch" # TODO test value, should be moved somewhere else
+
+# Plugin Config
+
+chart:
+  defaults:
+    font: { size: 20 }
+    plugins:
+      colorschemes:
+        scheme: "tableau.Classic10"
+      title:
+        font: { weight: "normal", size: 30 }
+      legend:
+        position: "bottom"
+
+math:
+  scale: 1
+
+# Reveal Config
 
 reveal:
   backgroundTransition: "none"
@@ -31,105 +57,87 @@ reveal:
   viewDistance: 2
   width: 1280
 
+# Template Config
+
 template:
-  favicon: support/icons/favicon.ico
+  favicon: "support/icons/favicon.ico"
+  # Codapi live-code config:
+  css:
+    - /support/vendor/codapi-js/snippet.css
+    - /support/css/hljs.css
+    - /support/css/codapi.css
+  js:
+    - /support/vendor/codapi-js/snippet.js
 
-chart:
-  defaults:
-    font: { size: 20 }
-    plugins:
-      colorschemes:
-        scheme: "tableau.Classic10"
-      title:
-        font: { weight: "normal", size: 30 }
-      legend:
-        position: "bottom"
+# Title Config
 
-menu:
-  side: "left"
-  width: "wide"
-  numbers: true
-  titleSelector: "h1"
-  useTextContentForMissingTitles: false
-  hideMissingTitles: false
-  markers: false
-  custom: false
-  themes: false
-  transitions: false
-  openButton: true
-  openSlideNumber: false
-  keyboard: true
-  sticky: false
-  autoOpen: true
-  delayInit: false
-  openOnInit: false
-  loadIcons: false
+title: "<Undefined Title>"
 
-lang: de
-title: <Undefined>
+# Whisper Config
 
 whisper:
-  base-dir: /usr/local/share/whisper.cpp
-  model: models/ggml-large.bin
-  lang: de 
+  base-dir: "/usr/local/share/whisper.cpp"
+  model: "models/ggml-large.bin"
+  lang: "de"
 
-# progress bar on index page
-# progress:
-# selector: "a[href$='-deck.html']"
-# insert: after
+# Index Page Config
+
 progress: true
 
-math:
-  scale: 1
+# Language Config
+
+lang: "de"
 
 # Language dictionary. Currently for quiz elements
 dictionary:
   de:
     exam:
-      Easy: Leicht
-      Hard: Schwer
-      Medium: Mittelschwer
-      again-button: Nochmal
-      placeholder: Antwort eingeben
-      points: Punkte
-      solution: Lösung
-      solve-button: Lösen
-      reset-button: Zurücksetzen
-      qrcode-button: QRCOde
-      poll-button: Poll
-      stop-button: Stopp
+      Easy: "Leicht"
+      Hard: "Schwer"
+      Medium: "Mittelschwer"
+      again-button: "Nochmal"
+      placeholder: "Antwort eingeben"
+      points: "Punkte"
+      solution: "Lösung"
+      solve-button: "Lösen"
+      reset-button: "Zurücksetzen"
+      qrcode-button: "QRCode"
+      poll-button: "Poll"
+      stop-button: "Stopp"
     quiz:
-      solution: Lösung zeigen
-      reset-button: Zurücksetzen
-      input-placeholder: Eingeben und 'Enter'
-      qmi-drag-hint: Objekte per Drag&Drop ziehen…
-      qmi-drop-hint: …und hier in die richtige Kategorie einsortieren.
-      ic-placeholder: Option auswählen…
+      solution: "Lösung zeigen"
+      reset-button: "Zurücksetzen"
+      input-placeholder: "Eingeben und 'Enter'"
+      qmi-drag-hint: "Objekte per Drag&Drop ziehen…"
+      qmi-drop-hint: "…und hier in die richtige Kategorie einsortieren."
+      ic-placeholder: "Option auswählen…"
   en:
     exam:
-      Easy: Easy
-      Hard: Hard
-      Medium: Medium
-      again-button: Again
-      placeholder: Type in answer
-      points: Points
-      solution: Solution
-      solve-button: Solve
-      reset-button: Reset
-      qrcode-button: QRCOde
-      poll-button: Poll
-      stop-button: Stop
+      Easy: "Easy"
+      Hard: "Hard"
+      Medium: "Medium"
+      again-button: "Again"
+      placeholder: "Type in answer"
+      points: "Points"
+      solution: "Solution"
+      solve-button: "Solve"
+      reset-button: "Reset"
+      qrcode-button: "QRCode"
+      poll-button: "Poll"
+      stop-button: "Stop"
     quiz:
-      solution: Show Solution
-      reset-button: Reset
-      input-placeholder: Type and press 'Enter'
-      qmi-drag-hint: Drag items from here…
-      qmi-drop-hint: …and put them here into the correct category.
-      ic-placeholder: Select option…
+      solution: "Show Solution"
+      reset-button: "Reset"
+      input-placeholder: "Type and press 'Enter'"
+      qmi-drag-hint: "Drag items from here…"
+      qmi-drop-hint: "…and put them here into the correct category."
+      ic-placeholder: "Select option…"
+
+# 'decker publish' config:
 
 publish:
   rsync:
-    options:
+    options: # old default publish.rsync.options: ('--chmod=go-w' breaks things in managed systems)
       - "--recursive"
       - "--copy-links"
       - "--delete"
@@ -139,10 +147,10 @@ publish:
       - "--no-owner"
       - "--copy-links"
 
-test:
-  only-default: From default.yaml
-  default-decker: From default.yaml
-  default-decker-deck: From default.yaml
+test: # TODO: @mono this should probably go somewhere else, maybe add a test.yaml that only gets included if run via 'stack run -- --server' locally
+  only-default: "From default.yaml"
+  default-decker: "From default.yaml"
+  default-decker-deck: "From default.yaml"
   merge-list:
-    - This line is from default.yaml
-  some-value: This line is from default.yaml
+    - "This line is from default.yaml"
+  some-value: "This line is from default.yaml"

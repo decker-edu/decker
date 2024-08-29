@@ -1,10 +1,24 @@
 ---
+lang: de-DE
 title: Include Code
 ---
 
-# Inline the source code
+# Embedd source code
 
-``` {.haskell label="Haskell"}
+## Source
+
+```` markdown
+``` haskell
+includeCode :: Pandoc -> Decker Pandoc
+includeCode (Pandoc meta blocks) = do
+  included <- doIO $ walkM (P.includeCode Nothing) blocks
+  return $ Pandoc meta included
+```
+````
+
+## Inclusion
+
+``` haskell
 includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
   included <- doIO $ walkM (P.includeCode Nothing) blocks
@@ -13,96 +27,51 @@ includeCode (Pandoc meta blocks) = do
 
 # Include the entire file
 
-``` {.haskell include="/src/Text/Decker/Filter/Filter.hs" label="Haskell"}
-```
+## Source
 
-# Include just a range
-
-``` {.haskell include="/src/Text/Decker/Filter/Filter.hs" label="Haskell" startLine="220" endLine="223"}
-```
-
-# Include a tagged snippet
-
-## Tagged source
-
-``` {.haskell}
--- start snippet include-start-end
-isSnippetStart :: Text -> Text -> Bool
-isSnippetStart name line =
-  isSnippetTag "start snippet" name line ||
-  isSnippetTag "8<|" name line || isSnippetTag "8<" name line
--- end snippet include-start-end
+``` markdown
+![](/src/Text/Decker/Filter/Media.hs){.haskell .code}
 ```
 
 ## Inclusion
 
-``` {.haskell include="/src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-start-end"}
-```
-
-# Include a tagged snippet (shorter)
-
-## Tagged source
-
-``` {.haskell}
--- 8< include-shorter
-readIncluded :: Inclusion Text
-readIncluded = liftIO . Text.readFile =<< asks include
--- >8
-```
-
-## Inclusion
-
-``` {.haskell include="/src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-shorter"}
-```
-
-# Include a tagged snippet (even shorter)
-
-## Tagged source
-
-``` {.haskell}
--- 8<| include-even-shorter
-isSnippetTag :: Text -> Text -> Text -> Bool
-isSnippetTag tag name line =
-  mconcat [tag, " ", name] `Text.isSuffixOf` Text.strip line
-```
-
-## Inclusion
-
-``` {.haskell include="/src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-even-shorter"}
-```
+![](/src/Text/Decker/Filter/Media.hs){.haskell .code}
 
 # Include a tagged snippet (Image syntax)
 
-## Include source
+## Source
 
-``` {.markdown}
-![](code:/src/Text/Decker/Filter/IncludeCode.hs#include-even-shorter){.haskell label="Haskell"}
+``` markdown
+![](/src/Text/Decker/Filter/Media.hs#include-even-shorter){.haskell .code}
 ```
 
 ## Inclusion
 
-![](code:/src/Text/Decker/Filter/IncludeCode.hs#include-even-shorter){.haskell
-label="Haskell"}
+![](/src/Text/Decker/Filter/Media.hs#include-even-shorter){.haskell .code}
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+# Detent all the things
+
+![](/src/Text/Decker/Filter/Media.hs#dedent-test){.haskell .code}
 
 # Many small code blocks
 
 Paragraph one
 
-``` {.txt}
+``` txt
 Code block 1
 ```
 
 This is code block 2
 
-``` {.txt}
+``` txt
 Code block 2
 ```
 
 Paragraph three
 
-``` {.txt}
+``` txt
 Code block 3
 ```
 

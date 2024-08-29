@@ -1,6 +1,31 @@
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/lato.css");
 
+/**********************/
+/* Variables
+/**********************/
+
+:root {
+  color-scheme: light dark;
+  accent-color: var(--primary-color);
+}
+
+html {
+  --details-background-color: rgba(0, 0, 0, 0.03);
+  --summary-background-color: rgba(0, 0, 0, 0.05);
+  --summary-hover-color: rgba(0, 0, 0, 0.4);
+}
+
+html.dark {
+  --details-background-color: rgba(255, 255, 255, 0.03);
+  --summary-background-color: rgba(255, 255, 255, 0.05);
+  --summary-hover-color: rgba(255, 255, 255, 0.4);
+}
+
+/**********************/
+/* PAGE HEADER
+/**********************/
+
 button:hover {
   cursor: pointer;
 }
@@ -203,36 +228,14 @@ div.image-row img {
   display: block;
 }
 
-header > h1 {
-  font-size: 2em;
-}
-
-/* body > h1:first-of-type {
-  font-size: 1.75em;
-} */
-
-h1 {
-  font-size: 1.5em;
-}
-
 h2 {
   font-size: 1.25em;
 }
 
-h3,
 h4,
 h5,
 h6 {
   font-size: 1em;
-}
-
-header h1 {
-  margin-bottom: 0;
-}
-
-header h2 {
-  margin-top: 0;
-  color: var(--muted);
 }
 
 header nav {
@@ -245,6 +248,15 @@ header {
   padding: 2rem 1.5rem;
   /* This sets the right and left margins to cancel out the body's margins. It's width is still the same, but the background stretches across the page's width. */
   margin: auto;
+}
+
+header h1 {
+  margin-bottom: 0;
+}
+
+header h2 {
+  margin-top: 0;
+  color: var(--muted);
 }
 
 header h1,
@@ -261,15 +273,6 @@ header > *:first-child {
 
 header > *:last-child {
   margin-bottom: 0;
-}
-
-::-webkit-scrollbar {
-  display: none;
-}
-
-body {
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
 }
 
 div.anchor details {
@@ -326,6 +329,7 @@ header nav {
 /* old stuff */
 
 h1 {
+  font-size: 1.5em;
   margin-top: 3rem;
 }
 
@@ -350,6 +354,7 @@ html {
 }
 
 body {
+  font-family: "Lato";
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -359,12 +364,19 @@ body {
 
   counter-reset: sctr;
   text-align: justify;
+
   margin: auto;
   width: 100%;
   height: 100%;
+
+  /* this is needed because tables with MathJax
+  overflow a lot */
+  max-width: 100%;
+  overflow-x: auto;
+
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact; /* From old page.css */
-  line-height: 1.3; /* It is said 1.5 improves readability */
+  line-height: 1.4; /* It is said 1.5 improves readability */
 }
 
 body.page {
@@ -375,8 +387,9 @@ main {
   flex-grow: 1;
   padding-top: 1rem;
   width: 50rem;
-  max-width: 50rem;
+  max-width: min(50rem, 95%);
   margin: auto;
+  box-sizing: border-box;
 }
 
 footer {
@@ -388,9 +401,13 @@ footer {
 }
 
 footer p {
-  padding: 0.5em;
+  display: inline-block;
+  width: 100%;
   margin: 0;
+  padding-block: 0.5em;
   line-height: 2em;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 @media only screen and (max-width: 600px) {
@@ -405,14 +422,63 @@ footer p {
   color: var(--redish);
 }
 
-/* Tolle Kästen */
+/********************************/
+/* Details / Summary Boxes      */
+/********************************/
 
-.colorexample {
-  background-color: chocolate;
+details {
+  box-sizing: border-box;
+  margin-top: 20px;
+  padding: 1em;
+  padding-bottom: 0;
+  border-radius: 10px;
+  background: var(--details-background-color);
+}
+details[open] {
+  padding-bottom: 1em;
 }
 
+details summary {
+  box-sizing: border-box;
+  width: auto;
+  margin-left: -1em;
+  margin-right: -1em;
+  margin-top: -1em;
+  margin-bottom: 0;
+  padding: 4px;
+  padding-left: 0.5rem;
+  border-radius: 8px;
+  background: var(--summary-background-color);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+details[open] > summary {
+  margin-bottom: 1em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+details summary:hover {
+  background-color: var(--summary-hover-color);
+  color: var(--background-color);
+}
+
+details input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/********************************/
+/* Colored Boxes                */
+/********************************/
+
 :is(.definition, .example, .axiom, .theorem) {
-  width: 85%;
+  box-sizing: border-box;
+  width: 95%;
   padding: 1.5em;
   padding-right: 2.5em;
   margin: 30px auto;
@@ -445,25 +511,57 @@ footer p {
   display: none;
 }
 
-.theorem details,
-.example details {
-  background: rgba(0, 0, 0, 0);
-  border: 0px solid rgb(194, 190, 190);
-  padding: 0.5em;
-  font-size: medium;
-  margin-top: 30px;
+/********************************/
+/* Colored Demo Boxes           */
+/********************************/
+
+details.demo {
+  --summary-hover-color: var(--accent3);
+  box-sizing: border-box;
+  width: 95%;
+  padding: 1.5em;
+  padding-bottom: 0;
+  margin: 30px auto;
+  border: none;
+  border-left: 5px solid var(--accent3);
+  border-radius: 5px;
+  background: var(--accent3-bbg);
 }
+
+details[open].demo {
+  padding-bottom: 1em;
+}
+
+details.demo summary {
+  margin-left: -1.5em;
+  margin-right: -1.5em;
+  margin-top: -1.5em;
+  width: auto;
+  padding-left: 1em;
+  border-radius: 5px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  background: none;
+}
+
+details[open].demo summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background-color: var(--accent3);
+  color: white;
+}
+
+details.demo summary:hover {
+  background-color: var(--accent3);
+  color: white;
+}
+
+/* links */
 
 a {
   color: var(--accent5-fg);
   text-decoration: none;
 }
-
-/* Comment in if wanted
-a:visited {
-  color: var(--accent6-fg);
-}
-*/
 
 a:hover {
   text-shadow: none;
@@ -483,6 +581,7 @@ a:hover {
 .theorem details summary:hover {
   background: rgba(1, 1, 1, 0.1);
 }
+
 .example details summary:hover {
   background: rgba(1, 1, 1, 0.1);
 }
@@ -493,23 +592,6 @@ a:hover {
 
 .example details summary::after {
   content: none;
-}
-
-details summary {
-  outline: none;
-  padding: 4px;
-  width: 98.5%;
-  background: rgba(1, 1, 1, 0.05);
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: normal;
-  padding-left: 0.5rem;
-}
-
-details summary:hover {
-  background-color: var(--primary-color);
-  color: white;
 }
 
 details summary[icon]::marker {
@@ -527,22 +609,6 @@ details summary[icon]:hover::marker {
   color: white;
 }
 
-.theorem summary,
-.example summary {
-  background: rgba(1, 1, 1, 0.05);
-  border-radius: 10px;
-  cursor: pointer;
-  width: calc(100% + 1em);
-  margin-left: -0.5em;
-}
-
-details.demo {
-  border: 1px solid var(--foreground-color);
-  border-radius: 0.25rem;
-  padding: 0.625rem;
-  margin-bottom: 0.625rem;
-}
-
 img {
   padding: 1em;
   margin: auto;
@@ -557,28 +623,22 @@ img {
   color: var(--foreground-color);
 }
 
-.chapter {
+h1 {
+  font-size: 2rem;
   margin-top: 2em;
-  margin-bottom: 1em;
-  font-size: 2.5rem;
-
-  padding-bottom: 0.7em;
-  /* border-bottom: 3px solid black; */
-
-  padding-top: 1.5em;
-  border-top: 2px solid var(--shade3);
+  margin-bottom: 0.7em;
 }
 
-.section {
-  margin-top: 3em;
-  margin-bottom: 1.5em;
+h2 {
   font-size: 1.5rem;
+  margin-top: 2em;
+  margin-bottom: 0.7em;
 }
 
 h3 {
-  margin-top: 2.5em;
-  margin-bottom: 1em;
   font-size: 1.25rem;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
 }
 
 p {
@@ -622,6 +682,10 @@ iframe {
   list-style-type: none;
 }
 
+li {
+  margin-bottom: 0.3em;
+}
+
 /*-----------------------Print-Options---------------------------------------*/
 
 @media print {
@@ -639,6 +703,11 @@ iframe {
   }
   summary {
     width: 90%;
+  }
+
+  /* avoid too fat font when exporting PDF */
+  mjx-container[jax="SVG"] :is(use[data-c], path[data-c]) {
+    stroke-width: 0 !important;
   }
 }
 
@@ -658,6 +727,22 @@ table {
   margin-bottom: 1em;
   line-height: 1.5em;
   width: fit-content;
+}
+
+table {
+  display: table;
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 2px;
+  border-top: 2px solid var(--foreground-color);
+  border-bottom: 2px solid var(--foreground-color);
+  text-align: center;
+  margin-bottom: 1em;
+  line-height: 1.5em;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: scroll;
+  box-sizing: border-box;
 }
 
 table caption {
@@ -709,6 +794,7 @@ td[align="right"] {
 td[align="left"] {
   text-align: left;
 }
+
 /*********************************************
  * Milchglas für Ladebildschirm und Menu
  *********************************************/
@@ -940,6 +1026,12 @@ figure.streaming {
   margin: 0;
 }
 
+figure > figcaption {
+  margin: 0.5em auto;
+  font-style: italic;
+  text-align: center;
+}
+
 figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px;
   line-height: 1.2;
@@ -973,24 +1065,6 @@ div.image-row img {
   display: block;
 }
 
-h1 {
-  font-size: 1.5em;
-}
-
-h2 {
-  font-size: 1.25em;
-}
-
-h4,
-h5,
-h6 {
-  font-size: 1em;
-}
-
-::-webkit-scrollbar {
-  display: none;
-}
-
 details {
   margin-bottom: 1em;
 }
@@ -1021,10 +1095,17 @@ div.media > figure iframe {
   padding: 0;
   border: 0;
   text-align: center;
+  border-radius: 5px;
 }
 
 figure > img {
   margin: auto;
+}
+
+progress {
+  accent-color: initial;
+  margin: auto 0.5em;
+  width: 3em;
 }
 
 /*********************************************
@@ -1042,4 +1123,22 @@ html.dark
   :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+}
+
+@media (prefers-color-scheme: dark) {
+  img {
+    background: var(--shade5);
+    border-radius: 0.5rem;
+  }
+
+  .light img {
+    background: inherit;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .dark img {
+    background: var(--shade5);
+    border-radius: 0.5rem;
+  }
 }

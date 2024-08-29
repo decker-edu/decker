@@ -4,17 +4,17 @@ poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
 # poll-server: ws://localhost:3003/quiz
 save-polls: true
 
-# Use CSS augmentation without changes to the default template
-template:
-  css:
-    - support/css/mono.css
-  js:
-    - support/js/mono.js
+# enable some experimental features
+experiments:
+  # fragment templates are needed for Codapi live-code support
+  fragment-templates: true
+
+# highlightjs: "xcode"
 
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
-      - "#fbf7ef"
+      - "#f3f1eb"
       - "#f1e9d2"
       - "#8faaab"
       - "#98a8a8"
@@ -58,10 +58,10 @@ reveal:
   fragments: true
   hash: true
   height: 1080
-  help: true
-  hideInactiveCursor: false
-  # hideCursorTime: 2000
-  # hideInactiveCursor: true
+  help: false
+  # hideInactiveCursor: false
+  hideCursorTime: 2000
+  hideInactiveCursor: true
   history: false
   keyboard: true
   margin: 0.05

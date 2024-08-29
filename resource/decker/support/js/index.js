@@ -1,5 +1,16 @@
 function initIndexPage() {
   setupProgressIndicators();
+  loadSources();
+}
+
+/* Index Pages should be small enough that loading all sources at once
+ * instead of loading with an intersection observer should be feasable.
+ */
+function loadSources() {
+  const sources = document.querySelectorAll("[data-src]");
+  for (const source of sources) {
+    source.setAttribute("src", source.getAttribute("data-src"));
+  }
 }
 
 function setupProgressIndicators() {

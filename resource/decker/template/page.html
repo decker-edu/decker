@@ -185,10 +185,16 @@ $endfor$
     };
   </script>
   $for(template.js)$
+  <script src="$template.js$"></script>
+  $endfor$
+  $for(template.js-module)$
   <script type="module" src="$template.js$"></script>
   $endfor$
   $for(template.page.js)$
-  <script type="module" src="$template.page.js$"></script>
+  <script src="$template.page.js$"></script>
+  $endfor$
+  $for(template.page.js-module)$
+  <script type="module" src="$template.page.js-module$"></script>
   $endfor$
 </body>
 </html>
