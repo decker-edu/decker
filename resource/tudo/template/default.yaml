@@ -62,7 +62,7 @@ index:
   links:
     - a11y
     - handout
-    - presenter
+#    - presenter
 
 palette:
   contrast: 0.40

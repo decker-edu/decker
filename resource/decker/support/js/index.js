@@ -50,7 +50,7 @@ function setupModeLinks(container, url) {
   if (links.includes("handout")) {
     const handoutLink = document.createElement("a");
     handoutLink.href = url.pathname + "?handout";
-    handoutLink.classList.add("fas", "fa-file-arrow-down");
+    handoutLink.classList.add("handout-link");
     handoutLink.setAttribute(
       "title",
       navigator.language === "de"

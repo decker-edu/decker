@@ -1,6 +1,7 @@
 .decker-menu {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   font-size: 1.2rem;
   z-index: 256;
   background: var(--menu-background-color);
@@ -10,16 +11,18 @@
 
 .menu-header {
   display: grid;
+  box-sizing: border-box;
+  width: 100%;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   z-index: 258;
 
-  min-height: var(--common-menu-header-height);
   padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
   color: var(--menu-header-text-color);
   background: var(--menu-header-background-color);
 
   border-bottom: 2px solid var(--menu-border-color);
+  flex-grow: 0;
 }
 
 .menu-header-button-group {
@@ -29,6 +32,7 @@
 }
 
 .menu-header button {
+  box-sizing: border-box;
   background: none;
   color: var(--menu-header-text-color);
 }
@@ -56,70 +60,8 @@
 }
 
 .menu-header button:disabled {
-  color: var(--shade1);
-}
-
-.menu-settings,
-.menu-views {
-  position: absolute;
-  top: calc(
-    var(--common-menu-header-height) + var(--common-menu-header-padding) * 2
-  );
-  left: 0;
-  width: 100%;
-  height: calc(
-    100% - var(--common-menu-header-height) + var(--common-menu-header-padding) *
-      2
-  );
-  z-index: 257;
-
-  background: var(--menu-background-color);
-
-  transition: transform 0.5s;
-}
-
-.menu-settings[inert],
-.menu-views[inert] {
-  transform: translateY(-100%);
-}
-
-.settings-item {
-  position: relative;
-  padding: 0.5em 1.5em 0.5em 1em;
-}
-
-.view-button-area {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.view-button {
-  background-color: var(--accent5);
-  border: 1px solid var(--foreground-color);
-  flex-grow: 1;
-  max-height: 256px;
-  cursor: pointer;
-}
-
-.view-button[aria-pressed="true"] {
-  background-color: var(--accent3);
-}
-
-.view-button i {
-  display: block;
-  font-size: 4em;
-}
-
-.view-button span {
-  display: block;
-  margin-top: 1rem;
-  font-size: 2em;
-}
-
-.view-button:hover {
-  background-color: var(--accent5-bg);
+  cursor: default;
+  color: var(--shade4);
 }
 
 :root {
@@ -210,10 +152,7 @@ ul.slide-list {
 
 .slide-list-wrapper {
   overflow: auto;
-  height: calc(
-    100% - var(--common-menu-header-height) - var(--common-menu-header-padding) *
-      2
-  );
+  width: 100%;
 }
 
 ul.slide-list > li {

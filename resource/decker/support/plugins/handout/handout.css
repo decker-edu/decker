@@ -142,6 +142,8 @@ html.handout .decker-anchor #handout-minus {
   display: inline-block;
 }
 
+/* animated button */
+
 #menu-handout-button {
   position: relative;
   --dwidth: var(--icon-size);
@@ -158,7 +160,7 @@ html.handout .decker-anchor #handout-minus {
   border-radius: 0.15rem;
   width: var(--dwidth);
   height: var(--dheight);
-  transition: top 0.3s ease-in-out, left 0.3s ease-in-out, opacity 0.3s linear;
+  transition: top 0.3s ease-in-out, left 0.3s ease-in-out;
 }
 
 #menu-handout-button:hover div {
@@ -173,48 +175,32 @@ html.handout .decker-anchor #handout-minus {
   background-color: var(--foreground-color);
 }
 
-#menu-handout-button .first-anim-rect {
+#menu-handout-button .top-anim-rect {
   position: absolute;
-  top: calc(var(--dcentery) - 0.53 * var(--dheight));
-  left: calc(var(--dcenterx) - 0.3 * var(--dwidth));
+  top: calc(var(--dcentery) - 0.3 * var(--dheight));
+  left: calc(var(--dcenterx) - 0.2 * var(--dwidth));
   z-index: 512;
 }
 
-#menu-handout-button .second-anim-rect {
+#menu-handout-button .bottom-anim-rect {
   position: absolute;
-  top: calc(var(--dcentery));
-  left: calc(var(--dcenterx));
+  top: calc(var(--dcentery) + 0.3 * var(--dheight));
+  left: calc(var(--dcenterx) + 0.2 * var(--dwidth));
   z-index: 511;
 }
 
-#menu-handout-button .third-anim-rect {
-  position: absolute;
-  top: calc(var(--dcentery) + 0.53 * var(--dheight));
-  left: calc(var(--dcenterx) + 0.3 * var(--dwidth));
-  z-index: 510;
-}
-
-#menu-handout-button:hover .first-anim-rect,
-#menu-handout-button[aria-pressed="true"] .first-anim-rect {
+#menu-handout-button:hover .top-anim-rect,
+#menu-handout-button[aria-pressed="true"] .top-anim-rect {
   position: absolute;
   top: calc(var(--dhspace) / 3);
   left: var(--dcenterx);
   z-index: 512;
 }
 
-#menu-handout-button:hover .second-anim-rect,
-#menu-handout-button[aria-pressed="true"] .second-anim-rect{
+#menu-handout-button:hover .bottom-anim-rect,
+#menu-handout-button[aria-pressed="true"] .bottom-anim-rect{
   position: absolute;
   top: calc(var(--dhspace) / 3 * 2 + var(--dheight));
   left: var(--dcenterx);
   z-index: 511;
-}
-
-#menu-handout-button:hover .third-anim-rect,
-#menu-handout-button[aria-pressed="true"] .third-anim-rect{
-  position: absolute;
-  top: 100%;
-  left: var(--dcenterx);
-  opacity: 0;
-  z-index: 510;
 }

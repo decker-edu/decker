@@ -521,6 +521,10 @@ async function getDevices() {
 }
 
 async function setupRecorder() {
+  if (!Decker.isPresenterMode()) {
+    Decker.flash.message(localization.presenter_mode_error);
+    return false;
+  }
   try {
     stream = null;
 
@@ -1772,7 +1776,7 @@ function setupCallbacks() {
 }
 
 function enableViewButton() {
-  if (pluginButton) {
+  if (pluginButton && Decker.isPresenterMode()) {
     pluginButton.disabled = false;
   }
   return true;
@@ -1870,6 +1874,8 @@ const Plugin = {
       Do you want to append to the existing recording or replace it?",
       accept: "Accept",
       abort: "Abort",
+      presenter_mode_error:
+        'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.',
     };
 
     if (lang === "de") {
@@ -1886,9 +1892,25 @@ const Plugin = {
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        presenter_mode_error:
+          'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.',
       };
     }
     deck.addEventListener("ready", () => {
+      Decker.addPresenterModeListener((mode) => {
+        if (pluginButton) {
+          if (
+            mode &&
+            uiState.name() !== "RECORDER_READY" &&
+            uiState.name() !== "RECORDING" &&
+            uiState.name() !== "RECORDER_PAUSED"
+          ) {
+            pluginButton.disabled = false;
+          } else {
+            pluginButton.disabled = true;
+          }
+        }
+      });
       const menuPlugin = deck.getPlugin("decker-menu");
       if (menuPlugin && !!menuPlugin.addPluginButton) {
         pluginButton = menuPlugin.addPluginButton(
@@ -1908,6 +1930,7 @@ const Plugin = {
             }
           }
         );
+        pluginButton.disabled = true;
       }
     });
   },
