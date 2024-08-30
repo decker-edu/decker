@@ -12,22 +12,23 @@
     ``` yaml
     index:
       progress: true
-        links:
-          - a11y
-          - handout
-          - presenter
+      links:
+        - a11y
+        - handout
+        - presenter
     ```
 
 -   Handout Mode now supports zooming both by the (-)/(+) buttons in the
     top right corner and the browser's native zoom level. In addition,
     if the slides are zoomed away from, they center while if they are
-    zoomed in they attach to the right side of the screen to properly
+    zoomed in they attach to the left side of the screen to properly
     allow scrolling the page. (Previously they fell out of the left side
     of the viewport).
 
 -   All modes (presenter, handout, a11y) as well as functions accessible
-    only by keyboard inputs (recorder) are now accessible in a single
-    submenu inside the navigation menu.
+    only by keyboard inputs (recorder) are now accessible through buttons
+    in the main navigation menu. This solves the issue of some lecture
+    halls not providing a keyboard.
 
 -   The settings menu has been removed and replaced by a single
     light / dark mode switch.

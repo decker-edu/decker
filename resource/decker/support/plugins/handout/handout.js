@@ -16,6 +16,42 @@ let visibleSlideIntersectionObserver = undefined;
 let srcIntersectionObserver = undefined;
 let visibleSlides = new Set();
 
+/**
+ * The slide scale should represent the ratio between reveal's
+ * "canvas size" and the window's actual size. It is used to scale up the slides
+ * in handout mode to be (almost) fullscreen width on default zoom factor.
+ * This value should be constant but it is currently impossible to get the window's actual
+ * on screen size to allow you to calculate this value as a constant.
+ * In a window with a screen width of 1920 and a reveal width of 1280
+ * this value should always be 1.5, regardless of internal zoom level.
+ * Sadly, zooming in and out on desktop changes all retrievable values:
+ * window.innerWidth, window.outerWidth, even the window.screen API AND
+ * the new visualViewport API only reports the new, but no "original" values
+ * AND does not report a proper scale factor (it is always 1 on desktop as it
+ * is supposed to track pinch-zoom events).
+ *
+ * This value can (or rather should) not be pre-calculated as
+ * the user might enter the page already zoomed in, so the initial
+ * value is not trustworthy.
+ *
+ * You could calculate the value back to its original form by
+ * multiplying slide and viewport widths with the devicePixelRatio.
+ *
+ * This does not work on Apple devices though as Safari always reports
+ * a devicePixelRatio of '2' on Retina displays regardless of the
+ * actual zoom factor. This is reported as a "bug" on WebKit's
+ * issue tracker and has been ignored for the past 8 years:
+ *
+ * https://bugs.webkit.org/show_bug.cgi?id=124862
+ *
+ * Apple/Safari seem to be the only browsers to not scale
+ * the pixel device ratio based on the user's zoom level.
+ *
+ * The fact that there is no API or system to detect the user's
+ * zoom level across all devices seems to have been an issue for
+ * at least 12 years.
+ * https://css-tricks.com/can-javascript-detect-the-browsers-zoom-level/
+ */
 let slideScale = 1;
 let userScale = 1;
 
@@ -391,12 +427,19 @@ function createSRCIntersectionObserver() {
  */
 function onWindowResize(event) {
   /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
+  /*
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
   const viewportWidth = viewport.offsetWidth;
   const pixelRatio = window.devicePixelRatio;
+  
+  CANTFIX This value should be a constant between reveal's width and the screen space available
+     yet it can not be determined cross browsers in a reliable way. More of that above on the documentation
+     of slideWidth itself.
+     
   slideScale = (viewportWidth / slideWidth) * pixelRatio;
-  console.log("[DEBUG] devicePixelRatio:", pixelRatio); // TODO Comment this out after testing on Safari
+  */
+  slideScale = 1; // The slideScale calculated above value should be constant anyway.
   updateScaling();
 }
 
@@ -404,6 +447,7 @@ function onWindowResize(event) {
 function updateScaling() {
   // clamp to (slightly smaller than) one to avoid horizontal scrollbar
   if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
+  // This is where slideScale is used to make the default "fullscreen"
   const scale = slideScale * userScale;
   handoutSlides.style.setProperty("--scale-factor", scale);
   const containerRect = handoutContainer.getBoundingClientRect();
