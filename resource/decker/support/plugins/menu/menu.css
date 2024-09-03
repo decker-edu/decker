@@ -230,15 +230,20 @@ ul.slide-list > li.separator-slide.current-slide {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  /* Let us keep this here until Firefox fixes their blur - and even then it is not enabled by default */
-  /* https://bugzilla.mozilla.org/show_bug.cgi?id=1749625 */
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
 #glass.show {
   display: block;
+}
+
+#glass.blur {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#glass.darken {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 fieldset {

@@ -2,6 +2,17 @@
 
 ## decker 0.14.0
 
+-   The feedback menu now has a "send" button.
+-   The admin login button in the feedback menu is now clearly visible.
+-   The backdrop of an open menu can now be configured using the meta value `menu.backdrop`.
+    -   The value of the `menu.backdrop` option is added as a class to the `#glass`
+        backdrop element.
+    -   By default the `menu.css` supports the classes `.blur` and `.darken`.
+    -   Resourcepacks can extend the functionality by adding more CSS rules of the kind
+        `#glass.custom`.
+    -   Inside the default `default.yaml` the value is set to `blur` to keep the previous
+        behaviour.
+
 -   Zooming in/out of a slide element is by default triggered via 
     double-click (left mouse button). It can now be configured to react on 
     double-click, triple-click, or alt-click (alt-key and left mouse).

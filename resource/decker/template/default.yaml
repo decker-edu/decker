@@ -57,6 +57,11 @@ reveal:
   viewDistance: 2
   width: 1280
 
+# Menu Config
+
+menu:
+  backdrop: 'blur'
+
 # Template Config
 
 template:

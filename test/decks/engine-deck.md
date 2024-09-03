@@ -1,10 +1,11 @@
 ---
-author: Henrik Tramberend
+author: 'Henrik Tramberend'
 feedback:
-  base-url: 'https://tramberend.bht-berlin.de/decker'
-  deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
+  base-url: 'https://decker.cs.tu-dortmund.de/feedback/'
+  deck-id: 'hauer-test-engine-deck'
 help: 0
-menu: 0
+menu:
+  backdrop: darken
 controls: false
 title: Decker Engine Test
 ---

@@ -41,6 +41,7 @@ class Feedback {
     close_button: undefined,
     feedback_list: undefined,
     feedback_input: undefined,
+    feedback_send_button: undefined,
     feedback_login_area: undefined,
     feedback_login_button: undefined,
     feedback_credentials: {
@@ -130,7 +131,12 @@ class Feedback {
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
-      this.glass.classList.add("show");
+      // currently only supported value: blur, but open for other options
+      if (Decker.meta.menu.backdrop) {
+        this.glass.classList.add("show", Decker.meta.menu.backdrop);
+      } else {
+        this.glass.classList.add("show");
+      }
       this.menu.close_button.focus();
     }
   }
@@ -143,7 +149,7 @@ class Feedback {
       this.menu.container.inert = true;
       this.reveal.getRevealElement().inert = false;
       localStorage.removeItem("feedback-state");
-      this.glass.classList.remove("show");
+      this.glass.classList.remove("show", "blur");
       this.open_button.focus();
     }
   }
@@ -221,48 +227,46 @@ class Feedback {
    * @param {*} event
    */
   async sendComment(event) {
-    if (event.key === "Enter" && event.shiftKey) {
-      let slideId = this.reveal.getCurrentSlide().id;
-      if (
-        document.documentElement.classList.contains("handout") &&
-        this.mostRecentSlideID
-      ) {
-        slideId = this.mostRecentSlideID;
-      }
-      if (this.menu.feedback_input.hasAttribute("answer")) {
-        try {
-          await this.engine.api.postAnswer(
-            this.menu.feedback_input.commentId,
-            this.engine.token.admin,
-            this.menu.feedback_input.value,
-            null
-          );
-          this.clearTextArea();
-          await this.requestMenuContent();
-          await this.requestSlideMenuUpdate();
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        try {
-          await this.engine.api.submitComment(
-            this.engine.deckId,
-            slideId,
-            this.engine.token.admin || this.usertoken,
-            this.menu.feedback_input.value,
-            this.menu.feedback_input.commentId,
-            window.location.toString()
-          );
-          this.clearTextArea();
-          await this.requestMenuContent();
-          await this.requestSlideMenuUpdate();
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      event.stopPropagation();
-      event.preventDefault();
+    let slideId = this.reveal.getCurrentSlide().id;
+    if (
+      document.documentElement.classList.contains("handout") &&
+      this.mostRecentSlideID
+    ) {
+      slideId = this.mostRecentSlideID;
     }
+    if (this.menu.feedback_input.hasAttribute("answer")) {
+      try {
+        await this.engine.api.postAnswer(
+          this.menu.feedback_input.commentId,
+          this.engine.token.admin,
+          this.menu.feedback_input.value,
+          null
+        );
+        this.clearTextArea();
+        await this.requestMenuContent();
+        await this.requestSlideMenuUpdate();
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      try {
+        await this.engine.api.submitComment(
+          this.engine.deckId,
+          slideId,
+          this.engine.token.admin || this.usertoken,
+          this.menu.feedback_input.value,
+          this.menu.feedback_input.commentId,
+          window.location.toString()
+        );
+        this.clearTextArea();
+        await this.requestMenuContent();
+        await this.requestSlideMenuUpdate();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   /**
@@ -466,7 +470,7 @@ class Feedback {
       }
       ${
         isAdmin
-          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
+          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}"></button>`
           : ""
       }
       ${
@@ -696,6 +700,7 @@ class Feedback {
       <div class="feedback-list"></div>
       <div class="feedback-question-input">
         <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
+        <button class="feedback-send-button" aria-label="${this.localization.send_comment}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment}</span></button>
       </div>
       <div class="feedback-footer">
         <div class="feedback-login">
@@ -725,6 +730,9 @@ class Feedback {
     this.menu.feedback_input = menu.querySelector(
       ".feedback-question-input textarea"
     );
+    this.menu.feedback_send_button = menu.querySelector(
+      ".feedback-send-button"
+    );
     this.menu.badge = menu.querySelector(".counter");
     this.menu.feedback_list = menu.querySelector(".feedback-list");
     this.menu.close_button = menu.querySelector(".feedback-close");
@@ -747,15 +755,20 @@ class Feedback {
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
     );
+    this.menu.feedback_send_button.addEventListener("click", (e) =>
+      this.sendComment()
+    );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu()
     );
     this.menu.feedback_login_button.addEventListener("click", (event) =>
       this.toggleLoginArea()
     );
-    this.menu.feedback_input.addEventListener("keydown", (event) =>
-      this.sendComment(event)
-    );
+    this.menu.feedback_input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.shiftKey) {
+        this.sendComment(event);
+      }
+    });
 
     this.menu.feedback_credentials.password_input.addEventListener(
       "keydown",
@@ -815,6 +828,7 @@ let plugin = () => {
           "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
         answer_placeholder:
           "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
+        send_comment: "Send<br>Message",
         interface: {
           open_label: "Open Feedback Menu",
           menu_title: "Questions",
@@ -847,6 +861,7 @@ let plugin = () => {
             "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
           answer_placeholder:
             "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
+          send_comment: "Nachricht<br>senden",
           interface: {
             open_label: "Fragemenu öffnen",
             menu_title: "Fragen",

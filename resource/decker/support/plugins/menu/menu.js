@@ -109,7 +109,11 @@ class SlideMenu {
       this.inert = false;
       this.reveal.getRevealElement().inert = true;
       this.disableKeybinds();
-      this.glass.classList.add("show");
+      if (Decker.meta.menu.backdrop) {
+        this.glass.classList.add("show", Decker.meta.menu.backdrop);
+      } else {
+        this.glass.classList.add("show");
+      }
       if (event && event.detail === 0) {
         setTimeout(() => this.menu.close_button.focus(), 500);
       }
@@ -127,7 +131,7 @@ class SlideMenu {
       this.inert = true;
       this.reveal.getRevealElement().inert = false;
       this.enableKeybinds();
-      this.glass.classList.remove("show");
+      this.glass.classList.remove("show", "blur");
       if (event && event.detail === 0) {
         this.open_button.focus();
       }
