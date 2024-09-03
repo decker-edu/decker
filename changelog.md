@@ -12,6 +12,7 @@
         `#glass.custom`.
     -   Inside the default `default.yaml` the value is set to `blur` to keep the previous
         behaviour.
+- Add a legend to the feedback menu that is only visible on mobile devices (small screens).
 
 -   Zooming in/out of a slide element is by default triggered via 
     double-click (left mouse button). It can now be configured to react on 
