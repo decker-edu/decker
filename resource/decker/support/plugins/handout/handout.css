@@ -167,40 +167,30 @@ html.handout .decker-anchor #handout-minus {
   background-color: var(--accent3);
 }
 
-#menu-handout-button[aria-pressed="true"] div {
-  box-shadow: none;
-}
-
-#menu-handout-button[aria-pressed="true"]:hover div {
-  background-color: var(--foreground-color);
-}
-
 #menu-handout-button .top-anim-rect {
-  position: absolute;
-  top: calc(var(--dcentery) - 0.3 * var(--dheight));
-  left: calc(var(--dcenterx) - 0.2 * var(--dwidth));
-  z-index: 512;
-}
-
-#menu-handout-button .bottom-anim-rect {
-  position: absolute;
-  top: calc(var(--dcentery) + 0.3 * var(--dheight));
-  left: calc(var(--dcenterx) + 0.2 * var(--dwidth));
-  z-index: 511;
-}
-
-#menu-handout-button:hover .top-anim-rect,
-#menu-handout-button[aria-pressed="true"] .top-anim-rect {
   position: absolute;
   top: calc(var(--dhspace) / 3);
   left: var(--dcenterx);
   z-index: 512;
 }
 
-#menu-handout-button:hover .bottom-anim-rect,
-#menu-handout-button[aria-pressed="true"] .bottom-anim-rect{
+#menu-handout-button .bottom-anim-rect {
   position: absolute;
   top: calc(var(--dhspace) / 3 * 2 + var(--dheight));
   left: var(--dcenterx);
+  z-index: 511;
+}
+
+.handout #menu-handout-button .top-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery) - 0.3 * var(--dheight));
+  left: calc(var(--dcenterx) - 0.2 * var(--dwidth));
+  z-index: 512;
+}
+
+.handout #menu-handout-button .bottom-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery) + 0.3 * var(--dheight));
+  left: calc(var(--dcenterx) + 0.2 * var(--dwidth));
   z-index: 511;
 }

@@ -230,9 +230,9 @@ fieldset {
 }
 
 .dark #decker-menu-color-button::before {
-  content: '\f186'
+  content: '\f185'
 }
 
 .light #decker-menu-color-button::before {
-  content: '\f185'
+  content: '\f186'
 }

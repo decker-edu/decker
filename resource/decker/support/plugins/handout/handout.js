@@ -66,11 +66,15 @@ let pluginButton = undefined;
 let localization = {
   activate_handout_mode: "Activate Handout Mode",
   deactivate_handout_mode: "Deactivate Handout Mode",
+  handout_mode_on: `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
+  handout_mode_off: `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
 };
 
 if (navigator.language === "de") {
-  localization.activate_handout_mode = "Handout Modus anschalten";
-  localization.deactivate_handout_mode = "Handout Modus abschalten";
+  localization.activate_handout_mode = "Handout-Modus anschalten";
+  localization.deactivate_handout_mode = "Handout-Modus abschalten";
+  localization.handout_mode_on = `<span>Handout-Modus: <strong style="color:var(--accent3);">AN</strong></span>`;
+  localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
 }
 
 function activateHandoutMode() {
@@ -92,7 +96,6 @@ function activateHandoutMode() {
 
   // Switch state of view menu button
   if (pluginButton) {
-    pluginButton.ariaPressed = true;
     pluginButton.setLabel(localization.deactivate_handout_mode);
   }
 
@@ -203,7 +206,6 @@ function disassembleHandoutMode() {
 
   // Change state of view menu button
   if (pluginButton) {
-    pluginButton.ariaPressed = false;
     pluginButton.setLabel(localization.activate_handout_mode);
   }
 
@@ -427,19 +429,19 @@ function createSRCIntersectionObserver() {
  */
 function onWindowResize(event) {
   /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
-  /*
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
   const viewportWidth = viewport.offsetWidth;
   const pixelRatio = window.devicePixelRatio;
-  
+
+  /*
   CANTFIX This value should be a constant between reveal's width and the screen space available
      yet it can not be determined cross browsers in a reliable way. More of that above on the documentation
      of slideWidth itself.
-     
-  slideScale = (viewportWidth / slideWidth) * pixelRatio;
   */
-  slideScale = 1; // The slideScale calculated above value should be constant anyway.
+
+  slideScale = viewportWidth / slideWidth;
+  //slideScale = 1; // The slideScale calculated above value should be constant anyway.
   updateScaling();
 }
 
@@ -447,6 +449,9 @@ function onWindowResize(event) {
 function updateScaling() {
   // clamp to (slightly smaller than) one to avoid horizontal scrollbar
   if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
+  if (localStorage) {
+    localStorage.setItem("handoutScale", userScale);
+  }
   // This is where slideScale is used to make the default "fullscreen"
   const scale = slideScale * userScale;
   handoutSlides.style.setProperty("--scale-factor", scale);
@@ -567,13 +572,9 @@ function toggleHandoutMode() {
     disassembleHandoutMode();
   }
   if (handoutSlideMode) {
-    Decker.flash.message(
-      `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`
-    );
+    Decker.flash.message(localization.handout_mode_on);
   } else {
-    Decker.flash.message(
-      `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
-    );
+    Decker.flash.message(localization.handout_mode_off);
   }
 }
 
@@ -638,6 +639,13 @@ const Plugin = {
   init: (reveal) => {
     Reveal = reveal;
     createButtons();
+
+    if (localStorage) {
+      const initScale = localStorage.getItem("handoutScale");
+      if (initScale) {
+        userScale = initScale;
+      }
+    }
 
     /* Add triple click H to toggle handout mode to reveal keybindings */
     reveal.addKeyBinding(

@@ -83,17 +83,13 @@ function visibilityChanged() {
 async function onPresenterMode(isActive) {
   if (isActive) {
     // show info message
-    Decker.flash.message(
-      `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
-    );
+    Decker.flash.message(localization.presenter_mode_on);
 
     // request wake lock: display cannot go to sleep
     requestWakeLock();
   } else {
     // show info message
-    Decker.flash.message(
-      `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
-    );
+    Decker.flash.message(localization.presenter_mode_off);
 
     // release wake lock, display may go to sleep again
     releaseWakeLock();
@@ -476,11 +472,15 @@ function preparePresenterMode(deck) {
 const localization = {
   activate_presenter_mode: "Activate Presenter Mode",
   deactivate_presenter_mode: "Deactivate Presenter Mode",
+  presenter_mode_on: `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
+  presenter_mode_off: `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
 };
 
 if (navigator.language === "de") {
   localization.activate_presenter_mode = "Präsentationsmodus anschalten";
   localization.deactivate_presenter_mode = "Präsentationsmodus abschalten";
+  localization.presenter_mode_on = `<span>Präsentationsmodus: <strong style="color:var(--accent3);">AN</strong></span>`;
+  localization.presenter_mode_off = `<span>Präsentationsmodus: <strong style="color:var(--accent1);">AUS</strong></span>`;
 }
 
 const Plugin = {

@@ -100,11 +100,7 @@ function toggleA11YMode() {
 
   if (a11yMode) {
     pluginButton.ariaPressed = true;
-    pluginButton.ariaLabel = localization.deactivate_accessibility;
-    const span = pluginButton.querySelector("span");
-    if (span) {
-      span.innerHTML = localization.deactivate_accessibility;
-    }
+    pluginButton.setLabel(localization.deactivate_accessibility);
     document.documentElement.classList.add("a11y");
     const videos = document.getElementsByTagName("VIDEO");
     for (const video of videos) {
@@ -114,16 +110,10 @@ function toggleA11YMode() {
     for (const audio of audios) {
       modifyMedia(audio);
     }
-    Decker.flash.message(
-      `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
-    );
+    Decker.flash.message(localization.accessible_colors_on);
   } else {
     pluginButton.ariaPressed = false;
-    pluginButton.ariaLabel = localization.activate_accessibility;
-    const span = pluginButton.querySelector("span");
-    if (span) {
-      span.innerHTML = localization.activate_accessibility;
-    }
+    pluginButton.setLabel(localization.activate_accessibility);
     document.documentElement.classList.remove("a11y");
     const videos = document.getElementsByTagName("VIDEO");
     for (const video of videos) {
@@ -133,21 +123,23 @@ function toggleA11YMode() {
     for (const audio of audios) {
       restoreMedia(audio);
     }
-    Decker.flash.message(
-      `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
-    );
+    Decker.flash.message(localization.accessible_colors_off);
   }
 }
 
 const localization = {
   activate_accessibility: "Activate Accessibility Features",
   deactivate_accessibility: "Deactivate Accessibility Features",
+  accessible_colors_on: `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`,
+  accessible_colors_off: `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`,
   slide: "Slide",
 };
 
 if (navigator.language === "de") {
   localization.activate_accessibility = "Barrierefreie Funktionen anschalten";
   localization.deactivate_accessibility = "Barrierefreie Funktionen abschalten";
+  localization.accessible_colors_on = `<span>Kontrastfarben: <strong style="color:var(--accent3);">AN</strong></span>`;
+  localization.accessible_colors_off = `<span>Kontrastfarben: <strong style="color:var(--accent1);">AUS</strong></span>`;
   localization.slide = "Folie";
 }
 
