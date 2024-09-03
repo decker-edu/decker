@@ -432,16 +432,8 @@ function onWindowResize(event) {
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
   const viewportWidth = viewport.offsetWidth;
-  const pixelRatio = window.devicePixelRatio;
-
-  /*
-  CANTFIX This value should be a constant between reveal's width and the screen space available
-     yet it can not be determined cross browsers in a reliable way. More of that above on the documentation
-     of slideWidth itself.
-  */
 
   slideScale = viewportWidth / slideWidth;
-  //slideScale = 1; // The slideScale calculated above value should be constant anyway.
   updateScaling();
 }
 
@@ -457,13 +449,19 @@ function updateScaling() {
   handoutSlides.style.setProperty("--scale-factor", scale);
   const containerRect = handoutContainer.getBoundingClientRect();
   const slidesRect = handoutSlides.getBoundingClientRect();
+  console.log(containerRect);
+  console.log(slidesRect);
   // if the slides are larger than the viewport: scale from top left to fit to screen
   if (slidesRect.width > containerRect.width) {
     handoutSlides.style.transformOrigin = "top left";
     handoutSlides.style.margin = "0";
+    handoutSlides.style.left = "0";
+    handoutSlides.style.translate = "0";
   } else {
-    handoutSlides.style.transformOrigin = "top center";
+    handoutSlides.style.transformOrigin = null;
     handoutSlides.style.margin = null;
+    handoutSlides.style.left = null;
+    handoutSlides.style.translate = null;
   }
   if (centralSlide)
     centralSlide.scrollIntoView({ behavior: "instant", block: "center" });
