@@ -449,8 +449,6 @@ function updateScaling() {
   handoutSlides.style.setProperty("--scale-factor", scale);
   const containerRect = handoutContainer.getBoundingClientRect();
   const slidesRect = handoutSlides.getBoundingClientRect();
-  console.log(containerRect);
-  console.log(slidesRect);
   // if the slides are larger than the viewport: scale from top left to fit to screen
   if (slidesRect.width > containerRect.width) {
     handoutSlides.style.transformOrigin = "top left";
