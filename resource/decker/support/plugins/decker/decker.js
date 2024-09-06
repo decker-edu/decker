@@ -470,15 +470,17 @@ function preparePresenterMode(deck) {
 }
 
 const localization = {
-  activate_presenter_mode: "Activate Presenter Mode",
-  deactivate_presenter_mode: "Deactivate Presenter Mode",
+  activate_presenter_mode: "Activate Presenter Mode (P,P,P)",
+  deactivate_presenter_mode: "Deactivate Presenter Mode (P,P,P)",
   presenter_mode_on: `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
   presenter_mode_off: `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
 };
 
 if (navigator.language === "de") {
-  localization.activate_presenter_mode = "Präsentationsmodus anschalten";
-  localization.deactivate_presenter_mode = "Präsentationsmodus abschalten";
+  localization.activate_presenter_mode =
+    "Präsentationsmodus anschalten (P,P,P)";
+  localization.deactivate_presenter_mode =
+    "Präsentationsmodus abschalten (P,P,P)";
   localization.presenter_mode_on = `<span>Präsentationsmodus: <strong style="color:var(--accent3);">AN</strong></span>`;
   localization.presenter_mode_off = `<span>Präsentationsmodus: <strong style="color:var(--accent1);">AUS</strong></span>`;
 }

@@ -128,16 +128,18 @@ function toggleA11YMode() {
 }
 
 const localization = {
-  activate_accessibility: "Activate Accessibility Features",
-  deactivate_accessibility: "Deactivate Accessibility Features",
+  activate_accessibility: "Activate Accessibility Features (A,A,A)",
+  deactivate_accessibility: "Deactivate Accessibility Features (A,A,A)",
   accessible_colors_on: `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`,
   accessible_colors_off: `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`,
   slide: "Slide",
 };
 
 if (navigator.language === "de") {
-  localization.activate_accessibility = "Barrierefreie Funktionen anschalten";
-  localization.deactivate_accessibility = "Barrierefreie Funktionen abschalten";
+  localization.activate_accessibility =
+    "Barrierefreie Funktionen anschalten (A,A,A)";
+  localization.deactivate_accessibility =
+    "Barrierefreie Funktionen abschalten (A,A,A)";
   localization.accessible_colors_on = `<span>Kontrastfarben: <strong style="color:var(--accent3);">AN</strong></span>`;
   localization.accessible_colors_off = `<span>Kontrastfarben: <strong style="color:var(--accent1);">AUS</strong></span>`;
   localization.slide = "Folie";

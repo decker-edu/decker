@@ -1865,7 +1865,7 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
-      init_recording: "Initialise Screen Recording",
+      init_recording: "Initialise Screen Recording (R)",
       invalid_state: "Recording was already initialized.",
       no_camera_stream: "No camera stream available.",
       replacement_title: "Append or Replace?",

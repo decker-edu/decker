@@ -64,15 +64,15 @@ let storedMetaViewport = undefined;
 let pluginButton = undefined;
 
 let localization = {
-  activate_handout_mode: "Activate Handout Mode",
-  deactivate_handout_mode: "Deactivate Handout Mode",
+  activate_handout_mode: "Activate Handout Mode (H,H,H)",
+  deactivate_handout_mode: "Deactivate Handout Mode (H,H,H)",
   handout_mode_on: `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
   handout_mode_off: `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
 };
 
 if (navigator.language === "de") {
-  localization.activate_handout_mode = "Handout-Modus anschalten";
-  localization.deactivate_handout_mode = "Handout-Modus abschalten";
+  localization.activate_handout_mode = "Handout-Modus anschalten (H,H,H)";
+  localization.deactivate_handout_mode = "Handout-Modus abschalten (H,H,H)";
   localization.handout_mode_on = `<span>Handout-Modus: <strong style="color:var(--accent3);">AN</strong></span>`;
   localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
 }
