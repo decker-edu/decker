@@ -36,7 +36,6 @@ p {
 
 progress {
   accent-color: initial;
-  margin: auto 0.5em;
   width: 3em;
 }
 
@@ -56,6 +55,13 @@ body.index div.search table.search {
 
 body.index div.search.results table.search {
   display: table;
+}
+
+.link-additions {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  margin-left: 0.25rem;
 }
 
 a.handout-link {
