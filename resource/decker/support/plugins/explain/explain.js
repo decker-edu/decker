@@ -38,6 +38,9 @@ let recordingResumeTime;
 // playback stuff
 let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimesPlay;
 
+// view menu button
+let pluginButton;
+
 let uiState;
 
 let localization;
@@ -518,6 +521,10 @@ async function getDevices() {
 }
 
 async function setupRecorder() {
+  if (!Decker.isPresenterMode()) {
+    Decker.flash.message(localization.presenter_mode_error);
+    return false;
+  }
   try {
     stream = null;
 
@@ -549,6 +556,9 @@ async function setupRecorder() {
 
     // open panel to select camera and mic
     openRecordPanel();
+
+    // disable view menu button
+    pluginButton.disabled = true;
 
     return true;
   } catch (e) {
@@ -792,6 +802,7 @@ function stopRecording() {
     Reveal.getPlugin("whiteboard").saveAnnotations();
   }
 
+  enableViewButton();
   return true;
 }
 
@@ -1764,6 +1775,13 @@ function setupCallbacks() {
   });
 }
 
+function enableViewButton() {
+  if (pluginButton && Decker.isPresenterMode()) {
+    pluginButton.disabled = false;
+  }
+  return true;
+}
+
 // export the plugin
 const Plugin = {
   id: "explain",
@@ -1814,7 +1832,7 @@ const Plugin = {
       RECORDER_READY: {
         name: "RECORDER_READY",
         transition: {
-          cancel: { action: null, next: "INIT" },
+          cancel: { action: enableViewButton, next: "INIT" },
           record: { action: startRecording, next: "RECORDING" },
         },
       },
@@ -1847,6 +1865,8 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      init_recording: "Initialise Screen Recording (R)",
+      invalid_state: "Recording was already initialized.",
       no_camera_stream: "No camera stream available.",
       replacement_title: "Append or Replace?",
       replacement_warning:
@@ -1854,6 +1874,8 @@ const Plugin = {
       Do you want to append to the existing recording or replace it?",
       accept: "Accept",
       abort: "Abort",
+      presenter_mode_error:
+        'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.',
     };
 
     if (lang === "de") {
@@ -1861,6 +1883,8 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        init_recording: "Bildschirmaufnahme vorbereiten",
+        invalid_state: "Aufnamesystem wurde bereits initialisiert.",
         no_camera_stream: "Kein Kamerastream verfügbar.",
         replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
@@ -1868,8 +1892,47 @@ const Plugin = {
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        presenter_mode_error:
+          'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.',
       };
     }
+    deck.addEventListener("ready", () => {
+      Decker.addPresenterModeListener((mode) => {
+        if (pluginButton) {
+          if (
+            mode &&
+            uiState.name() !== "RECORDER_READY" &&
+            uiState.name() !== "RECORDING" &&
+            uiState.name() !== "RECORDER_PAUSED"
+          ) {
+            pluginButton.disabled = false;
+          } else {
+            pluginButton.disabled = true;
+          }
+        }
+      });
+      const menuPlugin = deck.getPlugin("decker-menu");
+      if (menuPlugin && !!menuPlugin.addPluginButton) {
+        pluginButton = menuPlugin.addPluginButton(
+          "decker-menu-recording-button",
+          "fa-video",
+          localization.init_recording,
+          () => {
+            switch (uiState.name()) {
+              case "INIT":
+              case "PLAYER_READY":
+                uiState.transition("setupRecorder");
+                break;
+              default:
+                Decker.flash.message(
+                  `<span>${localization.invalid_state}</span>`
+                );
+            }
+          }
+        );
+        pluginButton.disabled = true;
+      }
+    });
   },
 
   playVideo: play,

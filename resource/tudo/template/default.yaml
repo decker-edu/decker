@@ -57,7 +57,12 @@ speech-recognition-language: de-DE
 showDeckerLink: true
 
 # progress bar on index page
-progress: true
+index:
+  progress: true
+  links:
+    - a11y
+    - handout
+#    - presenter
 
 palette:
   contrast: 0.40
