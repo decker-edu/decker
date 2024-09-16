@@ -59,7 +59,6 @@ reveal:
   hash: true
   height: 1080
   help: false
-  # hideInactiveCursor: false
   hideCursorTime: 2000
   hideInactiveCursor: true
   history: false
