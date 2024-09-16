@@ -32,6 +32,15 @@ chart:
 math:
   scale: 1
 
+# Index Page config
+
+index:
+  progress: true
+  links:
+    - a11y
+    - handout
+#    - presenter
+
 # Reveal Config
 
 reveal:
