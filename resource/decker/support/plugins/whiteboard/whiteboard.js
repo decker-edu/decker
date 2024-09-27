@@ -73,6 +73,7 @@ const printMode = /print-pdf/gi.test(window.location.search);
 let svg = null;
 let stroke = null;
 let points = null;
+let disabledScroll = false;
 
 // global whiteboard status
 let whiteboardActive = false;
@@ -1326,6 +1327,14 @@ function pointerMode(evt) {
       if (tool == PEN && evt.buttons == 1) return PEN;
       break;
     }
+	case "touch": {
+	  // Fallback: Currently, only buttons == 1 is supported
+	  if (evt.buttons != 1) return NOTHING;
+      if (tool == ERASER) return ERASER;
+      if (tool == LASER) return LASER;
+      if (tool == PEN) return PEN;
+	  break;
+	}
   }
   return NOTHING;
 }
@@ -1335,6 +1344,11 @@ function pointerdown(evt) {
 
   // only when whiteboard is active
   if (!whiteboardActive) return;
+
+  if (evt.pointerType == "touch") {
+      disabledScroll = true;
+      slides.style.overflow = "hidden";
+  }
 
   switch (pointerMode(evt)) {
     case ERASER:
@@ -1414,8 +1428,14 @@ function pointerup(evt) {
   if (!whiteboardActive) return;
   // event has to happen for SVG
   if (evt.target != svg) return;
-  // only pen and mouse events
-  if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
+  // only pen, mouse, and touch events
+  if (evt.pointerType != "pen" && evt.pointerType != "mouse" && evt.pointerType != "touch") return;
+
+  if (evt.pointerType == "touch" &&
+	  disabledScroll) {
+      disabledScroll = false;
+      slides.style.overflow = "";
+  }
 
   // finish pen stroke
   if (stroke) stopStroke(evt);
