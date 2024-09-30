@@ -5,15 +5,15 @@
     src: url("../fonts/Recursive.woff2") format("woff2-variations");
     font-weight: 300 1000;
     text-rendering: optimizeLegibility;
-    font-variation-settings:
-        "MONO" 0,
-        "CASL" 0.5;
     font-style: normal;
 }
 
 body.deck {
     font-size: 40px;
     font-family: "Recursive", sans-serif;
+    font-variation-settings:
+        "MONO" 0,
+        "CASL" 0.4;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -25,6 +25,9 @@ body.page,
 body.index {
     font-size: 16px;
     font-family: "Recursive", sans-serif;
+    font-variation-settings:
+        "MONO" 0,
+        "CASL" 0.5;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;

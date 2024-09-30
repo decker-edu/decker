@@ -140,3 +140,59 @@ body.index .label {
   font-size: 80%;
   font-weight: bold;
 }
+
+.link-additions {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  margin-left: 0.25rem;
+  align-items: center;
+}
+
+.link-additions a:hover {
+  margin: -0.2rem;
+  padding: 0.2rem;
+}
+
+a.handout-link {
+  display: inline-block;
+  box-sizing: content-box;
+  vertical-align: bottom;
+  position: relative;
+  width: 1em;
+  height: 1em;
+}
+
+a.handout-link::before {
+  display: block;
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0.05em;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--primary-color);
+  border-radius: 1px;
+}
+
+a.handout-link::after {
+  display: block;
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 0.05em;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--primary-color);
+  border-radius: 1px;
+}
+
+a.handout-link:hover::before {
+  top: 0.25em;
+  left: 0.3em;
+}
+
+a.handout-link:hover::after {
+  bottom: 0.25em;
+  left: 0.3em;
+}
