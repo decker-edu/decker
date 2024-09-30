@@ -112,12 +112,13 @@ function toggleAccessibility() {
     }
     Decker.flash.message(localization.accessible_colors_on);
     if (window.MathJax) {
-      // Turn on MathJax explorer
       window.MathJax.startup.document.options.enableMenu = true;
-      window.MathJax.startup.document.rerender();
       window.MathJax.startup.document.menu.menu
         .findID("Accessibility", "Activate")
         .variable.setter(true);
+      window.MathJax.startup.document.menu.loadingPromise.then(() => {
+        window.MathJax.startup.document.rerender();
+      });
     }
   } else {
     pluginButton.ariaPressed = false;
@@ -134,11 +135,13 @@ function toggleAccessibility() {
     Decker.flash.message(localization.accessible_colors_off);
     if (window.MathJax) {
       // Does it make sense to remove this again if once activated?
+      window.MathJax.startup.document.options.enableMenu = false;
       window.MathJax.startup.document.menu.menu
         .findID("Accessibility", "Activate")
         .variable.setter(false);
-      window.MathJax.startup.document.options.enableMenu = false;
-      window.MathJax.startup.document.rerender();
+      window.MathJax.startup.document.menu.loadingPromise.then(() => {
+        window.MathJax.startup.document.rerender();
+      });
     }
   }
 }
@@ -180,11 +183,6 @@ const Plugin = {
 
       Decker.tripleClick(toggleAccessibility)
     );
-    if (a11y) {
-      Reveal.addEventListener("ready", () => {
-        toggleAccessibility();
-      });
-    }
     reveal.addEventListener("ready", () => {
       const menuPlugin = reveal.getPlugin("decker-menu");
       if (!!menuPlugin && !!menuPlugin.addPluginButton) {
@@ -192,10 +190,15 @@ const Plugin = {
           "decker-menu-a11y-button",
           "fa-universal-access",
           localization.activate_accessibility,
-          toggleA11YMode
+          toggleAccessibility
         );
       }
     });
+    if (a11y) {
+      Reveal.addEventListener("ready", () => {
+        toggleAccessibility();
+      });
+    }
   },
 };
 
