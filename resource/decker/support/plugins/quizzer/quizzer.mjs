@@ -2,37 +2,87 @@ import Client from "./client.mjs";
 import Renderer, { resetAssignmentState } from "./renderer.mjs";
 import bwip from "../examiner/bwip.js";
 import "../../vendor/d3.v6.min.js";
+import localization from "./localization.mjs";
 
 let Reveal;
 let hostClient = undefined;
 let currentQuiz = undefined;
-let quizState = "WAITING";
+let quizState = "UNINITIALIZED";
+
+let connectionIndicator = document.createElement("span");
 
 let qrButton = document.createElement("button");
 let qrDialog = document.createElement("dialog");
 let qrCanvas = document.createElement("canvas");
 let qrLink = document.createElement("a");
+let qrClose = document.createElement("button");
 
 let stateButton = document.createElement("button");
-let stateSpan = document.createElement("span");
+let tallySpan = document.createElement("span");
+
+function containsClick(rect, x, y) {
+  return (
+    rect.x <= x &&
+    x <= rect.x + rect.width &&
+    rect.y <= y &&
+    y <= rect.y + rect.height
+  );
+}
 
 function setQuizState(state) {
   quizState = state;
-  stateSpan.hidden = true;
+  tallySpan.hidden = true;
   delete stateButton.dataset["state"];
   if (state === "WAITING") {
     stateButton.dataset["state"] = "WAITING";
   } else if (state === "ACTIVE") {
-    stateSpan.hidden = false;
+    tallySpan.hidden = false;
     stateButton.dataset["state"] = "ACTIVE";
   }
 }
 
+/**
+ * Parse out a JSON object representing the quiz out of the DOM of a .quizzer div.
+ * A quiz object has the following attributes:
+ * - type: A string that represents the type of quiz (selection, choice, assignment or freetext)
+ * - question: The question posed in the quiz to be presented to the questionee.
+ * - choices: An array of objects representing the possible answers to a question.
+ *
+ * A choice contains the following attributes:
+ * - votes: The amount of items one is allowed to pick at once (only relevant for choice quizzes)
+ * - options: An array of objects each representing an answer.
+ *
+ * An answer contains the following attributes:
+ * - label: The text representing the answer.
+ * - reason: An optional reason given for why the answer is correct or incorrect. In
+ *   assignment quizzes the reason represents the category an object is assigned to.
+ * - correct: A boolean that represents if this specific answer is a correct answer or not.
+ *
+ * An example quiz would be represented as:
+ * ```
+ * ::: quizzer [type]
+ *
+ * Question
+ *
+ * - [ ] Wrong Answer
+ *   - Reason for Wrongness
+ * - [X] Correct Answer
+ *   - Reason for Correctness
+ *
+ * :::
+ * ```
+ *
+ * The question text can and should contain placeholders in the form of [#n] for freetext and
+ * selection quizzes where the values of answers are inserted or where selection boxes should
+ * be placed. Two lists of possible answers have to be separated by a horizontal rule (---), as
+ * the lists will be compacted into one if there are only empty lines separating them.
+ */
 function parseQuizzes(reveal) {
   const slides = reveal.getSlides();
   for (const slide of slides) {
     slide.quizzes = [];
     const quizzers = slide.querySelectorAll(":scope .quizzer");
+    /* For each quizzer div in the slide ... */
     for (const quizzer of quizzers) {
       const quizObject = {
         type: undefined,
@@ -49,16 +99,19 @@ function parseQuizzes(reveal) {
         quizObject.type = "choice";
       }
       const question = quizzer.querySelector(":scope p");
+      /* ... interpret the first <p> as the quiz's question ... */
       if (question) {
         question.classList.add("question");
         quizObject.question = question.innerHTML;
       }
+      /* ... and each list in the container as a choice object ... */
       const lists = quizzer.querySelectorAll(":scope > ul");
       for (const list of lists) {
         const choiceObject = {
           votes: 1,
           options: [],
         };
+        /* ... where each list item is a possible answer ... */
         const items = list.querySelectorAll(":scope > li");
         for (const item of items) {
           const answerObject = {
@@ -80,6 +133,7 @@ function parseQuizzes(reveal) {
           answerObject.correct = item.classList.contains("task-yes");
           choiceObject.options.push(answerObject);
         }
+        /* ... if there is more than one correct choice the amount of votes is equal to the amount of possible answers. */
         if (
           choiceObject.options.filter((choice) => choice.correct).length > 1
         ) {
@@ -87,10 +141,13 @@ function parseQuizzes(reveal) {
         }
         quizObject.choices.push(choiceObject);
       }
+      /* Clean up the entire quizzer container */
       while (quizzer.lastElementChild) {
         quizzer.lastElementChild.remove();
       }
+      /* Archive the quiz object into the quizzer container */
       quizzer.quiz = quizObject;
+      /* Render the quiz interface according to its type */
       if (quizObject.type === "choice") {
         Renderer.renderChoiceQuiz(quizzer, quizObject);
       } else if (quizObject.type === "freetext") {
@@ -100,6 +157,7 @@ function parseQuizzes(reveal) {
       } else if (quizObject.type === "assignment") {
         Renderer.renderAssignmentQuiz(quizzer, quizObject);
       }
+      /* Also archive the quiz object in the slide as to easily identify slides that have quizzes */
       slide.quizzes.push(quizObject);
     }
   }
@@ -127,20 +185,30 @@ function createHostInterface(reveal) {
     }
   });
   qrDialog.addEventListener("click", (event) => {
+    if (!containsClick(qrDialog.getBoundingClientRect(), event.x, event.y)) {
+      qrDialog.close();
+    }
+  });
+  qrClose.classList.add("fas", "fa-times", "fa-button", "close-dialog-button");
+  qrClose.addEventListener("click", (event) => {
     qrDialog.close();
   });
   qrDialog.appendChild(qrCanvas);
   qrDialog.appendChild(qrLink);
+  qrDialog.appendChild(qrClose);
   document.body.appendChild(qrDialog);
 
-  qrButton.addEventListener("click", (event) => {
+  qrButton.addEventListener("click", async (event) => {
+    if (!hostClient) {
+      await initializeHost();
+    }
     qrDialog.showModal();
   });
   stateButton.addEventListener("click", async (event) => {
     if (!hostClient) {
       await initializeHost();
     }
-    if (quizState === "WAITING") {
+    if (quizState === "READY") {
       const slide = Reveal.getCurrentSlide();
       if (slide.quizzes[0]) {
         currentQuiz = slide.quizzes[0];
@@ -153,22 +221,59 @@ function createHostInterface(reveal) {
     }
   });
 
-  stateSpan.className = "quizzer-state-info";
-  stateSpan.hidden = true;
+  tallySpan.className = "quizzer-state-info";
+  tallySpan.className = "presenter-only";
 
+  connectionIndicator.classList.add(
+    "fas",
+    "fa-wifi",
+    "fa-span",
+    "presenter-only"
+  );
+  connectionIndicator.title = "No Data";
+  connectionIndicator.hidden = true;
+
+  anchors.placeButton(connectionIndicator, "BOTTOM_CENTER");
   anchors.placeButton(qrButton, "BOTTOM_CENTER");
   anchors.placeButton(stateButton, "BOTTOM_CENTER");
-  anchors.placeButton(stateSpan, "BOTTOM_CENTER");
+  anchors.placeButton(tallySpan, "BOTTOM_CENTER");
+}
+
+function onError() {
+  console.error(
+    "The Quizzer Websocket has encountered an error. The connection is to be considered closed."
+  );
+  connectionIndicator.classList.add("error");
+  connectionIndicator.hidden = false;
+  connectionIndicator.title = localization().unableToConnect;
+  qrButton.hidden = true;
+  stateButton.hidden = true;
+  tallySpan.hidden = true;
+  setQuizState("ERROR");
 }
 
 function onStateUpdate(connections, done) {
-  stateSpan.innerText = `${done} / ${connections}`;
+  tallySpan.innerText = `${done} / ${connections}`;
+}
+
+function onConnectionUpdate(error, outgoing, incoming) {
+  connectionIndicator.classList.remove("error");
+  if (error && error === "CLOSED") {
+    connectionIndicator.title = "Connection Closed";
+    connectionIndicator.classList.add("error");
+    return;
+  }
+  connectionIndicator.title = `Out: ${Math.ceil(outgoing)}ms / In: ${Math.ceil(
+    incoming
+  )}ms`;
 }
 
 async function initializeHost() {
   return new Promise((resolve, reject) => {
     hostClient = new Client();
+    hostClient.on("error", onError);
     hostClient.on("state", onStateUpdate);
+    hostClient.on("connection", onConnectionUpdate);
     hostClient.on("ready", (session, secret) => {
       const backend = Decker.meta.quizzer.backend || "http://localhost:3000";
       bwip.toCanvas(qrCanvas, {
@@ -182,11 +287,12 @@ async function initializeHost() {
       qrLink.innerText = `${backend}/client?session=${session}`;
       qrLink.target = "_blank";
       qrLink.href = `${backend}/client?session=${session}`;
+      setQuizState("READY");
       resolve();
     });
     hostClient.on("result", (result) => {
-      quizState = "WAITING";
-      stateSpan.hidden = true;
+      quizState = "READY";
+      tallySpan.hidden = true;
       const resultContainer = document.createElement("div");
       resultContainer.classList.add("quizzer-results-container");
       if (currentQuiz && currentQuiz.type === "choice") {
@@ -454,29 +560,56 @@ async function initializeHost() {
   });
 }
 
-async function onSlideChange(event) {
-  resetAssignmentState();
-  if (!event.currentSlide) {
-    return;
-  }
-  const slide = event.currentSlide;
+async function toggleInterface() {
+  const slide = Reveal.getCurrentSlide();
+  /* No Quizzes on current slide: Hide interface. */
   if (!slide.quizzes[0]) {
+    connectionIndicator.hidden = true;
     qrButton.hidden = true;
     stateButton.hidden = true;
-    stateSpan.hidden = true;
+    tallySpan.hidden = true;
     return;
   }
   if (!hostClient) {
-    await initializeHost();
+    try {
+      await initializeHost();
+    } catch (error) {
+      return;
+    }
+  }
+  if (quizState === "ERROR") {
+    connectionIndicator.hidden = false;
+    qrButton.hidden = true;
+    stateButton.hidden = true;
+    tallySpan.hidden = true;
+    hostClient.tryReconnect();
   }
   if (quizState === "ACTIVE") {
     hostClient.requestEvaluation();
     setQuizState("AWAITING_EVALUATION");
   }
-  stateSpan.innerText = "";
+  tallySpan.innerText = "";
+  connectionIndicator.hidden = false;
   qrButton.hidden = false;
   stateButton.hidden = false;
-  stateSpan.hidden = true;
+  tallySpan.hidden = true;
+}
+
+async function onPresenterMode(active) {
+  if (active) {
+    toggleInterface();
+  }
+}
+
+async function onSlideChange(event) {
+  resetAssignmentState();
+  if (!Decker.isPresenterMode()) {
+    return;
+  }
+  if (!event.currentSlide) {
+    return;
+  }
+  toggleInterface();
 }
 
 const Plugin = {
@@ -487,7 +620,10 @@ const Plugin = {
     }
     createHostInterface(reveal);
     parseQuizzes(reveal);
-    reveal.on("slidechanged", onSlideChange);
+    reveal.on("ready", () => {
+      reveal.on("slidechanged", onSlideChange);
+      Decker.addPresenterModeListener(onPresenterMode);
+    });
     Reveal = reveal;
   },
 };

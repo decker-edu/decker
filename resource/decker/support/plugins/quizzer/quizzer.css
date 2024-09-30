@@ -173,7 +173,7 @@ button.answer.wrong {
   border: 2px solid var(--shade4);
 }
 
-fieldset legend {
+.answer-container fieldset legend {
   position: absolute;
   background: var(--background-color);
   top: -1.1rem;
@@ -306,12 +306,57 @@ button[hidden] {
 .quizzer-dialog {
   display: flex;
   flex-direction: column;
-
+  gap: 1rem;
   text-align: center;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  --dialog-background: var(--background-color);
+}
+
+.quizzer-dialog::backdrop {
+  background-color: rgba(0,0,0,0.75);
+}
+
+/* In dark mode the background of the canvas should still be white */
+.dark .quizzer-dialog {
+  --dialog-background: var(--foreground-color);
+}
+
+.quizzer-dialog canvas {
+  padding: 1rem;
+  background-color: var(--dialog-background);
+  border-radius: 1rem;
 }
 
 .quizzer-dialog a {
+  background-color: var(--dialog-background);
+  color: var(--accent5);
   font-size: 2rem;
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.quizzer-dialog a:hover {
+  color: var(--accent5-fg);
+}
+
+.quizzer-dialog .close-dialog-button {
+  display: none;
+}
+
+.quizzer-dialog[open] .close-dialog-button {
+  display: block;
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  color: var(--background-color);
+  background-color: var(--foreground-color);
+  border-radius: 100%;
+}
+
+.quizzer-dialog[open] .close-dialog-button:hover {
+  background-color: var(--shade3);
 }
 
 .quizzer-results-container {
@@ -367,5 +412,27 @@ button[hidden] {
 }
 
 .print-pdf dialog {
+  display: none !important;
+}
+
+:root.dark .quizzer-container button {
+  color: var(--foreground-color);
+}
+
+span.fa-span {
+  color: var(--icon-inactive-color);
+  padding: 0.5rem;
+  font-size: calc(var(--icon-size) * 1);
+  line-height: 2;
+  margin: 0.5rem;
+  text-align: center;
+  cursor: help;
+}
+
+span.fa-span.error {
+  color: var(--color-error);
+}
+
+span.fa-span[hidden] {
   display: none !important;
 }

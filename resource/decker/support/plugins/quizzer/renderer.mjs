@@ -87,8 +87,8 @@ function createSelectElement(options) {
   const placeholder = document.createElement("option");
   placeholder.disabled = true;
   placeholder.selected = true;
-  placeholder.innerText = "Pick One ...";
-  placeholder.reason = "Please select an answer!";
+  placeholder.innerText = localization.pickMessage;
+  placeholder.reason = localization.pickReason;
   placeholder.correct = false;
   select.appendChild(placeholder);
   for (const option of options) {
@@ -115,16 +115,14 @@ export default {
     const container = createQuizContainer();
     container.question.innerText = quiz.question;
     if (quiz.choices.length !== 1) {
-      questionParagraph.innerText =
-        "Assignment Quiz only supports a single choice.";
+      questionParagraph.innerText = localization.errorMultipleAssignments;
     }
     const choices = quiz.choices[0];
     const categories = [];
 
     const answerArea = document.createElement("fieldset");
     const answerLegend = document.createElement("legend");
-    answerLegend.innerText =
-      "Objekte von hier ziehen oder durch Klicken selektieren ...";
+    answerLegend.innerText = localization.assignemtInstructionObjects;
     answerArea.appendChild(answerLegend);
 
     const answerBucket = document.createElement("button");
@@ -250,7 +248,7 @@ export default {
     const categoryArea = document.createElement("fieldset");
     const categoryLegend = document.createElement("legend");
     categoryArea.appendChild(categoryLegend);
-    categoryLegend.innerText = "... und den richtigen Kategorien zuweisen.";
+    categoryLegend.innerText = localization.assignemntInstructionCategories;
     categoryArea.classList.add("categories");
     container.answers.appendChild(categoryArea);
 
