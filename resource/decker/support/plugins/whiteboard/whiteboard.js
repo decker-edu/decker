@@ -62,6 +62,7 @@ let tool = PEN;
 // variable used to block leaving HTML page
 let unsavedAnnotations = false;
 let autosave = true;
+let useTouch = false;
 
 // whether to automatically turn on whiteboard when pencil hovers
 let autoToggle = false;
@@ -73,7 +74,6 @@ const printMode = /print-pdf/gi.test(window.location.search);
 let svg = null;
 let stroke = null;
 let points = null;
-let disabledScroll = false;
 
 // global whiteboard status
 let whiteboardActive = false;
@@ -156,6 +156,7 @@ let buttonWhiteboard;
 let buttonSave;
 let buttonDownload;
 let buttonGrid;
+let buttonTouch;
 let buttonAdd;
 let buttonUndo;
 let buttonPen;
@@ -222,6 +223,14 @@ function createGUI() {
     "Toggle Grid"
   );
   buttonGrid.setAttribute("role", "switch");
+
+  buttonTouch = createButton(
+    "fas fa-fingerprint checkbox",
+    toggleTouch,
+    false,
+    "Toggle Touch"
+  );
+  buttonTouch.setAttribute("role", "switch");
 
   buttonAdd = createButton(
     "fas fa-plus",
@@ -804,6 +813,20 @@ function getGridRect() {
 }
 
 /*
+ * Enable/disable touch mode
+ */
+function toggleTouch() {
+	useTouch = !useTouch;
+    buttonTouch.dataset.active = useTouch;
+   	buttonTouch.setAttribute("aria-checked", useTouch);
+	if (useTouch) {
+        slides.style.overflow = "hidden";
+	} else {
+        slides.style.overflow = "";
+	}
+}
+
+/*
  * add/remove background rectangle with grid pattern
  */
 function toggleGrid() {
@@ -1345,11 +1368,6 @@ function pointerdown(evt) {
   // only when whiteboard is active
   if (!whiteboardActive) return;
 
-  if (evt.pointerType == "touch") {
-      disabledScroll = true;
-      slides.style.overflow = "hidden";
-  }
-
   switch (pointerMode(evt)) {
     case ERASER:
       if (evt.pointerType == "pen") {
@@ -1430,12 +1448,6 @@ function pointerup(evt) {
   if (evt.target != svg) return;
   // only pen, mouse, and touch events
   if (evt.pointerType != "pen" && evt.pointerType != "mouse" && evt.pointerType != "touch") return;
-
-  if (evt.pointerType == "touch" &&
-	  disabledScroll) {
-      disabledScroll = false;
-      slides.style.overflow = "";
-  }
 
   // finish pen stroke
   if (stroke) stopStroke(evt);
@@ -1640,6 +1652,11 @@ function setupKeyBindings() {
   Reveal.addKeyBinding(
     { keyCode: 46, key: "Delete", description: "Whiteboard: Clear Slide" },
     clearSlide
+  );
+
+  Reveal.addKeyBinding(
+    { keyCode: 84, key: "T", description: "Toggle Touch Mode" },
+    toggleTouch
   );
 
   Reveal.addKeyBinding(
