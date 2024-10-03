@@ -5,6 +5,7 @@ module Text.Decker.Internal.Meta
     FromMetaValue (..),
     addMetaValue,
     addMetaKeyValue,
+    addMetaKeyValue',
     adjustMetaStringsBelow,
     adjustMetaStringsBelowM,
     adjustMetaValue,
