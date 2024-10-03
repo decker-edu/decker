@@ -17,9 +17,9 @@ body.index {
 body.index header {
   font-size: 150%;
   background-position: center;
-  background-color: #eee;
+  background-color: var(--shade1);
 
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--shade2);
   padding: 2rem 1.5rem;
 
   /* This sets the right and left margins to cancel out the body's margins. It's
