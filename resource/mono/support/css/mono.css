@@ -564,3 +564,90 @@ li.task-no input[type="checkbox"] {
   padding: 0;
   margin-bottom: 0;
 }
+
+/* Some additional colors */
+:root {
+  /* primary colors */
+  --red: #ff0000;
+  --green: #00ff00;
+  --blue: #0000ff;
+  --black: #000000;
+  --block-outset: 1rem;
+}
+
+/* Colors for the grid templates */
+@media (prefers-color-scheme: light) {
+  :root {
+    --canvas: color(
+      from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05)
+    );
+    --grid: var(--light-shade2);
+  }
+  :root.dark {
+    --canvas: color(
+      from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8)
+    );
+    --grid: var(--dark-shade2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: color(
+      from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8)
+    );
+    --grid: var(--dark-shade2);
+  }
+  :root.light {
+    --canvas: color(
+      from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05)
+    );
+    --grid: var(--light-shade2);
+  }
+}
+
+/* Override some of Pandoc's defaults. */
+code span.dt {
+  text-decoration: none;
+}
+
+/* Promary RGB color stuff*/
+span.red.bg {
+  color: var(--shade0);
+  background-color: var(--red);
+}
+
+span.green.bg {
+  color: var(--shade7);
+  background-color: var(--green);
+}
+
+span.blue.bg {
+  color: var(--shade1);
+  background-color: var(--blue);
+}
+
+span.black.bg {
+  color: var(--shade1);
+  background-color: var(--black);
+}
+
+span.red {
+  color: var(--red);
+}
+
+span.green {
+  color: var(--green);
+}
+
+span.blue {
+  color: var(--blue);
+}
+
+span:is(.red, .green, .blue, .black) {
+  border-radius: calc(var(--block-border-radius) / 1);
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  margin-left: -0.2em;
+  margin-right: -0.2em;
+}
