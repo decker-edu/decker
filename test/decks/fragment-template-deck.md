@@ -86,7 +86,7 @@ print(42)
 
 ## Result
 
-``` {.live-code- language="python" caption="Captions are swell!"}
+``` {.live-code- language="python" caption="Captions are swell!" .small}
 print(42)
 ```
 
