@@ -4,7 +4,7 @@
   --normal-font-weight: 400;
   --code-font-weight: 500;
   --bold-font-weight: 600;
-  --header-font-weight: var(--bold-font-weight);
+  --header-font-weight: 700;
 }
 
 @font-face {
@@ -17,6 +17,7 @@
 
 body.deck {
   font-size: 40px;
+  color: var(--foreground-color);
   font-family: "Recursive", sans-serif;
   font-variation-settings:
     "MONO" 0,
@@ -32,6 +33,7 @@ body.handout,
 body.page,
 body.index {
   font-size: 16px;
+  color: var(--foreground-color);
   font-family: "Recursive", sans-serif;
   font-variation-settings:
     "MONO" 0,
@@ -45,7 +47,8 @@ body.index {
 
 /* Inline code */
 code {
-  font-size: 110%;
+  font-size: 100%;
+  color: var(--foreground-color);
   font-family: "Recursive", monospace;
   font-variation-settings:
     "MONO" 1,
@@ -83,25 +86,21 @@ th {
 /* Headers */
 h1,
 h1.title {
-  color: var(--shade6);
   font-size: 130%;
   font-weight: var(--header-font-weight);
 }
 
 body.deck h1 {
-  color: var(--shade6);
   font-size: 150%;
   font-weight: var(--header-font-weight);
 }
 
 h2 {
-  color: var(--shade6);
   font-size: 120%;
   font-weight: var(--header-font-weight);
 }
 
 h3 {
-  color: var(--shade6);
   font-size: 110%;
   font-weight: var(--header-font-weight);
 }
