@@ -1,6 +1,7 @@
 import { pollSession } from "./poll.js";
 
 export async function preparePolls(reveal) {
+  
   // Only when reveal is ready we can find the elements we need.
   let color = Decker.meta["css-light-colors"];
 
