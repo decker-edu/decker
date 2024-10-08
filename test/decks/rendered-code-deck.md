@@ -42,12 +42,12 @@ Alice -> Bob: test
 
 ## Mermaid {.left}
 
-```` {.markdown}
+<!-- ```` {.markdown}
 ``` {.mermaid .render}
 graph TD
 A[Client] --> B[Load Balancer]
 ```
-````
+```` -->
 
 ## SVG {.right}
 

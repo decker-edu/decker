@@ -472,24 +472,12 @@ div.flush-bottom-right {
   font-size: 1rem;
 }
 
-/* once clicked, wrong answers are red */
-.reveal .quiz ul li.wrong {
-  --quiz-background-color: var(--red-background-color);
-  --quiz-border-color: var(--red-border-color);
-  --quiz-icon: "\f00d";
-}
-
-/* once clicked, correct answers are green */
-.reveal .quiz ul li.right {
-  --quiz-background-color: var(--green-background-color);
-  --quiz-border-color: var(--green-border-color);
-  --quiz-icon: "\f00c";
-}
 
 .reveal .quiz ul li.show-answer {
   background-color: var(--quiz-background-color);
   border-color: var(--quiz-border-color);
 }
+
 .reveal .quiz ul li.show-answer::after {
   font-style: normal;
   font-variant: normal;
@@ -509,6 +497,21 @@ div.flush-bottom-right {
 .reveal .show-answer:hover ul li {
   visibility: visible;
 }
+
+/* once clicked, wrong answers are red */
+.reveal .quiz ul li.wrong .wrong {
+  --quiz-background-color: var(--red-background-color);
+  --quiz-border-color: var(--red-border-color);
+  --quiz-icon: "\f00d";
+}
+
+/* once clicked, correct answers are green */
+.reveal .quiz ul li.right {
+  --quiz-background-color: var(--green-background-color);
+  --quiz-border-color: var(--green-border-color);
+  --quiz-icon: "\f00c";
+}
+
 
 /*********************************************
   * override quiz-wue settings
