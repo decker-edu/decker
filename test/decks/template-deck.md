@@ -12,6 +12,8 @@ templates:
     <track kind="subtitles" label="Deutsch" srclang="de" src=":(title)" default />
     </video>
 title: Template Macros
+meta-data:
+  - /test/decks/macro-templates.yaml
 ---
 
 # Template
@@ -33,6 +35,27 @@ templates:
 
 Hallo [@test arg1 arg2 arg3](the%20url "Title") Was denn [@test2 There is
 no](the%20url "Title")
+
+--------------------------------------------------------------------------------
+
+# Wikipedia
+
+## Macro definition
+
+``` yaml
+  wp: |
+    <a href=":(url)"><i class="fa-brands fa-wikipedia-w"></i> - :(title)</a>
+```
+
+## Invocation
+
+``` markdown
+[@wp](https://de.wikipedia.org/wiki/SRGB-Farbraum "sRGB Farbraum")
+```
+
+## Result
+
+[@wp](https://de.wikipedia.org/wiki/SRGB-Farbraum "sRGB Farbraum")
 
 --------------------------------------------------------------------------------
 
@@ -71,4 +94,3 @@ templates:
 ``` {.arg1 .arg2 .arg3 macro="block-test" param1="p1" param2="p2"}
 The Block Test Code
 ```
-

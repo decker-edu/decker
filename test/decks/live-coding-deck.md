@@ -1,12 +1,5 @@
 ---
 subtitle: Edit and Execute Code Blocks
-template:
-  css:
-  - "/support/vendor/codapi-js/snippet.css"
-  - /support/css/hljs.css
-  - /support/css/codapi.css
-  js:
-  - "/support/vendor/codapi-js/snippet.js"
 templates:
   live-code: |
     ````{=html}

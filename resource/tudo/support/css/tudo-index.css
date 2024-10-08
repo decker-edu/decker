@@ -285,9 +285,3 @@ p {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
-
-progress {
-  accent-color: initial;
-  margin: auto 0.5em;
-  width: 3em;
-}

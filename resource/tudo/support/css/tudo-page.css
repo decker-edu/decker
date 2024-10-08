@@ -833,12 +833,6 @@ td[align="left"] {
   justify-content: center;
 }
 
-#waiting-spinner {
-  font-size: 1.5em;
-  animation: turning 2s linear infinite;
-  transform-origin: center;
-}
-
 #waiting-quote {
   max-width: 80%;
 }

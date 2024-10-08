@@ -32,6 +32,15 @@ chart:
 math:
   scale: 1
 
+# Index Page config
+
+index:
+  progress: true
+  links:
+    - a11y
+    - handout
+#    - presenter
+
 # Reveal Config
 
 reveal:
@@ -56,23 +65,6 @@ reveal:
   vertical-slides: true
   viewDistance: 2
   width: 1280
-
-# Menu Config
-
-menu:
-  backdrop: 'blur'
-
-# Template Config
-
-template:
-  favicon: "support/icons/favicon.ico"
-  # Codapi live-code config:
-  css:
-    - /support/vendor/codapi-js/snippet.css
-    - /support/css/hljs.css
-    - /support/css/codapi.css
-  js:
-    - /support/vendor/codapi-js/snippet.js
 
 # Title Config
 

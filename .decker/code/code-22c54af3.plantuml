@@ -1,0 +1,5 @@
+@startuml
+skinparam shadowing false
+skinparam monochrome true
+Alice -> Bob: test
+@enduml

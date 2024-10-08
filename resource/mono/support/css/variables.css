@@ -1,4 +1,7 @@
 :root {
+    /* variable font setting for Recursive*/
+    --casl: 0.3;
+  
     /* Icon settings */
     --icon-size: 1rem;
 
@@ -55,7 +58,7 @@
      current palette. Colors can be set arbitrarily. */
     --background-color: var(--shade0);
     --foreground-color: var(--shade7);
-    --header-color: var(--shade6);
+    --header-color: var(--shade5);
     --primary-color: var(--accent5);
     --secondary-color: var(--accent1);
     --icon-active-color: var(--accent5);

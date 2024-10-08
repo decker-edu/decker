@@ -78,7 +78,11 @@ $endif$
        $css-declarations$
      $endfor$
    }
-  </style>
+ </style>
+
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
 
   <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
 
@@ -181,6 +185,7 @@ $for(include-after)$
 $include-after$
 $endfor$
 
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
   <script>
     var socket = new WebSocket("ws://" + location.host + "/reload");
     socket.onmessage = function (event) {

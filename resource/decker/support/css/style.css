@@ -36,6 +36,15 @@ pre {
   line-height: 1;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--header-color);
+}
+
 h1 {
   font-size: 1.8em;
   font-weight: bold;
@@ -430,16 +439,16 @@ button.fa-button::-moz-focus-inner {
 /* details that pop up. per default only with wrapped details 
 elements from H2 boxes. */
 div.details-frame:has(details.popup) {
-    position: relative;
-    height: 1.8em;
+  position: relative;
+  height: 1.8em;
 }
 
 div.details-frame details[open].popup {
-    position: absolute;
-    background-color: var(--accent4-bbg);
-    box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
-    border-radius: var(--block-border-radius);
-    z-index: 2;
-    padding: 0.8em;
-    margin: -0.8em;
+  position: absolute;
+  background-color: var(--accent4-bbg);
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  border-radius: var(--block-border-radius);
+  z-index: 2;
+  padding: 0.8em;
+  margin: -0.8em;
 }

@@ -2,7 +2,7 @@
 author: Henrik Tramberend
 controls: false
 feedback:
-  base-url: 'https://tramberend.bht-berlin.de/de-api'
+  base-url: 'https://decker.cs.tu-dortmund.de/feedback/'
 help: 0
 title: Decker Engine Auth Test
 ---
