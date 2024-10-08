@@ -222,23 +222,6 @@ div.feedback-item button {
   flex: 0 1 content;
 }
 
-div.feedback-menu div.feedback-legend {
-    display: none;
-    grid-template-columns: 1fr 1fr;
-    font-size: 1rem;
-    color: var(--shade3);
-    border-top: 1px solid var(--shade3);
-    padding-top: 0.25rem;
-    border-bottom: 1px solid var(--shade3);
-    padding-bottom: 0.25rem;
-}
-
-@media (hover: none) {
-  div.feedback-menu div.feedback-legend {
-    display: grid;
-  }
-}
-
 div.feedback-menu div.feedback-question-input {
   flex: 0 1;
   padding: 0.3em;

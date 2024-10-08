@@ -695,23 +695,6 @@ class Feedback {
         </button>
       </div>
       <div class="feedback-list"></div>
-      <div class="feedback-legend">
-        <div class="legend-entry">
-          <span class="fas fa-thumbs-up"></span>: ${this.localization.question_container.upvote}
-        </div>
-        <div class="legend-entry">
-          <span class="fas fa-edit"></span>: ${this.localization.question_container.edit}
-        </div>
-        <div class="legend-entry">
-          <span class="fas fa-trash-alt"></span>: ${this.localization.question_container.delete}
-        </div>
-        <div class="legend-entry">
-          <span class="far fa-circle"></span>: ${this.localization.question_container.mark}
-        </div>
-        <div class="legend-entry">
-          <span class="fas fa-square-plus"></span>: ${this.localization.question_container.add}
-        </div>
-      </div>
       <div class="feedback-question-input">
         <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
         <button class="feedback-send-button" aria-label="${this.localization.send_comment}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment}</span></button>
