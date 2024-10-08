@@ -85,10 +85,11 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let allClsArgs = [("classes", Text.unwords cls)]
           let allKvAttribs = [("attribs", unwords $ map (\(k, v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
           let codeArg = [("code", Text.strip code)]
+          let codeEscArg = [("codeEsc", escape $ Text.strip code)]
           let rndIdArg = [("rnd-id", rndId)]
           let idArg = [("id", if Text.null id then rndId else id)]
           let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]
-          let arguments :: [(Text, Text)] = codeArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> rndIdArg <> idArg <> captionArg
+          let arguments :: [(Text, Text)] = codeArg <> codeEscArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> rndIdArg <> idArg <> captionArg
           template <- getTemplate (toString name)
           let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
           let text :: Text = render Nothing $ renderTemplate template context
@@ -96,6 +97,7 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
         Nothing ->
           return block
     expandCodeM block = return block
+    escape = Text.replace "<" "&lt;" . Text.replace "<" "&lt;"
 
     -- Parses a link text into a macro invocation, if possible. a macro name
     -- starts either with  a '§', or ends with a '-'
