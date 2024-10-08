@@ -41,6 +41,8 @@ class RESTClient {
         );
         throw "Login failed.";
       }
+    } else {
+      throw "Login failed.";
     }
   }
 
