@@ -48,6 +48,7 @@ class Feedback {
       container: undefined,
       username_input: undefined,
       password_input: undefined,
+      login_button: undefined,
     },
   };
 
@@ -131,12 +132,7 @@ class Feedback {
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
-      // currently only supported value: blur, but open for other options
-      if (Decker.meta.menu.backdrop) {
-        this.glass.classList.add("show", Decker.meta.menu.backdrop);
-      } else {
-        this.glass.classList.add("show");
-      }
+      this.glass.classList.add("show");
       this.menu.close_button.focus();
     }
   }
@@ -190,35 +186,36 @@ class Feedback {
   /**
    * Tries to perfom a login with the entered credentials.
    */
-  async sendLogin(event) {
-    if (event.key === "Enter") {
-      let credentials = {
-        login: this.menu.feedback_credentials.username_input.value,
-        password: this.menu.feedback_credentials.password_input.value,
-        deck: this.engine.deckId,
-      };
-      try {
-        const token = await this.engine.api.getLogin(credentials);
-        this.engine.token.admin = token.admin;
-        this.menu.feedback_login_area.classList.add("admin");
-        this.menu.feedback_credentials.username_input.value = "";
-        this.menu.feedback_credentials.password_input.value = "";
-        this.menu.feedback_credentials.container.classList.remove("visible");
-        this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
-        this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
-        this.menu.feedback_login_button.setAttribute(
-          "title",
-          this.localization.interface.logout_as_admin
-        );
-        this.menu.feedback_login_button.setAttribute(
-          "aria-label",
-          this.localization.interface.logout_as_admin
-        );
-        this.requestMenuContent();
-      } catch (error) {
-        console.error(error);
-        this.menu.feedback_credentials.password_input.value = "";
-      }
+  async sendLogin() {
+    let credentials = {
+      login: this.menu.feedback_credentials.username_input.value,
+      password: this.menu.feedback_credentials.password_input.value,
+      deck: this.engine.deckId,
+    };
+    try {
+      this.menu.feedback_credentials.password_input.classList.remove("error");
+      const token = await this.engine.api.getLogin(credentials);
+      this.engine.token.admin = token.admin;
+      this.menu.feedback_login_area.classList.add("admin");
+      this.menu.feedback_credentials.username_input.value = "";
+      this.menu.feedback_credentials.password_input.value = "";
+      this.menu.feedback_credentials.container.classList.remove("visible");
+      this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
+      this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
+      this.menu.feedback_login_button.setAttribute(
+        "title",
+        this.localization.interface.logout_as_admin
+      );
+      this.menu.feedback_login_button.setAttribute(
+        "aria-label",
+        this.localization.interface.logout_as_admin
+      );
+      this.requestMenuContent();
+    } catch (error) {
+      console.error(error);
+      this.menu.feedback_credentials.password_input.value = "";
+      this.menu.feedback_credentials.password_input.classList.add("error");
+      this.menu.feedback_credentials.password_input.focus();
     }
   }
 
@@ -726,6 +723,7 @@ class Feedback {
         <div class="feedback-credentials">
           <input id="feedback-username" placeholder="${text.username_placeholder}">
           <input id="feedback-password" placeholder="${text.password_placeholder}" type="password">
+          <button id="feedback-login-send" type="button">Admin Login</button>
         </div>
       </div>
     </div>`;
@@ -764,6 +762,9 @@ class Feedback {
       menu.querySelector("#feedback-username");
     this.menu.feedback_credentials.password_input =
       menu.querySelector("#feedback-password");
+    this.menu.feedback_credentials.login_button = menu.querySelector(
+      "#feedback-login-send"
+    );
 
     /* Add EventListeners */
 
@@ -789,7 +790,19 @@ class Feedback {
 
     this.menu.feedback_credentials.password_input.addEventListener(
       "keydown",
-      (event) => this.sendLogin(event)
+      (event) => {
+        this.menu.feedback_credentials.password_input.classList.remove("error");
+        if (event.key === "Enter") {
+          this.sendLogin();
+        }
+      }
+    );
+
+    this.menu.feedback_credentials.login_button.addEventListener(
+      "click",
+      (event) => {
+        this.sendLogin();
+      }
     );
 
     this.reveal.addEventListener("slidechanged", () =>

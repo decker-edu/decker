@@ -223,7 +223,7 @@ div.feedback-item button {
 }
 
 div.feedback-menu div.feedback-legend {
-    display: grid;
+    display: none;
     grid-template-columns: 1fr 1fr;
     font-size: 1rem;
     color: var(--shade3);
@@ -231,6 +231,12 @@ div.feedback-menu div.feedback-legend {
     padding-top: 0.25rem;
     border-bottom: 1px solid var(--shade3);
     padding-bottom: 0.25rem;
+}
+
+@media (hover: none) {
+  div.feedback-menu div.feedback-legend {
+    display: grid;
+  }
 }
 
 div.feedback-menu div.feedback-question-input {
@@ -333,6 +339,29 @@ div.feedback-credentials input {
   border-radius: var(--feedback-element-border-radius);
 
   font-size: 0.8em;
+}
+
+div.feedback-credentials input.error {
+  background-color: var(--accent0-bbg);
+}
+
+div.feedback-credentials button {
+  background-color: var(--accent5);
+  color: var(--background-color);
+  font-weight: bold;
+  margin-left: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+div.feedback-credentials button:hover {
+  background-color: var(--accent5-bg);
+  color: var(--foreground-color);
+}
+
+div.feedback-credentials button:active {
+  background-color: var(--accent5-fg);
+  color: var(--background-color);
 }
 
 div.feedback-login {
