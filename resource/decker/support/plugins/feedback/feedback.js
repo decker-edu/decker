@@ -17,6 +17,7 @@ class Feedback {
     interface: undefined,
     question_container: undefined,
     answer_container: undefined,
+    send_credentials: undefined,
   };
 
   reveal = undefined;
@@ -706,7 +707,7 @@ class Feedback {
         <div class="feedback-credentials">
           <input id="feedback-username" placeholder="${text.username_placeholder}">
           <input id="feedback-password" placeholder="${text.password_placeholder}" type="password">
-          <button id="feedback-login-send" type="button">Admin Login</button>
+          <button id="feedback-login-send" type="button" title="${text.send_credentials}" aria-label="${text.send_credentials}">Admin Login</button>
         </div>
       </div>
     </div>`;
@@ -850,6 +851,7 @@ let plugin = () => {
           logout_as_admin: "Logout as Admin",
           username_placeholder: "Username",
           password_placeholder: "Password",
+          send_credentials: "Send credentials",
         },
         question_container: {
           upvote: "Up-vote question",
@@ -883,6 +885,7 @@ let plugin = () => {
             logout_as_admin: "Als Administrator abmelden",
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
+            send_credentials: "Anmeldedaten absenden",
           },
           question_container: {
             upvote: "Frage unterstützen",
