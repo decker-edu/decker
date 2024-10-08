@@ -13,6 +13,7 @@ let connectionIndicator = document.createElement("span");
 
 let qrButton = document.createElement("button");
 let qrDialog = document.createElement("dialog");
+let qrLabel = document.createElement("p");
 let qrCanvas = document.createElement("canvas");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
@@ -167,6 +168,8 @@ function createHostInterface(reveal) {
   if (!reveal.hasPlugin("ui-anchors")) {
     return;
   }
+  qrLabel.classList.add("qr-label");
+
   const anchors = reveal.getPlugin("ui-anchors");
   qrButton.hidden = true;
   qrButton.classList.add("fas", "fa-qrcode", "fa-button", "presenter-only");
@@ -179,11 +182,6 @@ function createHostInterface(reveal) {
     "presenter-only"
   );
   qrDialog.classList.add("quizzer-dialog");
-  qrDialog.addEventListener("keyup", (event) => {
-    if (event.key === "Escape") {
-      qrDialog.close();
-    }
-  });
   qrDialog.addEventListener("click", (event) => {
     if (!containsClick(qrDialog.getBoundingClientRect(), event.x, event.y)) {
       qrDialog.close();
@@ -193,6 +191,7 @@ function createHostInterface(reveal) {
   qrClose.addEventListener("click", (event) => {
     qrDialog.close();
   });
+  qrDialog.appendChild(qrLabel);
   qrDialog.appendChild(qrCanvas);
   qrDialog.appendChild(qrLink);
   qrDialog.appendChild(qrClose);
@@ -588,6 +587,7 @@ async function toggleInterface() {
     hostClient.requestEvaluation();
     setQuizState("AWAITING_EVALUATION");
   }
+  qrLabel.innerText = slide.quizzes[0].question;
   tallySpan.innerText = "";
   connectionIndicator.hidden = false;
   qrButton.hidden = false;

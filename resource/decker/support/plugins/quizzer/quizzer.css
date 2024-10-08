@@ -329,6 +329,13 @@ button[hidden] {
   border-radius: 1rem;
 }
 
+.quizzer-dialog p {
+  background-color: var(--dialog-background);
+  font-size: 3rem;
+  padding: 1rem;
+  border-radius: 1rem;  
+}
+
 .quizzer-dialog a {
   background-color: var(--dialog-background);
   color: var(--accent5);

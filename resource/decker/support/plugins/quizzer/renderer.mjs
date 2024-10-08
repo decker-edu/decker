@@ -10,6 +10,16 @@ let selectedAnswer = null;
 let draggedAnswer = null;
 let dropTarget = null;
 
+/* Implementation of the Fisher-Yates Shuffle */
+function shuffle(array) {
+  let current = array.length;
+  while (current != 0) {
+    let random = Math.floor(Math.random() * current);
+    current--;
+    [array[current], array[random]] = [array[random], array[current]];
+  }
+}
+
 export function resetAssignmentState() {
   if (selectedAnswer) {
     selectedAnswer.classList.remove("selected");
@@ -32,26 +42,35 @@ function handleDrop(event) {
 function createQuizContainer() {
   const container = document.createElement("div");
   container.className = "quizzer-container";
+
   const questionContainer = document.createElement("div");
   questionContainer.className = "question-container";
+
   const questionParagraph = document.createElement("p");
   questionParagraph.className = "question-paragraph";
   questionContainer.appendChild(questionParagraph);
+
   const answerContainer = document.createElement("div");
   answerContainer.className = "answer-container";
+
   const solutionContainer = document.createElement("div");
   solutionContainer.className = "solution-container";
+
   const solveButton = document.createElement("button");
   solveButton.innerText = l10n.checkSolution;
   solveButton.type = "submit";
   solveButton.ariaLabel = l10n.checkSolution;
+
   solutionContainer.appendChild(solveButton);
+
   container.appendChild(questionContainer);
   container.questionContainer = questionContainer;
   container.question = questionParagraph;
+
   container.appendChild(answerContainer);
   container.answerContainer = answerContainer;
   container.answers = answerContainer;
+
   container.appendChild(solutionContainer);
   container.solutionContainer = solutionContainer;
   container.solver = solveButton;
@@ -60,6 +79,7 @@ function createQuizContainer() {
 
 function createPlaceholderPair(number) {
   const span = document.createElement("span");
+
   const wrapper = document.createElement("div");
 
   const replacer = document.createElement("input");
@@ -84,11 +104,12 @@ function createPlaceholderPair(number) {
 
 function createSelectElement(options) {
   const select = document.createElement("select");
+
   const placeholder = document.createElement("option");
   placeholder.disabled = true;
   placeholder.selected = true;
-  placeholder.innerText = localization.pickMessage;
-  placeholder.reason = localization.pickReason;
+  placeholder.innerText = l10n.pickMessage;
+  placeholder.reason = l10n.pickReason;
   placeholder.correct = false;
   select.appendChild(placeholder);
   for (const option of options) {
@@ -115,20 +136,21 @@ export default {
     const container = createQuizContainer();
     container.question.innerText = quiz.question;
     if (quiz.choices.length !== 1) {
-      questionParagraph.innerText = localization.errorMultipleAssignments;
+      questionParagraph.innerText = l10n.errorMultipleAssignments;
     }
     const choices = quiz.choices[0];
     const categories = [];
 
     const answerArea = document.createElement("fieldset");
     const answerLegend = document.createElement("legend");
-    answerLegend.innerText = localization.assignemtInstructionObjects;
+    answerLegend.innerText = l10n.assignmentInstructionObjects;
     answerArea.appendChild(answerLegend);
 
     const answerBucket = document.createElement("button");
     answerBucket.classList.add("answer-bucket");
     answerBucket.classList.add("category");
     answerBucket.dataset["label"] = "UNASSIGNED";
+
     const answerItems = document.createElement("div");
     answerItems.classList.add("items");
     answerBucket.appendChild(answerItems);
@@ -181,7 +203,7 @@ export default {
     answerArea.appendChild(answerBucket);
     container.answers.appendChild(answerArea);
 
-    const answers = [];
+    const objectButtons = [];
 
     for (const answer of choices.options) {
       if (answer.reason) {
@@ -219,22 +241,13 @@ export default {
         draggedAnswer = null;
       });
 
-      answers.push(button);
+      objectButtons.push(button);
     }
 
-    function shuffle(array) {
-      let current = array.length;
-      while (current != 0) {
-        let random = Math.floor(Math.random() * current);
-        current--;
-        [array[current], array[random]] = [array[random], array[current]];
-      }
-    }
-
-    shuffle(answers);
+    shuffle(objectButtons);
 
     let letter = "A";
-    for (const answer of answers) {
+    for (const answer of objectButtons) {
       answerItems.appendChild(answer);
       answer.dataset["letter"] = letter;
       answer.answer.letter = letter;
@@ -248,7 +261,7 @@ export default {
     const categoryArea = document.createElement("fieldset");
     const categoryLegend = document.createElement("legend");
     categoryArea.appendChild(categoryLegend);
-    categoryLegend.innerText = localization.assignemntInstructionCategories;
+    categoryLegend.innerText = l10n.assignmentInstructionCategories;
     categoryArea.classList.add("categories");
     container.answers.appendChild(categoryArea);
 
@@ -315,7 +328,7 @@ export default {
     }
 
     container.solver.onclick = () => {
-      for (const answer of answers) {
+      for (const answer of objectButtons) {
         answer.classList.remove("correct");
         answer.classList.remove("wrong");
         let checkmark = answer.querySelector(".checkmark");
@@ -430,10 +443,19 @@ export default {
       return;
     }
     const answers = quiz.choices[0];
-    for (const answer of answers.options) {
+
+    shuffle(answers.options);
+    let letter = "A";
+
+    for (const option of answers.options) {
       const button = document.createElement("button");
       button.classList.add("answer");
-      button.innerHTML = answer.label;
+      button.innerHTML = option.label;
+
+      button.dataset["letter"] = letter;
+      option.letter = letter;
+      letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+
       const popover = document.createElement("span");
       popover.className = "solution-popover";
       popover.ariaLive = true;
@@ -445,8 +467,8 @@ export default {
       button.addEventListener(
         "click",
         (event) => {
-          popover.innerHTML = answer.reason;
-          if (answer.correct) {
+          popover.innerHTML = option.reason;
+          if (option.correct) {
             button.classList.add("correct");
             const checkmark = document.createElement("span");
             checkmark.classList.add("checkmark", "fas", "fa-check");
