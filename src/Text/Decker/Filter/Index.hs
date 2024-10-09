@@ -26,18 +26,24 @@ import Text.Pandoc.Walk
 -- For lookup use: http://glench.github.io/fuzzyset.js/
 
 -- | Computes the inverted index over all decks and stores it in JSON format.
-buildIndex :: FilePath -> Meta -> [FilePath] -> Action ()
+-- | Also returns a list of non-draft sources.
+buildIndex :: FilePath -> Meta -> [FilePath] -> Action [FilePath]
 buildIndex indexFile globalMeta decks = do
+  need decks
   index <- catMaybes <$> mapM (buildDeckIndex globalMeta) decks
   let inverted = invertIndex index
   liftIO $ encodeFile indexFile inverted
+  return $ map (deckSrc . fst) index
 
 -- | Only index decks which are not marked `draft` and are not in the `no-index`
--- list.
+-- list 
 shouldAddToIndex meta =
   let deckId :: Text = lookupMetaOrElse "" "feedback.deck-id" meta
       noIndex = lookupMetaOrElse [] "no-index" meta
-      isDraft = lookupMetaOrElse False "draft" meta
+      isDraft =
+        lookupMetaOrElse False "draft" meta
+          || lookupMeta "lecture.status" meta
+          == Just ("draft" :: Text)
    in not isDraft && (deckId `notElem` noIndex)
 
 -- Collects word frequencies for each slide grouped by deck.
@@ -50,16 +56,17 @@ buildDeckIndex globalMeta path = do
       let deckTitle = lookupMeta "title" meta
       let deckSubtitle = lookupMeta "subtitle" meta
       let deckId = lookupMeta "deckId" meta
+      let deckSrc = path
       let deckUrl = toText (path -<.> "html")
       -- Take out the empty ones for now
       let deckIndex =
-            map (first fromJust) $
-              filter (isJust . fst) $
-                mapSlides indexSlide pandoc
+            map (first fromJust)
+              $ filter (isJust . fst)
+              $ mapSlides indexSlide pandoc
       putNormal $ "# indexing (" <> path <> ")"
-      return $ Just (DeckInfo {deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
+      return $ Just (DeckInfo {deckSrc, deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
     else do
-      putNormal $ "# skipping (" <> path <> ")"
+      putNormal $ "# skip indexing (" <> path <> ")"
       return Nothing
 
 -- Extracts all searchable words from an inline
@@ -117,7 +124,8 @@ data SlideRef = SlideRef
   deriving (Generic, Show)
 
 data DeckInfo = DeckInfo
-  { deckUrl :: DeckUrl,
+  { deckSrc :: FilePath,
+    deckUrl :: DeckUrl,
     deckId :: Maybe Text,
     deckTitle :: Maybe Text,
     deckSubtitle :: Maybe Text
@@ -158,7 +166,7 @@ instance ToJSON Index
 invertIndex :: [(DeckInfo, [((Text, Text), [(Text, Int)])])] -> Index
 invertIndex =
   foldl'
-    ( \index (deckInfo@(DeckInfo deckUrl _ _ _), slides) ->
+    ( \index (deckInfo@(DeckInfo deckSrc deckUrl _ _ _), slides) ->
         foldl'
           ( \index ((slideId, slideTitle), words) ->
               foldl'
@@ -187,7 +195,7 @@ invertIndex =
     emptyIndex
 
 -- | Inserts value with key if key does not yet exist.
-insertIfMissing :: Ord k => k -> a -> Map k a -> Map k a
+insertIfMissing :: (Ord k) => k -> a -> Map k a -> Map k a
 insertIfMissing k v m = if Map.member k m then m else Map.insert k v m
 
 (<#>) :: (Semigroup a, IsString a) => a -> a -> a

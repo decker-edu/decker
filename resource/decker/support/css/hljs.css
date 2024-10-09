@@ -4,40 +4,30 @@ pre code.hljs {
 }
 
 .hljs {
-  color: var(--shade6);
-  /* #586e75 */
-  background: var(--shade1)
-    /* #fdf6e3 */
-  ;
+    color: var(--shade7);
+    background: var(--code-background-color);
 }
 
 .hljs ::selection,
 .hljs::selection {
-  background-color: var(--shade2);
-  /* #93a1a1 */
-  color: var(--shade6);
-  /* #586e75 */
+    background-color: var(--shade2);
+    /* #93a1a1 */
+    color: var(--shade6);
+    /* #586e75 */
 }
 
 .hljs-comment {
-  color: var(--shade3);
-  /* #839496 */
+    color: var(--shade4);
 }
 
 .hljs-tag {
-  color: var(--shade4)
-    /* #657b83 */
+    color: var(--shade3)
 }
 
 .hljs-operator,
 .hljs-punctuation,
 .hljs-subst {
-  color: var(--shade6);
-  /* #586e75 */
-}
-
-.hljs-operator {
-  opacity: 0.7;
+    color: var(--shade7);
 }
 
 .hljs-bullet,
@@ -46,8 +36,7 @@ pre code.hljs {
 .hljs-selector-tag,
 .hljs-template-variable,
 .hljs-variable {
-  color: vat(--accent1);
-  /* #dc322f */
+    color: var(--accent0-fg);
 }
 
 .hljs-attr,
@@ -56,31 +45,25 @@ pre code.hljs {
 .hljs-number,
 .hljs-symbol,
 .hljs-variable.constant_ {
-  color: var(--accent2);
-  /* #cb4b16 */
+    color: var(--accent1-fg);
 }
 
 .hljs-class .hljs-title,
 .hljs-title,
 .hljs-title.class_ {
-  color: var(--accent3)
-    /* #b58900 */
-  ;
+    color: var(--accent2-fg);
 }
 
 .hljs-strong {
-  font-weight: 700;
-  color: var(--accent3)
-    /* #b58900 */
-  ;
+    font-weight: 700;
+    color: var(--accent3-fg);
 }
 
 .hljs-addition,
 .hljs-code,
 .hljs-string,
 .hljs-title.class_.inherited__ {
-  color: var(--accent4);
-  /* #859900 */
+    color: var(--accent4);
 }
 
 .hljs-built_in,
@@ -88,8 +71,7 @@ pre code.hljs {
 .hljs-keyword.hljs-atrule,
 .hljs-quote,
 .hljs-regexp {
-  color: var(--accent5);
-  /* #2aa198 */
+    color: var(--accent1-ffg);
 }
 
 .hljs-attribute,
@@ -97,32 +79,33 @@ pre code.hljs {
 .hljs-section,
 .hljs-title.function_,
 .ruby .hljs-property {
-  color: var(--accent6);
-  /* #268bd2 */
+    color: var(--accent6-fg);
 }
 
 .diff .hljs-meta,
 .hljs-keyword,
-.hljs-template-tag,
+.hljs-template-tag {
+    color: var(--accent0-fg);
+    /* #6c71c4 */
+}
+
 .hljs-type {
-  color: var(--accent7);
-  /* #6c71c4 */
+    color: var(--accent7-fg);
 }
 
 .hljs-emphasis {
-  color: var(--accent7);
-  /* #6c71c4 */
-  font-style: italic;
+    color: var(--accent1-bg);
+    font-style: italic;
 }
 
 .hljs-meta,
 .hljs-meta .hljs-keyword,
 .hljs-meta .hljs-string {
-  color: var(--accent0);
-  /* #d33682 */
+    color: var(--accent2-bg);
 }
 
 .hljs-meta .hljs-keyword,
 .hljs-meta-keyword {
-  font-weight: 700;
+    font-weight: 700;
+    color: var(--accent3-bg);
 }

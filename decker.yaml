@@ -31,7 +31,8 @@ static-resources:
 # resource-pack: exe:mono
 # resource-pack: exe:tudo
 
-progress: false
+index:
+  progress: false
 
 test:
   default-decker: From decker.yaml

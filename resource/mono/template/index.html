@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$" $if(dir)$ dir="$dir$" $endif$>
 
 <head>
@@ -14,14 +14,18 @@
 
   $for(author-meta)$
   <meta name="author" content="$author-meta$" />
-  $endfor$ $if(date-meta)$
+  $endfor$
+  $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$" />
-  $endif$ $if(keywords)$
+  $endif$
+  $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$" />
-  $endif$ $if(description-meta)$
+  $endif$
+  $if(description-meta)$
   <meta name="description" content="$description-meta$" />
-  $endif$ $if(template.favicon)$
-  <link rel="shortcut icon" href="$template.favicon$" />
+  $endif$
+  $if(template.favicon)$
+  <link rel="shortcut icon" href="$template.favicon$">
   $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <!-- Default Pandoc CSS for HTML documents -->
@@ -31,7 +35,7 @@
 
   <!-- Default values for CSS variables can live here. They can be overridden by
   meta data values. -->
-  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css" />
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
 
   <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
   into a style sheet. Default values can come from `variables.css`. -->
@@ -61,42 +65,68 @@
     }
   </style>
 
-  <link rel="stylesheet" href="$decker-support-dir$/css/index.css" />
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
+
+  <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
 
   <!-- hard-coded styles for the mono resource pack -->
   <link rel="stylesheet" href="$decker-support-dir$/css/mono.css" />
 
   $for(template.css)$
   <link rel="stylesheet" href="$template.css$" />
-  $endfor$ $for(header-includes)$ $header-includes$ $endfor$
+  $endfor$
+
+  $for(header-includes)$
+  $header-includes$
+  $endfor$
 </head>
 
 <body class="index" onload="initIndexPage()">
-  $for(include-before)$ $include-before$ $endfor$ $if(title)$
+  $for(include-before)$
+  $include-before$
+  $endfor$
+  $if(title)$
   <header id="title-block-header">
     <h1 class="title">$title$</h1>
     $if(subtitle)$
     <p class="subtitle">$subtitle$</p>
-    $endif$ $for(author)$
-    <p class="author">$author$</p>
-    $endfor$ $if(date)$
+    $endif$
+
+    $if(copyright)$
+    $copyright:copyright-template.html()$
+    $endif$
+
+    $if(author)$
+    $author:author-template.html()$
+    $endif$
+
+    $if(authors)$
+    <div class="authors">
+      $for(authors)$
+      $it:author-template.html()$
+      $endfor$
+    </div>
+    $endif$
+    $if(date)$
     <p class="date">$date$</p>
     $endif$
   </header>
-  $endif$ $body$ $for(include-after)$ $include-after$ $endfor$
-
-  <script src="$decker-support-dir$/js/index.js"></script>
-
-  $for(template.js)$
-  <script src="$template.js$"></script>
-  $endfor$ $for(template.js-module)$
-  <script module src="$template.js-module$"></script>
+  $endif$
+$body$
+  $for(include-after)$
+  $include-after$
   $endfor$
+
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+  <script src="$decker-support-dir$/js/index.js"></script>
 
   <script>
     var socket = new WebSocket("ws://" + location.host + "/reload");
     socket.onmessage = function (event) {
-      if (event.data.startsWith("reload!")) window.location.reload(true);
+      if (event.data.startsWith("reload!"))
+        window.location.reload(true);
     };
   </script>
 </body>

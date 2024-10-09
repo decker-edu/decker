@@ -155,7 +155,7 @@ metaTests = do
       adjustMetaStringsBelowM upCaseTextM "level1" m6 `shouldReturn` m6'
   describe "addMetaKeyValue" $ do
     it "adds a key value pair to the named dictionary" $
-      addMetaKeyValue "" "toast" (MetaString "TOAST") m7 `shouldBe` m7'
+      addMetaKeyValue "toast" (MetaString "TOAST") m7 `shouldBe` m7'
 
 replace :: MetaValue -> MetaValue
 replace _ = (MetaString "Gone.")

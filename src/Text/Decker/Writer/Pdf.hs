@@ -17,6 +17,42 @@ import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 
+chromeUserDataDir = (</> "chrome") <$> transientDir
+
+chromeOptions :: FilePath -> FilePath -> IO [String]
+chromeOptions src out = do
+  dataDir <- chromeUserDataDir
+  return
+    [ "--headless=old",
+      "--virtual-time-budget=5001",
+      "--disable-gpu",
+      "--print-to-pdf-no-header",
+      "--user-data-dir=" <> dataDir,
+      pdfOption out,
+      modifySrc src
+    ]
+  where
+    modifySrc path = path ++ "?print-pdf#/"
+    pdfOption path = "--print-to-pdf=" ++ path
+
+launchChrome :: FilePath -> FilePath -> IO (Either String String)
+launchChrome src out = do
+  dataDir <- chromeUserDataDir
+  command <- chrome
+  options <- chromeOptions src out
+  case command of
+    Left msg -> return $ Left msg
+    Right cmd -> do
+      -- putStrLn (cmd <> " " <> unwords options)
+      createDirectoryIfMissing True dataDir
+      (exitCode, stdOut, stdErr) <-
+        readProcessWithExitCode cmd options ""
+      return $
+        case exitCode of
+          ExitSuccess -> Right ("Completed: " ++ src ++ " -> " ++ out)
+          ExitFailure code ->
+            Left ("Error " <> show code <> ": " <> stdOut <> "\n" <> stdErr)
+
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToPdfPage meta getTemplate markdownFile out = do

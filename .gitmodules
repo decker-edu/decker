@@ -10,3 +10,6 @@
 [submodule "third-party/codapi-js"]
 	path = third-party/codapi-js
 	url = https://github.com/monofon/codapi-js.git
+[submodule "third-party/codejar"]
+	path = third-party/codejar
+	url = https://github.com/decker-edu/codejar.git

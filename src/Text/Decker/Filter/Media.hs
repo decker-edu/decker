@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude, MultiWayIf #-}
 
 -- TODO: Background movies do not work (unclear tags compile correctly)
 -- TODO: CSS for decks containing examiner questions
@@ -34,8 +34,10 @@ import Text.Decker.Internal.URI
 import Text.Decker.Server.Video
 import Text.Pandoc
 import Text.Printf
-import Text.URI (URI)
+import Text.URI (URI, unRText, uriFragment)
 import Text.URI qualified as URI
+import Data.List.Extra (minimum)
+import Data.Char (isSpace)
 
 fragmentRelated =
   [ "fragment",
@@ -291,7 +293,41 @@ includeCodeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 includeCodeBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   code <- lift $ readLocalUri uri
-  codeBlock code caption
+  let text = maybe code (dedent . extractSnippetFrom code . unRText) (uriFragment uri)
+  codeBlock text caption
+
+dedent :: Text -> Text
+dedent snippet =
+    -- ---8<|--- dedent-test
+    let lines = Text.lines snippet
+        indent = minimum $ map (Text.length . Text.takeWhile isSpace) (filter (not . Text.null) lines)
+    in  Text.unlines $ map (Text.drop indent) lines
+    
+data Extract = Waiting | CollectingSnip [Text] | CollectingPara [Text] | Done [Text] deriving (Show)
+
+-- ---8<|--- include-even-shorter
+extractSnippetFrom :: Text -> Text -> Text
+extractSnippetFrom code tag =
+    case foldl' assemble Waiting lines of
+        Waiting -> ""
+        CollectingSnip lines -> Text.unlines lines
+        CollectingPara lines -> Text.unlines lines
+        Done lines -> Text.unlines lines
+    where
+        lines = Text.lines code
+        assemble Waiting line =
+            if | Text.isInfixOf ("---8<--- " <> tag) line -> (CollectingSnip [])
+               | Text.isInfixOf ("---8<|--- " <> tag) line -> (CollectingPara [])
+               | otherwise ->  Waiting
+        assemble (CollectingSnip lines) line =
+            if Text.isInfixOf "--->8---" line
+                then Done lines
+                else CollectingSnip (lines <> [line])
+        assemble (CollectingPara lines) line =
+            if Text.null $ Text.strip line
+                then Done lines
+                else CollectingPara (lines <> [line])
+        assemble extract line = extract
 
 -- |  Converts the contents of a code block to a standard pre tag.
 codeBlock :: (Container c) => Text -> [Inline] -> Attrib c

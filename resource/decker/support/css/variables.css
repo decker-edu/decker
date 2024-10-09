@@ -99,6 +99,9 @@
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
   --feedback-footer-text-color: var(--shade7);
+
+  /* default maximum code block height */
+  --code-block-max-height: 700px;
 }
 
 @media (prefers-color-scheme: dark) {

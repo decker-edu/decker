@@ -43,7 +43,6 @@ p {
 
 progress {
   accent-color: initial;
-  margin: auto 0.5em;
   width: 3em;
 }
 
@@ -91,6 +90,51 @@ summary {
    color: #063D79;
    text-align:center;
 }
+
+.link-additions {
+  display: inline-flex;
+  flex-direction: row;
+  margin-left: 0.25rem;
+  gap: 0.25rem;
+}
+
+a.handout-link {
+  display: inline-block;
+  vertical-align: bottom;
+  position: relative;
+  width: 1em;
+  height: 1em;
+}
+
+a.handout-link::before {
+  display: block;
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+}
+
+a.handout-link::after {
+  display: block;
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+}
+
+a.handout-link:hover::before,
+a.handout-link:hover::after {
+  background-color: var(--secondary-color);
+}
+
 
 footer {
    margin-top: 1rem;

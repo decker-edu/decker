@@ -1,6 +1,7 @@
 .decker-menu {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   font-size: 1.2rem;
   z-index: 256;
   background: var(--menu-background-color);
@@ -9,26 +10,35 @@
 }
 
 .menu-header {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   z-index: 258;
 
-  min-height: var(--common-menu-header-height);
-  max-height: var(--common-menu-header-height);
   padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
   color: var(--menu-header-text-color);
   background: var(--menu-header-background-color);
 
   border-bottom: 2px solid var(--menu-border-color);
+  flex-grow: 0;
+}
+
+.menu-header-button-group {
+  grid-column: 2 / 6;
+  display: grid;
+  grid-template-columns: subgrid;
 }
 
 .menu-header button {
-  border: none;
+  box-sizing: border-box;
   background: none;
   color: var(--menu-header-text-color);
+}
+
+#decker-menu-close-button {
+  grid-column: 1 / 1;
 }
 
 .menu-header button:hover {
@@ -39,44 +49,19 @@
   color: var(--icon-active-color);
 }
 
-@keyframes turning {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(359deg);
-  }
+.menu-header button[aria-pressed="true"] {
+  background-color: var(--accent3);
+  border: 1px inset var(--foreground-color);
+  border-radius: 0.25rem;
 }
 
-#decker-menu-settings-button:hover {
-  animation: 2s turning linear infinite;
+.menu-header button[aria-pressed="true"]:hover {
+  color: var(--foreground-color);
 }
 
-.menu-settings {
-  position: absolute;
-  top: calc(
-    var(--common-menu-header-height) + var(--common-menu-header-padding) * 2
-  );
-  left: 0;
-  width: 100%;
-  height: calc(
-    100% - var(--common-menu-header-height) + var(--common-menu-header-padding) *
-      2
-  );
-  z-index: 257;
-
-  background: var(--menu-background-color);
-
-  transition: transform 0.5s;
-}
-
-.menu-settings[inert] {
-  transform: translateY(-100%);
-}
-
-.settings-item {
-  position: relative;
-  padding: 0.5em 1.5em 0.5em 1em;
+.menu-header button:disabled {
+  cursor: default;
+  color: var(--shade4);
 }
 
 :root {
@@ -167,10 +152,7 @@ ul.slide-list {
 
 .slide-list-wrapper {
   overflow: auto;
-  height: calc(
-    100% - var(--common-menu-header-height) - var(--common-menu-header-padding) *
-      2
-  );
+  width: 100%;
 }
 
 ul.slide-list > li {
@@ -245,4 +227,12 @@ fieldset {
   padding: 0.5rem;
   border: 1px inset var(--foreground-color);
   border-radius: 0.5rem;
+}
+
+.dark #decker-menu-color-button::before {
+  content: '\f185'
+}
+
+.light #decker-menu-color-button::before {
+  content: '\f186'
 }

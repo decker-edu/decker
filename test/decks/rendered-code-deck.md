@@ -44,7 +44,7 @@ Alice -> Bob: test
 
 ## Mermaid {.left}
 
-````{.markdown}
+```` {.markdown}
 ``` {.mermaid .render}
 graph TD
 A[Client] --> B[Load Balancer]
@@ -56,7 +56,6 @@ A[Client] --> B[Load Balancer]
 ```{.mermaid .render width="60%"}
 graph TD
 A[Client] --> B[Load Balancer]
-
 ```
 
 ---

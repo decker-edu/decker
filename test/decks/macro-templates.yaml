@@ -1,0 +1,3 @@
+templates:
+  wp: |
+    <a href=":(url)"><i class="fa-brands fa-wikipedia-w"></i> - :(title)</a>

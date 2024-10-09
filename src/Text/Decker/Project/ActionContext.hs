@@ -30,6 +30,7 @@ data Flags
   | ThreadFlag
   | OpenFlag
   | PoserFlag
+  | LectureFlag
   | PortFlag Int
   | BindFlag String
   deriving (Eq, Show)

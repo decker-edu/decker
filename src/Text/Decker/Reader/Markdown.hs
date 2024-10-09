@@ -25,7 +25,6 @@ import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
-import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
@@ -44,6 +43,7 @@ import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
 import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
+import Text.Decker.Filter.Select (filterSelectedSlides)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -55,6 +55,7 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= mergeDocumentMeta globalMeta
     >>= processMeta
     >>= processCites
+    >>= runNewFilter disp filterSelectedSlides docPath
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docPath
@@ -98,6 +99,9 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path
+    -- >>= (\(Pandoc meta blocks) -> 
+    --         do  putStrLn $ path <> "\n" <> show meta
+    --             return (Pandoc meta blocks))
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
@@ -111,7 +115,8 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   let pathToSupport = makeRelativeTo documentPath "support"
   let meta' =
         addMetaField "projectPath" pathToProject
-          $ addMetaField "supportPath" pathToSupport meta
+          $ addMetaField "supportPath" pathToSupport
+            $ addMetaField "documentPath" documentPath meta
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
@@ -256,7 +261,7 @@ readMetaData globalMeta path = do
   need [path]
   putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
-  meta <- liftIO $ readMetaDataFile path
+  meta <- liftIO $ fromRight nullMeta <$> readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
 
 readDeckerMeta :: FilePath -> Action Meta
@@ -306,7 +311,6 @@ deckerPipeline (Disposition Deck Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processSlides,
       handlePolls,
@@ -317,7 +321,6 @@ deckerPipeline (Disposition Page Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processDetailHeader
     ]
@@ -326,7 +329,6 @@ deckerPipeline (Disposition Index Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processDetailHeader
     ]
@@ -335,7 +337,6 @@ deckerPipeline (Disposition Handout Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processSlides
     ]

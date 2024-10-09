@@ -30,6 +30,7 @@ module Text.Decker.Project.Project
     toMetaValue,
     readTargetsFile,
     alwaysExclude,
+    calcTargets
   )
 where
 
@@ -56,7 +57,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
   ( FromMetaValue (..),
-    globalMetaFileName,
     lookupMetaOrElse,
   )
 import Text.Decker.Project.Glob
@@ -153,7 +153,7 @@ findProjectRoot = do
   where
     search :: FilePath -> FilePath -> IO FilePath
     search dir start = do
-      hasYaml <- Directory.doesFileExist (dir </> globalMetaFileName)
+      hasYaml <- Directory.doesFileExist (dir </> deckerMetaFile)
       hasGit <- Directory.doesDirectoryExist (dir </> ".git")
       if
         | hasYaml || hasGit -> return dir
@@ -166,22 +166,6 @@ setProjectDirectory = do
   projectDir <- findProjectRoot
   Directory.setCurrentDirectory projectDir
   putStrLn $ "# Running decker in: " <> projectDir
-
-deckSuffix = "-deck.md"
-
-deckHTMLSuffix = "-deck.html"
-
-deckPDFSuffix = "-deck.pdf"
-
-pageSuffix = "-page.md"
-
-pageHTMLSuffix = "-page.html"
-
-pagePDFSuffix = "-page.pdf"
-
-handoutHTMLSuffix = "-handout.html"
-
-handoutPDFSuffix = "-handout.pdf"
 
 sourceRegexes :: [String] =
   [ "-deck.md\\'",
@@ -254,11 +238,15 @@ scanTargets meta = do
       }
   where
     publicDep src = (publicDir </> src, src)
-    calcTargets = calcTargets' publicDir
-    calcPrivateTargets = calcTargets' privateDir
-    calcTarget baseDir srcSuffix targetSuffix source =
-      baseDir </> replaceSuffix srcSuffix targetSuffix source
-    calcTargets' baseDir srcSuffix targetSuffix sources =
-      Map.fromList
-        $ map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s))
-        $ filter (srcSuffix `List.isSuffixOf`) sources
+
+calcTargets = calcTargets' publicDir
+
+calcPrivateTargets = calcTargets' privateDir
+
+calcTarget baseDir srcSuffix targetSuffix source =
+    baseDir </> replaceSuffix srcSuffix targetSuffix source
+
+calcTargets' baseDir srcSuffix targetSuffix sources =
+    Map.fromList
+    $ map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s))
+    $ filter (srcSuffix `List.isSuffixOf`) sources

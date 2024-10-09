@@ -5,13 +5,13 @@ module Text.Decker.Internal.Meta
     FromMetaValue (..),
     addMetaValue,
     addMetaKeyValue,
+    addMetaKeyValue',
     adjustMetaStringsBelow,
     adjustMetaStringsBelowM,
     adjustMetaValue,
     adjustMetaValueM,
     embedMetaMeta,
     fromPandocMeta,
-    globalMetaFileName,
     isMetaSet,
     lookupInDictionary,
     lookupMeta,
@@ -25,6 +25,7 @@ module Text.Decker.Internal.Meta
     mergePandocMeta,
     pandocMeta,
     readMetaDataFile,
+    writeMetaDataFile,
     readMetaValue,
     setMetaValue,
     toPandocMeta',
@@ -45,15 +46,13 @@ import Data.Maybe
 import Data.Text qualified as Text
 import Data.Vector qualified as Vec
 import Data.Yaml qualified as Y
+import Development.Shake (writeFileChanged)
 import Relude
+import Text.Decker.Internal.Common (pandocReaderOpts)
 import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
-import Text.Decker.Internal.Common (pandocReaderOpts)
-
--- | Name of the one global meta data file
-globalMetaFileName = "decker.yaml"
 
 -- TODO: extract this value from global meta data.
 replaceLists :: [[Text]]
@@ -152,7 +151,7 @@ isMetaSet key meta = isJust $ getMetaValue key meta
 
 -- | Sets a meta value at the compound key in the meta data. If any intermediate
 -- containers do not exist, they are created.
-setMetaValue :: ToMetaValue a => Text -> a -> Meta -> Meta
+setMetaValue :: (ToMetaValue a) => Text -> a -> Meta -> Meta
 setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
   where
     set [k] (MetaMap map) = M.insert k (toMetaValue value) map
@@ -161,9 +160,10 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
         Just value -> M.insert k (MetaMap $ set p value) map
         _ -> M.insert k (MetaMap $ set p $ MetaMap M.empty) map
     set _ _ =
-      throw $
-        InternalException $
-          "Cannot set meta value on non object at: " <> show key
+      throw
+        $ InternalException
+        $ "Cannot set meta value on non object at: "
+        <> show key
 
 readMetaValue :: Text -> Text -> Meta -> Meta
 readMetaValue key value = setMetaValue key (maybe value show (readMaybe (toString value) :: Maybe Bool))
@@ -189,7 +189,7 @@ adjustMetaValue f key meta =
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the IO action to the value if the key exists.
 adjustMetaValueM ::
-  MonadIO m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
+  (MonadIO m) => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
 adjustMetaValueM action key meta =
   Meta <$> adjust (splitKey key) (MetaMap (unMeta meta))
   where
@@ -221,12 +221,11 @@ adjustMetaStringsBelow func = adjustMetaValue (mapMetaValues func)
 adjustMetaStringsBelowM ::
   (MonadFail m, MonadIO m) => (Text -> m Text) -> Text -> Meta -> m Meta
 adjustMetaStringsBelowM action key meta = do
-  adjusted <- adjustMetaValueM (mapMetaValuesM action) key meta
-  return adjusted
+  adjustMetaValueM (mapMetaValuesM action) key meta
 
 -- | Adds a meta value to the list found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created.
-addMetaValue :: ToMetaValue a => Text -> a -> Meta -> Meta
+addMetaValue :: (ToMetaValue a) => Text -> a -> Meta -> Meta
 addMetaValue key value meta =
   case add (splitKey key) (MetaMap (unMeta meta)) of
     MetaMap map -> Meta map
@@ -242,28 +241,49 @@ addMetaValue key value meta =
         Just value -> MetaMap $ M.insert k (add p value) m
         _ -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
     add _ _ =
-      throw $
-        InternalException $
-          "Cannot add meta value to non list at: " <> toString key
+      throw
+        $ InternalException
+        $ "Cannot add meta value to non list at: "
+        <> toString key
 
 -- | Adds a meta value to the map found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created.
-addMetaKeyValue :: Text -> Text -> MetaValue -> Meta -> Meta
-addMetaKeyValue loc key value meta =
+addMetaKeyValue' :: (ToMetaValue a) => Text -> Text -> a -> Meta -> Meta
+addMetaKeyValue' loc key value meta =
   case add (splitKey loc) (MetaMap (unMeta meta)) of
     MetaMap map -> Meta map
     _ -> meta
   where
-    add [] (MetaMap m) = MetaMap $ M.insert key value m
-    add [""] (MetaMap m) = MetaMap $ M.insert key value m
+    mValue = toMetaValue value
+    add [] (MetaMap m) = MetaMap $ M.insert key mValue m
+    add [""] (MetaMap m) = MetaMap $ M.insert key mValue m
     add (k : p) (MetaMap m) =
       case M.lookup k m of
-        Just value -> MetaMap $ M.insert k (add p value) m
+        Just mValue -> MetaMap $ M.insert k (add p mValue) m
         _ -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
     add _ _ =
-      throw $
-        InternalException $
-          "Cannot add meta value to non list at: " <> toString loc
+      throw
+        $ InternalException
+        $ "Cannot add meta value to non list at: "
+        <> toString loc
+
+addMetaKeyValue :: (ToMetaValue a) => Text -> a -> Meta -> Meta
+addMetaKeyValue loc value meta =
+  case add (splitKey loc) (MetaMap (unMeta meta)) of
+    MetaMap map -> Meta map
+    _ -> meta
+  where
+    mValue = toMetaValue value
+    add [key] (MetaMap m) = MetaMap $ M.insert key mValue m
+    add (key : p) (MetaMap m) =
+      case M.lookup key m of
+        Just mValue -> MetaMap $ M.insert key (add p mValue) m
+        _ -> MetaMap $ M.insert key (add p $ MetaMap M.empty) m
+    add _ _ =
+      throw
+        $ InternalException
+        $ "Cannot add meta value at: "
+        <> toString loc
 
 pandocMeta :: (Text -> Meta -> Maybe a) -> Pandoc -> Text -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m
@@ -322,17 +342,17 @@ instance
       stringMap -> Just stringMap
   fromMetaValue _ = Nothing
 
-instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [a] where
+instance {-# OVERLAPS #-} (FromMetaValue a) => FromMetaValue [a] where
   fromMetaValue (MetaList list) = Just $ mapMaybe fromMetaValue list
   fromMetaValue _ = Nothing
 
-lookupMeta :: FromMetaValue a => Text -> Meta -> Maybe a
+lookupMeta :: (FromMetaValue a) => Text -> Meta -> Maybe a
 lookupMeta key meta = getMetaValue key meta >>= fromMetaValue
 
-lookupMetaOrElse :: FromMetaValue a => a -> Text -> Meta -> a
+lookupMetaOrElse :: (FromMetaValue a) => a -> Text -> Meta -> a
 lookupMetaOrElse def key meta = fromMaybe def $ lookupMeta key meta
 
-lookupMetaOrFail :: FromMetaValue a => Text -> Meta -> a
+lookupMetaOrFail :: (FromMetaValue a) => Text -> Meta -> a
 lookupMetaOrFail key meta =
   case lookupMeta key meta of
     Just value -> value
@@ -377,11 +397,11 @@ mapMetaM f meta = do
 mapMetaValuesM ::
   (MonadFail m, MonadIO m) => (Text -> m Text) -> MetaValue -> m MetaValue
 mapMetaValuesM f v = do
-  mapped <- map' v
-  return mapped
+  map' v
   where
     map' (MetaMap m) =
-      MetaMap . Map.fromList
+      MetaMap
+        . Map.fromList
         <$> mapM (\(k, v) -> (k,) <$> map' v) (Map.toList m)
     map' (MetaList l) = MetaList <$> mapM map' l
     map' (MetaString s) = MetaString <$> f s
@@ -409,7 +429,8 @@ mapMetaWithKey f meta = do
   return (Meta m)
   where
     map' k' (MetaMap m) =
-      MetaMap . Map.fromList
+      MetaMap
+        . Map.fromList
         <$> mapM (\(k, v) -> (k,) <$> map' (join k' k) v) (Map.toList m)
     map' k (MetaList l) =
       MetaList
@@ -419,13 +440,18 @@ mapMetaWithKey f meta = do
     map' _ v = return v
     join x y = Text.intercalate "." $ filter (not . Text.null) [x, y]
 
--- | Reads a single meta data file. If something goes wrong, an empty Meta
--- structure is returned.
-readMetaDataFile :: FilePath -> IO Meta
-readMetaDataFile file =
-  catch
-    (toPandocMeta <$> Y.decodeFileThrow file)
-    $ \(SomeException _) -> return nullMeta
+-- | Reads a single meta data file.
+readMetaDataFile :: FilePath -> IO (Either String Meta)
+readMetaDataFile file = do
+  result <- Y.decodeFileEither file
+  case result of
+    Right yaml -> return $ Right $ toPandocMeta yaml
+    Left err -> return $ Left $ show err
+
+-- | Writes a single meta data file if changed.
+writeMetaDataFile :: FilePath -> Meta -> IO ()
+writeMetaDataFile file meta = do
+  writeFileChanged file $ decodeUtf8 $ Y.encode (fromPandocMeta meta)
 
 embedMetaMeta :: Pandoc -> Pandoc
 embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks
