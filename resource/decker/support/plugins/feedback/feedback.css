@@ -110,10 +110,14 @@ div.feedback-header input[type="password"] {
   color: var(--foreground-color);
 }
 
-div.feedback-header button,
-div.feedback-footer button {
+div.feedback-header button {
   flex: 0 1;
   color: var(--menu-header-text-color);
+}
+
+div.feedback-footer button {
+  flex: 0 1;
+  color: var(--feedback-footer-text-color)
 }
 
 div.feedback-menu button {
@@ -223,13 +227,16 @@ div.feedback-menu div.feedback-question-input {
   padding: 0.3em;
 
   background: var(--feedback-list-background-color);
+
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
 }
 
 div.feedback-question-input textarea {
   resize: none;
   padding: 0.3em;
-  height: 6em;
-  width: calc(100% - 0.6em);
+  flex-grow: 1;
 
   color: var(--foreground-color);
   background-color: var(--feedback-input-background-color);
@@ -237,6 +244,28 @@ div.feedback-question-input textarea {
   border: none;
   border-radius: var(--feedback-element-border-radius);
   font-size: 0.8em;
+}
+
+div.feedback-question-input button.feedback-send-button {
+  font-size: 1.5rem;
+  flex-grow: 0;
+  background-color: var(--accent5);
+  color: var(--background-color);
+  padding: 1rem;
+  border-radius: var(--feedback-element-border-radius);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+div.feedback-question-input button.feedback-send-button:hover {
+  background-color: var(--accent5-bg);
+  color: var(--foreground-color);
+}
+
+div.feedback-question-input button.feedback-send-button span.fas{
+  padding: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -293,6 +322,29 @@ div.feedback-credentials input {
   border-radius: var(--feedback-element-border-radius);
 
   font-size: 0.8em;
+}
+
+div.feedback-credentials input.error {
+  background-color: var(--accent0-bbg);
+}
+
+div.feedback-credentials button {
+  background-color: var(--accent5);
+  color: var(--background-color);
+  font-weight: bold;
+  margin-left: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+div.feedback-credentials button:hover {
+  background-color: var(--accent5-bg);
+  color: var(--foreground-color);
+}
+
+div.feedback-credentials button:active {
+  background-color: var(--accent5-fg);
+  color: var(--background-color);
 }
 
 div.feedback-login {
