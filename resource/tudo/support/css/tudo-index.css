@@ -229,6 +229,8 @@ body.index table {
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
+  border-top: 1px solid var(--shade4);
+  border-bottom: 1px solid var(--shade4);
 }
 
 body.index table caption {
@@ -245,7 +247,7 @@ body.index table th {
 }
 
 body.index table th {
-  border-bottom: 1px solid;
+  border-bottom: 1px solid var(--shade4);
 }
 
 body.index table th,
