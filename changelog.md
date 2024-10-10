@@ -2,6 +2,12 @@
 
 ## decker 0.14.0
 
+- The colorscheme ("light" or "dark") can now be enforced in YAML. Simply add
+    ``` yaml
+    colorscheme: "light"
+    ```
+    or `colorscheme: "dark"` to your YAML settings.
+
 -   The feedback menu now has a "send" button.
 -   The admin login button in the feedback menu is now clearly visible and also has a button to send the login request.
 
