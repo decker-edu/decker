@@ -40,7 +40,11 @@ Alice -> Bob: test
 
 # Embedded Mermaid Code (SVG) {layout="columns"}
 
-## Seems to be discontinued {.top}
+## Needs `mermaid-cli` to be installed {.top}
+
+```sh
+npm install -g @mermaid-js/mermaid-cli
+```
 
 ## Mermaid {.left}
 
