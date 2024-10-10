@@ -38,16 +38,18 @@ Alice -> Bob: test
 @enduml
 ```
 
-# Embedded Mermaid Code (SVG) {.columns}
+# Embedded Mermaid Code (SVG) {layout="columns"}
+
+## Seems to be discontinued {.top}
 
 ## Mermaid {.left}
 
-<!-- ```` {.markdown}
+```` {.markdown}
 ``` {.mermaid .render}
 graph TD
 A[Client] --> B[Load Balancer]
 ```
-```` -->
+````
 
 ## SVG {.right}
 
