@@ -1,6 +1,11 @@
 <div class="media">
   <figure class="live-code">
-    <div class="live-code">
+    <div
+      class="live-code"
+      $if(height)$
+      style="max-height&colon;$height$&semi;"
+      $endif$
+    >
       <pre
         class="live-code language-$language/lowercase$ $classes$"
       ><code id="$rnd-id$" class="live-code language-$language/lowercase$">$codeEsc$</code></pre>

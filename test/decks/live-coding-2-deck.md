@@ -55,7 +55,7 @@ print(msg)
 
 ## Live {.left}
 
-``` {.live-code- language="Haskell" sandbox="GHCi"}
+``` {.live-code- language="Haskell" sandbox="GHCi" height="200px"}
 msg = "Hello, World!"
 print msg
 ```
