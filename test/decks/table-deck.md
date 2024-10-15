@@ -17,7 +17,7 @@ title: Table Test
 | 0       | 0    |   0    |     0 |
 |         |      |        |       |
 
-# Grid Table
+# Grid Table {.colored} 
 
 +---------------------+-----------------------+
 | Location            | Temperature 1961-1990 |

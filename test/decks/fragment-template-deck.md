@@ -86,7 +86,7 @@ print(42)
 
 ## Result
 
-``` {.live-code- language="python" caption="Captions are swell!"}
+``` {.live-code- language="python" caption="Captions are swell!" .small}
 print(42)
 ```
 
@@ -111,3 +111,14 @@ out.println(42);
 ```
 
 [§live-code-server](https://codapi.tramberend.de/v1)
+
+# Grids {.columns}
+
+## Coarse {.right}
+
+[§grid](500px "Coarse Grid")
+
+## Fine {.left}
+
+[§finegrid](500px "Fine Grid")
+

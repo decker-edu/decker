@@ -345,6 +345,7 @@ deckerRules = do
       meta <- getGlobalMeta
       context <- actionContext
       let flags = context ^. extra
+      -- TODO handle pages as well
       if LectureFlag `elem` flags
         then do
         case lookupMeta "publish.rsync.destination" meta of
@@ -355,12 +356,12 @@ deckerRules = do
                 need ["support"]
                 deps <- getDeps
                 let deckSrcs = Map.elems $ deps ^. decks
-                selected <- buildIndex (publicDir </> "index.json") meta deckSrcs
+                let pageSrcs = Map.elems $ deps ^. pages
+                selected <- buildIndex (publicDir </> "index.json") meta (deckSrcs <> pageSrcs)
                 let decks = calcTargets deckSuffix deckHTMLSuffix selected
                 let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
-                let pages = calcTargets pageSuffix pageHTMLSuffix selected
-                let pagesPdf = calcTargets pageSuffix pagePDFSuffix selected
-                need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages <> Map.keys pagesPdf)
+                let pages' = calcTargets pageSuffix pageHTMLSuffix selected
+                need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
                 createPublicManifest
                 let src = publicDir ++ "/"
                 publishWithRsync src destination meta

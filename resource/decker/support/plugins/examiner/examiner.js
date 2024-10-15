@@ -1,8 +1,19 @@
+import { preparePolls } from "./examiner-poll.js";
+
 const Plugin = {
   id: "Examiner",
   init: (reveal) => {
     reveal.on("ready", (e) => {
       prepareExaminer();
+      let pollSession = null;
+      Decker.addPresenterModeListener(async function (inPresenterMode) {
+        if (inPresenterMode && !pollSession) {
+          pollSession = await preparePolls(reveal);
+        } else {
+          pollSession.close();
+          pollSession = null;
+        }
+      });
     });
   },
 };
