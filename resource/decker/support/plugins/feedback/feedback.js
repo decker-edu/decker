@@ -530,7 +530,6 @@ class Feedback {
         this.answerQuestion(comment)
       );
     }
-    MathJax.typeset([question]);
     return question;
   }
 
@@ -604,7 +603,7 @@ class Feedback {
         this.menu.feedback_list.appendChild(block);
       }
     }
-
+    MathJax.typeset([this.menu.feedback_list]);
     this.menu.feedback_list.scrollTop = 0;
   }
 
