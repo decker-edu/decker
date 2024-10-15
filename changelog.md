@@ -2,6 +2,16 @@
 
 ## decker 0.14.0
 
+- The colorscheme ("light" or "dark") can now be enforced in YAML. Simply add
+    ``` yaml
+    colorscheme: "light"
+    ```
+    or `colorscheme: "dark"` to your YAML settings.
+
+-   The feedback menu now has a "send" button.
+-   The admin login button in the feedback menu is now clearly visible and also has a button to send the login request.
+
+- Add a legend to the feedback menu that is only visible on mobile devices (small screens).
 -   Decks can now be accessed in Presenter, Handout and A11Y Mode directly
     by appending ?presenter, ?handout or ?a11y to the deck's url.
 

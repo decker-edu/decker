@@ -162,7 +162,7 @@ div.block {
 
 /* No bottom margin for last elements in a stack. */
 :is(h1, p, div, ul, ol, table):last-child {
-  margin-bottom: 0 !important;
+  margin-bottom: 0;
 }
 
 /* Align headers with blocks. */
@@ -436,7 +436,7 @@ button.fa-button::-moz-focus-inner {
   border: none;
 }
 
-/* details that pop up. per default only with wrapped details 
+/* details that pop up. per default only with wrapped details
 elements from H2 boxes. */
 div.details-frame:has(details.popup) {
   position: relative;

@@ -361,7 +361,8 @@ deckerRules = do
                 let decks = calcTargets deckSuffix deckHTMLSuffix selected
                 let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
                 let pages' = calcTargets pageSuffix pageHTMLSuffix selected
-                need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
+                need (Map.keys decks <> Map.keys pages')
+                -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
                 createPublicManifest
                 let src = publicDir ++ "/"
                 publishWithRsync src destination meta

@@ -68,8 +68,11 @@ function zoomTo(element) {
 
     // are slides zoomed up, and is this done using CSS zoom?
     // then incorporate this zoom!
-    const currentZoom = document.querySelector(".reveal .slides").style.zoom;
-    const currentScale = currentZoom < 1 ? 1 : currentZoom;
+    // const currentZoom = document.querySelector(".reveal .slides").style.zoom;
+    // const currentScale = currentZoom < 1 ? 1 : currentZoom;
+
+    // with current Chrome (>=129) zoom-value should not be taken into account below
+    const currentScale = 1.0;
 
     const rect = {
       x: Math.round(bounds.left * currentScale - padding),

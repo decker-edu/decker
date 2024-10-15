@@ -83,6 +83,10 @@ th {
   outline: solid 10px var(--accent7);
 }
 
+div.media {
+  margin: var(--vertical-margin) 0;
+}
+
 /* Headers */
 h1,
 h1.title {

@@ -1,7 +1,7 @@
 ---
+lang: en-EN
 subtitle: Edit and Execute Code Blocks
 title: Live Coding (with fragment templates)
-lang: en-EN
 ---
 
 # Live Coding in Code Blocks {.columns}
@@ -30,24 +30,43 @@ Languages (so far):
 ## TODO {.accent4}
 
 -   [x] integrate [CodeJar](https://medv.io/codejar/) for better editing
--   [x] integrate [highlightjs](https://highlightjs.org/) for syntax highlighting
+-   [x] integrate [highlightjs](https://highlightjs.org/) for syntax
+    highlighting
 
 # Python {.columns}
 
 ## Live {.left}
 
-``` {.python .live-code- language="python"}
+``` {.python .live-code- language="Python"}
 msg = "Hello, World!"
 print(msg)
 ```
 
 ## Markdown {.right}
 
-````markdown
-``` {.python .live-code- language="python"}
+```` markdown
+``` {.live-code- language="python"}
 msg = "Hello, World!"
 print(msg)
 ```
 ````
 
+# Haskell {.columns}
 
+## Live {.left}
+
+``` {.live-code- language="Haskell" sandbox="GHCi" height="200px"}
+msg = "Hello, World!"
+print msg
+```
+
+## Markdown {.right}
+
+```` markdown
+``` {.live-code- language="Haskell" sandbox="ghci"}
+msg = "Hello, World!"
+print msg
+```
+````
+
+[live-code-server-](https://codapi.tramberend.de/v1)
