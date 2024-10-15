@@ -1,10 +1,10 @@
 ---
 title: Custom Quizzes
 quizzer:
-#  backend: 'https://decker.cs.tu-dortmund.de/t'
-#  socket: 'wss://decker.cs.tu-dortmund.de/t/api/websocket'
-  backend: 'http://localhost:3000'
-  socket: 'ws://localhost:3000/api/websocket'
+  backend: 'https://decker.cs.tu-dortmund.de/t'
+  socket: 'wss://decker.cs.tu-dortmund.de/t/api/websocket'
+#  backend: 'http://localhost:3000'
+#  socket: 'ws://localhost:3000/api/websocket'
 
 ---
 
