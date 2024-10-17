@@ -15,6 +15,7 @@ import Data.String ()
 import Data.Time.Format.ISO8601
 import Development.Shake
 import GHC.IO.Encoding
+import System.FilePath.Glob qualified as Glob
 import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
@@ -29,6 +30,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -38,7 +40,7 @@ import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
-import Text.Decker.Project.ActionContext (actionContext, extra, Flags (LectureFlag))
+import Text.Decker.Server.Video (copyVttForVideos)
 
 main :: IO ()
 main = do
@@ -60,6 +62,18 @@ needPublicIfExists source = do
   if exists
     then need [target]
     else removeFileA target
+
+needPublicIfExistsGlob :: FilePath -> Action ()
+needPublicIfExistsGlob source = do
+  files <- liftIO $ Glob.glob source
+  forM_ files needIf
+  where
+    needIf source = do
+      exists <- doesFileExist source
+      let target = publicDir </> source
+      if exists
+        then need [target]
+        else removeFileA target
 
 -- | Remove a file, but don't worry if it fails
 removeFileA :: FilePath -> Action ()
@@ -168,16 +182,13 @@ deckerRules = do
       need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-times.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-transcript.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
+      needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
     publicDir <//> "*-deck.pdf" %> \out -> do
       let src = replaceSuffix "-deck.pdf" "-deck.html" out
@@ -309,6 +320,7 @@ deckerRules = do
       let src = makeRelative publicDir out
       putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
+      copyVttForVideos src out
   --
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
@@ -345,41 +357,40 @@ deckerRules = do
       meta <- getGlobalMeta
       context <- actionContext
       let flags = context ^. extra
-      -- TODO handle pages as well
       if LectureFlag `elem` flags
         then do
-        case lookupMeta "publish.rsync.destination" meta of
+          case lookupMeta "publish.rsync.destination" meta of
             Just (destination :: String) -> do
-                -- clean out the public dir
-                liftIO $ runClean False
-                -- includes index and static resources
-                need ["support"]
-                deps <- getDeps
-                let deckSrcs = Map.elems $ deps ^. decks
-                let pageSrcs = Map.elems $ deps ^. pages
-                selected <- buildIndex (publicDir </> "index.json") meta (deckSrcs <> pageSrcs)
-                let decks = calcTargets deckSuffix deckHTMLSuffix selected
-                let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
-                let pages' = calcTargets pageSuffix pageHTMLSuffix selected
-                need (Map.keys decks <> Map.keys pages')
-                -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
-                createPublicManifest
-                let src = publicDir ++ "/"
-                publishWithRsync src destination meta
+              -- clean out the public dir
+              liftIO $ runClean False
+              -- includes index and static resources
+              need ["support"]
+              deps <- getDeps
+              let deckSrcs = Map.elems $ deps ^. decks
+              let pageSrcs = Map.elems $ deps ^. pages
+              selected <- buildIndex (publicDir </> "index.json") meta (deckSrcs <> pageSrcs)
+              let decks = calcTargets deckSuffix deckHTMLSuffix selected
+              let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
+              let pages' = calcTargets pageSuffix pageHTMLSuffix selected
+              need (Map.keys decks <> Map.keys pages')
+              -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
+              createPublicManifest
+              let src = publicDir ++ "/"
+              publishWithRsync src destination meta
             _ -> putError "publish.rsync.destination not configured"
         else do
-            need ["support"]
-            getDeps >>= needTargets' [decks, pages]
-            createPublicManifest
-            let src = publicDir ++ "/"
-            case lookupMeta "publish.rsync.destination" meta of
-                Just destination -> publishWithRsync src destination meta
-                _ -> do
-                    let host = lookupMetaOrFail "rsync-destination.host" meta
-                    let path = lookupMetaOrFail "rsync-destination.path" meta
-                    let dst = intercalate ":" [host, path]
-                    ssh [host, "mkdir -p", path] Nothing
-                    rsync [src, dst] Nothing
+          need ["support"]
+          getDeps >>= needTargets' [decks, pages]
+          createPublicManifest
+          let src = publicDir ++ "/"
+          case lookupMeta "publish.rsync.destination" meta of
+            Just destination -> publishWithRsync src destination meta
+            _ -> do
+              let host = lookupMetaOrFail "rsync-destination.host" meta
+              let path = lookupMetaOrFail "rsync-destination.path" meta
+              let dst = intercalate ":" [host, path]
+              ssh [host, "mkdir -p", path] Nothing
+              rsync [src, dst] Nothing
 
 createPublicManifest :: Action ()
 createPublicManifest = do
