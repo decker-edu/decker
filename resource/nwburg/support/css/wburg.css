@@ -103,7 +103,7 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
   font-size: var(--font-size-xx-large);
 }
 
-.reveal h2 {
+.reveal h2 summary {
   font-weight: 500;
   font-size: var(--font-size-large);
 }
