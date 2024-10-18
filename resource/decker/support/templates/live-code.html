@@ -52,12 +52,15 @@
       highlight(code);
 
       // start CodeJar on the code. Let it handle highlighting.
-      codejar.CodeJar(code, highlight);
+      codejar.CodeJar(code, highlight, {
+        tab: " ".repeat(2),
+      });
 
       // CodeJar fiddles with the style attribute of out code element. Reset that.
       code.style.whiteSpace = "pre";
       code.style.overflowX = "scroll";
       code.style.overflowY = "scroll";
+      code.style.tabSize = 2;
     </script>
     <figcaption>$caption$</figcaption>
   </figure>
