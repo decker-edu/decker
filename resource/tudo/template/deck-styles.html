@@ -38,6 +38,11 @@
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/tudo-deck.css">
+  $if(template.font)$
+  <link rel="stylesheet" href="$decker-support-dir$/fonts/$template.font$.css">
+  $else$
+  <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
+  $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/handout/handout.css">
   $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
