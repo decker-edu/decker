@@ -118,7 +118,7 @@ figure.live-code {
 div.live-code {
   resize: vertical;
   overflow: scroll;
-  min-height: 3em;
+  min-height: auto;
   max-height: var(--code-block-max-height);
   background: var(--code-background-color);
 }
