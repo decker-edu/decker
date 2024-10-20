@@ -1,4 +1,6 @@
 ---
+experiments:
+  fragment-templates: true
 subtitle: What's it with the templates?
 title: Fragment Templates
 ---
@@ -19,7 +21,13 @@ experiments:
   fragment-templates: true
 ```
 
-# 
+# Template Search Pathes
+
+## In order of preference
+
+1. Document base directory
+2. Project's dir `/templates` folder
+3. Resource pack's `support/templates` folder
 
 # {.columns}
 
@@ -86,7 +94,7 @@ print(42)
 
 ## Result
 
-``` {.live-code- language="python" caption="Captions are swell!"}
+``` {.live-code- .small language="python" caption="Captions are swell!"}
 print(42)
 ```
 
@@ -111,3 +119,17 @@ out.println(42);
 ```
 
 [§live-code-server](https://codapi.tramberend.de/v1)
+
+# Grid Test {.columns}
+
+## `canvas` {.left}
+
+[§canvas](500px)
+
+## `grid` {.center}
+
+[§grid](500px)
+
+## `finegrid` {.right}
+
+[§finegrid](500px)

@@ -38,7 +38,13 @@ Alice -> Bob: test
 @enduml
 ```
 
-# Embedded Mermaid Code (SVG) {.columns}
+# Embedded Mermaid Code (SVG) {layout="columns"}
+
+## Needs `mermaid-cli` to be installed {.top}
+
+```sh
+npm install -g @mermaid-js/mermaid-cli
+```
 
 ## Mermaid {.left}
 

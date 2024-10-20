@@ -27,7 +27,7 @@ function addScreenReaderSlideNumbers() {
 
 function addScreenReaderSlideNumber(slide, h, v) {
   const header = slide.querySelector("h1");
-  if (header) {
+  if (header && header.textContent.trim() !== "") {
     const innerHTML = header.innerHTML;
     const replacementHTML = `<span class="sr-only">${localization.slide} ${
       h + 1

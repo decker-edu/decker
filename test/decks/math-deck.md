@@ -19,6 +19,7 @@ $\pt{pt}$\
 $\textcolor{red}{red}$\
 $\textcolor{red}red$
 
+
 ## Should look like this image {.right}
 
 ![](include/latex_macros.png){width="50%"}

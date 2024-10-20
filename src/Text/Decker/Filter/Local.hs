@@ -45,7 +45,7 @@ instance RawHtml [Block] where
 -- | File-extensions that should be treated as image
 imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
 
-videoExt = ["mp4", "mov", "ogg", "avi"]
+videoExt = ["mp4", "mov", "ogg", "avi", "webm"]
 
 audioExt = ["mp3", "aiff", "wav"]
 

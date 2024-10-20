@@ -1,5 +1,4 @@
 @import url("../vendor/fontawesome/css/all.css");
-@import url("../fonts/lato.css");
 
 /*********************************************
  * GLOBAL STYLES
@@ -11,7 +10,6 @@
 
 body {
   background: var(--background-color);
-  font-family: "Lato", sans-serif;
   color: var(--foreground-color);
   accent-color: var(--accent3);
 }

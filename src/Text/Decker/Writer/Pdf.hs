@@ -29,7 +29,7 @@ chromeOptions :: FilePath -> FilePath -> IO [String]
 chromeOptions src out = do
   dataDir <- chromeUserDataDir
   return
-    [ "--headless",
+    [ "--headless=old",
       "--virtual-time-budget=5001",
       "--disable-gpu",
       "--print-to-pdf-no-header",

@@ -66,18 +66,6 @@ reveal:
   viewDistance: 2
   width: 1280
 
-# Template Config
-
-template:
-  favicon: "support/icons/favicon.ico"
-  # Codapi live-code config:
-  css:
-    - /support/vendor/codapi-js/snippet.css
-    - /support/css/hljs.css
-    - /support/css/codapi.css
-  js:
-    - /support/vendor/codapi-js/snippet.js
-
 # Title Config
 
 title: "<Undefined Title>"
