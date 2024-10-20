@@ -98,18 +98,30 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
   font-size: var(--font-size-xx-large);
 }
 
+strong,
+b {
+  font-weight: 700;
+}
+
+em {
+  font-style: italic;
+}
+
+
+
 .reveal h1 {
-  font-weight: normal;
-  font-size: var(--font-size-xx-large);
+  font-weight: strong;
+  font-size: var(--font-size-x-large);
+  margin-bottom: 1.05rem;
 }
 
 .reveal h2 summary {
-  font-weight: 500;
+  font-weight: strong;
   font-size: var(--font-size-large);
 }
 
 .reveal h3 {
-  font-weight: 300;
+  font-weight: 400;
   font-size: var(--font-size-medium);
 }
 
@@ -132,14 +144,6 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
   line-height: 1.3;
 } */
 
-strong,
-b {
-  font-weight: bold;
-}
-
-em {
-  font-style: italic;
-}
 
 /* From _titlepage.scss */
 
@@ -259,8 +263,11 @@ div.block {
 /* Stretch the block header margin to the block border so that highlighting
 works. */
 div.block h2 {
+  font-weight: strong;
+  font-size: var(--font-size-large);
   padding: 0;
-  margin: 0 0 calc(1 * var(--vertical-margin)) 0;
+  /* margin: 0 0 calc(1 * var(--vertical-margin)) 0; */
+  margin: 0;
 }
 
 /* The latter is already from styles.css for h1, p, div, ul, ol, table.
@@ -296,7 +303,7 @@ div.block.observation {
 }
 
 div.block.example {
-  border-color: var(--accent5);
+  border-color: var(--accent2);
 }
 
 div.block.def,
@@ -386,10 +393,6 @@ div.flush-bottom-right {
   text-align: right;
 }
 
-/* The footnotes are too big   */
-.footnotes {
-  font-size: var(--font-size-small);
-}
 
 /*********************************************
  * Quizzes with task list syntax
@@ -937,3 +940,83 @@ code span.wa {
   color: var(--accent0);
   font-weight: bold;
 } /* Warning */
+
+
+/*********************************************
+ * other looks for the codapi 
+ *********************************************/
+codapi-toolbar button,
+codapi-output a[href="#close"]{
+    color: var(--shade2);
+    background-color: var(--shade6);
+    font-size: var(--font-size-small);
+    border-radius: 10px;
+}
+
+/* make the run button and the close link look and behave the same  */
+codapi-toolbar button:hover,
+codapi-output a[href="#close"]:hover {
+   color: var(--shade6);
+   background-color: var(--shade2);
+   font-size: var(--font-size-small);
+   border-radius: 10px;
+}   
+
+div.live-code div.label {
+   font-weight: var(--header-font-weight);
+   color: var(--accent1);
+   font-size: var(--font-size-small);
+   padding: 0.2em 0.4em;
+   margin: 0;
+   top: 0.4em;
+   right: 4.5em;
+   position: absolute;
+   pointer-events: none;
+ }
+
+
+/*********************************************
+ * uniform citations after blocks or pages  
+ *********************************************/
+
+ .cite-block {
+   font-size: var(--font-size-small);
+   text-align: right;
+ }
+
+ .cite-page {
+   font-size: var(--font-size-small);
+   text-align: right;
+   position: absolute;
+   bottom: 0;
+   /* this one leaves some space to the page UI, 
+   should be adopted to some sort of overall
+   page layout definition which includes headers,
+   footers and non printing areas (for GUI elements)*/
+   right: 5vw; 
+ }
+
+ /* The footnotes should be at the same position as page citations and have the 
+ same font size   */
+.footnotes {
+   font-size: var(--font-size-small);
+   text-align: left;
+   position: absolute;
+   bottom: 0;
+ }
+ 
+  /* The popup boxes specified and changed so
+  that they adhere to our style boxes */
+
+div.block[popup]{
+   padding: 10px 10px 10px 10px; 
+   border-radius: 5px;
+   border-width: 0px 0px 0px 20px;
+   background-color: var(--shade1);
+   color: var(--shade7);
+}  
+
+ 
+ ul li ul li {
+   list-style-type: disc; /* Different bullet for nested list */
+ }
