@@ -1633,9 +1633,10 @@ html.dark
   .media
   :is(figure, .figure)
   :not(.MathJax)
-  > :is(svg, img, div.chart-container, iframe) {
+  > :is(svg, img, canvas[data-chart], iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+  border-radius: 0;
 }
 
 /* put white background on the image instead of the container */
