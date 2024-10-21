@@ -148,64 +148,68 @@ em {
 /* From _titlepage.scss */
 
 /* Title page */
-.title-page .banner img {
-  margin: 0px 0px 0px 0px;
-  width: 100%;
+section#title-slide .banner img {
+  margin: 0px;
+  height: 97px;
   object-fit: contain;
 }
 
-.title-page .title {
-  margin: 20px 0px;
-  width: 100%;
-  display: block;
-  padding: 0px;
-  font-size: var(--font-size-x-large);
-  text-align: center;
+section#title-slide .title {
+   margin-top: 2rem;
+   margin-bottom: 0.5rem;
+   font-weight: strong;
+   font-size: var(--font-size-x-large);
+   color: var(--shade7)
 }
 
-.title-page .subtitle {
-  width: 100%;
-  margin: 0px;
-  padding: 0px;
-  font-weight: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
+section#title-slide .subtitle {
+   margin-top: 0;
+   margin-bottom: 0;
+   font-weight: strong;
+   font-size: var(--font-size-large);
+   color: var(--shade7)
 }
 
-.title-page .teaser-img {
-  margin: var(--title-page-vertical-margin) auto;
-  height: 10%;
-  width: auto;
-  display: block;
+section#title-slide  .date {
+   margin-top: 0;
+   margin-bottom: 0;
+   font-weight: strong;
+   font-size: var(--font-size-large);
+   color: var(--shade6)
 }
 
-.title-page .teaser-img img {
-  margin: var(--title-page-vertical-margin) auto;
+section#title-slide  .author {
+   margin: 0;
+   font-weight: strong;
+   font-weight: normal;
+   font-size: var(--font-size-large);
+   color: var(--shade6)
+}
+
+section#title-slide .affiliation {
+   margin: 0;
+   font-weight: normal;
+   font-size: var(--font-size-large);
+   color: var(--shade6)
+   }
+
+ 
+section#title-slide .teaser-img {
+  margin: var(--title-page-vertical-margin) 0;
+}
+
+section#title-slide .teaser-img img {
   /* Center horizontally */
   display: block;
+  margin: 0 auto;
   /* Make the image as max 250px high retaining aspect ratio */
   object-fit: contain;
-  max-height: 250px;
+  max-height: 500px;
   width: auto;
 }
 
-.title-page .date {
-  margin: 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
 
-.title-page .author {
-  margin: 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.title-page .affiliation-logo img {
+section#title-slide .affiliation-logo img {
   margin: calc(0.1 * var(--title-page-vertical-margin)) 0;
   height: var(--title-page-affiliation-logo-height);
   width: auto;
@@ -215,26 +219,18 @@ em {
   margin-right: auto;
 }
 
-.title-page .affiliation {
-  margin: 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
+
+section#title-slide .valign-block {
   text-align: center;
 }
 
-.title-page .valign-block {
-  text-align: center;
-}
-
-.title-page .valign-block:before {
+section#title-slide .valign-block:before {
   content: "";
   display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
-
-.title-page .valigned {
+section#title-slide .valigned {
   display: inline-block;
   vertical-align: middle;
 }
