@@ -47,6 +47,8 @@ chart:
         font: { weight: "normal", size: 30 }
       legend:
         position: "bottom"
+      # colors:
+      #   enabled: false
 
 # live captions through WebSpeech API
 live-captions: true

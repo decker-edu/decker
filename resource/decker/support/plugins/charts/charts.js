@@ -21,6 +21,27 @@ const printMode = /print-pdf/gi.test(window.location.search);
 let chartConfig;
 let pixelRatio = 1;
 
+// color palette: when not defined in chart config, use deck palette
+// NOTE: colors have to be specified in hex form as #RRGGBB
+// NOTE: color plugin of Chart.js has to be turned off explicitly for
+//       this to work: chart.defaults.plugins.colors.enabled=false
+const style = getComputedStyle(document.documentElement);
+const palette = Decker.meta?.chart?.colors || [
+  style.getPropertyValue("--accent0"),
+  style.getPropertyValue("--accent3"),
+  style.getPropertyValue("--accent6"),
+  style.getPropertyValue("--accent2"),
+  style.getPropertyValue("--accent5"),
+  style.getPropertyValue("--accent1"),
+  style.getPropertyValue("--accent4"),
+];
+function getBorderColor(i) {
+  return palette[i % palette.length];
+}
+function getBackgroundColor(i) {
+  return palette[i % palette.length] + "99";
+}
+
 function parseJSON(str) {
   let json;
   try {
@@ -90,8 +111,6 @@ function createChart(canvas, CSV, comments) {
     };
   }
 
-  console.log(chartOptions);
-
   // MARIO: set pixel ratio
   chartOptions.devicePixelRatio = pixelRatio;
 
@@ -141,6 +160,39 @@ function createChart(canvas, CSV, comments) {
     }
   }
 
+  // MARIO: assign colors (unless they are specified already
+  // and only if color-plugin of Chart.js is disabled
+  if (Chart.defaults.plugins?.colors?.enabled == false) {
+    const type = canvas.getAttribute("data-chart");
+    for (let i = 0; i < chartData.datasets.length; i++) {
+      let dataset = chartData.datasets[i];
+      if (!dataset.backgroundColor && !dataset.borderColor) {
+        switch (type) {
+          // one color per dataset
+          case "bar":
+          case "horizontalBar":
+          case "line":
+          case "radar": {
+            dataset.borderColor = getBorderColor(i);
+            dataset.backgroundColor = getBackgroundColor(i);
+            break;
+          }
+
+          // many colors per dataset (only background, don't use border)
+          case "doughnut":
+          case "pie":
+          case "polarArea": {
+            let j = i;
+            dataset.backgroundColor = dataset.data.map(() =>
+              getBackgroundColor(j++)
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
+
   // non-filled chart?
   if (canvas.hasAttribute("data-nofill")) {
     for (let j = 0; j < chartData.datasets.length; j++) {
@@ -166,6 +218,10 @@ function createChart(canvas, CSV, comments) {
       y: { type: "logarithmic" },
     };
   }
+
+  // DEBUG: output final data and options
+  // console.log(chartData);
+  // console.log(chartOptions);
 
   canvas.chart = new Chart(ctx, {
     type: canvas.getAttribute("data-chart"),
@@ -304,9 +360,6 @@ function recreateChart(canvas) {
   config.options.devicePixelRatio = pixelRatio;
 
   canvas.chart.destroy();
-  // setTimeout(function () {
-  //   canvas.chart = new Chart(canvas, config);
-  // }, 500); // wait for slide transition
   canvas.chart = new Chart(canvas, config);
 }
 
@@ -336,16 +389,6 @@ const Plugin = {
     if (config) {
       mergeRecursive(Chart.defaults, config);
     }
-
-    // MARIO: disabled this, since it's more robust to
-    // add a light background to charts in CSS
-    // const colors =
-    //   window.matchMedia &&
-    //   window.matchMedia("(prefers-color-scheme: dark)").matches
-    //     ? window.Decker.meta.palette.colors.dark
-    //     : window.Decker.meta.palette.colors.light;
-    // Chart.defaults.color = colors[7];
-    // Chart.defaults.borderColor = colors[2];
 
     Reveal.addEventListener("ready", function () {
       // MARIO: when in print mode, set animation duration to zero
