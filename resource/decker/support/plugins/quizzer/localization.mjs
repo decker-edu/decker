@@ -10,6 +10,7 @@ const german = {
   assignmentInstructionObjects:
     "Objekte von hier ziehen oder durch Klicken selektieren ...",
   assignmentInstructionCategories: "... und den richtigen Kategorien zuweisen.",
+  latency: "Latenz: ",
 };
 
 const english = {
@@ -25,6 +26,7 @@ const english = {
     "Drag & Drop objects or click to select them ...",
   assignmentInstructionCategories:
     "... and assign them to the correct category.",
+  latency: "Latency: ",
 };
 
 export default function localization() {

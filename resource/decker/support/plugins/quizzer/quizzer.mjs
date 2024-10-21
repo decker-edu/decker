@@ -4,6 +4,8 @@ import bwip from "../examiner/bwip.js";
 import "../../vendor/d3.v6.min.js";
 import localization from "./localization.mjs";
 
+const l10n = localization();
+
 let Reveal;
 let hostClient = undefined;
 let currentQuiz = undefined;
@@ -18,7 +20,7 @@ let qrCanvas = document.createElement("canvas");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
 
-let stateButton = document.createElement("button");
+let pollButton = document.createElement("button");
 let tallySpan = document.createElement("span");
 
 function containsClick(rect, x, y) {
@@ -33,12 +35,10 @@ function containsClick(rect, x, y) {
 function setQuizState(state) {
   quizState = state;
   tallySpan.hidden = true;
-  delete stateButton.dataset["state"];
-  if (state === "WAITING") {
-    stateButton.dataset["state"] = "WAITING";
-  } else if (state === "ACTIVE") {
+  delete pollButton.dataset["state"];
+  if (state === "ACTIVE") {
     tallySpan.hidden = false;
-    stateButton.dataset["state"] = "ACTIVE";
+    pollButton.dataset["state"] = "ACTIVE";
   }
 }
 
@@ -171,15 +171,20 @@ function createHostInterface(reveal) {
   qrLabel.classList.add("qr-label");
 
   const anchors = reveal.getPlugin("ui-anchors");
-  qrButton.hidden = true;
-  qrButton.classList.add("fas", "fa-qrcode", "fa-button", "presenter-only");
-  stateButton.hidden = true;
-  stateButton.classList.add(
+  qrButton.classList.add(
+    "fas",
+    "fa-qrcode",
+    "fa-button",
+    "presenter-only",
+    "quiz-only"
+  );
+  pollButton.classList.add(
     "quizzer-button",
     "fas",
     "fa-poll",
     "fa-button",
-    "presenter-only"
+    "presenter-only",
+    "quiz-only"
   );
   qrDialog.classList.add("quizzer-dialog");
   qrDialog.addEventListener("click", (event) => {
@@ -203,7 +208,8 @@ function createHostInterface(reveal) {
     }
     qrDialog.showModal();
   });
-  stateButton.addEventListener("click", async (event) => {
+  qrButton.title = l10n.showQRCode;
+  pollButton.addEventListener("click", async (event) => {
     if (!hostClient) {
       await initializeHost();
     }
@@ -219,35 +225,32 @@ function createHostInterface(reveal) {
       setQuizState("AWAITING_EVALUATION");
     }
   });
+  pollButton.title = l10n.activatePoll;
 
-  tallySpan.className = "quizzer-state-info";
-  tallySpan.className = "presenter-only";
+  tallySpan.className = "quizzer-state-info presenter-only quiz-only";
 
   connectionIndicator.classList.add(
     "fas",
     "fa-wifi",
     "fa-span",
-    "presenter-only"
+    "presenter-only",
+    "quiz-only"
   );
   connectionIndicator.title = "No Data";
-  connectionIndicator.hidden = true;
 
   anchors.placeButton(connectionIndicator, "BOTTOM_CENTER");
   anchors.placeButton(qrButton, "BOTTOM_CENTER");
-  anchors.placeButton(stateButton, "BOTTOM_CENTER");
+  anchors.placeButton(pollButton, "BOTTOM_CENTER");
   anchors.placeButton(tallySpan, "BOTTOM_CENTER");
 }
 
-function onError() {
+function onError(error) {
+  document.documentElement.classList.remove("quiz-available");
   console.error(
     "The Quizzer Websocket has encountered an error. The connection is to be considered closed."
   );
   connectionIndicator.classList.add("error");
-  connectionIndicator.hidden = false;
   connectionIndicator.title = localization().unableToConnect;
-  qrButton.hidden = true;
-  stateButton.hidden = true;
-  tallySpan.hidden = true;
   setQuizState("ERROR");
 }
 
@@ -255,16 +258,16 @@ function onStateUpdate(connections, done) {
   tallySpan.innerText = `${done} / ${connections}`;
 }
 
-function onConnectionUpdate(error, outgoing, incoming) {
+function onConnectionUpdate(error, ms) {
   connectionIndicator.classList.remove("error");
+  connectionIndicator.classList.remove("ok");
   if (error && error === "CLOSED") {
     connectionIndicator.title = "Connection Closed";
     connectionIndicator.classList.add("error");
     return;
   }
-  connectionIndicator.title = `Out: ${Math.ceil(outgoing)}ms / In: ${Math.ceil(
-    incoming
-  )}ms`;
+  connectionIndicator.classList.add("ok");
+  connectionIndicator.title = `${l10n.latency}${ms}ms`;
 }
 
 async function initializeHost() {
@@ -290,6 +293,7 @@ async function initializeHost() {
       resolve();
     });
     hostClient.on("result", (result) => {
+      console.log(result);
       quizState = "READY";
       tallySpan.hidden = true;
       const resultContainer = document.createElement("div");
@@ -563,12 +567,10 @@ async function toggleInterface() {
   const slide = Reveal.getCurrentSlide();
   /* No Quizzes on current slide: Hide interface. */
   if (!slide.quizzes[0]) {
-    connectionIndicator.hidden = true;
-    qrButton.hidden = true;
-    stateButton.hidden = true;
-    tallySpan.hidden = true;
+    document.documentElement.classList.remove("quiz-available");
     return;
   }
+  document.documentElement.classList.add("quiz-available");
   if (!hostClient) {
     try {
       await initializeHost();
@@ -576,23 +578,12 @@ async function toggleInterface() {
       return;
     }
   }
-  if (quizState === "ERROR") {
-    connectionIndicator.hidden = false;
-    qrButton.hidden = true;
-    stateButton.hidden = true;
-    tallySpan.hidden = true;
-    hostClient.tryReconnect();
-  }
   if (quizState === "ACTIVE") {
     hostClient.requestEvaluation();
     setQuizState("AWAITING_EVALUATION");
   }
   qrLabel.innerText = slide.quizzes[0].question;
   tallySpan.innerText = "";
-  connectionIndicator.hidden = false;
-  qrButton.hidden = false;
-  stateButton.hidden = false;
-  tallySpan.hidden = true;
 }
 
 async function onPresenterMode(active) {

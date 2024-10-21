@@ -440,6 +440,14 @@ span.fa-span.error {
   color: var(--color-error);
 }
 
+span.fa-span.ok {
+  color: var(--color-success);
+}
+
 span.fa-span[hidden] {
   display: none !important;
+}
+
+:root:not(.quiz-available) .quiz-only {
+  display: none;
 }
