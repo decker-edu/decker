@@ -2,23 +2,18 @@
 
 ## decker 0.14.0
 
-- Charts can now use the deck palette or a palette defined in YAML.
-  For this to work, disable the color plugin of Chart.js:
-  ``` yaml
-  chart:
-    defaults:
-      plugins:
-        colors:
-          enabled: false
-  ```
-  A custom palette can be defined in YAML. Colors have to be specified in HEX.
+- Palette for charts can now be defined in YAML in `chart.colors`. 
+  For this to work, disable the color plugin of Chart.js.
   ``` yaml
   chart:
     colors:
       - #ff0000
       - #00ff00
       - #00ff00
-      ...
+    defaults:
+      plugins:
+        colors:
+          enabled: false
   ```
 
 - The colorscheme ("light" or "dark") can now be enforced in YAML. Simply add
