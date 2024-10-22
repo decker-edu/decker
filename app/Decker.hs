@@ -40,7 +40,6 @@ import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
-import Text.Decker.Server.Video (copyVttForVideos)
 
 main :: IO ()
 main = do
@@ -320,7 +319,6 @@ deckerRules = do
       let src = makeRelative publicDir out
       putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
-      copyVttForVideos src out
   --
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
@@ -357,6 +355,7 @@ deckerRules = do
       meta <- getGlobalMeta
       context <- actionContext
       let flags = context ^. extra
+      -- TODO handle pages as well
       if LectureFlag `elem` flags
         then do
           case lookupMeta "publish.rsync.destination" meta of
@@ -372,8 +371,8 @@ deckerRules = do
               let decks = calcTargets deckSuffix deckHTMLSuffix selected
               let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
               let pages' = calcTargets pageSuffix pageHTMLSuffix selected
-              need (Map.keys decks <> Map.keys pages')
-              -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
+              -- need (Map.keys decks <> Map.keys pages')
+              need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
               createPublicManifest
               let src = publicDir ++ "/"
               publishWithRsync src destination meta
