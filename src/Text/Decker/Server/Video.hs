@@ -18,7 +18,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
 import Web.Scotty.Trans
-import Development.Shake (need, Action, alwaysRerun)
 
 -- | Returns a JSON list of all existing WEBM video fragments for a recording
 listRecordings :: AppActionM ()
@@ -210,10 +209,3 @@ getHighestSequenceNumber :: [FilePath] -> Int
 getHighestSequenceNumber files =
   let numbers = map getSequenceNumber files
    in foldl' max 0 (catMaybes numbers)
-
--- | Checks if vtt files exist for a video and initiates the copy to public.
-copyVttForVideos :: FilePath -> p -> Action ()
-copyVttForVideos src out = do
-    let base = dropExtension src
-    vtts <- liftIO $ glob (base <> "-*.vtt")
-    need $ map (publicDir </>) vtts

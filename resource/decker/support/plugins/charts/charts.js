@@ -25,20 +25,11 @@ let pixelRatio = 1;
 // NOTE: colors have to be specified in hex form as #RRGGBB
 // NOTE: color plugin of Chart.js has to be turned off explicitly for
 //       this to work: chart.defaults.plugins.colors.enabled=false
-const style = getComputedStyle(document.documentElement);
-const palette = Decker.meta?.chart?.colors || [
-  style.getPropertyValue("--accent0"),
-  style.getPropertyValue("--accent3"),
-  style.getPropertyValue("--accent6"),
-  style.getPropertyValue("--accent2"),
-  style.getPropertyValue("--accent5"),
-  style.getPropertyValue("--accent1"),
-  style.getPropertyValue("--accent4"),
-];
-function getBorderColor(i) {
+const palette = Decker.meta?.chart?.colors;
+function getColorRGB(i) {
   return palette[i % palette.length];
 }
-function getBackgroundColor(i) {
+function getColorRGBA(i) {
   return palette[i % palette.length] + "99";
 }
 
@@ -162,30 +153,40 @@ function createChart(canvas, CSV, comments) {
 
   // MARIO: assign colors (unless they are specified already
   // and only if color-plugin of Chart.js is disabled
-  if (Chart.defaults.plugins?.colors?.enabled == false) {
+  if (palette) {
     const type = canvas.getAttribute("data-chart");
     for (let i = 0; i < chartData.datasets.length; i++) {
       let dataset = chartData.datasets[i];
       if (!dataset.backgroundColor && !dataset.borderColor) {
         switch (type) {
-          // one color per dataset
+          // one color per dataset (solid border, solid fill)
           case "bar":
-          case "horizontalBar":
-          case "line":
-          case "radar": {
-            dataset.borderColor = getBorderColor(i);
-            dataset.backgroundColor = getBackgroundColor(i);
+          case "horizontalBar": {
+            dataset.borderColor = getColorRGB(i);
+            dataset.backgroundColor = getColorRGB(i);
             break;
           }
 
-          // many colors per dataset (only background, don't use border)
+          // one color per dataset (solid border, semi-transparent fill)
+          case "line":
+          case "radar": {
+            dataset.borderColor = getColorRGB(i);
+            dataset.backgroundColor = getColorRGBA(i);
+            break;
+          }
+
+          // many colors per dataset (no border, solid fill)
           case "doughnut":
-          case "pie":
+          case "pie": {
+            let j = i;
+            dataset.backgroundColor = dataset.data.map(() => getColorRGB(j++));
+            break;
+          }
+
+          // many colors per dataset (no border, semi-transparent fill)
           case "polarArea": {
             let j = i;
-            dataset.backgroundColor = dataset.data.map(() =>
-              getBackgroundColor(j++)
-            );
+            dataset.backgroundColor = dataset.data.map(() => getColorRGBA(j++));
             break;
           }
         }
