@@ -121,13 +121,13 @@ em {
 }
 
 .reveal h3 {
-  font-weight: bold;
-  font-size: var(--font-size-small);
+  font-weight: 400;
+  font-size: var(--font-size-medium);
 }
 
 .reveal h4 {
   font-weight: 100;
-  font-size: var(--font-size-x-small);
+  font-size: var(--font-size-medium);
 }
 
 .reveal
@@ -181,6 +181,7 @@ section#title-slide  .date {
 section#title-slide  .author {
    margin: 0;
    font-weight: strong;
+   font-weight: normal;
    font-size: var(--font-size-large);
    color: var(--shade6)
 }
