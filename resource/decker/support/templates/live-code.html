@@ -1,13 +1,9 @@
 <div class="media">
   <figure class="live-code">
-    <div
-      class="live-code"
-      $if(height)$
-      style="max-height&colon;$height$&semi;"
-      $endif$
-    >
+    <div class="live-code">
       <pre
         class="live-code language-$language/lowercase$ $classes$"
+	  style="$if(width)$max-width&colon;$width$&semi;$endif$$if(height)$max-height&colon;$height$&semi;$endif$"
       ><code id="$rnd-id$" class="live-code language-$language/lowercase$">$codeEsc$</code></pre>
       <div class="label">$if(sandbox)$$sandbox$$else$$language$$endif$</div>
     </div>
