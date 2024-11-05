@@ -1,29 +1,38 @@
-<section id="$idprefix$title-slide" class="title-page">
-  $if(template.title-page.banner)$
-  <div class="title-page banner">
-    <img src="$template.title-page.banner$" />
-  </div>
-  $endif$
-  <div class="valign-block">
-    <div class="valigned">
-      <h1 class="title">$title$</h1>
+<section id="title-slide">
+   <div class="decker">
+     <div class="alignment">
+       <header>
+         $if(template.title-page.banner)$
+            <div class="banner">
+            <img src="$template.title-page.banner$" />
+            </div>
+         $endif$
+      </header>
+
+      $if(title)$
+      <div class="title">$title$</div>
+      $endif$
       $if(subtitle)$
       <div class="subtitle">$subtitle$</div>
-      $endif$ $if(template.title-page.teaser-img)$
-      <div class="teaser-img">
-        <img src="$template.title-page.teaser-img$" />
+      $endif$ 
+      $if(template.title-page.teaser-img.file)$
+      <div class="teaser-img" style="margin-top: $template.title-page.teaser-img.margin$; margin-bottom: $template.title-page.teaser-img.margin$;">
+        <img src="$template.title-page.teaser-img.file$" height="$template.title-page.teaser-img.height$" />
       </div>
       $else$
-      <div style="height: 100px"></div>
-      $endif$ $if(date)$
+      $endif$ 
+      $if(date)$
       <div class="date">$date$</div>
-      $endif$ $if(author)$
+      $endif$ 
+      $if(author)$
       <div class="author">$author$</div>
-      $endif$ $if(template.title-page.affiliation-logo)$
+      $endif$ 
+      $if(template.title-page.affiliation-logo.file)$
       <div class="affiliation-logo">
-        <img src="$template.title-page.affiliation-logo$" />
+        <img src="$template.title-page.affiliation-logo.file$" height="$template.title-page.affiliation-logo.height$"/>
       </div>
-      $endif$ $if(affiliation)$
+      $endif$ 
+      $if(affiliation)$
       <div class="affiliation">$affiliation$</div>
       $endif$
     </div>

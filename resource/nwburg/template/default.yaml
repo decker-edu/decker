@@ -81,13 +81,18 @@ css-variables:
   block-border-padding: 1rem
   block-border-style: solid 
   vertical-margin: 0.7rem
-  title-page-affiliation-logo-height: 70px
-  title-page-vertical-margin: 1em
+ 
   
-
 # Use CSS augmentation without changes to the default template
 template:
-  css: support/css/wburg.css
+  #css: support/css/wburg.css
+  title-page:
+     vertical-margin: 1em
+     teaser-img:
+        height: 200px # Thats the default if not superset in individual slides
+        margin: 50px  # applied to top and bottom 
+     affiliation-logo:
+        height: 70px
 
 math:
   scale: 0.9

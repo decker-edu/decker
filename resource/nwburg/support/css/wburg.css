@@ -98,18 +98,30 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
   font-size: var(--font-size-xx-large);
 }
 
-.reveal h1 {
-  font-weight: normal;
-  font-size: var(--font-size-xx-large);
+strong,
+b {
+  font-weight: 700;
 }
 
-.reveal h2 {
-  font-weight: 500;
+em {
+  font-style: italic;
+}
+
+
+
+.reveal h1 {
+  font-weight: strong;
+  font-size: var(--font-size-x-large);
+  margin-bottom: 1.05rem;
+}
+
+.reveal h2 summary {
+  font-weight: strong;
   font-size: var(--font-size-large);
 }
 
 .reveal h3 {
-  font-weight: 300;
+  font-weight: 400;
   font-size: var(--font-size-medium);
 }
 
@@ -132,76 +144,72 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
   line-height: 1.3;
 } */
 
-strong,
-b {
-  font-weight: bold;
-}
-
-em {
-  font-style: italic;
-}
 
 /* From _titlepage.scss */
 
 /* Title page */
-.title-page .banner img {
-  margin: 0px 0px 0px 0px;
-  width: 100%;
+section#title-slide .banner img {
+  margin: 0px;
+  height: 97px;
   object-fit: contain;
 }
 
-.title-page .title {
-  margin: 20px 0px;
-  width: 100%;
-  display: block;
-  padding: 0px;
-  font-size: var(--font-size-x-large);
-  text-align: center;
+section#title-slide .title {
+   margin-top: 2rem;
+   margin-bottom: 0.5rem;
+   font-weight: strong;
+   font-size: var(--font-size-x-large);
+   color: var(--shade7)
 }
 
-.title-page .subtitle {
-  width: 100%;
-  margin: 0px;
-  padding: 0px;
-  font-weight: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
+section#title-slide .subtitle {
+   margin-top: 0;
+   margin-bottom: 0;
+   font-weight: strong;
+   font-size: var(--font-size-large);
+   color: var(--shade7)
 }
 
-.title-page .teaser-img {
-  margin: var(--title-page-vertical-margin) auto;
-  height: 10%;
-  width: auto;
-  display: block;
+section#title-slide  .date {
+   margin-top: 0;
+   margin-bottom: 0;
+   font-weight: strong;
+   font-size: var(--font-size-large);
+   color: var(--shade6)
 }
 
-.title-page .teaser-img img {
-  margin: var(--title-page-vertical-margin) auto;
+section#title-slide  .author {
+   margin: 0;
+   font-weight: strong;
+   font-weight: normal;
+   font-size: var(--font-size-large);
+   color: var(--shade6)
+}
+
+section#title-slide .affiliation {
+   margin: 0;
+   font-weight: normal;
+   font-size: var(--font-size-large);
+   color: var(--shade6)
+   }
+
+ 
+section#title-slide .teaser-img {
+  margin: var(--title-page-vertical-margin) 0;
+}
+
+section#title-slide .teaser-img img {
   /* Center horizontally */
   display: block;
+  margin: 0 auto;
   /* Make the image as max 250px high retaining aspect ratio */
   object-fit: contain;
-  max-height: 250px;
+  max-height: 500px;
   width: auto;
 }
 
-.title-page .date {
-  margin: 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
 
-.title-page .author {
-  margin: 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.title-page .affiliation-logo img {
+section#title-slide .affiliation-logo img {
   margin: calc(0.1 * var(--title-page-vertical-margin)) 0;
   height: var(--title-page-affiliation-logo-height);
   width: auto;
@@ -211,26 +219,18 @@ em {
   margin-right: auto;
 }
 
-.title-page .affiliation {
-  margin: 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
+
+section#title-slide .valign-block {
   text-align: center;
 }
 
-.title-page .valign-block {
-  text-align: center;
-}
-
-.title-page .valign-block:before {
+section#title-slide .valign-block:before {
   content: "";
   display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
-
-.title-page .valigned {
+section#title-slide .valigned {
   display: inline-block;
   vertical-align: middle;
 }
@@ -259,8 +259,11 @@ div.block {
 /* Stretch the block header margin to the block border so that highlighting
 works. */
 div.block h2 {
+  font-weight: strong;
+  font-size: var(--font-size-large);
   padding: 0;
-  margin: 0 0 calc(1 * var(--vertical-margin)) 0;
+  /* margin: 0 0 calc(1 * var(--vertical-margin)) 0; */
+  margin: 0;
 }
 
 /* The latter is already from styles.css for h1, p, div, ul, ol, table.
@@ -296,7 +299,7 @@ div.block.observation {
 }
 
 div.block.example {
-  border-color: var(--accent5);
+  border-color: var(--accent2);
 }
 
 div.block.def,
@@ -386,10 +389,6 @@ div.flush-bottom-right {
   text-align: right;
 }
 
-/* The footnotes are too big   */
-.footnotes {
-  font-size: var(--font-size-small);
-}
 
 /*********************************************
  * Quizzes with task list syntax
@@ -420,7 +419,7 @@ div.flush-bottom-right {
   position: relative;
   text-align: left;
   margin: 0.5em;
-  border: 3px solid var(--blueish);
+  border: 3px solid var(--shade6);
   border-radius: 0.5em;
   padding: 0.5em;
   font-weight: normal;
@@ -474,9 +473,11 @@ div.flush-bottom-right {
 
 
 .reveal .quiz ul li.show-answer {
-  background-color: var(--quiz-background-color);
+  /* background-color: var(--quiz-background-color);  */
   border-color: var(--quiz-border-color);
 }
+
+
 
 .reveal .quiz ul li.show-answer::after {
   font-style: normal;
@@ -486,9 +487,9 @@ div.flush-bottom-right {
   font-family: "Font Awesome 5 Free";
   content: var(--quiz-icon);
   position: absolute;
-  font-size: 15px;
-  right: 0.2em;
-  bottom: -0.1em;
+  font-size: var(--font-size-xx-large);
+  right: var(--quiz-icon-offset);
+  bottom: -0.4em;
   padding: 0.1em;
   color: var(--quiz-border-color);
 }
@@ -499,17 +500,19 @@ div.flush-bottom-right {
 }
 
 /* once clicked, wrong answers are red */
-.reveal .quiz ul li.wrong .wrong {
-  --quiz-background-color: var(--red-background-color);
-  --quiz-border-color: var(--red-border-color);
+.reveal .quiz ul li.wrong {
+  --quiz-background-color: var(--accent0);
+  --quiz-border-color: var(--accent0);
   --quiz-icon: "\f00d";
+  --quiz-icon-offset: -1em;
 }
 
 /* once clicked, correct answers are green */
 .reveal .quiz ul li.right {
-  --quiz-background-color: var(--green-background-color);
-  --quiz-border-color: var(--green-border-color);
+  --quiz-background-color: var(--accent5);
+  --quiz-border-color: var(--accent5);
   --quiz-icon: "\f00c";
+  --quiz-icon-offset: -1.2em;
 }
 
 
@@ -937,3 +940,83 @@ code span.wa {
   color: var(--accent0);
   font-weight: bold;
 } /* Warning */
+
+
+/*********************************************
+ * other looks for the codapi 
+ *********************************************/
+codapi-toolbar button,
+codapi-output a[href="#close"]{
+    color: var(--shade2);
+    background-color: var(--shade6);
+    font-size: var(--font-size-small);
+    border-radius: 10px;
+}
+
+/* make the run button and the close link look and behave the same  */
+codapi-toolbar button:hover,
+codapi-output a[href="#close"]:hover {
+   color: var(--shade6);
+   background-color: var(--shade2);
+   font-size: var(--font-size-small);
+   border-radius: 10px;
+}   
+
+div.live-code div.label {
+   font-weight: var(--header-font-weight);
+   color: var(--accent1);
+   font-size: var(--font-size-small);
+   padding: 0.2em 0.4em;
+   margin: 0;
+   top: 0.4em;
+   right: 4.5em;
+   position: absolute;
+   pointer-events: none;
+ }
+
+
+/*********************************************
+ * uniform citations after blocks or pages  
+ *********************************************/
+
+ .cite-block {
+   font-size: var(--font-size-small);
+   text-align: right;
+ }
+
+ .cite-page {
+   font-size: var(--font-size-small);
+   text-align: right;
+   position: absolute;
+   bottom: 0;
+   /* this one leaves some space to the page UI, 
+   should be adopted to some sort of overall
+   page layout definition which includes headers,
+   footers and non printing areas (for GUI elements)*/
+   right: 5vw; 
+ }
+
+ /* The footnotes should be at the same position as page citations and have the 
+ same font size   */
+.footnotes {
+   font-size: var(--font-size-small);
+   text-align: left;
+   position: absolute;
+   bottom: 0;
+ }
+ 
+  /* The popup boxes specified and changed so
+  that they adhere to our style boxes */
+
+div.block[popup]{
+   padding: 10px 10px 10px 10px; 
+   border-radius: 5px;
+   border-width: 0px 0px 0px 20px;
+   background-color: var(--shade1);
+   color: var(--shade7);
+}  
+
+ 
+ ul li ul li {
+   list-style-type: disc; /* Different bullet for nested list */
+ }

@@ -108,8 +108,8 @@ function readConfig() {
   ];
 
   // reveal setting wrt slide dimension
-  pageHeight = Reveal.getConfig().height;
-  pageWidth = Reveal.getConfig().width;
+  pageHeight = parseInt(Reveal.getConfig().height);
+  pageWidth = parseInt(Reveal.getConfig().width);
 
   // reveal elements
   slides = document.querySelector(".reveal .slides");

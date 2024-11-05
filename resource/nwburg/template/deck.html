@@ -115,11 +115,13 @@ $highlighting-css$
   </style>
 $endif$
 
+<!-- This is the template's very own css  -->
+<link rel="stylesheet" href="$decker-support-dir$/css/wburg.css">
+
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
 
-<link rel="stylesheet" href="$decker-support-dir$/css/wburg.css">
 
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */

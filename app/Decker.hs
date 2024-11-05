@@ -30,17 +30,16 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
-import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
-import Text.Decker.Server.Video (copyVttForVideos)
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
+import Text.Decker.Project.ActionContext (actionContext, extra, Flags (LectureFlag))
 
 main :: IO ()
 main = do
@@ -181,6 +180,8 @@ deckerRules = do
       need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
@@ -321,7 +322,6 @@ deckerRules = do
       let src = makeRelative publicDir out
       putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
-      copyVttForVideos src out
   --
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
@@ -358,9 +358,10 @@ deckerRules = do
       meta <- getGlobalMeta
       context <- actionContext
       let flags = context ^. extra
+      -- TODO handle pages as well
       if LectureFlag `elem` flags
         then do
-          case lookupMeta "publish.rsync.destination" meta of
+        case lookupMeta "publish.rsync.destination" meta of
             Just (destination :: String) -> do
               -- clean out the public dir
               liftIO $ runClean False
@@ -380,18 +381,18 @@ deckerRules = do
               publishWithRsync src destination meta
             _ -> putError "publish.rsync.destination not configured"
         else do
-          need ["support"]
-          getDeps >>= needTargets' [decks, pages]
-          createPublicManifest
-          let src = publicDir ++ "/"
-          case lookupMeta "publish.rsync.destination" meta of
-            Just destination -> publishWithRsync src destination meta
-            _ -> do
-              let host = lookupMetaOrFail "rsync-destination.host" meta
-              let path = lookupMetaOrFail "rsync-destination.path" meta
-              let dst = intercalate ":" [host, path]
-              ssh [host, "mkdir -p", path] Nothing
-              rsync [src, dst] Nothing
+            need ["support"]
+            getDeps >>= needTargets' [decks, pages]
+            createPublicManifest
+            let src = publicDir ++ "/"
+            case lookupMeta "publish.rsync.destination" meta of
+                Just destination -> publishWithRsync src destination meta
+                _ -> do
+                    let host = lookupMetaOrFail "rsync-destination.host" meta
+                    let path = lookupMetaOrFail "rsync-destination.path" meta
+                    let dst = intercalate ":" [host, path]
+                    ssh [host, "mkdir -p", path] Nothing
+                    rsync [src, dst] Nothing
 
 createPublicManifest :: Action ()
 createPublicManifest = do
