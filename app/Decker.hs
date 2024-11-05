@@ -15,10 +15,10 @@ import Data.String ()
 import Data.Time.Format.ISO8601
 import Development.Shake
 import GHC.IO.Encoding
-import System.FilePath.Glob qualified as Glob
 import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
+import System.FilePath.Glob qualified as Glob
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Question
@@ -35,12 +35,12 @@ import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
+import Text.Decker.Server.Video (copyVttForVideos)
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
-import Text.Decker.Server.Video (copyVttForVideos)
 
 main :: IO ()
 main = do
@@ -60,20 +60,19 @@ needPublicIfExists source = do
   exists <- doesFileExist source
   let target = publicDir </> source
   if exists
-    then need [target]
-    else removeFileA target
+    then do
+      need [target]
+    else do
+      removeFileA target
+
+--   putError $ "IF: " <> source <> ": " <> show exists <> " target: " <> target
+--   putWarn $ "IF: " <> source <> ": " <> show exists <> " target: " <> target
 
 needPublicIfExistsGlob :: FilePath -> Action ()
 needPublicIfExistsGlob source = do
   files <- liftIO $ Glob.glob source
-  forM_ files needIf
-  where
-    needIf source = do
-      exists <- doesFileExist source
-      let target = publicDir </> source
-      if exists
-        then need [target]
-        else removeFileA target
+  -- putWarn $ "GLOB: " <> source <> " " <> show files
+  forM_ files needPublicIfExists
 
 -- | Remove a file, but don't worry if it fails
 removeFileA :: FilePath -> Action ()
@@ -188,6 +187,8 @@ deckerRules = do
       needPublicIfExists $ replaceSuffix "-deck.md" "-times.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-transcript.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
       needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
     publicDir <//> "*-deck.pdf" %> \out -> do
@@ -370,7 +371,7 @@ deckerRules = do
               let pageSrcs = Map.elems $ deps ^. pages
               selected <- buildIndex (publicDir </> "index.json") meta (deckSrcs <> pageSrcs)
               let decks = calcTargets deckSuffix deckHTMLSuffix selected
-              let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
+              -- let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
               let pages' = calcTargets pageSuffix pageHTMLSuffix selected
               need (Map.keys decks <> Map.keys pages')
               -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
@@ -408,12 +409,12 @@ createPublicManifest = do
       return (stripPublic file, (formatShow iso8601Format modTime, size))
     stripPublic path = fromMaybe path $ stripPrefix "public/" path
 
-needIfExists :: String -> String -> String -> Action ()
-needIfExists suffix also out = do
-  let annotDst = replaceSuffix suffix also out
-  annotSrc <- calcSource' annotDst
-  exists <- liftIO $ Dir.doesFileExist annotSrc
-  when exists $ need [annotDst]
+-- needIfExists :: String -> String -> String -> Action ()
+-- needIfExists suffix also out = do
+--   let annotDst = replaceSuffix suffix also out
+--   annotSrc <- calcSource' annotDst
+--   exists <- liftIO $ Dir.doesFileExist annotSrc
+--   when exists $ need [annotDst]
 
 publishWithRsync :: String -> String -> Meta -> Action ()
 publishWithRsync source destination meta = do
