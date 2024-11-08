@@ -6,6 +6,7 @@ Adaptations inspired by https://github.com/Q42/floating-focus-a11y (MIT license)
 let flyingFocus = null;
 let target = null;
 let keyDownTime = 0;
+let lastMouseEvent = 0;
 
 export function handleKeyboard(event) {
   const key = event.key;
@@ -19,6 +20,7 @@ export function handleKeyboard(event) {
     key === "Enter"
   ) {
     keyDownTime = Date.now();
+    lastMouseEvent = 0;
   }
 }
 
@@ -40,6 +42,11 @@ export function recenter() {
 }
 
 export function showFlyingFocus(event) {
+  /* Hack to allow focus when entering document, but requires additional hacking to prevent mouse events to create the focus */
+  if (event.target === document && !recentMouseEvent()) {
+    keyDownTime = Date.now();
+    return;
+  }
   // if focus was changed, but not due to keyboard navigation: hide it.
   if (!isJustPressed()) {
     hideFlyingFocus();
@@ -85,6 +92,10 @@ function positionFlyingFocus() {
   requestAnimationFrame(() => {
     Object.assign(flyingFocus.style, rectOf(target));
   });
+}
+
+function recentMouseEvent() {
+  return Date.now() - lastMouseEvent < 42;
 }
 
 function isJustPressed() {
@@ -133,6 +144,12 @@ function borderOf(elem) {
   };
 }
 
+function reset(event) {
+  lastMouseEvent = Date.now();
+  keyDownTime = 0;
+  hideFlyingFocus(event);
+}
+
 // setup event listeners
 export function setupFlyingFocus() {
   // use uniq element name to decrease the chances of a conflict with website styles
@@ -140,6 +157,7 @@ export function setupFlyingFocus() {
   flyingFocus.id = "flying-focus";
   document.body.appendChild(flyingFocus);
 
+  window.addEventListener("mousedown", reset);
   window.addEventListener("keydown", handleKeyboard, false);
   document.addEventListener("focus", showFlyingFocus, true);
   document.addEventListener("blur", hideFlyingFocus, true);
