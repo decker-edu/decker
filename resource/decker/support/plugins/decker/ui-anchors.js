@@ -92,7 +92,7 @@ class UIAnchorsPlugin {
 
     let reveal_element = reveal.getViewportElement();
     reveal_element.prepend(this.top_left_anchor);
-    reveal_element.appendChild(this.top_right_anchor);
+    reveal_element.prepend(this.top_right_anchor);
     reveal_element.appendChild(this.bottom_left_anchor);
     reveal_element.appendChild(this.bottom_center_anchor);
     reveal_element.appendChild(this.bottom_right_anchor);
