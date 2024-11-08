@@ -9,6 +9,7 @@
 
 // import functionality for light/dark mode
 import * as colorScheme from "../../js/color-scheme.js";
+import * as flyingFocus from "../../flyingFocus/flying-focus.js";
 
 class SlideMenu {
   reveal;
@@ -104,14 +105,22 @@ class SlideMenu {
   openMenu(event) {
     if (this.inert) {
       this.inert = false;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(true);
+      }
       this.reveal.getRevealElement().inert = true;
       this.disableKeybinds();
       this.glass.classList.add("show");
+      this.menu.container.scroll(0, 0);
       if (event && event.detail === 0) {
         this.menu.close_button.focus();
-        //        setTimeout(() => this.menu.close_button.focus(), 500);
+        setTimeout(() => {
+          flyingFocus.recenter();
+        }, 500);
       }
-      document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
+      // scrolling the current slide into view now conflicts with the entire menu being scrollable
+      // document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
     }
   }
 
@@ -122,6 +131,10 @@ class SlideMenu {
   closeMenu(event) {
     if (!this.inert) {
       this.inert = true;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(false);
+      }
       this.reveal.getRevealElement().inert = false;
       this.enableKeybinds();
       this.glass.classList.remove("show");

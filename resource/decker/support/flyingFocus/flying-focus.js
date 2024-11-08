@@ -22,6 +22,23 @@ export function handleKeyboard(event) {
   }
 }
 
+/**
+ * Moves flying focus to the position of the current target, callable if you know you just moved the focused
+ * element somewhere else on the screen.
+ */
+export function recenter() {
+  if (target) {
+    // set new position of flying focus
+    Object.assign(flyingFocus.style, rectOf(target));
+
+    // adjust style of flying focus to target element
+    Object.assign(flyingFocus.style, borderOf(target));
+
+    // show flying focus
+    flyingFocus.classList.add("flying-focus_visible");
+  }
+}
+
 export function showFlyingFocus(event) {
   // if focus was changed, but not due to keyboard navigation: hide it.
   if (!isJustPressed()) {
@@ -56,7 +73,10 @@ export function showFlyingFocus(event) {
 
 export function hideFlyingFocus(event) {
   if (!event) return; // happens when navigating from navigation bar into slide
-  if (flyingFocus) flyingFocus.classList.remove("flying-focus_visible");
+  if (flyingFocus) {
+    target = null;
+    flyingFocus.classList.remove("flying-focus_visible");
+  }
 }
 
 // adjust position/size of flying focus
