@@ -118,12 +118,21 @@ ul.slide-list > li:hover > a {
   margin: 0;
 }
 
+ul.slide-list > li:focus-within {
+  background: var(--hover-color);
+}
+
+ul.slide-list > li > a:focus {
+  color: white;
+  margin: 0;
+}
+
 ul.slide-list > li::marker {
   content: none;
 }
 
-ul.slide-list > li.current-slide,
-ul.slide-list > li.separator-slide.current-slide {
+ul.slide-list > li:has(a[aria-current]),
+ul.slide-list > li.separator-slide:has(a[aria-current]) {
   background: var(--hover-color);
 }
 

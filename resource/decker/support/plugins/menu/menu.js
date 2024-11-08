@@ -23,6 +23,7 @@ class SlideMenu {
     this.open_button = undefined;
     this.menu = {
       container: undefined,
+      header: undefined,
       home_button: undefined,
       search_button: undefined,
       print_button: undefined,
@@ -199,9 +200,9 @@ class SlideMenu {
   ignoreTraversalKeys(event) {
     if (
       !this.inert &&
-      (event.code == "Escape" ||
-        event.code == "ArrowUp" ||
-        event.code == "ArrowDown")
+      (event.key == "Escape" ||
+        event.key == "ArrowUp" ||
+        event.key == "ArrowDown")
     ) {
       event.preventDefault();
     }
@@ -212,26 +213,22 @@ class SlideMenu {
    * @param {*} event The Keyboard Event
    */
   traverseList(event) {
+    function changeFocus(to) {
+      const currentItem = document.activeElement;
+      currentItem.setAttribute("tabindex", "-1");
+      to.setAttribute("tabindex", "0");
+      to.focus();
+    }
     if (!this.inert) {
       switch (event.code) {
         case "Escape":
-          //              event.stopImmediatePropagation();
           this.closeMenu();
           break;
         case "ArrowUp":
           if (
             document.activeElement &&
-            document.activeElement.classList.contains("tile")
-          ) {
-            event.preventDefault();
-            //                event.stopImmediatePropagation();
-            this.menu.slide_list.lastElementChild.firstElementChild.focus();
-          }
-          if (
-            document.activeElement &&
             document.activeElement.classList.contains("slide-link")
           ) {
-            //                  event.stopImmediatePropagation();
             let parent = document.activeElement.parentElement;
             let target = undefined;
             if (parent.previousElementSibling) {
@@ -241,23 +238,14 @@ class SlideMenu {
               // wrap around
               target = parent.parentElement.lastElementChild.firstElementChild;
             }
-            setTimeout(() => target.focus());
+            changeFocus(target);
           }
           break;
         case "ArrowDown":
           if (
             document.activeElement &&
-            document.activeElement.classList.contains("tile")
-          ) {
-            event.preventDefault();
-            //            event.stopImmediatePropagation();
-            this.menu.slide_list.firstElementChild.firstElementChild.focus();
-          }
-          if (
-            document.activeElement &&
             document.activeElement.classList.contains("slide-link")
           ) {
-            //              event.stopImmediatePropagation();
             let parent = document.activeElement.parentElement;
             let target = undefined;
             if (parent.nextElementSibling) {
@@ -267,7 +255,7 @@ class SlideMenu {
               // wrap around
               target = parent.parentElement.firstElementChild.firstElementChild;
             }
-            setTimeout(() => target.focus());
+            changeFocus(target);
           }
           break;
         default:
@@ -293,9 +281,9 @@ class SlideMenu {
    */
   initializeSlideList() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="slide-list-wrapper" tabindex="-1">
-      <ul class="slide-list" tabindex="-1"></ul>
-    </div>`;
+    template.innerHTML = String.raw`<nav class="slide-list-wrapper">
+      <ul class="slide-list"></ul>
+    </nav>`;
     let wrapper = template.content.firstElementChild;
     let list = wrapper.firstElementChild;
     let slides = document.querySelectorAll(".slides > section");
@@ -450,6 +438,8 @@ class SlideMenu {
     let container = template.content.firstElementChild;
     this.menu.container = container;
 
+    this.menu.header = container.querySelector(".menu-header");
+
     /* Getting references */
     this.menu.home_button = container.querySelector(
       "#decker-menu-index-button"
@@ -497,7 +487,7 @@ class SlideMenu {
       this.menu.color_button.disabled = true;
 
     this.initializeSlideList();
-    this.menu.container.addEventListener("keydown", (event) =>
+    this.menu.slide_list.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
 
@@ -547,7 +537,8 @@ class SlideMenu {
   clearCurrentSlideMark() {
     let listItems = this.menu.slide_list.childNodes;
     for (let item of listItems) {
-      item.classList.remove("current-slide");
+      item.querySelector("a").removeAttribute("aria-current");
+      item.querySelector("a").setAttribute("tabindex", "-1");
     }
   }
 
@@ -558,7 +549,8 @@ class SlideMenu {
     let id = slide.id;
     let item = this.getListItemByID(id);
     if (item) {
-      item.classList.add("current-slide");
+      item.querySelector("a").setAttribute("aria-current", "page");
+      item.querySelector("a").setAttribute("tabindex", "0");
     }
   }
 
