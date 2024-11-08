@@ -276,6 +276,18 @@ div.grid-layout {
   display: none;
 }
 
+.reveal h1:has(.sr-only:only-child) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* section headers */
 .reveal section.section h1,
 .reveal section h1:only-child {

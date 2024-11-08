@@ -27,11 +27,16 @@ function addScreenReaderSlideNumbers() {
 
 function addScreenReaderSlideNumber(slide, h, v) {
   const header = slide.querySelector("h1");
-  if (header && header.textContent.trim() !== "") {
+  if (header) {
     const innerHTML = header.innerHTML;
-    const replacementHTML = `<span class="sr-only">${localization.slide} ${
+    let replacementHTML = `<span class="sr-only">${localization.slide} ${
       h + 1
-    }${v ? "." + v : ""}, </span>${innerHTML}`;
+    }${v ? "." + v : ""}`;
+    if (header.textContent.trim() !== "") {
+      replacementHTML = replacementHTML + `,</span><span>${innerHTML}</span>`;
+    } else {
+      replacementHTML = replacementHTML + "</span>";
+    }
     header.innerHTML = replacementHTML;
   }
 }
