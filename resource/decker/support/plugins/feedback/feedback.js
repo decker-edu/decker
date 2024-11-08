@@ -704,7 +704,7 @@ class Feedback {
       <div class="feedback-list"></div>
       <div class="feedback-question-input">
         <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
-        <button class="feedback-send-button" aria-label="${this.localization.send_comment}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment}</span></button>
+        <button class="feedback-send-button" aria-label="${this.localization.send_comment_label}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment_html}</span></button>
       </div>
       <div class="feedback-footer">
         <div class="feedback-login">
@@ -848,7 +848,8 @@ let plugin = () => {
           "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
         answer_placeholder:
           "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
-        send_comment: "Send<br>Message",
+        send_comment_label: "Send Message",
+        send_comment_html: "Send<br>Message",
         interface: {
           open_label: "Open Feedback Menu",
           menu_title: "Questions",
@@ -883,7 +884,8 @@ let plugin = () => {
             "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
           answer_placeholder:
             "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
-          send_comment: "Nachricht<br>senden",
+          send_comment_label: "Nachricht senden",
+          send_comment_html: "Nachricht<br>senden",
           interface: {
             open_label: "Fragemenu öffnen",
             menu_title: "Fragen",
