@@ -8,15 +8,15 @@ let target = null;
 let keyDownTime = 0;
 
 export function handleKeyboard(event) {
-  const code = event.code;
+  const key = event.key;
   // Show animation only upon Tab or Arrow keys press.
   if (
-    code === "Tab" ||
-    code === "ArrowLeft" ||
-    code === "ArrayRight" ||
-    code === "ArrowDown" ||
-    code === "ArrowUp" ||
-    code === "Enter"
+    key === "Tab" ||
+    key === "ArrowLeft" ||
+    key === "ArrayRight" ||
+    key === "ArrowDown" ||
+    key === "ArrowUp" ||
+    key === "Enter"
   ) {
     keyDownTime = Date.now();
   }
