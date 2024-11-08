@@ -284,8 +284,16 @@ class Feedback {
    * @param {*} answered
    */
   updateBadges(value, answered) {
+    let label;
+    if (value > 0) {
+      label = `${this.localization.interface.open_label}, ${value} ${this.localization.interface.question_string}`;
+    } else {
+      label = this.localization.interface.open_label;
+    }
     this.button_badge.textContent = value;
     this.button_badge.setAttribute("data-count", value);
+    this.open_button.title = label;
+    this.open_button.ariaLabel = label;
     this.menu.badge.textContent = value;
     this.menu.badge.setAttribute("data-count", value);
     if (answered) {
@@ -850,6 +858,7 @@ let plugin = () => {
           username_placeholder: "Username",
           password_placeholder: "Password",
           send_credentials: "Send credentials",
+          question_string: "Question(s)",
         },
         question_container: {
           upvote: "Up-vote question",
@@ -884,6 +893,7 @@ let plugin = () => {
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
             send_credentials: "Anmeldedaten absenden",
+            question_string: "Frage(n)",
           },
           question_container: {
             upvote: "Frage unterstützen",
