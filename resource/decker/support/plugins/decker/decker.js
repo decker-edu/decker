@@ -197,6 +197,14 @@ function prepareFullscreenIframes() {
 
     // add fullscreen button
     var btn = document.createElement("button");
+    btn.title =
+      navigator.language === "de"
+        ? "Einbettung in Vollbild anzeigen"
+        : "Display embedding in fullscreen";
+    btn.ariaLabel =
+      navigator.language === "de"
+        ? "Einbettung in Vollbild anzeigen"
+        : "Display embedding in fullscreen";
     btn.classList.add("fs-button");
     btn.innerHTML =
       '<i class="fas fa-expand-arrows-alt" style="font-size:20px"></i>';
@@ -207,17 +215,45 @@ function prepareFullscreenIframes() {
     btn.onclick = function () {
       var doc = window.document;
       var container = this.parentElement;
-      if (doc.fullscreenElement == container) doc.exitFullscreen();
-      else container.requestFullscreen();
+      if (doc.fullscreenElement == container) {
+        doc.exitFullscreen();
+        btn.title =
+          navigator.language === "de"
+            ? "Einbettung in Vollbild anzeigen"
+            : "Display embedding in fullscreen";
+        btn.ariaLabel =
+          navigator.language === "de"
+            ? "Einbettung in Vollbild anzeigen"
+            : "Display embedding in fullscreen";
+      } else {
+        container.requestFullscreen();
+      }
     };
 
     // handle fullscreen change: adjust button icon
     div.onfullscreenchange = function () {
       var doc = window.document;
-      this.btn.innerHTML =
-        doc.fullscreenElement == this
-          ? '<i class="fas fa-compress-arrows-alt"></i>'
-          : '<i class="fas fa-expand-arrows-alt"></i>';
+      if (doc.fullscreenElement === this) {
+        this.btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
+        btn.title =
+          navigator.language === "de"
+            ? "Vollbild verlassen"
+            : "Leave fullscreen";
+        btn.ariaLabel =
+          navigator.language === "de"
+            ? "Vollbild verlassen"
+            : "Leave fullscreen";
+      } else {
+        this.btn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+        btn.title =
+          navigator.language === "de"
+            ? "Einbettung in Vollbild anzeigen"
+            : "Display embedding in fullscreen";
+        btn.ariaLabel =
+          navigator.language === "de"
+            ? "Einbettung in Vollbild anzeigen"
+            : "Display embedding in fullscreen";
+      }
     };
   }
 }
