@@ -924,35 +924,44 @@ function createPlayerGUI() {
       doubleClick: false,
       // our keyboard shortcuts
       hotkeys: function (event) {
-        event.stopPropagation();
-        event.preventDefault();
-
         switch (event.code) {
           // space or k: play/pause
           case "Space":
           case "KeyK":
+            event.stopPropagation();
+            event.preventDefault();
             if (this.paused()) this.play();
             else this.pause();
             break;
 
           // left/right: skip slides
           case "ArrowLeft":
+            event.stopPropagation();
+            event.preventDefault();
             prev();
             break;
           case "ArrowRight":
+            event.stopPropagation();
+            event.preventDefault();
             next();
             break;
 
           // up/down: increase/decrease volume by 5%
           case "ArrowUp":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.min(1.0, this.volume() + 0.05));
             break;
           case "ArrowDown":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.max(0.0, this.volume() - 0.05));
             break;
 
           // c: toggle captions
           case "KeyC":
+            event.stopPropagation();
+            event.preventDefault();
             let tracks = player.textTracks();
             for (let i = 0; i < tracks.length; i++) {
               if (tracks[i].kind === "captions") {
@@ -964,19 +973,27 @@ function createPlayerGUI() {
 
           // j/l: jump backward/forward by 10sec
           case "KeyJ":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() - 10);
             break;
           case "KeyL":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() + 10);
             break;
 
           // m: mute/unmute
           case "KeyM":
+            event.stopPropagation();
+            event.preventDefault();
             this.muted(!this.muted());
             break;
 
           // esc: stop and hide video
           case "Escape":
+            event.stopPropagation();
+            event.preventDefault();
             uiState.transition("stop");
             break;
         }
