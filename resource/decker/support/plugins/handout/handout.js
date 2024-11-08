@@ -107,12 +107,14 @@ function activateHandoutMode() {
   previousRevealConfiguration.slideNumber = currentConfiguration.slideNumber;
   previousRevealConfiguration.disableLayout =
     currentConfiguration.disableLayout;
+  previousRevealConfiguration.keyboard = currentConfiguration.keyboard;
   Reveal.configure({
     controls: false,
     progress: false,
     fragments: false,
     slideNumber: false,
     disableLayout: true,
+    keyboard: false,
   });
 
   // add class to root to enable special rules from handout.css
@@ -484,20 +486,14 @@ function onWindowKeydown(event) {
   );
 
   switch (event.key) {
-    case "ArrowUp":
-      handoutContainer.scrollBy(0, -slideHeight);
-      break;
-
-    case "ArrowDown":
-      handoutContainer.scrollBy(0, slideHeight);
-      break;
-
     case "PageUp":
-      handoutContainer.scrollBy(0, -pageHeight);
+      document.body.scrollBy({ left: 0, top: -pageHeight, behavior: "smooth" });
+      event.preventDefault();
       break;
 
     case "PageDown":
-      handoutContainer.scrollBy(0, pageHeight);
+      document.body.scrollBy({ left: 0, top: pageHeight, behavior: "smooth" });
+      event.preventDefault();
       break;
 
     case "Home":
