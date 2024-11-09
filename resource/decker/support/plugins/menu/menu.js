@@ -498,11 +498,33 @@ class SlideMenu {
       this.glass.id = "glass";
       document.body.appendChild(this.glass);
     }
+
+    /* Allow exit with ESC */
+
     this.menu.container.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         this.closeMenu(event);
       }
     });
+
+    /* Trap Keyboard Focus */
+
+    this.menu.slide_list.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() => this.menu.close_button.focus());
+      }
+    });
+
+    this.menu.close_button.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() =>
+          this.menu.slide_list.querySelector("[aria-current]").focus()
+        );
+      }
+    });
+
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
