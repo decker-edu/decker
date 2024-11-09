@@ -465,7 +465,7 @@ class Feedback {
     let isAnswered = comment.answers && comment.answers.length > 0;
 
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="feedback-item">
+    template.innerHTML = String.raw`<li class="feedback-item">
   <div class="feedback-content">
     ${comment.html}
   </div>
@@ -510,7 +510,7 @@ class Feedback {
       }
     </div>
   </div>
-</div>`;
+</li>`;
     let question = template.content.firstElementChild;
     if (!isAuthor) {
       let voteButton = question.querySelector(".vote");
@@ -721,7 +721,7 @@ class Feedback {
         <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}" role="menuitem">
         </button>
       </div>
-      <div class="feedback-list"></div>
+      <ul class="feedback-list"></ul>
       <div class="feedback-question-input">
         <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
         <button class="feedback-send-button" aria-label="${this.localization.send_comment_label}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment_html}</span></button>
