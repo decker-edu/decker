@@ -217,14 +217,6 @@ function prepareFullscreenIframes() {
       var container = this.parentElement;
       if (doc.fullscreenElement == container) {
         doc.exitFullscreen();
-        btn.title =
-          navigator.language === "de"
-            ? "Einbettung in Vollbild anzeigen"
-            : "Display embedding in fullscreen";
-        btn.ariaLabel =
-          navigator.language === "de"
-            ? "Einbettung in Vollbild anzeigen"
-            : "Display embedding in fullscreen";
       } else {
         container.requestFullscreen();
       }
@@ -235,21 +227,21 @@ function prepareFullscreenIframes() {
       var doc = window.document;
       if (doc.fullscreenElement === this) {
         this.btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
-        btn.title =
+        this.btn.title =
           navigator.language === "de"
             ? "Vollbild verlassen"
             : "Leave fullscreen";
-        btn.ariaLabel =
+        this.btn.ariaLabel =
           navigator.language === "de"
             ? "Vollbild verlassen"
             : "Leave fullscreen";
       } else {
         this.btn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
-        btn.title =
+        this.btn.title =
           navigator.language === "de"
             ? "Einbettung in Vollbild anzeigen"
             : "Display embedding in fullscreen";
-        btn.ariaLabel =
+        this.btn.ariaLabel =
           navigator.language === "de"
             ? "Einbettung in Vollbild anzeigen"
             : "Display embedding in fullscreen";
