@@ -1,22 +1,36 @@
 ---
 title: Custom Quizzes
 quizzer:
-#  backend: 'https://decker.cs.tu-dortmund.de/t'
-#  socket: 'wss://decker.cs.tu-dortmund.de/t/api/websocket'
-#  backend: 'http://localhost:3000'
-#  socket: 'ws://localhost:3000/api/websocket'
+  url: 'https://quiz.jetzt'
 ---
 
 # Choice Quiz
 
 ::: {.quizzer .choice}
 
-Question
+What is **not** a mathematical operation?
 
-- [ ] Wrong
-  - Because I say so!
-- [x] Correct
-  - Because it is right!
+- [ ] `(x + y)`
+  - Wrong: This is simple addition.
+- [ ] `(x - y)`
+  - Wrong: This is simple subtraction.
+- [x] `(x ^ y)`
+  - Correct: This is bitwise XOR, a logical operation.
+- [ ] `(x * y)`
+  - Wrong: This is simple multiplication
+
+:::
+
+# Choic Quiz as a poll
+
+::: {.quizzer .choice}
+
+What is your semester?
+
+- [ ] `1 - 2`
+- [ ] `3 - 4`
+- [ ] `5 - 6`
+- [ ] `>6`
 
 :::
 
@@ -24,14 +38,74 @@ Question
 
 ::: {.quizzer .selection}
 
-[#1] Test [#2]
+Complete this sentence:
+
+The [#1] brown fox [#2] the lazy dog.
+
+- [ ] fuzzy
+  - No.
+- [x] quick
+  - Yes.
+- [ ] energetic
+  - No.
+
+---
+
+- [ ] targets
+  - Ominous, but no.
+- [ ] flattens
+  - Foxes are not that heavy.
+- [x] jumps over
+  - Correct.
+
+:::
+
+# Select Quiz
+
+::: {.quizzer .selection}
+
+What attribute does the fox have and what does he do to the dog?
+
+- [ ] fuzzy
+  - No.
+- [x] quick
+  - Yes.
+- [ ] energetic
+  - No.
+
+---
+
+- [ ] targets
+  - Ominous, but no.
+- [ ] flattens
+  - Foxes are not that heavy.
+- [x] jumps over
+  - Correct.
+
+:::
+
+# Freetext Quiz
+
+::: {.quizzer .freetext}
+
+What did you eat for dinner today?
+
+- [x] Mensa
+
+:::
+
+# Graceful Fail: Not enough Answers
+
+::: {.quizzer .freetext}
+
+Test [#1] Two [#2] Three [#3]
 
 - [ ] One
   - Reason One
 - [x] Two
-  - Correct
+  - Reason Two
 - [ ] Three
-  - Reson Three
+  - Reason Three
 
 ---
 
@@ -40,29 +114,11 @@ Question
 - [ ] Where
   - There
 - [x] When
-  - Correct
+  - Then
 
 :::
 
-# Freetext Quiz
-
-::: {.quizzer .freetext}
-
-[#1] Test [#2]
-
-- [ ] One
-- [x] Two
-- [ ] Three
-
----
-
-- [ ] What
-- [ ] Where
-- [x] When
-
-:::
-
-# Graceful Fail
+# Graceful Fail: Multiple Quizzes
 
 ::: {.quizzer .freetext}
 
@@ -73,7 +129,9 @@ Question
 - [ ] Three
   - Reson Three
 
----
+:::
+
+::: {.quizzer .selection}
 
 - [ ] What
   - That
@@ -88,14 +146,15 @@ Question
 
 ::: {.quizzer .assignment}
 
-This is a testquestion.
+Assign these people to their correct group.
 
-- [ ] A
-  - Move A here
-- [ ] E = m * c hoch 2
-  - Einstein
-- [ ] C
-  - Move C here
-- [ ] Fake
+- [ ] Hauer
+  - WiMis
+- [ ] Mario
+  - Profs
+- [ ] Harmeling
+  - Profs
+- [ ] Second
+  - Studis
 
 :::
