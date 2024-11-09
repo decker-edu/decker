@@ -116,9 +116,11 @@ function rectOf(elem) {
   const scrollTop = window.scrollY || window.pageYOffset;
 
   let zoom = 1;
+  /* In no browser was this anything else but 1, except recently in chrome.
+     All expected behavior was according to this being 1, so we keep it that way.
   for (let e = elem; e; e = e.parentElement) {
     zoom *= e.style.zoom || 1;
-  }
+  } */
 
   const top = zoom * rect.top + scrollTop - clientTop;
   const left = zoom * rect.left + scrollLeft - clientLeft;
