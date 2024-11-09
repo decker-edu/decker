@@ -23,6 +23,21 @@
   visibility: hidden;
 }
 
+.open-button .icon-combo {
+  display: grid;
+  grid-template-areas: "icons";
+  justify-items: center;
+}
+
+.open-button .icon-combo span {
+  grid-area: icons;
+}
+
+.open-button .icon-combo .fa-question {
+  font-size: 80%;
+  color: var(--background-color);
+}
+
 .open-button .feedback-badge {
   font-size: 50%;
 }
@@ -117,7 +132,7 @@ div.feedback-header button {
 
 div.feedback-footer button {
   flex: 0 1;
-  color: var(--feedback-footer-text-color)
+  color: var(--feedback-footer-text-color);
 }
 
 div.feedback-menu button {
@@ -264,7 +279,7 @@ div.feedback-question-input button.feedback-send-button:hover {
   color: var(--foreground-color);
 }
 
-div.feedback-question-input button.feedback-send-button span.fas{
+div.feedback-question-input button.feedback-send-button span.fas {
   padding: 0.25rem;
 }
 

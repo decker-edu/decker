@@ -10,8 +10,9 @@ let lastMouseEvent = 0;
 
 export function handleKeyboard(event) {
   const key = event.key;
-  // Show animation only upon Tab or Arrow keys press.
+  // Show animation only upon Tab, ESC or Arrow Key press.
   if (
+    key === "Escape" ||
     key === "Tab" ||
     key === "ArrowLeft" ||
     key === "ArrayRight" ||

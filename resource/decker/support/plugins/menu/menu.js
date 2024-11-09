@@ -140,7 +140,7 @@ class SlideMenu {
       this.enableKeybinds();
       this.glass.classList.remove("show");
       if (event && event.detail === 0) {
-        this.open_button.focus();
+        setTimeout(() => this.open_button.focus());
       }
     }
   }
@@ -498,6 +498,11 @@ class SlideMenu {
       this.glass.id = "glass";
       document.body.appendChild(this.glass);
     }
+    this.menu.container.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        this.closeMenu(event);
+      }
+    });
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 

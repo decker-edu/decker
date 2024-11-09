@@ -6,7 +6,7 @@
  * @author Sebastian Hauer (rewrite)
  */
 import client from "./api-client.js";
-
+import * as flyingFocus from "../../flyingFocus/flying-focus.js";
 class Feedback {
   timeout = 500;
 
@@ -124,7 +124,7 @@ class Feedback {
   /**
    * Opens the menu and updates its content. Also focuses the first button in the menu.
    */
-  openMenu() {
+  openMenu(event) {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
       // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
@@ -132,22 +132,38 @@ class Feedback {
       if (!document.documentElement.classList.contains("handout"))
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(true);
+      }
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
       this.menu.close_button.focus();
+      if (event && event.detail === 0) {
+        this.menu.close_button.focus();
+        setTimeout(() => {
+          flyingFocus.recenter();
+        }, 500);
+      }
     }
   }
 
   /**
    * Closes the menu and focuses the button that opened it.
    */
-  closeMenu() {
+  closeMenu(event) {
     if (!this.menu.container.inert) {
       this.menu.container.inert = true;
       this.reveal.getRevealElement().inert = false;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(false);
+      }
       localStorage.removeItem("feedback-state");
       this.glass.classList.remove("show", "blur");
-      this.open_button.focus();
+      if (event && event.detail === 0) {
+        setTimeout(() => this.open_button.focus());
+      }
     }
   }
 
@@ -690,7 +706,11 @@ class Feedback {
    */
   createInterface() {
     let text = this.localization.interface;
-    let button_string = String.raw`<button class="fa-button open-button fas fa-question-circle" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
+    let button_string = String.raw`<button class="fa-button open-button" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
+      <div class="icon-combo">
+        <span class="fas fa-message"></span>
+        <span class="fas fa-question"></span>
+      </div>
       <div class="feedback-badge"></div>
     </button>`;
 
@@ -758,7 +778,7 @@ class Feedback {
 
     /* Add EventListeners */
 
-    this.open_button.addEventListener("click", () => this.openMenu());
+    this.open_button.addEventListener("click", (event) => this.openMenu(event));
 
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
@@ -767,7 +787,7 @@ class Feedback {
       this.sendComment()
     );
     this.menu.close_button.addEventListener("click", (event) =>
-      this.closeMenu()
+      this.closeMenu(event)
     );
     this.menu.feedback_login_button.addEventListener("click", (event) =>
       this.toggleLoginArea()
@@ -801,6 +821,50 @@ class Feedback {
     this.reveal.addEventListener("slidechanged", () =>
       this.requestSlideMenuUpdate()
     );
+
+    /* Trap focus inside Menu */
+
+    this.menu.feedback_login_button.addEventListener("keydown", (event) => {
+      if (
+        this.menu.feedback_credentials.container.classList.contains("visible")
+      ) {
+        return;
+      } else if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() => this.menu.close_button.focus());
+      }
+    });
+
+    this.menu.feedback_credentials.login_button.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Tab" && !event.shiftKey) {
+          event.preventDefault();
+          setTimeout(() => this.menu.close_button.focus());
+        }
+      }
+    );
+
+    this.menu.close_button.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        if (
+          this.menu.feedback_credentials.container.classList.contains("visible")
+        ) {
+          setTimeout(() => this.menu.feedback_credentials.login_button.focus());
+        } else {
+          setTimeout(() => this.menu.feedback_login_button.focus());
+        }
+      }
+    });
+
+    /* Exit with ESC */
+
+    this.menu.container.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        this.closeMenu(event);
+      }
+    });
 
     /* Place Button in UI */
 
