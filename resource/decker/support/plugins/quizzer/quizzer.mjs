@@ -13,10 +13,13 @@ let quizState = "UNINITIALIZED";
 
 let connectionIndicator = document.createElement("span");
 
-let qrButton = document.createElement("button");
+//let qrButton = document.createElement("button");
 let qrDialog = document.createElement("dialog");
-let qrLabel = document.createElement("p");
 let qrCanvas = document.createElement("canvas");
+let qrLeftCanvas = document.createElement("canvas");
+let qrRightCanvas = document.createElement("canvas");
+let qrLeftLabel = document.createElement("span");
+let qrRightLabel = document.createElement("span");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
 
@@ -32,13 +35,29 @@ function containsClick(rect, x, y) {
   );
 }
 
+/* Implementation of the Fisher-Yates Shuffle */
+function shuffle(array) {
+  let current = array.length;
+  while (current != 0) {
+    let random = Math.floor(Math.random() * current);
+    current--;
+    [array[current], array[random]] = [array[random], array[current]];
+  }
+}
+
 function setQuizState(state) {
+  document.documentElement.classList.remove("active-poll");
   quizState = state;
   tallySpan.hidden = true;
   delete pollButton.dataset["state"];
   if (state === "ACTIVE") {
+    document.documentElement.classList.add("active-poll");
     tallySpan.hidden = false;
     pollButton.dataset["state"] = "ACTIVE";
+    pollButton.title = l10n.evaluate;
+    pollButton.ariaLabel = l10n.evaluate;
+  } else if (state === "ERROR") {
+    connectionIndicator.classList.add("show");
   }
 }
 
@@ -52,6 +71,7 @@ function setQuizState(state) {
  * A choice contains the following attributes:
  * - votes: The amount of items one is allowed to pick at once (only relevant for choice quizzes)
  * - options: An array of objects each representing an answer.
+ * - categories: Assignment quizzes also get this field to represent the categories.
  *
  * An answer contains the following attributes:
  * - label: The text representing the answer.
@@ -61,7 +81,7 @@ function setQuizState(state) {
  *
  * An example quiz would be represented as:
  * ```
- * ::: quizzer [type]
+ * ::: {.quizzer .[type]}
  *
  * Question
  *
@@ -81,8 +101,22 @@ function setQuizState(state) {
 function parseQuizzes(reveal) {
   const slides = reveal.getSlides();
   for (const slide of slides) {
-    slide.quizzes = [];
     const quizzers = slide.querySelectorAll(":scope .quizzer");
+    if (quizzers.length > 1) {
+      const layout = slide.querySelector(":scope .layout");
+      layout.innerHTML = `<div class="area">
+  <div class="box block">
+    <div class="quizzer">
+      <div class="quizzer-container error">
+        <div class="question-container">
+         <p>${l10n.errorMultipleQuizzes}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+      continue;
+    }
     /* For each quizzer div in the slide ... */
     for (const quizzer of quizzers) {
       const quizObject = {
@@ -99,13 +133,7 @@ function parseQuizzes(reveal) {
       } else {
         quizObject.type = "choice";
       }
-      const question = quizzer.querySelector(":scope p");
-      /* ... interpret the first <p> as the quiz's question ... */
-      if (question) {
-        question.classList.add("question");
-        quizObject.question = question.innerHTML;
-      }
-      /* ... and each list in the container as a choice object ... */
+      /* ... interpret each list in the container as a choice object ... */
       const lists = quizzer.querySelectorAll(":scope > ul");
       for (const list of lists) {
         const choiceObject = {
@@ -120,17 +148,21 @@ function parseQuizzes(reveal) {
             reason: undefined,
             correct: false,
           };
+          /* ... with an optional reason written as a nested list item ... */
           const reason = item.querySelector(":scope ul li");
           if (reason) {
             answerObject.reason = reason.innerHTML;
             reason.parentElement.remove();
           }
+          /* ... cleanup ... */
           const checkbox = item.querySelector(":scope input[type='checkbox']");
           if (checkbox) {
             checkbox.remove();
           }
+          /* ... add the the html of the item as its label (without the checkbox) ... */
           const label = item.innerHTML;
           answerObject.label = label;
+          /* ... and set its correctness based on if it was cheked or not. */
           answerObject.correct = item.classList.contains("task-yes");
           choiceObject.options.push(answerObject);
         }
@@ -141,10 +173,68 @@ function parseQuizzes(reveal) {
           choiceObject.votes = choiceObject.options.length;
         }
         quizObject.choices.push(choiceObject);
+        /* ... remove the list from the DOM ... */
+        list.remove();
       }
+      /* ... remove hr elements from DOM because they are only used as list separators ... */
+      const hrules = quizzer.querySelectorAll("hr");
+      for (const hrule of hrules) {
+        hrule.remove();
+      }
+      /* ... clean up empty spans and ps ... */
+      while (
+        quizzer.querySelectorAll(":is(span,p)[display]:empty").length > 0
+      ) {
+        const empties = quizzer.querySelectorAll(":is(p,span):empty");
+        for (const empty of empties) {
+          empty.remove();
+        }
+      }
+      /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
+      quizObject.question = quizzer.innerHTML.trim();
       /* Clean up the entire quizzer container */
       while (quizzer.lastElementChild) {
         quizzer.lastElementChild.remove();
+      }
+      /* Refine the quiz object for network */
+      for (const choice of quizObject.choices) {
+        if (quizObject.type === "assignment") {
+          let categories = [];
+          for (const option of choice.options) {
+            if (option.reason) {
+              categories.push(option.reason);
+            }
+          }
+          const uniqueCategories = categories.filter(
+            (value, index, array) => array.indexOf(value) === index
+          );
+          const categoryObjects = [];
+          let number = 1;
+          for (const category of uniqueCategories) {
+            const object = {
+              label: category,
+              number: number++,
+            };
+            categoryObjects.push(object);
+          }
+          choice.categories = categoryObjects;
+          shuffle(choice.options);
+        }
+        let letter = "A";
+        for (const option of choice.options) {
+          if (choice.categories) {
+            const category = choice.categories.find(
+              (category) => category.label === option.reason
+            );
+            if (category) {
+              option.reason = category.number;
+            } else {
+              option.reason = 0;
+            }
+          }
+          option.letter = letter;
+          letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+        }
       }
       /* Archive the quiz object into the quizzer container */
       quizzer.quiz = quizObject;
@@ -159,7 +249,7 @@ function parseQuizzes(reveal) {
         Renderer.renderAssignmentQuiz(quizzer, quizObject);
       }
       /* Also archive the quiz object in the slide as to easily identify slides that have quizzes */
-      slide.quizzes.push(quizObject);
+      slide.quiz = quizObject;
     }
   }
 }
@@ -168,16 +258,17 @@ function createHostInterface(reveal) {
   if (!reveal.hasPlugin("ui-anchors")) {
     return;
   }
-  qrLabel.classList.add("qr-label");
 
   const anchors = reveal.getPlugin("ui-anchors");
-  qrButton.classList.add(
+  /*  qrButton.classList.add(
     "fas",
     "fa-qrcode",
     "fa-button",
     "presenter-only",
+    "during-poll",
     "quiz-only"
   );
+  qrButton.id = "quizzer-qr-button"; */
   pollButton.classList.add(
     "quizzer-button",
     "fas",
@@ -188,6 +279,12 @@ function createHostInterface(reveal) {
   );
   qrDialog.classList.add("quizzer-dialog");
   qrDialog.addEventListener("click", (event) => {
+    if (
+      event.target &&
+      event.target.classList.contains("close-dialog-button")
+    ) {
+      return;
+    }
     if (!containsClick(qrDialog.getBoundingClientRect(), event.x, event.y)) {
       qrDialog.close();
     }
@@ -196,27 +293,52 @@ function createHostInterface(reveal) {
   qrClose.addEventListener("click", (event) => {
     qrDialog.close();
   });
-  qrDialog.appendChild(qrLabel);
   qrDialog.appendChild(qrCanvas);
   qrDialog.appendChild(qrLink);
   qrDialog.appendChild(qrClose);
+  qrLeftLabel.className = "hint";
+  qrRightLabel.className = "hint";
+  const leftWrapper = document.createElement("div");
+  leftWrapper.className = "side-canvas-wrapper left-canvas";
+  leftWrapper.appendChild(qrLeftCanvas);
+  leftWrapper.appendChild(qrLeftLabel);
+  const rightWrapper = document.createElement("div");
+  rightWrapper.className = "side-canvas-wrapper right-canvas";
+  rightWrapper.appendChild(qrRightCanvas);
+  rightWrapper.appendChild(qrRightLabel);
+  const sideCanvasWrappers = [leftWrapper, rightWrapper];
+  for (const wrapper of sideCanvasWrappers) {
+    wrapper.addEventListener("click", () => {
+      qrDialog.showModal();
+    });
+    document.body.appendChild(wrapper);
+  }
   document.body.appendChild(qrDialog);
 
+  /* No more QR Code Button in the Interface
   qrButton.addEventListener("click", async (event) => {
-    if (!hostClient) {
-      await initializeHost();
+    const root = document.documentElement;
+    if (root.classList.contains("hide-qr")) {
+      root.classList.add("hide-qr");
+      qrButton.title = l10n.hideQRCode;
+      qrButton.ariaLabel = l10n.hideQRCode;
+    } else {
+      root.classList.remove("hide-qr");
+      qrButton.title = l10n.showQRCode;
+      qrButton.ariaLabel = l10n.showQRCode;
     }
-    qrDialog.showModal();
   });
-  qrButton.title = l10n.showQRCode;
+  qrButton.title = l10n.hideQRCode;
+  qrButton.ariaLabel = l10n.hideQRCode;
+  */
   pollButton.addEventListener("click", async (event) => {
     if (!hostClient) {
       await initializeHost();
     }
     if (quizState === "READY") {
       const slide = Reveal.getCurrentSlide();
-      if (slide.quizzes[0]) {
-        currentQuiz = slide.quizzes[0];
+      if (slide.quiz) {
+        currentQuiz = slide.quiz;
         hostClient.sendQuiz(currentQuiz);
       }
       setQuizState("ACTIVE");
@@ -239,18 +361,30 @@ function createHostInterface(reveal) {
   connectionIndicator.title = "No Data";
 
   anchors.placeButton(connectionIndicator, "BOTTOM_CENTER");
-  anchors.placeButton(qrButton, "BOTTOM_CENTER");
+  //anchors.placeButton(qrButton, "BOTTOM_CENTER");
   anchors.placeButton(pollButton, "BOTTOM_CENTER");
   anchors.placeButton(tallySpan, "BOTTOM_CENTER");
 }
 
 function onError(error) {
   document.documentElement.classList.remove("quiz-available");
-  console.error(
-    "The Quizzer Websocket has encountered an error. The connection is to be considered closed."
-  );
+  connectionIndicator.classList.remove("ok");
   connectionIndicator.classList.add("error");
-  connectionIndicator.title = localization().unableToConnect;
+  if (error === "disconnect") {
+    connectionIndicator.title = l10n.disconnected;
+    connectionIndicator.ariaLabel = l10n.disconnected;
+  } else if (error === "connect") {
+    connectionIndicator.title = l10n.unableToConnect;
+    connectionIndicator.ariaLabel = l10n.unableToConnect;
+  } else if (error === "get session") {
+    connectionIndicator.title = l10n.unableToGetSession;
+    connectionIndicator.ariaLabel = l10n.unableToGetSession;
+  } else if (error === "not host") {
+    // wait
+  } else if (error === "unknown") {
+    connectionIndicator.title = l10n.unknownError;
+    connectionIndicator.ariaLabel = l10n.unknownError;
+  }
   setQuizState("ERROR");
 }
 
@@ -258,16 +392,15 @@ function onStateUpdate(connections, done) {
   tallySpan.innerText = `${done} / ${connections}`;
 }
 
-function onConnectionUpdate(error, ms) {
+function onConnectionUpdate(ms) {
   connectionIndicator.classList.remove("error");
-  connectionIndicator.classList.remove("ok");
-  if (error && error === "CLOSED") {
-    connectionIndicator.title = "Connection Closed";
-    connectionIndicator.classList.add("error");
-    return;
-  }
   connectionIndicator.classList.add("ok");
+  const slide = Reveal.getCurrentSlide();
+  if (slide.quiz) {
+    document.documentElement.classList.add("quiz-available");
+  }
   connectionIndicator.title = `${l10n.latency}${ms}ms`;
+  connectionIndicator.ariaLabel = `${l10n.latency}${ms}ms`;
 }
 
 async function initializeHost() {
@@ -277,18 +410,35 @@ async function initializeHost() {
     hostClient.on("state", onStateUpdate);
     hostClient.on("connection", onConnectionUpdate);
     hostClient.on("ready", (session, secret) => {
-      const backend = Decker.meta.quizzer.backend || "http://localhost:3000";
+      let backend = Decker.meta.quizzer?.url || "http://localhost:3000/";
+      if (backend.slice(-1) !== "/") {
+        backend = backend + "/";
+      }
       bwip.toCanvas(qrCanvas, {
         bcid: "qrcode",
-        text: `${backend}/client?session=${session}`,
-        scale: 16,
+        text: `${backend}${session}`,
+        scale: 12,
         includetext: true,
         textxalign: "center",
         eclevel: "L",
       });
-      qrLink.innerText = `${backend}/client?session=${session}`;
+      const sideCanvases = [qrLeftCanvas, qrRightCanvas];
+      for (const sideCanvas of sideCanvases) {
+        bwip.toCanvas(sideCanvas, {
+          bcid: "qrcode",
+          text: `${backend}${session}`,
+          scale: 4,
+          includetext: true,
+          textxalign: "center",
+          eclevel: "L",
+        });
+        sideCanvas.dataset["session"] = session;
+      }
+      qrLeftLabel.innerText = session;
+      qrRightLabel.innerText = session;
+      qrLink.innerText = `${backend}${session}`;
       qrLink.target = "_blank";
-      qrLink.href = `${backend}/client?session=${session}`;
+      qrLink.href = `${backend}${session}`;
       setQuizState("READY");
       resolve();
     });
@@ -297,6 +447,10 @@ async function initializeHost() {
       quizState = "READY";
       tallySpan.hidden = true;
       const resultContainer = document.createElement("div");
+      const closeHint = document.createElement("p");
+      closeHint.innerText = l10n.clickToClose;
+      closeHint.className = "close-hint";
+      resultContainer.appendChild(closeHint);
       resultContainer.classList.add("quizzer-results-container");
       if (currentQuiz && currentQuiz.type === "choice") {
         const entryContainer = document.createElement("div");
@@ -306,9 +460,9 @@ async function initializeHost() {
         resultContainer.appendChild(entryContainer);
         const labels = [];
         const values = [];
-        for (const label in result) {
-          labels.push(label);
-          values.push(result[label]);
+        for (const entry of result.items) {
+          labels.push(entry.letter);
+          values.push(entry.chosen);
         }
         const total = values.reduce((a, b) => a + b, 0);
         const data = values.map((a) => a / total);
@@ -343,7 +497,7 @@ async function initializeHost() {
         });
       }
       if (currentQuiz && currentQuiz.type === "freetext") {
-        for (const words of result) {
+        for (const words of result.items) {
           const entryContainer = document.createElement("div");
           entryContainer.classList.add("quizzer-result");
           const canvas = document.createElement("canvas");
@@ -353,9 +507,9 @@ async function initializeHost() {
           resultContainer.appendChild(entryContainer);
           const array = [];
           let most = 0;
-          for (const entry in words) {
-            array.push([entry, words[entry]]);
-            most = most < words[entry] ? words[entry] : most;
+          for (const entry of words) {
+            array.push([entry.text, entry.count]);
+            most = most < entry.count ? entry.count : most;
           }
           WordCloud(canvas, {
             list: array,
@@ -367,7 +521,7 @@ async function initializeHost() {
         }
       }
       if (currentQuiz && currentQuiz.type === "selection") {
-        for (const selection of result) {
+        for (const selection of result.items) {
           const entryContainer = document.createElement("div");
           entryContainer.classList.add("quizzer-result");
           const canvas = document.createElement("canvas");
@@ -375,9 +529,9 @@ async function initializeHost() {
           resultContainer.appendChild(entryContainer);
           const labels = [];
           const values = [];
-          for (const item in selection) {
-            labels.push(item);
-            values.push(selection[item]);
+          for (const item of selection) {
+            labels.push(item.text);
+            values.push(item.count);
           }
           const total = values.reduce((a, b) => a + b, 0);
           const data = values.map((a) => a / total);
@@ -413,6 +567,13 @@ async function initializeHost() {
         }
       }
       if (currentQuiz && currentQuiz.type === "assignment") {
+        let total = 0;
+        for (const assignment of result.assignments) {
+          total += assignment.count;
+        }
+        if (total === 0) {
+          return;
+        }
         const margin = { top: 16, right: 16, left: 16, bottom: 16 };
         const width = 800 - margin.left - margin.right;
         const height = 600 - margin.top - margin.bottom;
@@ -422,7 +583,6 @@ async function initializeHost() {
           .nodeWidth(24)
           .nodePadding(32)
           .size([width, height]);
-        console.log(generator);
         const svg = d3
           .select(resultContainer)
           .append("svg")
@@ -436,37 +596,44 @@ async function initializeHost() {
           );
         const nodes = [];
         const links = [];
-        const choices = currentQuiz.choices;
-        const options = choices[0].options;
-        const reasons = [];
+        const choice = currentQuiz.choices[0];
+        const options = choice.options;
+        const categories = choice.categories;
         for (const option of options) {
-          reasons.push(option.reason);
-          const node = { node: nodes.length, name: option.label };
-          nodes.push(node);
-        }
-        const uniques = reasons.filter(
-          (value, index, array) => array.indexOf(value) === index
-        );
-        for (const category of uniques) {
           const node = {
             node: nodes.length,
-            name: category ? category : "None",
+            name: option.letter,
           };
           nodes.push(node);
         }
-        for (const entry of result) {
-          for (const assignment in entry.assignments) {
-            const value = entry.assignments[assignment];
-            const source = nodes.find((node) => node.name === assignment).node;
-            const target = nodes.find((node) => node.name === entry.label).node;
-            const link = { source: source, target: target, value: value };
+        for (const category of categories) {
+          const node = {
+            node: nodes.length,
+            name: String(category.number),
+          };
+          nodes.push(node);
+        }
+        nodes.push({ node: nodes.length, name: "0" });
+        for (const assignment of result.assignments) {
+          const source = nodes.find((node) => node.name === assignment.letter);
+          const target = nodes.find(
+            (node) => node.name === String(assignment.number)
+          );
+          if (source && target) {
+            const link = {
+              source: source.node,
+              target: target.node,
+              value: assignment.count,
+            };
             links.push(link);
           }
         }
+        console.log(nodes);
+        console.log(links);
         const json = { nodes: nodes, links: links };
         generator.extent([
           [16, 16],
-          [width - 16, height - 16],
+          [width - 32, height - 32],
         ]);
         var graph = generator(json);
         var link = svg
@@ -524,7 +691,13 @@ async function initializeHost() {
         // add in the title for the nodes
         node
           .append("text")
-          .attr("x", (d) => d.x1 + 16)
+          .attr("x", (d) => {
+            if (!isNaN(parseInt(d.name))) {
+              return d.x1 + 32;
+            } else {
+              return d.x1 - 32;
+            }
+          })
           .attr("y", function (d) {
             return d.y0 + (d.y1 - d.y0) / 2;
           })
@@ -532,7 +705,7 @@ async function initializeHost() {
           .attr("text-anchor", "end")
           .attr("transform", null)
           .text(function (d) {
-            return d.name;
+            return d.name === "0" ? "N/A" : d.name;
           })
           .filter(function (d) {
             return d.x < width / 2;
@@ -542,7 +715,6 @@ async function initializeHost() {
 
         // the function for moving the nodes
         function dragmove(d) {
-          console.log(d);
           d3.select(this).attr(
             "transform",
             "translate(" +
@@ -566,7 +738,7 @@ async function initializeHost() {
 async function toggleInterface() {
   const slide = Reveal.getCurrentSlide();
   /* No Quizzes on current slide: Hide interface. */
-  if (!slide.quizzes[0]) {
+  if (!slide.quiz) {
     document.documentElement.classList.remove("quiz-available");
     return;
   }
@@ -582,7 +754,6 @@ async function toggleInterface() {
     hostClient.requestEvaluation();
     setQuizState("AWAITING_EVALUATION");
   }
-  qrLabel.innerText = slide.quizzes[0].question;
   tallySpan.innerText = "";
 }
 

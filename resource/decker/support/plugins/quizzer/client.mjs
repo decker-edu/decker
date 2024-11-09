@@ -12,14 +12,25 @@ export default class Client {
   pinger = undefined;
 
   constructor() {
-    const socketURL = Decker.meta.quizzer.socket || "ws://localhost:3000";
-    const iosocket = io(socketURL);
+    let socketURL = Decker.meta.quizzer?.url || "ws://localhost:3000/";
+    if (socketURL.slice(-1) !== "/") {
+      socketURL = socketURL + "/";
+    }
+    const surl = new URL(socketURL);
+    const subpath = surl.pathname;
+    const iosocket = io(`${surl.protocol}//${surl.host}`, {
+      path: subpath + "socket.io",
+    });
     iosocket.on("connect", () => {
-      console.log("socket.io: connect");
       this.handleConnect();
     });
+    iosocket.on("connect_error", (error) => {
+      console.error("socket.io:", error.message);
+      for (const callback of this.errorCallbacks) {
+        callback("connect", undefined);
+      }
+    });
     iosocket.on("disconnect", (reason) => {
-      console.log("socket.io: disconnect");
       for (const callback of this.errorCallbacks) {
         callback("disconnect", reason);
       }
@@ -38,8 +49,8 @@ export default class Client {
     });
     iosocket.on("error", (message) => {
       console.error(`[socket.io error] ${message}`);
-      for (const callback of this.connectionCallbacks) {
-        callback("Error", undefined);
+      for (const callback of this.errorCallbacks) {
+        callback("unknown");
       }
     });
     this.pinger = setInterval(() => {
@@ -47,26 +58,11 @@ export default class Client {
       iosocket.volatile.emit("ping", () => {
         const ms = performance.now() - start;
         for (const callback of this.connectionCallbacks) {
-          callback(undefined, ms);
+          callback(ms);
         }
       });
     }, 1000);
     this.iosocket = iosocket;
-  }
-
-  async handleError(event) {
-    console.log("error");
-    this.socket = undefined;
-    for (const callback of this.errorCallbacks) {
-      callback();
-    }
-  }
-
-  async handleClose(event) {
-    console.log("close");
-    for (const callback of this.errorCallbacks) {
-      callback();
-    }
   }
 
   async handleConnect() {
@@ -74,7 +70,9 @@ export default class Client {
       try {
         await this.acquireNewSession();
       } catch (error) {
-        this.handleError();
+        for (const callback of this.errorCallbacks) {
+          callback("get session");
+        }
       }
     }
     try {
@@ -110,9 +108,12 @@ export default class Client {
   }
 
   async acquireNewSession() {
-    const backend = Decker.meta.quizzer.backend || "http://localhost:3000";
+    let backend = Decker.meta.quizzer?.url || "http://localhost:3000/";
+    if (backend.slice(-1) !== "/") {
+      backend = backend + "/";
+    }
     try {
-      const response = await fetch(`${backend}/api/session`, {
+      const response = await fetch(`${backend}api/session`, {
         method: "POST",
       });
       const json = await response.json();
@@ -122,6 +123,9 @@ export default class Client {
       this.session = null;
       this.secret = null;
       console.error(error);
+      for (const callback of this.errorCallbacks) {
+        callback("get session", undefined);
+      }
       throw new Error("Unable to POST a new session.");
     }
   }
@@ -131,16 +135,62 @@ export default class Client {
       console.error("socket dead");
     }
     try {
-      this.iosocket.emit("attach", this.session, this.secret);
+      this.iosocket.emit(
+        "attach",
+        this.session,
+        this.secret,
+        (session, error) => {
+          if (error) {
+            this.session = undefined;
+          } else {
+            if (session === "host") {
+              return;
+            } else {
+              this.session = undefined;
+              // Session exists but secret was wrong: How?
+            }
+          }
+        }
+      );
     } catch (error) {
       console.error(error);
     }
   }
 
-  close() {}
-
   sendQuiz(quiz) {
-    this.iosocket.emit("quiz", quiz);
+    const networkQuiz = {
+      type: quiz.type,
+      choices: [],
+    };
+    for (const choice of quiz.choices) {
+      const networkChoice = {
+        votes: choice.votes,
+        options: [],
+        categories: [],
+      };
+      for (const option of choice.options) {
+        const networkOption = {
+          letter: option.letter,
+          correct: option.correct,
+          reason: undefined,
+        };
+        if (quiz.type === "assignment") {
+          networkOption.reason = option.reason;
+        }
+        if (quiz.type === "selection" || quiz.type === "freetext") {
+          networkOption.label = option.label;
+        }
+        networkChoice.options.push(networkOption);
+      }
+      if (choice.categories) {
+        for (const category of choice.categories) {
+          const networkCategory = { number: category.number };
+          networkChoice.categories.push(networkCategory);
+        }
+      }
+      networkQuiz.choices.push(networkChoice);
+    }
+    this.iosocket.emit("quiz", networkQuiz);
   }
 
   requestEvaluation() {

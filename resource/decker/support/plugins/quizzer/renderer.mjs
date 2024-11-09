@@ -1,6 +1,11 @@
 import Client from "./client.mjs";
 
-import { solveFreeTextQuiz, solveSelectionQuiz } from "./solver.mjs";
+import {
+  solveAssignmentQuiz,
+  solveFreeTextQuiz,
+  solveSelection,
+  solveSelectionQuiz,
+} from "./solver.mjs";
 
 import localization from "./localization.mjs";
 
@@ -9,16 +14,6 @@ const l10n = localization();
 let selectedAnswer = null;
 let draggedAnswer = null;
 let dropTarget = null;
-
-/* Implementation of the Fisher-Yates Shuffle */
-function shuffle(array) {
-  let current = array.length;
-  while (current != 0) {
-    let random = Math.floor(Math.random() * current);
-    current--;
-    [array[current], array[random]] = [array[random], array[current]];
-  }
-}
 
 export function resetAssignmentState() {
   if (selectedAnswer) {
@@ -128,28 +123,37 @@ function createSelectElement(options) {
   popover.className = "solution-popover";
   wrapper.appendChild(popover);
 
+  select.addEventListener("change", (event) => {
+    solveSelection(select);
+  });
+
   return [select, wrapper];
 }
 
 export default {
   renderAssignmentQuiz(parent, quiz) {
     const container = createQuizContainer();
-    container.question.innerText = quiz.question;
+    container.question.innerHTML = quiz.question;
     if (quiz.choices.length !== 1) {
-      questionParagraph.innerText = l10n.errorMultipleAssignments;
+      container.classList.add("error");
+      container.question.innerHTML = l10n.errorMultipleAssignments;
+      parent.appendChild(container);
+      container.removeChild(container.solutionContainer);
+      return;
     }
     const choices = quiz.choices[0];
-    const categories = [];
 
     const answerArea = document.createElement("fieldset");
     const answerLegend = document.createElement("legend");
     answerLegend.innerText = l10n.assignmentInstructionObjects;
+    answerArea.classList.add("answer-fieldset");
     answerArea.appendChild(answerLegend);
 
     const answerBucket = document.createElement("button");
     answerBucket.classList.add("answer-bucket");
     answerBucket.classList.add("category");
-    answerBucket.dataset["label"] = "UNASSIGNED";
+    answerBucket.dataset["label"] = "unassigned";
+    answerBucket.dataset["number"] = "0";
 
     const answerItems = document.createElement("div");
     answerItems.classList.add("items");
@@ -205,19 +209,21 @@ export default {
 
     const objectButtons = [];
 
-    for (const answer of choices.options) {
-      if (answer.reason) {
-        categories.push(answer.reason);
-      }
+    for (const option of choices.options) {
       const button = document.createElement("button");
       const label = document.createElement("span");
-      label.innerHTML = answer.label;
+      label.innerHTML = option.label;
       button.appendChild(label);
       button.classList.add("answer");
       button.draggable = true;
-      button.dataset["label"] = answer.label;
-      button.dataset["reason"] = answer.reason;
-      button.answer = answer;
+      button.dataset["reason"] = option.reason || 0;
+      button.answer = option;
+
+      // Disallow dragging of images
+      const images = button.querySelectorAll("img");
+      for (const img of images) {
+        img.draggable = false;
+      }
 
       button.addEventListener("click", (event) => {
         if (selectedAnswer === button) {
@@ -241,22 +247,11 @@ export default {
         draggedAnswer = null;
       });
 
+      button.dataset["letter"] = option.letter;
+
       objectButtons.push(button);
+      answerItems.appendChild(button);
     }
-
-    shuffle(objectButtons);
-
-    let letter = "A";
-    for (const answer of objectButtons) {
-      answerItems.appendChild(answer);
-      answer.dataset["letter"] = letter;
-      answer.answer.letter = letter;
-      letter = String.fromCharCode(letter.charCodeAt(0) + 1);
-    }
-
-    const uniqueCategories = categories.filter(
-      (value, index, array) => array.indexOf(value) === index
-    );
 
     const categoryArea = document.createElement("fieldset");
     const categoryLegend = document.createElement("legend");
@@ -266,11 +261,12 @@ export default {
     container.answers.appendChild(categoryArea);
 
     const areas = [];
-    for (const category of uniqueCategories) {
+    for (const category of choices.categories) {
       const area = document.createElement("button");
+      area.dataset["number"] = category.number;
       const label = document.createElement("span");
-      label.innerText = category;
-      area.dataset["label"] = category;
+      label.innerHTML = `<span>${category.number}: </span>${category.label}`;
+      area.dataset["label"] = category.label;
       area.classList.add("category");
       area.appendChild(label);
       categoryArea.appendChild(area);
@@ -328,35 +324,7 @@ export default {
     }
 
     container.solver.onclick = () => {
-      for (const answer of objectButtons) {
-        answer.classList.remove("correct");
-        answer.classList.remove("wrong");
-        let checkmark = answer.querySelector(".checkmark");
-        if (!checkmark) {
-          checkmark = document.createElement("span");
-          checkmark.classList.add("checkmark", "fas");
-          answer.appendChild(checkmark);
-        }
-        checkmark.classList.remove("fa-check");
-        checkmark.classList.remove("fa-times");
-        const category = answer.closest(".category").dataset["label"];
-        const reason = answer.dataset["reason"];
-        if (reason === "undefined") {
-          if (category === "UNASSIGNED") {
-            answer.classList.add("correct");
-            checkmark.classList.add("fa-check");
-          } else {
-            answer.classList.add("wrong");
-            checkmark.classList.add("fa-times");
-          }
-        } else if (category === reason) {
-          answer.classList.add("correct");
-          checkmark.classList.add("fa-check");
-        } else {
-          answer.classList.add("wrong");
-          checkmark.classList.add("fa-times");
-        }
-      }
+      solveAssignmentQuiz(objectButtons);
     };
     parent.appendChild(container);
   },
@@ -369,62 +337,97 @@ export default {
 
     const split = quiz.question.split(/(\[#[0-9]+\])/g);
     for (const token of split) {
+      console.log(token);
       if (token === "") {
         continue; // Skip empty tokens.
       }
       if (/\[#[0-9]+\]/.test(token)) {
         // If it was a placeholder token, insert a select box.
-        const options = quiz.choices[boxNumber++].options;
-        const [select, wrapper] = createSelectElement(options);
-        selections.push(select);
-        container.question.appendChild(wrapper);
+        const choices = quiz.choices[boxNumber];
+        if (choices) {
+          const options = quiz.choices[boxNumber].options;
+          const [select, wrapper] = createSelectElement(options);
+          selections.push(select);
+          container.question.appendChild(wrapper);
+          boxNumber++;
+        } else {
+          container.classList.add("error");
+          container.question.innerHTML = l10n.errorMissingOptions;
+          parent.appendChild(container);
+          container.removeChild(container.solutionContainer);
+          return;
+        }
       } else {
         // If not, add the token as plain text.
         const span = document.createElement("span");
-        span.innerText = token;
+        if (token.startsWith("<p>")) {
+          span.innerHTML = token.split("<p>").pop();
+        } else if (token.endsWith("</p>")) {
+          span.innerHTML = token.split("</p>").shift();
+        } else {
+          span.innerHTML = token;
+        }
         container.question.appendChild(span);
       }
     }
-    container.solver.addEventListener("click", (event) => {
-      solveSelectionQuiz(selections);
-    });
+    for (; boxNumber < quiz.choices.length; boxNumber++) {
+      const options = quiz.choices[boxNumber].options;
+      const [select, wrapper] = createSelectElement(options);
+      selections.push(select);
+      container.answers.appendChild(wrapper);
+    }
+    container.solver.remove();
     parent.appendChild(container);
   },
 
   renderFreeTextQuiz(parent, quiz) {
     const container = createQuizContainer();
 
-    if (!quiz.question) {
-      container.classList.add("error");
-      container.question.innerText = l10n.errorMissingQuestion;
-      parent.appendChild(container);
-      container.removeChild(container.solutionContainer);
-      return;
-    }
-
     const split = quiz.question.split(/(\[#[0-9]+\])/g);
     const replacers = [];
 
     let placeholderNumber = 1;
+    let questionHTML = "";
+    let placeholderSpans = [];
     for (const token of split) {
       if (token === "") {
         continue;
       }
       if (/\[#[0-9]+\]/.test(token)) {
+        if (placeholderNumber > quiz.choices.length) {
+          container.classList.add("error");
+          container.question.innerHTML = l10n.errorMissingOptions;
+          parent.appendChild(container);
+          container.removeChild(container.solutionContainer);
+          container.answers.remove();
+          return;
+        }
         const [span, replacer, wrapper] =
           createPlaceholderPair(placeholderNumber);
         container.answers.appendChild(wrapper);
-        container.question.appendChild(span);
+        placeholderSpans.push(span);
+        questionHTML =
+          questionHTML + `<span data-number="${placeholderNumber}"></span>`;
         replacers.push(replacer);
         placeholderNumber++;
       } else {
-        const span = document.createElement("span");
-        span.innerText = token;
-        container.question.appendChild(span);
+        questionHTML = questionHTML + token;
       }
     }
+    container.question.innerHTML = questionHTML;
+    const placeholders =
+      container.question.querySelectorAll("span[data-number]");
+    for (let i = 0; i < placeholders.length; i++) {
+      placeholders[i].replaceWith(placeholderSpans[i]);
+    }
+    for (; placeholderNumber - 1 < quiz.choices.length; placeholderNumber++) {
+      const [span, replacer, wrapper] =
+        createPlaceholderPair(placeholderNumber);
+      container.answers.appendChild(wrapper);
+      replacers.push(replacer);
+    }
     container.solver.addEventListener("click", (event) => {
-      solveFreeTextQuiz(replacers);
+      solveFreeTextQuiz(replacers, quiz);
     });
     parent.appendChild(container);
   },
@@ -432,9 +435,7 @@ export default {
   renderChoiceQuiz(parent, quiz) {
     const container = createQuizContainer();
     if (quiz.question) {
-      container.question.innerText = quiz.question;
-    } else {
-      container.question.innerText = "Dieses Quiz besitzt keine Frage.";
+      container.question.innerHTML = quiz.question;
     }
     if (quiz.choices.length > 1) {
       const error = document.createElement("p");
@@ -444,17 +445,12 @@ export default {
     }
     const answers = quiz.choices[0];
 
-    shuffle(answers.options);
-    let letter = "A";
-
     for (const option of answers.options) {
       const button = document.createElement("button");
       button.classList.add("answer");
       button.innerHTML = option.label;
 
-      button.dataset["letter"] = letter;
-      option.letter = letter;
-      letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+      button.dataset["letter"] = option.letter;
 
       const popover = document.createElement("span");
       popover.className = "solution-popover";
