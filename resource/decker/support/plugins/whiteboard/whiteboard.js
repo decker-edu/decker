@@ -84,6 +84,8 @@ let currentFragmentIndex = 0;
 let undoHistory = [];
 const undoBufferSize = 10;
 
+let storedKeyboardConfig;
+
 // get configuration options from Reveal deck
 function readConfig() {
   config = Reveal.getConfig().whiteboard || {};
@@ -1773,6 +1775,17 @@ const Plugin = {
     selectTool(PEN);
     selectPenColor(penColors[0]);
     selectPenRadius(2);
+
+    /* Allow the focused slides with scrollbar to be navigated with arrow keys */
+    const slidesElement = Reveal.getSlidesElement();
+    slidesElement.addEventListener("focus", (event) => {
+      storedKeyboardConfig = Reveal.getConfig().keyboard;
+      Reveal.configure({ keyboard: false });
+    });
+
+    slidesElement.addEventListener("blur", (event) => {
+      Reveal.configure({ keyboard: storedKeyboardConfig });
+    });
 
     // load annotations
     return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
