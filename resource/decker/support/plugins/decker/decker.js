@@ -209,7 +209,7 @@ function prepareFullscreenIframes() {
     btn.innerHTML =
       '<i class="fas fa-expand-arrows-alt" style="font-size:20px"></i>';
     div.btn = btn;
-    div.appendChild(btn);
+    div.prepend(btn);
 
     // handle button click: enter/exit fullscreen
     btn.onclick = function () {
