@@ -238,7 +238,7 @@ div.decker-flash-panel {
 
 /* This is not display: none so screen readers have time to actually read out the content */
 div.decker-flash-panel:not(.flashing) {
-  visibility: hidden;
+  opacity: 0;
 }
 
 div.decker-flash-panel div.content {
