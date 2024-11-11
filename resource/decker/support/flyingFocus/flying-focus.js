@@ -15,7 +15,7 @@ export function handleKeyboard(event) {
     key === "Escape" ||
     key === "Tab" ||
     key === "ArrowLeft" ||
-    key === "ArrayRight" ||
+    key === "ArrowRight" ||
     key === "ArrowDown" ||
     key === "ArrowUp" ||
     key === "Enter"
