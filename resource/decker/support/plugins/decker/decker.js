@@ -338,6 +338,12 @@ function continueWhereYouLeftOff(deck) {
           type: "div",
           id: "continue-dialog",
           parent: reveal,
+        });
+
+        let label = createElement({
+          type: "span",
+          id: "continue-label",
+          parent: dialog,
           text: german
             ? "Bei Folie " + slideNumber + " weitermachen?"
             : "Continue on slide " + slideNumber + "?",
@@ -368,8 +374,40 @@ function continueWhereYouLeftOff(deck) {
           onclick: hideDialog,
         });
 
+        yes.setAttribute("aria-describedby", "continue-label");
+        no.setAttribute("aria-describedby", "continue-label");
+
+        dialog.setAttribute("role", "menu");
+        yes.setAttribute("role", "menuitem");
+        no.setAttribute("role", "menuitem");
+
         // hide dialog after 5sec or on slide change
-        setTimeout(hideDialog, 5000);
+        // setTimeout(hideDialog, 5000);
+        yes.focus();
+
+        dialog.addEventListener("keydown", (event) => {
+          switch (event.key) {
+            case "ArrowRight":
+            case "ArrowLeft":
+            case "ArrowUp":
+            case "ArrowDown":
+            case "Tab": {
+              if (document.activeElement === yes) {
+                event.preventDefault();
+                event.stopPropagation();
+                setTimeout(() => no.focus());
+              } else if (document.activeElement === no) {
+                event.preventDefault();
+                event.stopPropagation();
+                setTimeout(() => yes.focus());
+              }
+              break;
+            }
+            default:
+              break;
+          }
+        });
+
         deck.addEventListener("slidechanged", hideDialog);
       }
     }
