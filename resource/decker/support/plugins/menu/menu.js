@@ -113,6 +113,7 @@ class SlideMenu {
       this.reveal.getRevealElement().inert = true;
       this.disableKeybinds();
       this.glass.classList.add("show");
+      this.menu.home_button.removeAttribute("tabindex");
       this.menu.container.scroll(0, 0);
       if (event && event.detail === 0) {
         this.menu.close_button.focus();
@@ -137,6 +138,9 @@ class SlideMenu {
         anchors.setInert(false);
       }
       this.reveal.getRevealElement().inert = false;
+      for (const button of this.plugin_buttons.querySelectorAll("button")) {
+        button.setAttribute("tabindex", -1);
+      }
       this.enableKeybinds();
       this.glass.classList.remove("show");
       if (event && event.detail === 0) {
@@ -190,7 +194,12 @@ class SlideMenu {
   }
 
   enableKeybinds() {
-    this.reveal.configure({ keyboard: true });
+    // Do not enable keybinds again when we leaving in handout mode
+    if (document.documentElement.classList.contains("handout")) {
+      this.reveal.configure({ keyboard: false });
+    } else {
+      this.reveal.configure({ keyboard: true });
+    }
   }
 
   /**
@@ -221,9 +230,6 @@ class SlideMenu {
     }
     if (!this.inert) {
       switch (event.code) {
-        case "Escape":
-          this.closeMenu();
-          break;
         case "ArrowUp":
           if (
             document.activeElement &&
@@ -263,6 +269,46 @@ class SlideMenu {
     }
   }
 
+  traverseButtons(event) {
+    function changeFocus(to) {
+      const currentItem = document.activeElement;
+      currentItem.setAttribute("tabindex", "-1");
+      to.setAttribute("tabindex", "0");
+      setTimeout(() => to.focus());
+    }
+    if (!document.activeElement) {
+      return;
+    }
+    switch (event.key) {
+      case "ArrowUp":
+        {
+          let target = document.activeElement;
+          do {
+            target = target.previousElementSibling;
+            if (!target) {
+              target = this.plugin_buttons.lastElementChild;
+            }
+          } while (target.disabled);
+          changeFocus(target);
+        }
+        break;
+      case "ArrowDown":
+        {
+          let target = document.activeElement;
+          //target the a inside the previous list item
+          do {
+            target = target.nextElementSibling;
+            if (!target) {
+              target = this.plugin_buttons.firstElementChild;
+            }
+          } while (target.disabled);
+          changeFocus(target);
+        }
+        break;
+      default:
+    }
+  }
+
   /**
    * Instantiates the ui button that opens the menu.
    */
@@ -282,7 +328,7 @@ class SlideMenu {
   initializeSlideList() {
     let template = document.createElement("template");
     template.innerHTML = String.raw`<nav class="slide-list-wrapper">
-      <ul class="slide-list"></ul>
+      <ul class="slide-list" role="menu" aria-label="${this.localization.navigation_list_label}"></ul>
     </nav>`;
     let wrapper = template.content.firstElementChild;
     let list = wrapper.firstElementChild;
@@ -419,18 +465,18 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-labeledby="decker-menu-button" inert>
+    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-label="${this.localization.navigationmenu_label}" inert>
       <div class="menu-header">
         <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
         </button>
-        <div class="menu-header-button-group">
-          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem">
+        <div class="menu-header-button-group" role="menu" aria-label="${this.localization.navigationmenu_label}">
+          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem" tabindex="-1">
           </button>
-          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem">
+          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem" tabindex="-1">
           </button>
-          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem">
+          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem" tabindex="-1">
           </button>
-          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem">
+          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem" tabindex="-1">
           </button>
         </div>
       </div>
@@ -490,6 +536,10 @@ class SlideMenu {
     this.menu.slide_list.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
+
+    this.plugin_buttons.addEventListener("keydown", (event) => {
+      this.traverseButtons(event);
+    });
 
     /* Temporary Solution */
     this.glass = document.querySelector("#glass");
@@ -552,6 +602,7 @@ class SlideMenu {
     button.title = title;
     button.setAttribute("aria-label", title);
     button.setAttribute("role", "menuitem");
+    button.setAttribute("tabindex", "-1");
     button.addEventListener("click", callback);
     this.plugin_buttons.appendChild(button);
     button.setLabel = function (value) {
@@ -615,6 +666,8 @@ const plugin = () => {
         title: "Navigation",
         print_confirmation: "Leave presentation to export it to PDF?",
         index_confirmation: "Go back to index page?",
+        navigationmenu_label: "Navigation Menu",
+        navigation_list_label: "Slide List",
       };
 
       let lang = navigator.language;
@@ -633,6 +686,8 @@ const plugin = () => {
           title: "Navigation",
           print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
           index_confirmation: "Zurück zur Index-Seite gehen?",
+          navigationmenu_label: "Navigationsmenu",
+          navigation_list_label: "Folienliste",
         };
       }
 
@@ -676,6 +731,9 @@ const plugin = () => {
       reveal.addEventListener("slidechanged", (event) => {
         const currentSlide = event.currentSlide;
         menu.updateCurrentSlideMark(currentSlide);
+      });
+      reveal.addEventListener("ready", () => {
+        this.updateCurrentSlideMark();
       });
     },
   };
