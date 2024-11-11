@@ -10,7 +10,7 @@ let lastMouseEvent = 0;
 
 export function handleKeyboard(event) {
   const key = event.key;
-  // Show animation only upon Tab, ESC or Arrow Key press.
+  // Show animation only upon Tab, ESC, Home and End or Arrow Key press.
   if (
     key === "Escape" ||
     key === "Tab" ||
@@ -18,6 +18,8 @@ export function handleKeyboard(event) {
     key === "ArrowRight" ||
     key === "ArrowDown" ||
     key === "ArrowUp" ||
+    key === "Home" ||
+    key === "End" ||
     key === "Enter"
   ) {
     keyDownTime = Date.now();

@@ -557,8 +557,8 @@ async function setupRecorder() {
     // open panel to select camera and mic
     openRecordPanel();
 
-    // disable view menu button
-    pluginButton.disabled = true;
+    // disable plugin menu button
+    pluginButton.ariaDisabled = true;
 
     return true;
   } catch (e) {
@@ -1794,7 +1794,7 @@ function setupCallbacks() {
 
 function enableViewButton() {
   if (pluginButton && Decker.isPresenterMode()) {
-    pluginButton.disabled = false;
+    pluginButton.airaDisabled = false;
   }
   return true;
 }
@@ -1922,9 +1922,9 @@ const Plugin = {
             uiState.name() !== "RECORDING" &&
             uiState.name() !== "RECORDER_PAUSED"
           ) {
-            pluginButton.disabled = false;
+            pluginButton.ariaDisabled = false;
           } else {
-            pluginButton.disabled = true;
+            pluginButton.ariaDisabled = true;
           }
         }
       });
@@ -1935,6 +1935,9 @@ const Plugin = {
           "fa-video",
           localization.init_recording,
           () => {
+            if (pluginButton.ariaDisabled) {
+              return;
+            }
             switch (uiState.name()) {
               case "INIT":
               case "PLAYER_READY":
@@ -1947,7 +1950,7 @@ const Plugin = {
             }
           }
         );
-        pluginButton.disabled = true;
+        pluginButton.ariaDisabled = true;
       }
     });
   },

@@ -195,25 +195,8 @@ class SlideMenu {
 
   enableKeybinds() {
     // Do not enable keybinds again when we leaving in handout mode
-    if (document.documentElement.classList.contains("handout")) {
-      this.reveal.configure({ keyboard: false });
-    } else {
+    if (!document.documentElement.classList.contains("handout")) {
       this.reveal.configure({ keyboard: true });
-    }
-  }
-
-  /**
-   * Stops the default functionality of moving up or down the scrollbar of the slide wrapper div.
-   * @param {*} event The Keyboard Event
-   */
-  ignoreTraversalKeys(event) {
-    if (
-      !this.inert &&
-      (event.key == "Escape" ||
-        event.key == "ArrowUp" ||
-        event.key == "ArrowDown")
-    ) {
-      event.preventDefault();
     }
   }
 
@@ -245,6 +228,7 @@ class SlideMenu {
               target = parent.parentElement.lastElementChild.firstElementChild;
             }
             changeFocus(target);
+            event.preventDefault();
           }
           break;
         case "ArrowDown":
@@ -262,6 +246,7 @@ class SlideMenu {
               target = parent.parentElement.firstElementChild.firstElementChild;
             }
             changeFocus(target);
+            event.preventDefault();
           }
           break;
         default:
@@ -272,37 +257,38 @@ class SlideMenu {
   traverseButtons(event) {
     function changeFocus(to) {
       const currentItem = document.activeElement;
-      currentItem.setAttribute("tabindex", "-1");
       to.setAttribute("tabindex", "0");
-      setTimeout(() => to.focus());
+      setTimeout(() => {
+        to.focus();
+        currentItem.setAttribute("tabindex", "-1");
+      });
     }
     if (!document.activeElement) {
       return;
     }
     switch (event.key) {
+      case "ArrowLeft":
       case "ArrowUp":
         {
           let target = document.activeElement;
-          do {
-            target = target.previousElementSibling;
-            if (!target) {
-              target = this.plugin_buttons.lastElementChild;
-            }
-          } while (target.disabled);
+          target = target.previousElementSibling;
+          if (!target) {
+            target = this.plugin_buttons.lastElementChild;
+          }
           changeFocus(target);
+          event.preventDefault();
         }
         break;
+      case "ArrowRight":
       case "ArrowDown":
         {
           let target = document.activeElement;
-          //target the a inside the previous list item
-          do {
-            target = target.nextElementSibling;
-            if (!target) {
-              target = this.plugin_buttons.firstElementChild;
-            }
-          } while (target.disabled);
+          target = target.nextElementSibling;
+          if (!target) {
+            target = this.plugin_buttons.firstElementChild;
+          }
           changeFocus(target);
+          event.preventDefault();
         }
         break;
       default:
@@ -327,9 +313,9 @@ class SlideMenu {
    */
   initializeSlideList() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<nav class="slide-list-wrapper">
+    template.innerHTML = String.raw`<div class="slide-list-wrapper">
       <ul class="slide-list" role="menu" aria-label="${this.localization.navigation_list_label}"></ul>
-    </nav>`;
+    </div>`;
     let wrapper = template.content.firstElementChild;
     let list = wrapper.firstElementChild;
     let slides = document.querySelectorAll(".slides > section");
@@ -357,9 +343,6 @@ class SlideMenu {
         item.classList.add("separator-slide");
       }
     });
-    wrapper.addEventListener("keydown", (event) =>
-      this.ignoreTraversalKeys(event)
-    );
     this.menu.container.appendChild(wrapper);
     this.menu.slide_list = list;
   }
@@ -465,11 +448,11 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-label="${this.localization.navigationmenu_label}" inert>
+    template.innerHTML = String.raw`<nav class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label}" inert>
       <div class="menu-header">
         <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
-        </button>
-        <div class="menu-header-button-group" role="menu" aria-label="${this.localization.navigationmenu_label}">
+        </button> 
+        <div class="menu-header-button-group" role="group" aria-label="${this.localization.navigationmenu_label}">
           <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem" tabindex="-1">
           </button>
           <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem" tabindex="-1">
@@ -480,7 +463,7 @@ class SlideMenu {
           </button>
         </div>
       </div>
-     </div>`;
+     </nav>`;
     let container = template.content.firstElementChild;
     this.menu.container = container;
 
@@ -521,16 +504,19 @@ class SlideMenu {
     this.menu.print_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.color_button.addEventListener("click", (event) =>
-      colorScheme.toggleColor()
-    );
+    this.menu.color_button.addEventListener("click", (event) => {
+      if (this.menu.color_button.ariaDisabled) {
+        return;
+      }
+      colorScheme.toggleColor();
+    });
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
 
     const colorSetting = window.Decker?.meta?.colorscheme;
     if (colorSetting == "light" || colorSetting == "dark")
-      this.menu.color_button.disabled = true;
+      this.menu.color_button.ariaDisabled = true;
 
     this.initializeSlideList();
     this.menu.slide_list.addEventListener("keydown", (event) =>
@@ -549,11 +535,23 @@ class SlideMenu {
       document.body.appendChild(this.glass);
     }
 
-    /* Allow exit with ESC */
+    /* Allow exit with ESC and focus with HOME and END */
 
     this.menu.container.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        this.closeMenu(event);
+      switch (event.key) {
+        case "Escape":
+          this.closeMenu(event);
+          break;
+        case "Home":
+          setTimeout(() => this.menu.close_button.focus());
+          event.preventDefault();
+          break;
+        case "End":
+          setTimeout(() =>
+            this.menu.slide_list.querySelector("[aria-current]").focus()
+          );
+          event.preventDefault();
+          break;
       }
     });
 

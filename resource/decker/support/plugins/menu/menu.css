@@ -60,7 +60,7 @@
   color: var(--foreground-color);
 }
 
-.menu-header button:disabled {
+.menu-header button[aria-disabled="true"] {
   cursor: default;
   color: var(--shade4);
 }
