@@ -83,8 +83,12 @@
   transform: translateX(-50%) translateY(105%);
 }
 
-.quizzer-button[data-state="ACTIVE"] {
+:root.active-poll .quizzer-button {
   color: var(--color-success);
+}
+
+:root.awaiting-results .quizzer-button {
+  color: var(--color-info);
 }
 
 .quizzer-state-info {
@@ -482,10 +486,6 @@ span.fa-span[hidden] {
   display: none;
 }
 
-:root:not(.quiz-available) .quiz-only.show {
-  display: unset;
-}
-
 /* rule name conflict with .poll-only */
 :root:not(.active-poll) .during-poll {
   display: none;
@@ -514,6 +514,10 @@ span.fa-span[hidden] {
   background-color: var(--background-color);
   padding: 0.25rem;
   cursor: pointer;
+}
+
+:root.dark .side-canvas-wrapper {
+  background-color: var(--foreground-color);
 }
 
 .side-canvas-wrapper:hover {

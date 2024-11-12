@@ -15,6 +15,10 @@ let selectedAnswer = null;
 let draggedAnswer = null;
 let dropTarget = null;
 
+/**
+ * Resets assignment quiz selections so it does not cross
+ * slide boundries.
+ */
 export function resetAssignmentState() {
   if (selectedAnswer) {
     selectedAnswer.classList.remove("selected");
@@ -34,6 +38,10 @@ function handleDrop(event) {
   return false;
 }
 
+/**
+ * Creates the DOM elements necessary for any quiz.
+ * @returns
+ */
 function createQuizContainer() {
   const container = document.createElement("div");
   container.className = "quizzer-container";
@@ -72,6 +80,12 @@ function createQuizContainer() {
   return container;
 }
 
+/**
+ * Creates a pair of a span and input element linked together.
+ * If the input changes, the span does so, too.
+ * @param {*} number
+ * @returns
+ */
 function createPlaceholderPair(number) {
   const span = document.createElement("span");
 
@@ -97,6 +111,11 @@ function createPlaceholderPair(number) {
   return [span, replacer, wrapper];
 }
 
+/**
+ * Creates a select element with the given options.
+ * @param {*} options
+ * @returns
+ */
 function createSelectElement(options) {
   const select = document.createElement("select");
 
@@ -131,6 +150,18 @@ function createSelectElement(options) {
 }
 
 export default {
+  /**
+   * Render an assignment quiz:
+   *
+   * *------------------------*
+   * |    [ [A] [B] [C] ]     |
+   * *------------------------*
+   * | [1]      [2]       [3] |
+   * *------------------------*
+   * @param {*} parent
+   * @param {*} quiz
+   * @returns
+   */
   renderAssignmentQuiz(parent, quiz) {
     const container = createQuizContainer();
     container.question.innerHTML = quiz.question;
@@ -329,6 +360,17 @@ export default {
     parent.appendChild(container);
   },
 
+  /**
+   * Render a selection quiz:
+   *
+   * *------------------*
+   * | Text [...v] Text |
+   * |      [...v]      |
+   * *------------------*
+   * @param {*} parent
+   * @param {*} quiz
+   * @returns
+   */
   renderSelectionQuiz(parent, quiz) {
     const selections = [];
     let boxNumber = 0;
@@ -380,6 +422,18 @@ export default {
     parent.appendChild(container);
   },
 
+  /**
+   * Render a free text quiz:
+   *
+   * *-----------------*
+   * | Text [...] Text |
+   * |      [...]      |
+   * *-----------------*
+   *
+   * @param {*} parent
+   * @param {*} quiz
+   * @returns
+   */
   renderFreeTextQuiz(parent, quiz) {
     const container = createQuizContainer();
 
@@ -432,6 +486,19 @@ export default {
     parent.appendChild(container);
   },
 
+  /**
+   * Render a choice quiz:
+   *
+   * *-----------------*
+   * |     Question    |
+   * | [A]   [B]   [C] |
+   * |    [D]   [E]    |
+   * *-----------------*
+   *
+   * @param {*} parent
+   * @param {*} quiz
+   * @returns
+   */
   renderChoiceQuiz(parent, quiz) {
     const container = createQuizContainer();
     if (quiz.question) {
@@ -452,10 +519,14 @@ export default {
 
       button.dataset["letter"] = option.letter;
 
+      button.setAttribute(
+        "aria-description",
+        container.questionContainer.textContent
+      );
+
       const popover = document.createElement("span");
       popover.className = "solution-popover";
-      popover.ariaLive = true;
-      popover.role = "status";
+      popover.setAttribute("aria-hidden", true);
 
       button.appendChild(popover);
       button.popoverTargetElement = popover;
@@ -469,11 +540,19 @@ export default {
             const checkmark = document.createElement("span");
             checkmark.classList.add("checkmark", "fas", "fa-check");
             button.appendChild(checkmark);
+            button.setAttribute(
+              "aria-description",
+              `${l10n.correct} ${option.reason}`
+            );
           } else {
             button.classList.add("wrong");
             const checkmark = document.createElement("span");
             checkmark.classList.add("checkmark", "fas", "fa-times");
             button.appendChild(checkmark);
+            button.setAttribute(
+              "aria-description",
+              `${l10n.wrong} ${option.reason}`
+            );
           }
         },
         { once: true }

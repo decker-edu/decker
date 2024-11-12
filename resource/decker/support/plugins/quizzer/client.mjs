@@ -1,12 +1,23 @@
 import { io } from "./libraries/socket.io/socket.io.esm.min.js";
 
+export const ClientStates = Object.freeze({
+  UNINITIALIZED: Symbol("uninitialized"),
+  CONNECTED: Symbol("connected"),
+  OFFLINE: Symbol("offline"),
+  HOSTING: Symbol("hosting"),
+  ACTIVE: Symbol("active"),
+  AWAITING_RESULTS: Symbol("awaiting_results"),
+});
+
 export default class Client {
-  events = ["error", "ready", "result", "state", "connection"];
+  state = ClientStates.UNINITIALIZED;
+  events = ["error", "ready", "result", "participants", "state", "pong"];
 
   readyCallbacks = [];
   resultCallbacks = [];
   stateCallbacks = [];
-  connectionCallbacks = [];
+  pongCallbacks = [];
+  participantsCallbacks = [];
   errorCallbacks = [];
 
   pinger = undefined;
@@ -21,43 +32,69 @@ export default class Client {
     const iosocket = io(`${surl.protocol}//${surl.host}`, {
       path: subpath + "socket.io",
     });
-    iosocket.on("connect", () => {
-      this.handleConnect();
-    });
+
+    /**
+     * Handle a new or recovered connection.
+     */
+    iosocket.on("connect", () => this.handleConnect());
+    /**
+     * If we get a connect_error, we are probably offline as the
+     * endpoint is unreachable.
+     */
     iosocket.on("connect_error", (error) => {
       console.error("socket.io:", error.message);
-      for (const callback of this.errorCallbacks) {
-        callback("connect", undefined);
+      for (const ecb of this.errorCallbacks) {
+        ecb("connect", undefined);
       }
     });
+    /**
+     * On disconnect, check why we disconnected. If it is not a manual disconnect,
+     * report disconnection.
+     */
     iosocket.on("disconnect", (reason) => {
-      for (const callback of this.errorCallbacks) {
-        callback("disconnect", reason);
+      if (reason === "io client disconnect") {
+        return;
+      }
+      for (const ecb of this.errorCallbacks) {
+        ecb("disconnect", reason);
+      }
+      if (!iosocket.active) {
+        iosocket.connect();
       }
     });
-    iosocket.on("state", (connections, done, result) => {
-      console.log(connections, done, result);
-      if (result) {
-        for (const callback of this.resultCallbacks) {
-          callback(result);
-        }
-      } else {
-        for (const callback of this.stateCallbacks) {
-          callback(connections, done);
-        }
+    /**
+     * On participants, update tally span.
+     */
+    iosocket.on("participants", (connections, done) => {
+      for (const callback of this.participantsCallbacks) {
+        callback(connections, done);
       }
     });
+    /**
+     * On result, publish results.
+     */
+    iosocket.on("result", (result) => {
+      for (const callback of this.resultCallbacks) {
+        callback(result);
+      }
+    });
+    /**
+     * On internal error: Log.
+     */
     iosocket.on("error", (message) => {
       console.error(`[socket.io error] ${message}`);
-      for (const callback of this.errorCallbacks) {
-        callback("unknown");
+      for (const ecb of this.errorCallbacks) {
+        ecb("server error", message);
       }
     });
+    /**
+     * Create the ping interval to observe latency.
+     */
     this.pinger = setInterval(() => {
       const start = performance.now();
       iosocket.volatile.emit("ping", () => {
         const ms = performance.now() - start;
-        for (const callback of this.connectionCallbacks) {
+        for (const callback of this.pongCallbacks) {
           callback(ms);
         }
       });
@@ -65,27 +102,50 @@ export default class Client {
     this.iosocket = iosocket;
   }
 
+  /**
+   * Handles the Socket.IO connect event.
+   * If we are a recovered socket, do nothing.
+   * @returns
+   */
   async handleConnect() {
+    if (this.iosocket.recovered) {
+      return;
+    }
     if (!this.session) {
       try {
         await this.acquireNewSession();
       } catch (error) {
-        for (const callback of this.errorCallbacks) {
-          callback("get session");
+        console.log(error);
+        for (const ecb of this.errorCallbacks) {
+          ecb("get session");
         }
       }
     }
     try {
       await this.hostSession();
+      for (const callback of this.readyCallbacks) {
+        callback(this.session, this.secret);
+      }
     } catch (error) {
       this.session = null;
       this.secret = null;
-    }
-    for (const callback of this.readyCallbacks) {
-      callback(this.session, this.secret);
+      if (error === "no session") {
+        for (const ecb of this.errorCallbacks) {
+          ecb("session lost");
+        }
+      }
+      if (error === "wrong secret") {
+        for (const ecb of this.errorCallbacks) {
+          ecb("session lost");
+        }
+      }
     }
   }
 
+  /**
+   * Registers event callbacks.
+   * Available events are: ready, result, state (unused), participatns, pong and error
+   */
   on(event, callback) {
     if (!this.events.includes(event) || !callback) {
       return;
@@ -99,14 +159,21 @@ export default class Client {
     if (event === "state") {
       this.stateCallbacks.push(callback);
     }
-    if (event === "connection") {
-      this.connectionCallbacks.push(callback);
+    if (event === "participants") {
+      this.participantsCallbacks.push(callback);
+    }
+    if (event === "pong") {
+      this.pongCallbacks.push(callback);
     }
     if (event === "error") {
       this.errorCallbacks.push(callback);
     }
   }
 
+  /**
+   * Sends a POST request to the server to create a new session for us.
+   * The response contains the session id and the secret to authenticate as the host.
+   */
   async acquireNewSession() {
     let backend = Decker.meta.quizzer?.url || "http://localhost:3000/";
     if (backend.slice(-1) !== "/") {
@@ -116,47 +183,48 @@ export default class Client {
       const response = await fetch(`${backend}api/session`, {
         method: "POST",
       });
-      const json = await response.json();
-      this.session = json.id;
-      this.secret = json.secret;
+      if (response.ok) {
+        const json = await response.json();
+        this.session = json.id;
+        this.secret = json.secret;
+      } else {
+        throw new Error("session response");
+      }
     } catch (error) {
       this.session = null;
       this.secret = null;
-      console.error(error);
-      for (const callback of this.errorCallbacks) {
-        callback("get session", undefined);
-      }
-      throw new Error("Unable to POST a new session.");
+      throw new Error("fetch session");
     }
   }
 
+  /**
+   * Request to host the given session by providing the given secret.
+   * Sets this socket connection as the host on the server.
+   * @returns
+   */
   async hostSession() {
-    if (!this.iosocket.active) {
-      console.error("socket dead");
-    }
-    try {
+    return new Promise((resolve, reject) => {
       this.iosocket.emit(
         "attach",
         this.session,
         this.secret,
         (session, error) => {
           if (error) {
-            this.session = undefined;
+            reject(error);
           } else {
-            if (session === "host") {
-              return;
-            } else {
-              this.session = undefined;
-              // Session exists but secret was wrong: How?
-            }
+            resolve();
           }
         }
       );
-    } catch (error) {
-      console.error(error);
-    }
+    });
   }
 
+  /**
+   * Create a network object from the current quiz.
+   * Network Quiz Objects lack certain data like labels that may not be renderable
+   * on the client.
+   * @param {*} quiz
+   */
   sendQuiz(quiz) {
     const networkQuiz = {
       type: quiz.type,
@@ -195,5 +263,12 @@ export default class Client {
 
   requestEvaluation() {
     this.iosocket.emit("evaluate");
+  }
+
+  /**
+   * Disconnect the socket in anticipation that its reference will be discarded.
+   */
+  destroy() {
+    this.iosocket.disconnect();
   }
 }

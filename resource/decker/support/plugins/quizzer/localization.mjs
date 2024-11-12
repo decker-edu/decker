@@ -2,6 +2,8 @@ const german = {
   unableToConnect: "Keine Verbindung zum Quizzer Server möglich.",
   disconnected: "Die Verbindung zum Quizzer Server wurde unterbrochen.",
   unableToGetSession: "Es konnte keine Quizzer Sitzung angefragt werden.",
+  sessionLost:
+    "Die gespeicherten Sitzungsdaten waren ungültig.\nNavigieren Sie auf eine andere Folie, um eine neue Verbindung zu starten.",
   unknownError:
     "Es ist ein unbekannter Fehler bei der Datenübertragung aufgetreten.",
   placeholder: "Platzhalter #",
@@ -22,6 +24,12 @@ const german = {
   activatePoll: "Umfrage starten",
   evaluate: "Umfrage auswerten",
   clickToClose: "Klicken zum Schließen",
+  awaiting_results: "Bitte warten, die Umfrage wird ausgewertet.",
+  correct: "Richtig!",
+  wrong: "Falsch!",
+  uninitialized: "Nicht Initialisiert",
+  connected: "Verbunden. Starte Sitzung.",
+  hosting: "Sitzung etabliert. Erwarte Verbindungsdaten.",
 };
 
 const english = {
@@ -48,7 +56,13 @@ const english = {
   hideQRCode: "Hide QR code",
   activatePoll: "Start poll",
   evaluate: "Evaluate poll",
+  awaiting_results: "Please wait. The poll is being evaluated.",
   clickToClose: "Click to close",
+  correct: "Correct!",
+  wrong: "Wrong!",
+  uninitialized: "Not initialized",
+  connected: "Connected. Requesting Session.",
+  hosting: "Session established. Awaiting connection quality.",
 };
 
 export default function localization() {

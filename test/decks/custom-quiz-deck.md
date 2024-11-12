@@ -1,7 +1,7 @@
 ---
 title: Custom Quizzes
-quizzer:
-  url: 'https://quiz.jetzt'
+#quizzer:
+#  url: 'https://quiz.jetzt'
 ---
 
 # Choice Quiz

@@ -1,19 +1,29 @@
-import Client from "./client.mjs";
+import Client, { ClientStates } from "./client.mjs";
 import Renderer, { resetAssignmentState } from "./renderer.mjs";
 import bwip from "../examiner/bwip.js";
 import "../../vendor/d3.v6.min.js";
 import localization from "./localization.mjs";
-
 const l10n = localization();
 
+/* Module Variables */
 let Reveal;
+
 let hostClient = undefined;
-let currentQuiz = undefined;
-let quizState = "UNINITIALIZED";
+let activeQuiz = undefined;
+let awaitingQuiz = undefined;
+
+/*
+ * UI Elements, pre initialized
+ */
+
+/* Bottom Row Buttons and Indicator */
 
 let connectionIndicator = document.createElement("span");
+let pollButton = document.createElement("button");
+let tallySpan = document.createElement("span");
 
-//let qrButton = document.createElement("button");
+/* All the QR */
+
 let qrDialog = document.createElement("dialog");
 let qrCanvas = document.createElement("canvas");
 let qrLeftCanvas = document.createElement("canvas");
@@ -23,9 +33,15 @@ let qrRightLabel = document.createElement("span");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
 
-let pollButton = document.createElement("button");
-let tallySpan = document.createElement("span");
-
+/**
+ * Checks if the given rect contains the given (x,y) coordinate.
+ * Used for checking if the QR Dialog itself is clicked or its backdrop.
+ *
+ * @param {*} rect
+ * @param {*} x
+ * @param {*} y
+ * @returns
+ */
 function containsClick(rect, x, y) {
   return (
     rect.x <= x &&
@@ -44,25 +60,10 @@ function shuffle(array) {
     [array[current], array[random]] = [array[random], array[current]];
   }
 }
-
-function setQuizState(state) {
-  document.documentElement.classList.remove("active-poll");
-  quizState = state;
-  tallySpan.hidden = true;
-  delete pollButton.dataset["state"];
-  if (state === "ACTIVE") {
-    document.documentElement.classList.add("active-poll");
-    tallySpan.hidden = false;
-    pollButton.dataset["state"] = "ACTIVE";
-    pollButton.title = l10n.evaluate;
-    pollButton.ariaLabel = l10n.evaluate;
-  } else if (state === "ERROR") {
-    connectionIndicator.classList.add("show");
-  }
-}
-
+votes;
 /**
  * Parse out a JSON object representing the quiz out of the DOM of a .quizzer div.
+ *
  * A quiz object has the following attributes:
  * - type: A string that represents the type of quiz (selection, choice, assignment or freetext)
  * - question: The question posed in the quiz to be presented to the questionee.
@@ -95,13 +96,18 @@ function setQuizState(state) {
  *
  * The question text can and should contain placeholders in the form of [#n] for freetext and
  * selection quizzes where the values of answers are inserted or where selection boxes should
- * be placed. Two lists of possible answers have to be separated by a horizontal rule (---), as
+ * be placed. If there are less placeholders than question groups they are appended at the bottom of the question.
+ * Two lists of possible answers have to be separated by a horizontal rule (---), as
  * the lists will be compacted into one if there are only empty lines separating them.
+ *
+ * Because other types of separators might be content, rules (---) have been chosen to be removed from the container.
  */
 function parseQuizzes(reveal) {
   const slides = reveal.getSlides();
+  /* For each slide of reveal ... */
   for (const slide of slides) {
     const quizzers = slide.querySelectorAll(":scope .quizzer");
+    /* ... check if there are more than one quiz on the slide and if so, replace the content of the slide with an error message ... */
     if (quizzers.length > 1) {
       const layout = slide.querySelector(":scope .layout");
       layout.innerHTML = `<div class="area">
@@ -117,7 +123,7 @@ function parseQuizzes(reveal) {
 </div>`;
       continue;
     }
-    /* For each quizzer div in the slide ... */
+    /* ... for the single quizzer on the slide ... */
     for (const quizzer of quizzers) {
       const quizObject = {
         type: undefined,
@@ -137,7 +143,7 @@ function parseQuizzes(reveal) {
       const lists = quizzer.querySelectorAll(":scope > ul");
       for (const list of lists) {
         const choiceObject = {
-          votes: 1,
+          votes: 1, // By default you have at least one vote
           options: [],
         };
         /* ... where each list item is a possible answer ... */
@@ -198,6 +204,7 @@ function parseQuizzes(reveal) {
       }
       /* Refine the quiz object for network */
       for (const choice of quizObject.choices) {
+        /* If the quiz is an assignment quiz the quiz needs categories */
         if (quizObject.type === "assignment") {
           let categories = [];
           for (const option of choice.options) {
@@ -205,10 +212,12 @@ function parseQuizzes(reveal) {
               categories.push(option.reason);
             }
           }
+          /* Remove duplicate categories: We only need one of each. */
           const uniqueCategories = categories.filter(
             (value, index, array) => array.indexOf(value) === index
           );
           const categoryObjects = [];
+          /* Each category gets a number. */
           let number = 1;
           for (const category of uniqueCategories) {
             const object = {
@@ -218,8 +227,10 @@ function parseQuizzes(reveal) {
             categoryObjects.push(object);
           }
           choice.categories = categoryObjects;
+          /* Shuffle the assignable objects so each object is not in order of their corresponding catagoery. */
           shuffle(choice.options);
         }
+        /* Assign a letter to each answer. */
         let letter = "A";
         for (const option of choice.options) {
           if (choice.categories) {
@@ -254,21 +265,15 @@ function parseQuizzes(reveal) {
   }
 }
 
+/* Assigns classes and hierarchy to every UI element and places them in the DOM */
 function createHostInterface(reveal) {
+  /* Without the bottom button anchor we quit. */
   if (!reveal.hasPlugin("ui-anchors")) {
     return;
   }
-
   const anchors = reveal.getPlugin("ui-anchors");
-  /*  qrButton.classList.add(
-    "fas",
-    "fa-qrcode",
-    "fa-button",
-    "presenter-only",
-    "during-poll",
-    "quiz-only"
-  );
-  qrButton.id = "quizzer-qr-button"; */
+
+  /* Poll Button */
   pollButton.classList.add(
     "quizzer-button",
     "fas",
@@ -277,6 +282,8 @@ function createHostInterface(reveal) {
     "presenter-only",
     "quiz-only"
   );
+
+  /* The "fullscreen" QR Dialog */
   qrDialog.classList.add("quizzer-dialog");
   qrDialog.addEventListener("click", (event) => {
     if (
@@ -296,6 +303,8 @@ function createHostInterface(reveal) {
   qrDialog.appendChild(qrCanvas);
   qrDialog.appendChild(qrLink);
   qrDialog.appendChild(qrClose);
+
+  /* The left and right QR codes, visible when a poll is active */
   qrLeftLabel.className = "hint";
   qrRightLabel.className = "hint";
   const leftWrapper = document.createElement("div");
@@ -315,41 +324,38 @@ function createHostInterface(reveal) {
   }
   document.body.appendChild(qrDialog);
 
-  /* No more QR Code Button in the Interface
-  qrButton.addEventListener("click", async (event) => {
-    const root = document.documentElement;
-    if (root.classList.contains("hide-qr")) {
-      root.classList.add("hide-qr");
-      qrButton.title = l10n.hideQRCode;
-      qrButton.ariaLabel = l10n.hideQRCode;
-    } else {
-      root.classList.remove("hide-qr");
-      qrButton.title = l10n.showQRCode;
-      qrButton.ariaLabel = l10n.showQRCode;
-    }
-  });
-  qrButton.title = l10n.hideQRCode;
-  qrButton.ariaLabel = l10n.hideQRCode;
-  */
+  /**
+   * Poll Button Functionality:
+   * First Click: Start Quiz
+   * Second Click: Request Evaluation
+   */
   pollButton.addEventListener("click", async (event) => {
-    if (!hostClient) {
-      await initializeHost();
+    /* Do nothing if disabled (custom handling because the disabled attribute is considered confusing) */
+    if (pollButton.hasAttribute("aria-disabled")) {
+      return;
     }
-    if (quizState === "READY") {
+    requireHost((host) => {
       const slide = Reveal.getCurrentSlide();
-      if (slide.quiz) {
-        currentQuiz = slide.quiz;
-        hostClient.sendQuiz(currentQuiz);
+      if (activeQuiz) {
+        host.requestEvaluation();
+        document.documentElement.classList.remove("active-poll");
+        awaitingQuiz = activeQuiz;
+        activeQuiz = null;
+        return;
       }
-      setQuizState("ACTIVE");
-    } else if (quizState === "ACTIVE") {
-      hostClient.requestEvaluation();
-      setQuizState("AWAITING_EVALUATION");
-    }
+      if (slide && slide.quiz) {
+        activeQuiz = slide.quiz;
+        document.documentElement.classList.add("active-poll");
+        host.sendQuiz(activeQuiz);
+        return;
+      }
+    });
   });
   pollButton.title = l10n.activatePoll;
 
-  tallySpan.className = "quizzer-state-info presenter-only quiz-only";
+  /* Span for ( DONE/USERS ) display */
+  tallySpan.className =
+    "quizzer-state-info presenter-only quiz-only during-poll";
 
   connectionIndicator.classList.add(
     "fas",
@@ -358,41 +364,71 @@ function createHostInterface(reveal) {
     "presenter-only",
     "quiz-only"
   );
-  connectionIndicator.title = "No Data";
+  connectionIndicator.title = l10n.uninitialized;
+  connectionIndicator.ariaLabel = l10n.uninitialized;
 
+  /* Finish by placing buttons in the UI */
   anchors.placeButton(connectionIndicator, "BOTTOM_CENTER");
-  //anchors.placeButton(qrButton, "BOTTOM_CENTER");
   anchors.placeButton(pollButton, "BOTTOM_CENTER");
   anchors.placeButton(tallySpan, "BOTTOM_CENTER");
 }
 
-function onError(error) {
-  document.documentElement.classList.remove("quiz-available");
+/**
+ * Change the connection indicator to an error state and displays a message on it.
+ */
+function displayConnectionError(message) {
   connectionIndicator.classList.remove("ok");
   connectionIndicator.classList.add("error");
-  if (error === "disconnect") {
-    connectionIndicator.title = l10n.disconnected;
-    connectionIndicator.ariaLabel = l10n.disconnected;
-  } else if (error === "connect") {
-    connectionIndicator.title = l10n.unableToConnect;
-    connectionIndicator.ariaLabel = l10n.unableToConnect;
-  } else if (error === "get session") {
-    connectionIndicator.title = l10n.unableToGetSession;
-    connectionIndicator.ariaLabel = l10n.unableToGetSession;
-  } else if (error === "not host") {
-    // wait
-  } else if (error === "unknown") {
-    connectionIndicator.title = l10n.unknownError;
-    connectionIndicator.ariaLabel = l10n.unknownError;
-  }
-  setQuizState("ERROR");
+  connectionIndicator.title = message;
+  connectionIndicator.ariaLabel = message;
+  pollButton.setAttribute("aria-disabled", true);
 }
 
-function onStateUpdate(connections, done) {
+/**
+ * Error handler of errors emitted by the client.
+ * @param {*} error The error message
+ * @param {*} details The details assigned to the error (if any)
+ */
+function onError(error, details) {
+  console.error(error, details);
+  if (error === "disconnect") {
+    // We lost an active connection to the server. We may reconnect.
+    displayConnectionError(l10n.disconnected);
+  } else if (error === "connect") {
+    // We were unable to connect to the server at all. We are probably offline.
+    displayConnectionError(l10n.unableToConnect);
+  } else if (error === "get session") {
+    // The server refused our request to a new session. This should never happen.
+    displayConnectionError(l10n.unableToGetSession);
+  } else if (error === "session lost") {
+    // If we lost the session the server has probably reset somehow.
+    // We need a new session, so we just create a new client.
+    displayConnectionError(l10n.sessionLost);
+    hostClient.destroy();
+    hostClient = null;
+  } else if (error === "server error") {
+    // The socket reported some error
+    displayConnectionError(l10n.unknownError);
+  }
+}
+
+/**
+ * Event handler for updates to the participant list.
+ * @param {*} connections Active connections.
+ * @param {*} done Given answers.
+ */
+function onParticipants(connections, done) {
   tallySpan.innerText = `${done} / ${connections}`;
 }
 
-function onConnectionUpdate(ms) {
+/**
+ * Event handler for pongs from dedicated pings.
+ * Socket.IO pings once every 25s, but the host initiates its own ping
+ * to have an estimate of latency every second.
+ * This should also result in quicker detection of connection errors.
+ * @param {*} ms
+ */
+function onPong(ms) {
   connectionIndicator.classList.remove("error");
   connectionIndicator.classList.add("ok");
   const slide = Reveal.getCurrentSlide();
@@ -401,14 +437,28 @@ function onConnectionUpdate(ms) {
   }
   connectionIndicator.title = `${l10n.latency}${ms}ms`;
   connectionIndicator.ariaLabel = `${l10n.latency}${ms}ms`;
+  pollButton.removeAttribute("aria-disabled");
 }
 
-async function initializeHost() {
-  return new Promise((resolve, reject) => {
+/**
+ * Creates a client object that hosts a quiz session.
+ * If it needs to be created, calls the callback function once the host is ready.
+ * If it already exists, simply calls the callback immediatly.
+ * @param {*} callback Function to be executed once the host has been created.
+ */
+function requireHost(callback) {
+  if (!hostClient) {
     hostClient = new Client();
+    window.Quizzer = hostClient;
+
     hostClient.on("error", onError);
-    hostClient.on("state", onStateUpdate);
-    hostClient.on("connection", onConnectionUpdate);
+
+    hostClient.on("participants", onParticipants);
+
+    hostClient.on("pong", onPong);
+
+    hostClient.on("result", displayResult);
+
     hostClient.on("ready", (session, secret) => {
       let backend = Decker.meta.quizzer?.url || "http://localhost:3000/";
       if (backend.slice(-1) !== "/") {
@@ -439,302 +489,314 @@ async function initializeHost() {
       qrLink.innerText = `${backend}${session}`;
       qrLink.target = "_blank";
       qrLink.href = `${backend}${session}`;
-      setQuizState("READY");
-      resolve();
+      callback(hostClient);
     });
-    hostClient.on("result", (result) => {
-      console.log(result);
-      quizState = "READY";
-      tallySpan.hidden = true;
-      const resultContainer = document.createElement("div");
-      const closeHint = document.createElement("p");
-      closeHint.innerText = l10n.clickToClose;
-      closeHint.className = "close-hint";
-      resultContainer.appendChild(closeHint);
-      resultContainer.classList.add("quizzer-results-container");
-      if (currentQuiz && currentQuiz.type === "choice") {
-        const entryContainer = document.createElement("div");
-        entryContainer.classList.add("quizzer-result");
-        const canvas = document.createElement("canvas");
-        entryContainer.appendChild(canvas);
-        resultContainer.appendChild(entryContainer);
-        const labels = [];
-        const values = [];
-        for (const entry of result.items) {
-          labels.push(entry.letter);
-          values.push(entry.chosen);
-        }
-        const total = values.reduce((a, b) => a + b, 0);
-        const data = values.map((a) => a / total);
-        let context = canvas.getContext("2d");
-        const chart = new Chart(context, {
-          type: "bar",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                data: data,
-                backgroundColor: "#2a9ddf",
-              },
-            ],
+  } else {
+    callback(hostClient);
+  }
+}
+
+/**
+ * Creates the result container and displays the graphs and diagrams.
+ * TODO: Send the quiz type with the result.
+ *
+ * @param {*} result The result to be rendered. Right now the quiz and result need to match.
+ * @returns
+ */
+function displayResult(result) {
+  const resultContainer = document.createElement("div");
+  const closeHint = document.createElement("p");
+  closeHint.innerText = l10n.clickToClose;
+  closeHint.className = "close-hint";
+  resultContainer.appendChild(closeHint);
+  resultContainer.classList.add("quizzer-results-container");
+  if (awaitingQuiz && awaitingQuiz.type === "choice") {
+    const entryContainer = document.createElement("div");
+    entryContainer.classList.add("quizzer-result");
+    const canvas = document.createElement("canvas");
+    entryContainer.appendChild(canvas);
+    resultContainer.appendChild(entryContainer);
+    const labels = [];
+    const values = [];
+    for (const entry of result.items) {
+      labels.push(entry.letter);
+      values.push(entry.chosen);
+    }
+    const total = values.reduce((a, b) => a + b, 0);
+    const data = values.map((a) => a / total);
+    let context = canvas.getContext("2d");
+    const chart = new Chart(context, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: "#2a9ddf",
           },
-          options: {
-            animation: {
-              duration: 3000,
-            },
-            plugins: {
-              title: { display: false },
-              legend: { display: false },
-            },
-            scales: {
-              y: {
-                min: 0,
-                max: 1,
-                ticks: { format: { style: "percent" } },
-              },
-            },
+        ],
+      },
+      options: {
+        animation: {
+          duration: 3000,
+        },
+        plugins: {
+          title: { display: false },
+          legend: { display: false },
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 1,
+            ticks: { format: { style: "percent" } },
           },
-        });
+        },
+      },
+    });
+  }
+  if (awaitingQuiz && awaitingQuiz.type === "freetext") {
+    for (const words of result.items) {
+      const entryContainer = document.createElement("div");
+      entryContainer.classList.add("quizzer-result");
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 256;
+      entryContainer.appendChild(canvas);
+      resultContainer.appendChild(entryContainer);
+      const array = [];
+      let most = 0;
+      for (const entry of words) {
+        array.push([entry.text, entry.count]);
+        most = most < entry.count ? entry.count : most;
       }
-      if (currentQuiz && currentQuiz.type === "freetext") {
-        for (const words of result.items) {
-          const entryContainer = document.createElement("div");
-          entryContainer.classList.add("quizzer-result");
-          const canvas = document.createElement("canvas");
-          canvas.width = 512;
-          canvas.height = 256;
-          entryContainer.appendChild(canvas);
-          resultContainer.appendChild(entryContainer);
-          const array = [];
-          let most = 0;
-          for (const entry of words) {
-            array.push([entry.text, entry.count]);
-            most = most < entry.count ? entry.count : most;
-          }
-          WordCloud(canvas, {
-            list: array,
-            gridSize: 8,
-            weightFactor: (size) => {
-              return (size / most) * 64;
-            },
-          });
-        }
-      }
-      if (currentQuiz && currentQuiz.type === "selection") {
-        for (const selection of result.items) {
-          const entryContainer = document.createElement("div");
-          entryContainer.classList.add("quizzer-result");
-          const canvas = document.createElement("canvas");
-          entryContainer.appendChild(canvas);
-          resultContainer.appendChild(entryContainer);
-          const labels = [];
-          const values = [];
-          for (const item of selection) {
-            labels.push(item.text);
-            values.push(item.count);
-          }
-          const total = values.reduce((a, b) => a + b, 0);
-          const data = values.map((a) => a / total);
-          let context = canvas.getContext("2d");
-          const chart = new Chart(context, {
-            type: "bar",
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  data: data,
-                  backgroundColor: "#2a9ddf",
-                },
-              ],
-            },
-            options: {
-              animation: {
-                duration: 3000,
-              },
-              plugins: {
-                title: { display: false },
-                legend: { display: false },
-              },
-              scales: {
-                y: {
-                  min: 0,
-                  max: 1,
-                  ticks: { format: { style: "percent" } },
-                },
-              },
-            },
-          });
-        }
-      }
-      if (currentQuiz && currentQuiz.type === "assignment") {
-        let total = 0;
-        for (const assignment of result.assignments) {
-          total += assignment.count;
-        }
-        if (total === 0) {
-          return;
-        }
-        const margin = { top: 16, right: 16, left: 16, bottom: 16 };
-        const width = 800 - margin.left - margin.right;
-        const height = 600 - margin.top - margin.bottom;
-        const color = d3.scaleOrdinal(d3.schemeCategory10);
-        const generator = d3
-          .sankey()
-          .nodeWidth(24)
-          .nodePadding(32)
-          .size([width, height]);
-        const svg = d3
-          .select(resultContainer)
-          .append("svg")
-          .attr("class", "quizzer-result")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-          .append("g")
-          .attr(
-            "transform",
-            "translate(" + margin.left + "," + margin.top + ")"
-          );
-        const nodes = [];
-        const links = [];
-        const choice = currentQuiz.choices[0];
-        const options = choice.options;
-        const categories = choice.categories;
-        for (const option of options) {
-          const node = {
-            node: nodes.length,
-            name: option.letter,
-          };
-          nodes.push(node);
-        }
-        for (const category of categories) {
-          const node = {
-            node: nodes.length,
-            name: String(category.number),
-          };
-          nodes.push(node);
-        }
-        nodes.push({ node: nodes.length, name: "0" });
-        for (const assignment of result.assignments) {
-          const source = nodes.find((node) => node.name === assignment.letter);
-          const target = nodes.find(
-            (node) => node.name === String(assignment.number)
-          );
-          if (source && target) {
-            const link = {
-              source: source.node,
-              target: target.node,
-              value: assignment.count,
-            };
-            links.push(link);
-          }
-        }
-        console.log(nodes);
-        console.log(links);
-        const json = { nodes: nodes, links: links };
-        generator.extent([
-          [16, 16],
-          [width - 32, height - 32],
-        ]);
-        var graph = generator(json);
-        var link = svg
-          .append("g")
-          .selectAll(".link")
-          .data(graph.links)
-          .enter()
-          .append("path")
-          .attr("class", "link")
-          .attr("d", d3.sankeyLinkHorizontal())
-          .style("stroke-width", (d) => d.width)
-          .sort(function (a, b) {
-            return b.y1 - b.y0 - (a.y1 - a.y0);
-          });
-
-        // add in the nodes
-        var node = svg
-          .append("g")
-          .selectAll(".node")
-          .data(graph.nodes)
-          .enter()
-          .append("g")
-          .attr("class", "node")
-          .call(
-            d3
-              .drag()
-              .subject(function (d) {
-                return d;
-              })
-              .on("start", function () {
-                this.parentNode.appendChild(this);
-              })
-              .on("drag", dragmove)
-          );
-
-        // add the rectangles for the nodes
-        node
-          .append("rect")
-          .attr("x", (d) => d.x0)
-          .attr("y", (d) => d.y0)
-          .attr("height", (d) => d.y1 - d.y0)
-          .attr("width", generator.nodeWidth())
-          .style("fill", function (d) {
-            return (d.color = color(d.name.replace(/ .*/, "")));
-          })
-          .style("stroke", function (d) {
-            return d3.rgb(d.color).darker(2);
-          })
-          // Add hover text
-          .append("title")
-          .text(function (d) {
-            return d.name + "\n" + d.value;
-          });
-
-        // add in the title for the nodes
-        node
-          .append("text")
-          .attr("x", (d) => {
-            if (!isNaN(parseInt(d.name))) {
-              return d.x1 + 32;
-            } else {
-              return d.x1 - 32;
-            }
-          })
-          .attr("y", function (d) {
-            return d.y0 + (d.y1 - d.y0) / 2;
-          })
-          .attr("dy", ".35em")
-          .attr("text-anchor", "end")
-          .attr("transform", null)
-          .text(function (d) {
-            return d.name === "0" ? "N/A" : d.name;
-          })
-          .filter(function (d) {
-            return d.x < width / 2;
-          })
-          .attr("x", 6 + generator.nodeWidth())
-          .attr("text-anchor", "start");
-
-        // the function for moving the nodes
-        function dragmove(d) {
-          d3.select(this).attr(
-            "transform",
-            "translate(" +
-              d.x +
-              "," +
-              (d.y = Math.max(0, Math.min(height - d.dy, e.y))) +
-              ")"
-          );
-          generator.relayout();
-          link.attr("d", d3.sankeyLinkHorizontal());
-        }
-      }
-      document.body.appendChild(resultContainer);
-      resultContainer.addEventListener("click", () => {
-        resultContainer.remove();
+      WordCloud(canvas, {
+        list: array,
+        gridSize: 8,
+        weightFactor: (size) => {
+          return (size / most) * 64;
+        },
       });
-    });
+    }
+  }
+  if (awaitingQuiz && awaitingQuiz.type === "selection") {
+    for (const selection of result.items) {
+      const entryContainer = document.createElement("div");
+      entryContainer.classList.add("quizzer-result");
+      const canvas = document.createElement("canvas");
+      entryContainer.appendChild(canvas);
+      resultContainer.appendChild(entryContainer);
+      const labels = [];
+      const values = [];
+      for (const item of selection) {
+        labels.push(item.text);
+        values.push(item.count);
+      }
+      const total = values.reduce((a, b) => a + b, 0);
+      const data = values.map((a) => a / total);
+      let context = canvas.getContext("2d");
+      const chart = new Chart(context, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              data: data,
+              backgroundColor: "#2a9ddf",
+            },
+          ],
+        },
+        options: {
+          animation: {
+            duration: 3000,
+          },
+          plugins: {
+            title: { display: false },
+            legend: { display: false },
+          },
+          scales: {
+            y: {
+              min: 0,
+              max: 1,
+              ticks: { format: { style: "percent" } },
+            },
+          },
+        },
+      });
+    }
+  }
+  /**
+   * Creates the assignment quiz sankey diagram. The code is very ugly because the creation of the diagram
+   * is extremely fiddly with d3sankey.
+   */
+  if (awaitingQuiz && awaitingQuiz.type === "assignment") {
+    let total = 0;
+    for (const assignment of result.assignments) {
+      total += assignment.count;
+    }
+    if (total === 0) {
+      return;
+    }
+    const margin = { top: 16, right: 16, left: 16, bottom: 16 };
+    const width = 800 - margin.left - margin.right;
+    const height = 600 - margin.top - margin.bottom;
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+    const generator = d3
+      .sankey()
+      .nodeWidth(24)
+      .nodePadding(32)
+      .size([width, height]);
+    const svg = d3
+      .select(resultContainer)
+      .append("svg")
+      .attr("class", "quizzer-result")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    const nodes = [];
+    const links = [];
+    const choice = awaitingQuiz.choices[0];
+    const options = choice.options;
+    const categories = choice.categories;
+    for (const option of options) {
+      const node = {
+        node: nodes.length,
+        name: option.letter,
+      };
+      nodes.push(node);
+    }
+    for (const category of categories) {
+      const node = {
+        node: nodes.length,
+        name: String(category.number),
+      };
+      nodes.push(node);
+    }
+    nodes.push({ node: nodes.length, name: "0" });
+    for (const assignment of result.assignments) {
+      const source = nodes.find((node) => node.name === assignment.letter);
+      const target = nodes.find(
+        (node) => node.name === String(assignment.number)
+      );
+      if (source && target) {
+        const link = {
+          source: source.node,
+          target: target.node,
+          value: assignment.count,
+        };
+        links.push(link);
+      }
+    }
+    const json = { nodes: nodes, links: links };
+    generator.extent([
+      [16, 16],
+      [width - 32, height - 32],
+    ]);
+    var graph = generator(json);
+    var link = svg
+      .append("g")
+      .selectAll(".link")
+      .data(graph.links)
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .style("stroke-width", (d) => d.width)
+      .sort(function (a, b) {
+        return b.y1 - b.y0 - (a.y1 - a.y0);
+      });
+
+    // add in the nodes
+    var node = svg
+      .append("g")
+      .selectAll(".node")
+      .data(graph.nodes)
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .call(
+        d3
+          .drag()
+          .subject(function (d) {
+            return d;
+          })
+          .on("start", function () {
+            this.parentNode.appendChild(this);
+          })
+          .on("drag", dragmove)
+      );
+
+    // add the rectangles for the nodes
+    node
+      .append("rect")
+      .attr("x", (d) => d.x0)
+      .attr("y", (d) => d.y0)
+      .attr("height", (d) => d.y1 - d.y0)
+      .attr("width", generator.nodeWidth())
+      .style("fill", function (d) {
+        return (d.color = color(d.name.replace(/ .*/, "")));
+      })
+      .style("stroke", function (d) {
+        return d3.rgb(d.color).darker(2);
+      })
+      // Add hover text
+      .append("title")
+      .text(function (d) {
+        return d.name + "\n" + d.value;
+      });
+
+    // add in the title for the nodes
+    node
+      .append("text")
+      .attr("x", (d) => {
+        if (!isNaN(parseInt(d.name))) {
+          return d.x1 + 32;
+        } else {
+          return d.x1 - 32;
+        }
+      })
+      .attr("y", function (d) {
+        return d.y0 + (d.y1 - d.y0) / 2;
+      })
+      .attr("dy", ".35em")
+      .attr("text-anchor", "end")
+      .attr("transform", null)
+      .text(function (d) {
+        return d.name === "0" ? "N/A" : d.name;
+      })
+      .filter(function (d) {
+        return d.x < width / 2;
+      })
+      .attr("x", 6 + generator.nodeWidth())
+      .attr("text-anchor", "start");
+
+    // the function for moving the nodes
+    function dragmove(d) {
+      d3.select(this).attr(
+        "transform",
+        "translate(" +
+          d.x +
+          "," +
+          (d.y = Math.max(0, Math.min(height - d.dy, e.y))) +
+          ")"
+      );
+      generator.relayout();
+      link.attr("d", d3.sankeyLinkHorizontal());
+    }
+  }
+  document.body.appendChild(resultContainer);
+  resultContainer.addEventListener("click", () => {
+    resultContainer.remove();
   });
 }
 
+/**
+ * Switches visibility of the quiz interface based on if the current slide
+ * has a quiz. If presenter mode is off, all ui elements should have a
+ * "presenter-only" class to hide them anyway.
+ * Triggered by onSlideChanged or onPresenterMode
+ * @returns
+ */
 async function toggleInterface() {
   const slide = Reveal.getCurrentSlide();
   /* No Quizzes on current slide: Hide interface. */
@@ -743,26 +805,24 @@ async function toggleInterface() {
     return;
   }
   document.documentElement.classList.add("quiz-available");
-  if (!hostClient) {
-    try {
-      await initializeHost();
-    } catch (error) {
-      return;
-    }
-  }
-  if (quizState === "ACTIVE") {
-    hostClient.requestEvaluation();
-    setQuizState("AWAITING_EVALUATION");
-  }
-  tallySpan.innerText = "";
 }
 
+/**
+ * When turning on presenter mode, check if there are quizzes available.
+ * @param {*} active
+ */
 async function onPresenterMode(active) {
   if (active) {
     toggleInterface();
   }
 }
 
+/**
+ * When the current slide changes, check if the new slide has a quiz.
+ * Also end current quiz if there is one running.
+ * @param {*} event
+ * @returns
+ */
 async function onSlideChange(event) {
   resetAssignmentState();
   if (!Decker.isPresenterMode()) {
@@ -771,6 +831,15 @@ async function onSlideChange(event) {
   if (!event.currentSlide) {
     return;
   }
+  requireHost((host) => {
+    if (activeQuiz) {
+      host.requestEvaluation();
+      document.documentElement.classList.remove("active-poll");
+      awaitingQuiz = activeQuiz;
+      activeQuiz = null;
+      tallySpan.innerText = "";
+    }
+  });
   toggleInterface();
 }
 
