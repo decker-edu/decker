@@ -241,6 +241,7 @@ const Plugin = {
         menuOptions: {
           settings: {
             explorer: a11y, //if in a11y page mode: active by default
+            inTabOrder: true,
           },
         },
         a11y: {
