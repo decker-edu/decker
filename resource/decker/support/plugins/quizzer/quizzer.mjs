@@ -60,7 +60,7 @@ function shuffle(array) {
     [array[current], array[random]] = [array[random], array[current]];
   }
 }
-votes;
+
 /**
  * Parse out a JSON object representing the quiz out of the DOM of a .quizzer div.
  *
