@@ -1,6 +1,4 @@
 .quizzer {
-  border: 2px solid var(--shade2);
-  border-radius: 0.25rem;
   padding: 1rem;
 }
 
@@ -83,6 +81,10 @@
   transform: translateX(-50%) translateY(105%);
 }
 
+.solution-popover[hidden] {
+  display: none !important;
+}
+
 :root.active-poll .quizzer-button {
   color: var(--color-success);
 }
@@ -120,8 +122,8 @@
 
 .quizzer .checkmark {
   position: absolute;
-  bottom: 0.25rem;
-  right: 0.25rem;
+  bottom: 0.33rem;
+  right: 0.1rem;
   font-size: 1rem;
 }
 

@@ -49,7 +49,7 @@ function createQuizContainer() {
   const questionContainer = document.createElement("div");
   questionContainer.className = "question-container";
 
-  const questionParagraph = document.createElement("p");
+  const questionParagraph = document.createElement("div");
   questionParagraph.className = "question-paragraph";
   questionContainer.appendChild(questionParagraph);
 
@@ -379,7 +379,6 @@ export default {
 
     const split = quiz.question.split(/(\[#[0-9]+\])/g);
     for (const token of split) {
-      console.log(token);
       if (token === "") {
         continue; // Skip empty tokens.
       }
@@ -402,13 +401,9 @@ export default {
       } else {
         // If not, add the token as plain text.
         const span = document.createElement("span");
-        if (token.startsWith("<p>")) {
-          span.innerHTML = token.split("<p>").pop();
-        } else if (token.endsWith("</p>")) {
-          span.innerHTML = token.split("</p>").shift();
-        } else {
-          span.innerHTML = token;
-        }
+        let text = token.replace(/<p>/g, "");
+        text = text.replace(/<\/p>/g, "");
+        span.innerHTML = text;
         container.question.appendChild(span);
       }
     }
@@ -534,7 +529,9 @@ export default {
       button.addEventListener(
         "click",
         (event) => {
-          popover.innerHTML = option.reason;
+          if (option.reason) {
+            popover.innerHTML = option.reason;
+          }
           if (option.correct) {
             button.classList.add("correct");
             const checkmark = document.createElement("span");

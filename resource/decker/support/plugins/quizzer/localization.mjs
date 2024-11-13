@@ -66,7 +66,8 @@ const english = {
 };
 
 export default function localization() {
-  if (navigator.language === "de") {
+  const lang = Decker.meta.lang || navigator.language;
+  if (lang === "de") {
     return german;
   } else {
     return english;

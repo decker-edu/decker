@@ -440,6 +440,8 @@ function onPong(ms) {
   pollButton.removeAttribute("aria-disabled");
 }
 
+const hostCallbacks = [];
+
 /**
  * Creates a client object that hosts a quiz session.
  * If it needs to be created, calls the callback function once the host is ready.
@@ -448,6 +450,7 @@ function onPong(ms) {
  */
 function requireHost(callback) {
   if (!hostClient) {
+    hostCallbacks.push(callback);
     hostClient = new Client();
     window.Quizzer = hostClient;
 
@@ -489,7 +492,10 @@ function requireHost(callback) {
       qrLink.innerText = `${backend}${session}`;
       qrLink.target = "_blank";
       qrLink.href = `${backend}${session}`;
-      callback(hostClient);
+      while (hostCallbacks.length > 0) {
+        const callback = hostCallbacks.shift();
+        callback();
+      }
     });
   } else {
     callback(hostClient);
@@ -559,8 +565,8 @@ function displayResult(result) {
       const entryContainer = document.createElement("div");
       entryContainer.classList.add("quizzer-result");
       const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 256;
+      canvas.width = 1024;
+      canvas.height = 512;
       entryContainer.appendChild(canvas);
       resultContainer.appendChild(entryContainer);
       const array = [];
@@ -571,7 +577,7 @@ function displayResult(result) {
       }
       WordCloud(canvas, {
         list: array,
-        gridSize: 8,
+        gridSize: 4,
         weightFactor: (size) => {
           return (size / most) * 64;
         },
@@ -804,6 +810,7 @@ async function toggleInterface() {
     document.documentElement.classList.remove("quiz-available");
     return;
   }
+  requireHost();
   document.documentElement.classList.add("quiz-available");
 }
 

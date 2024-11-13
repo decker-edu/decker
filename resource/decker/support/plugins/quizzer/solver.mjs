@@ -1,3 +1,7 @@
+import localization from "./localization.mjs";
+
+const l10n = localization();
+
 export function solveFreeTextQuiz(replacers, quiz) {
   for (const input of replacers) {
     const wrapper = input.closest(".input-wrapper");
@@ -9,15 +13,29 @@ export function solveFreeTextQuiz(replacers, quiz) {
     }
     wrapper.classList.add("wrong");
     checkmark.classList.add("fa-times");
+    input.setAttribute("aria-description", l10n.wrong);
     const number = input.dataset["number"];
     const choices = quiz.choices[Number.parseInt(number) - 1];
     for (const option of choices.options) {
-      if (option.label === input.value && option.correct === true) {
-        wrapper.classList.remove("wrong");
-        wrapper.classList.add("correct");
-        checkmark.classList.remove("fa-times");
-        checkmark.classList.add("fa-check");
-        break;
+      if (option.label === input.value) {
+        if (option.correct === true) {
+          wrapper.classList.remove("wrong");
+          wrapper.classList.add("correct");
+          checkmark.classList.remove("fa-times");
+          checkmark.classList.add("fa-check");
+          if (option.reason) {
+            input.setAttribute(
+              "aria-description",
+              l10n.correct + " " + option.reason
+            );
+          }
+          break;
+        } else if (option.reason) {
+          input.setAttribute(
+            "aria-description",
+            l10n.wrong + " " + option.reason
+          );
+        }
       }
     }
   }
@@ -63,7 +81,22 @@ export function solveSelection(selection) {
 
   const item = selection.options[selection.selectedIndex];
   const popover = wrapper.querySelector(".solution-popover");
-  popover.innerText = item.reason;
+  if (item.reason) {
+    popover.hidden = false;
+    popover.innerText = item.reason;
+    selection.setAttribute(
+      "aria-description",
+      item.correct
+        ? l10n.correct + " " + item.reason
+        : l10n.wrong + " " + item.reason
+    );
+  } else {
+    popover.hidden = true;
+    selection.setAttribute(
+      "aria-description",
+      item.correct ? l10n.correct : l10n.wrong
+    );
+  }
   if (item.correct) {
     wrapper.classList.remove("wrong");
     wrapper.classList.add("correct");
