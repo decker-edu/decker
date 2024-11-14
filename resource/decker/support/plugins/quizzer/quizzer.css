@@ -62,14 +62,13 @@
   display: block;
 }
 
-:is(.correct, .wrong):focus .solution-popover {
+:is(.correct, .wrong):focus-visible .solution-popover {
   display: block;
 }
 
 .solution-popover {
   display: none;
   z-index: 1024;
-  color: var(--color-info);
   background-color: var(--shade1);
   padding: 0.5rem;
   border: 1px solid var(--shade2);
@@ -359,7 +358,7 @@ button[hidden] {
 .quizzer-dialog a {
   background-color: var(--dialog-background);
   color: var(--accent5);
-  font-size: 2rem;
+  font-size: 3rem;
   padding: 1rem;
   border-radius: 1rem;
 }

@@ -141,6 +141,7 @@ function parseQuizzes(reveal) {
       }
       /* ... interpret each list in the container as a choice object ... */
       const lists = quizzer.querySelectorAll(":scope > ul");
+      console.log(lists);
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
@@ -300,6 +301,7 @@ function createHostInterface(reveal) {
   qrClose.addEventListener("click", (event) => {
     qrDialog.close();
   });
+
   qrDialog.appendChild(qrCanvas);
   qrDialog.appendChild(qrLink);
   qrDialog.appendChild(qrClose);
@@ -489,7 +491,7 @@ function requireHost(callback) {
       }
       qrLeftLabel.innerText = session;
       qrRightLabel.innerText = session;
-      qrLink.innerText = `${backend}${session}`;
+      qrLink.innerHTML = `${backend}&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;ID: ${session}`;
       qrLink.target = "_blank";
       qrLink.href = `${backend}${session}`;
       while (hostCallbacks.length > 0) {
@@ -565,8 +567,6 @@ function displayResult(result) {
       const entryContainer = document.createElement("div");
       entryContainer.classList.add("quizzer-result");
       const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 512;
       entryContainer.appendChild(canvas);
       resultContainer.appendChild(entryContainer);
       const array = [];
