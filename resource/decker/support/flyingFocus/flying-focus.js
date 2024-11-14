@@ -35,6 +35,15 @@ export function showFlyingFocus(event) {
   }
   target = event.target;
 
+  // Navigate to the slide the focus target is located in if not in handout mode
+  if (!document.documentElement.classList.contains("handout")) {
+    const section = target.closest("section");
+    if (section && !section.classList.contains("present")) {
+      const index = window.Reveal.getIndices(section);
+      window.Reveal.slide(index.h, index.v);
+    }
+  }
+
   // set new position of flying focus
   Object.assign(flyingFocus.style, rectOf(target));
 

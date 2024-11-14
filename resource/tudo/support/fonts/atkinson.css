@@ -1,0 +1,35 @@
+@font-face {
+  font-family: "Atkinson";
+  src: url("AtkinsonHyperlegible-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: bold;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Atkinson";
+  src: url("AtkinsonHyperlegible-BoldItalic.ttf") format("truetype");
+  font-style: italic;
+  font-weight: bold;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Atkinson";
+  src: url("AtkinsonHyperlegible-Italic.ttf") format("truetype");
+  font-style: italic;
+  font-weight: normal;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Atkinson";
+  src: url("AtkinsonHyperlegible-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: "Atkinson", sans-serif;
+}

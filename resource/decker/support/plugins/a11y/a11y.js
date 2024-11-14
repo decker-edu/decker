@@ -27,7 +27,7 @@ function addScreenReaderSlideNumbers() {
 
 function addScreenReaderSlideNumber(slide, h, v) {
   const header = slide.querySelector("h1");
-  if (header) {
+  if (header && header.textContent.trim() !== "") {
     const innerHTML = header.innerHTML;
     const replacementHTML = `<span class="sr-only">${localization.slide} ${
       h + 1
@@ -95,7 +95,7 @@ function addCustomSpacebarHandler() {
   }
 }
 
-function toggleA11YMode() {
+function toggleAccessibility() {
   a11yMode = !a11yMode;
 
   if (a11yMode) {
@@ -111,6 +111,15 @@ function toggleA11YMode() {
       modifyMedia(audio);
     }
     Decker.flash.message(localization.accessible_colors_on);
+    if (window.MathJax) {
+      window.MathJax.startup.document.options.enableMenu = true;
+      window.MathJax.startup.document.menu.menu
+        .findID("Accessibility", "Activate")
+        .variable.setter(true);
+      window.MathJax.startup.document.menu.loadingPromise.then(() => {
+        window.MathJax.startup.document.rerender();
+      });
+    }
   } else {
     pluginButton.ariaPressed = false;
     pluginButton.setLabel(localization.activate_accessibility);
@@ -124,6 +133,16 @@ function toggleA11YMode() {
       restoreMedia(audio);
     }
     Decker.flash.message(localization.accessible_colors_off);
+    if (window.MathJax) {
+      // Does it make sense to remove this again if once activated?
+      window.MathJax.startup.document.options.enableMenu = false;
+      window.MathJax.startup.document.menu.menu
+        .findID("Accessibility", "Activate")
+        .variable.setter(false);
+      window.MathJax.startup.document.menu.loadingPromise.then(() => {
+        window.MathJax.startup.document.rerender();
+      });
+    }
   }
 }
 
@@ -162,9 +181,7 @@ const Plugin = {
         description: "Toggle Decker Accessibility Adjustments (Triple Click)",
       },
 
-      Decker.tripleClick(() => {
-        toggleA11YMode();
-      })
+      Decker.tripleClick(toggleAccessibility)
     );
     reveal.addEventListener("ready", () => {
       const menuPlugin = reveal.getPlugin("decker-menu");
@@ -173,13 +190,13 @@ const Plugin = {
           "decker-menu-a11y-button",
           "fa-universal-access",
           localization.activate_accessibility,
-          toggleA11YMode
+          toggleAccessibility
         );
       }
     });
     if (a11y) {
       Reveal.addEventListener("ready", () => {
-        toggleA11YMode();
+        toggleAccessibility();
       });
     }
   },

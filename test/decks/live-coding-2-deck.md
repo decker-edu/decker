@@ -2,6 +2,8 @@
 lang: en-EN
 subtitle: Edit and Execute Code Blocks
 title: Live Coding (with fragment templates)
+experiments:
+    fragment-templates: true
 ---
 
 # Live Coding in Code Blocks {.columns}
