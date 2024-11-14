@@ -452,7 +452,7 @@ const hostCallbacks = [];
  */
 function requireHost(callback) {
   if (!hostClient) {
-    hostCallbacks.push(callback);
+    if (callback) hostCallbacks.push(callback);
     hostClient = new Client();
     window.Quizzer = hostClient;
 
@@ -500,7 +500,7 @@ function requireHost(callback) {
       }
     });
   } else {
-    callback(hostClient);
+    if (callback) callback(hostClient);
   }
 }
 
@@ -567,6 +567,8 @@ function displayResult(result) {
       const entryContainer = document.createElement("div");
       entryContainer.classList.add("quizzer-result");
       const canvas = document.createElement("canvas");
+      canvas.width = 1024;
+      canvas.height = 512;
       entryContainer.appendChild(canvas);
       resultContainer.appendChild(entryContainer);
       const array = [];
