@@ -140,8 +140,9 @@ function parseQuizzes(reveal) {
         quizObject.type = "choice";
       }
       /* ... interpret each list in the container as a choice object ... */
-      const lists = quizzer.querySelectorAll(":scope > ul");
-      // console.log(lists);
+      // const lists = quizzer.querySelectorAll(":scope > ul");
+      const lists = quizzer.querySelectorAll(":scope ul.task-list");
+      console.log(lists);
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
