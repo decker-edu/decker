@@ -259,8 +259,11 @@
 }
 
 .category > span {
-  font-weight: bold;
   grid-area: label;
+  font-weight: normal;
+  & > span {
+    font-weight: bold;
+  }
 }
 
 .quizzer .category .answer.selected {
@@ -395,45 +398,72 @@ button[hidden] {
   flex-direction: row;
   justify-content: center;
 
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  bottom: auto;
+  right: auto;
+  transform: translate(-50%, -50%);
+
+  width: 50vw;
+  height: 25vw;
+  min-width: 200px;
+  min-height: 100px;
+
   z-index: 1024;
 
   background-color: var(--background-color);
   box-shadow: 2px 2px 2px var(--foreground-color);
-
-  position: fixed;
-  border-radius: 1rem;
   border: 2px solid var(--accent5);
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80vw;
-  padding: 0.5rem;
+
+  resize: both;
+  overflow: hidden;
+  border-radius: 0;
+
+  gap: 5%;
+  padding: 3%;
 }
 
-.quizzer-results-container .close-hint {
+.quizzer-results-container .close-button {
   position: absolute;
-  cursor: pointer;
+  top: 0;
+  right: 0;
+  background-color: transparent;
+  color: var(--icon-inactive-color);
+  &:hover {
+    color: var(--icon-hover-color);
+  }
+}
 
-  border: 1px solid var(--foreground-color);
-  border-radius: 0.5em;
-  padding: 0.5em;
-  background-color: var(--background-color);
-  color: var(--shade3);
-
-  top: -1.5em;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1rem;
-  z-index: 16;
+.quizzer-results-container .drag-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: transparent;
+  color: var(--icon-inactive-color);
+  &:hover {
+    color: var(--icon-hover-color);
+  }
 }
 
 .quizzer-result {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
   text-align: center;
+  flex: 1 1 0;
 }
 
-.quizzer-result:has(canvas) {
-  flex: 1 0 0;
+/* .quizzer-result:has(canvas) {
+  flex: 1 1 0;
+} */
+
+.quizzer-result > canvas {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .quizzer-assignment-result span {

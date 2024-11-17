@@ -141,7 +141,7 @@ function parseQuizzes(reveal) {
       }
       /* ... interpret each list in the container as a choice object ... */
       const lists = quizzer.querySelectorAll(":scope > ul");
-      console.log(lists);
+      // console.log(lists);
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
@@ -513,10 +513,60 @@ function requireHost(callback) {
  */
 function displayResult(result) {
   const resultContainer = document.createElement("div");
-  const closeHint = document.createElement("p");
-  closeHint.innerText = l10n.clickToClose;
-  closeHint.className = "close-hint";
-  resultContainer.appendChild(closeHint);
+
+  // close on slide change
+  Reveal.addEventListener("slidechanged", () => {
+    resultContainer.remove();
+  });
+
+  // close button
+  const closeButton = document.createElement("button");
+  closeButton.title = l10n.clickToClose;
+  closeButton.className = "close-button fa-button fas fa-times-circle";
+  resultContainer.appendChild(closeButton);
+  closeButton.addEventListener("click", () => {
+    resultContainer.remove();
+  });
+
+  // drag button
+  // const dragButton = document.createElement("button");
+  // dragButton.className = "drag-button fa-button fas fa-up-down-left-right";
+  // resultContainer.appendChild(dragButton);
+
+  // handle mouse translation
+  resultContainer.dragging = false;
+  resultContainer.dx = 0.0;
+  resultContainer.dy = 0.0;
+  resultContainer.onmousedown = (e) => {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    const w = resultContainer.clientWidth;
+    const h = resultContainer.clientHeight;
+    const o = 20;
+    if (x < w - o && y < h - o) {
+      resultContainer.dragging = true;
+      resultContainer.style.cursor = "move";
+      resultContainer.lastX = e.screenX;
+      resultContainer.lastY = e.screenY;
+    }
+  };
+  resultContainer.onmousemove = (e) => {
+    if (resultContainer.dragging) {
+      const x = e.screenX;
+      const y = e.screenY;
+      resultContainer.dx += x - resultContainer.lastX;
+      resultContainer.dy += y - resultContainer.lastY;
+      resultContainer.lastX = x;
+      resultContainer.lastY = y;
+      resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
+      // resultContainer.style.transform = `translate(${resultContainer.dx}px, ${resultContainer.dy}px)`;
+    }
+  };
+  resultContainer.onmouseup = (e) => {
+    resultContainer.style.cursor = "inherit";
+    resultContainer.dragging = false;
+  };
+
   resultContainer.classList.add("quizzer-results-container");
   if (awaitingQuiz && awaitingQuiz.type === "choice") {
     const entryContainer = document.createElement("div");
@@ -792,10 +842,8 @@ function displayResult(result) {
       link.attr("d", d3.sankeyLinkHorizontal());
     }
   }
+
   document.body.appendChild(resultContainer);
-  resultContainer.addEventListener("click", () => {
-    resultContainer.remove();
-  });
 }
 
 /**
