@@ -528,11 +528,6 @@ function displayResult(result) {
     resultContainer.remove();
   });
 
-  // drag button
-  // const dragButton = document.createElement("button");
-  // dragButton.className = "drag-button fa-button fas fa-up-down-left-right";
-  // resultContainer.appendChild(dragButton);
-
   // handle mouse translation
   resultContainer.dragging = false;
   resultContainer.dx = 0.0;
@@ -559,7 +554,6 @@ function displayResult(result) {
       resultContainer.lastX = x;
       resultContainer.lastY = y;
       resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
-      // resultContainer.style.transform = `translate(${resultContainer.dx}px, ${resultContainer.dy}px)`;
     }
   };
   resultContainer.onmouseup = (e) => {
