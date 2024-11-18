@@ -1,4 +1,4 @@
-import Client, { ClientStates } from "./client.mjs";
+import Client from "./client.mjs";
 import Renderer, { resetAssignmentState } from "./renderer.mjs";
 import bwip from "../examiner/bwip.js";
 import "../../vendor/d3.v6.min.js";
@@ -11,6 +11,7 @@ let Reveal;
 let hostClient = undefined;
 let activeQuiz = undefined;
 let awaitingQuiz = undefined;
+let resultsAvailable = false;
 
 /*
  * UI Elements, pre initialized
@@ -32,6 +33,12 @@ let qrLeftLabel = document.createElement("span");
 let qrRightLabel = document.createElement("span");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
+
+/* Results */
+
+let resultDialog = document.createElement("dialog");
+let resultContainer = document.createElement("div");
+let closeHint = document.createElement("span");
 
 /**
  * Checks if the given rect contains the given (x,y) coordinate.
@@ -141,7 +148,6 @@ function parseQuizzes(reveal) {
       }
       /* ... interpret each list in the container as a choice object ... */
       const lists = quizzer.querySelectorAll(":scope > ul");
-      console.log(lists);
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
@@ -338,18 +344,19 @@ function createHostInterface(reveal) {
     }
     requireHost((host) => {
       const slide = Reveal.getCurrentSlide();
-      if (activeQuiz) {
+      if (resultsAvailable) {
+        showResults();
+      } else if (activeQuiz) {
         host.requestEvaluation();
         document.documentElement.classList.remove("active-poll");
         awaitingQuiz = activeQuiz;
         activeQuiz = null;
-        return;
-      }
-      if (slide && slide.quiz) {
+      } else if (slide && slide.quiz) {
         activeQuiz = slide.quiz;
         document.documentElement.classList.add("active-poll");
+        pollButton.title = l10n.evaluate;
+        pollButton.ariaLabel = l10n.evaluate;
         host.sendQuiz(activeQuiz);
-        return;
       }
     });
   });
@@ -368,6 +375,16 @@ function createHostInterface(reveal) {
   );
   connectionIndicator.title = l10n.uninitialized;
   connectionIndicator.ariaLabel = l10n.uninitialized;
+
+  closeHint.innerText = l10n.clickToClose;
+  closeHint.className = "close-hint";
+  resultContainer.classList.add("quizzer-results-container");
+
+  resultDialog.classList.add("quizzer-result-dialog");
+  resultDialog.appendChild(closeHint);
+  resultDialog.appendChild(resultContainer);
+  resultDialog.addEventListener("click", hideResults);
+  document.body.appendChild(resultDialog);
 
   /* Finish by placing buttons in the UI */
   anchors.placeButton(connectionIndicator, "BOTTOM_CENTER");
@@ -462,7 +479,7 @@ function requireHost(callback) {
 
     hostClient.on("pong", onPong);
 
-    hostClient.on("result", displayResult);
+    hostClient.on("result", renderResult);
 
     hostClient.on("ready", (session, secret) => {
       let backend = Decker.meta.quizzer?.url || "http://localhost:3000/";
@@ -511,13 +528,12 @@ function requireHost(callback) {
  * @param {*} result The result to be rendered. Right now the quiz and result need to match.
  * @returns
  */
-function displayResult(result) {
-  const resultContainer = document.createElement("div");
-  const closeHint = document.createElement("p");
-  closeHint.innerText = l10n.clickToClose;
-  closeHint.className = "close-hint";
-  resultContainer.appendChild(closeHint);
-  resultContainer.classList.add("quizzer-results-container");
+function renderResult(result) {
+  pollButton.title = l10n.showResults;
+  pollButton.ariaLabel = l10n.showResults;
+  while (resultContainer.firstElementChild) {
+    resultContainer.firstElementChild.remove();
+  }
   if (awaitingQuiz && awaitingQuiz.type === "choice") {
     const entryContainer = document.createElement("div");
     entryContainer.classList.add("quizzer-result");
@@ -792,10 +808,17 @@ function displayResult(result) {
       link.attr("d", d3.sankeyLinkHorizontal());
     }
   }
-  document.body.appendChild(resultContainer);
-  resultContainer.addEventListener("click", () => {
-    resultContainer.remove();
-  });
+  resultsAvailable = true;
+  document.documentElement.classList.add("results-available");
+  showResults();
+}
+
+function showResults() {
+  resultDialog.showModal();
+}
+
+function hideResults() {
+  resultDialog.close();
 }
 
 /**
@@ -834,6 +857,10 @@ async function onPresenterMode(active) {
  */
 async function onSlideChange(event) {
   resetAssignmentState();
+  resultsAvailable = false;
+  document.documentElement.classList.remove("results-available");
+  pollButton.title = l10n.activatePoll;
+  pollButton.ariaLabel = l10n.activatePoll;
   if (!Decker.isPresenterMode()) {
     return;
   }

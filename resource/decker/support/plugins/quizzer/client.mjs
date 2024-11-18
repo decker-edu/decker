@@ -1,16 +1,6 @@
 import { io } from "./libraries/socket.io/socket.io.esm.min.js";
 
-export const ClientStates = Object.freeze({
-  UNINITIALIZED: Symbol("uninitialized"),
-  CONNECTED: Symbol("connected"),
-  OFFLINE: Symbol("offline"),
-  HOSTING: Symbol("hosting"),
-  ACTIVE: Symbol("active"),
-  AWAITING_RESULTS: Symbol("awaiting_results"),
-});
-
 export default class Client {
-  state = ClientStates.UNINITIALIZED;
   events = ["error", "ready", "result", "participants", "state", "pong"];
 
   readyCallbacks = [];
@@ -115,7 +105,7 @@ export default class Client {
       try {
         await this.acquireNewSession();
       } catch (error) {
-        console.log(error);
+        console.error(error);
         for (const ecb of this.errorCallbacks) {
           ecb("get session");
         }
