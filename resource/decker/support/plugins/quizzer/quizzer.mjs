@@ -33,6 +33,12 @@ let qrRightLabel = document.createElement("span");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
 
+/* Results */
+
+let resultContainer = document.createElement("div");
+let closeResultsButton = document.createElement("button");
+let resultsAvailable = false;
+
 /**
  * Checks if the given rect contains the given (x,y) coordinate.
  * Used for checking if the QR Dialog itself is clicked or its backdrop.
@@ -140,9 +146,7 @@ function parseQuizzes(reveal) {
         quizObject.type = "choice";
       }
       /* ... interpret each list in the container as a choice object ... */
-      // const lists = quizzer.querySelectorAll(":scope > ul");
-      const lists = quizzer.querySelectorAll(":scope ul.task-list");
-      console.log(lists);
+      const lists = quizzer.querySelectorAll(":scope > ul");
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
@@ -339,6 +343,10 @@ function createHostInterface(reveal) {
     }
     requireHost((host) => {
       const slide = Reveal.getCurrentSlide();
+      if (resultsAvailable) {
+        toggleResults();
+        return;
+      }
       if (activeQuiz) {
         host.requestEvaluation();
         document.documentElement.classList.remove("active-poll");
@@ -369,6 +377,56 @@ function createHostInterface(reveal) {
   );
   connectionIndicator.title = l10n.uninitialized;
   connectionIndicator.ariaLabel = l10n.uninitialized;
+
+  /* Result Container */
+
+  resultContainer.classList.add("hidden");
+
+  // close button
+  closeResultsButton.title = l10n.clickToClose;
+  closeResultsButton.className = "close-button fa-button fas fa-times-circle";
+  closeResultsButton.addEventListener("click", () => {
+    hideResults();
+  });
+
+  resultContainer.appendChild(closeResultsButton);
+
+  // handle mouse translation
+  resultContainer.dragging = false;
+  resultContainer.dx = 0.0;
+  resultContainer.dy = 0.0;
+  resultContainer.onmousedown = (e) => {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    const w = resultContainer.clientWidth;
+    const h = resultContainer.clientHeight;
+    const o = 20;
+    if (x < w - o && y < h - o) {
+      resultContainer.dragging = true;
+      resultContainer.style.cursor = "move";
+      resultContainer.lastX = e.screenX;
+      resultContainer.lastY = e.screenY;
+    }
+  };
+  resultContainer.onmousemove = (e) => {
+    if (resultContainer.dragging) {
+      const x = e.screenX;
+      const y = e.screenY;
+      resultContainer.dx += x - resultContainer.lastX;
+      resultContainer.dy += y - resultContainer.lastY;
+      resultContainer.lastX = x;
+      resultContainer.lastY = y;
+      resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
+    }
+  };
+  resultContainer.onmouseup = (e) => {
+    resultContainer.style.cursor = "inherit";
+    resultContainer.dragging = false;
+  };
+
+  resultContainer.classList.add("quizzer-results-container");
+
+  document.body.appendChild(resultContainer);
 
   /* Finish by placing buttons in the UI */
   anchors.placeButton(connectionIndicator, "BOTTOM_CENTER");
@@ -463,7 +521,7 @@ function requireHost(callback) {
 
     hostClient.on("pong", onPong);
 
-    hostClient.on("result", displayResult);
+    hostClient.on("result", renderResult);
 
     hostClient.on("ready", (session, secret) => {
       let backend = Decker.meta.quizzer?.url || "http://localhost:3000/";
@@ -512,57 +570,11 @@ function requireHost(callback) {
  * @param {*} result The result to be rendered. Right now the quiz and result need to match.
  * @returns
  */
-function displayResult(result) {
-  const resultContainer = document.createElement("div");
-
-  // close on slide change
-  Reveal.addEventListener("slidechanged", () => {
-    resultContainer.remove();
-  });
-
-  // close button
-  const closeButton = document.createElement("button");
-  closeButton.title = l10n.clickToClose;
-  closeButton.className = "close-button fa-button fas fa-times-circle";
-  resultContainer.appendChild(closeButton);
-  closeButton.addEventListener("click", () => {
-    resultContainer.remove();
-  });
-
-  // handle mouse translation
-  resultContainer.dragging = false;
-  resultContainer.dx = 0.0;
-  resultContainer.dy = 0.0;
-  resultContainer.onmousedown = (e) => {
-    const x = e.offsetX;
-    const y = e.offsetY;
-    const w = resultContainer.clientWidth;
-    const h = resultContainer.clientHeight;
-    const o = 20;
-    if (x < w - o && y < h - o) {
-      resultContainer.dragging = true;
-      resultContainer.style.cursor = "move";
-      resultContainer.lastX = e.screenX;
-      resultContainer.lastY = e.screenY;
-    }
-  };
-  resultContainer.onmousemove = (e) => {
-    if (resultContainer.dragging) {
-      const x = e.screenX;
-      const y = e.screenY;
-      resultContainer.dx += x - resultContainer.lastX;
-      resultContainer.dy += y - resultContainer.lastY;
-      resultContainer.lastX = x;
-      resultContainer.lastY = y;
-      resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
-    }
-  };
-  resultContainer.onmouseup = (e) => {
-    resultContainer.style.cursor = "inherit";
-    resultContainer.dragging = false;
-  };
-
-  resultContainer.classList.add("quizzer-results-container");
+function renderResult(result) {
+  const entries = resultContainer.querySelectorAll(".quizzer-result");
+  for (const entry of entries) {
+    entry.remove();
+  }
   if (awaitingQuiz && awaitingQuiz.type === "choice") {
     const entryContainer = document.createElement("div");
     entryContainer.classList.add("quizzer-result");
@@ -591,7 +603,7 @@ function displayResult(result) {
       },
       options: {
         animation: {
-          duration: 3000,
+          duration: 0, // Some CSS Rule make this "float" into view instead of growing where it should
         },
         plugins: {
           title: { display: false },
@@ -612,8 +624,8 @@ function displayResult(result) {
       const entryContainer = document.createElement("div");
       entryContainer.classList.add("quizzer-result");
       const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 512;
+      canvas.width = 1280;
+      canvas.height = 720;
       entryContainer.appendChild(canvas);
       resultContainer.appendChild(entryContainer);
       const array = [];
@@ -624,7 +636,7 @@ function displayResult(result) {
       }
       WordCloud(canvas, {
         list: array,
-        gridSize: 4,
+        gridSize: 8,
         weightFactor: (size) => {
           return (size / most) * 64;
         },
@@ -660,7 +672,7 @@ function displayResult(result) {
         },
         options: {
           animation: {
-            duration: 3000,
+            duration: 0, // Some CSS Rule make this "float" into view instead of growing where it should
           },
           plugins: {
             title: { display: false },
@@ -682,6 +694,9 @@ function displayResult(result) {
    * is extremely fiddly with d3sankey.
    */
   if (awaitingQuiz && awaitingQuiz.type === "assignment") {
+    const entry = document.createElement("div");
+    entry.classList.add("quizzer-result");
+    resultContainer.appendChild(entry);
     let total = 0;
     for (const assignment of result.assignments) {
       total += assignment.count;
@@ -690,8 +705,8 @@ function displayResult(result) {
       return;
     }
     const margin = { top: 16, right: 16, left: 16, bottom: 16 };
-    const width = 800 - margin.left - margin.right;
-    const height = 600 - margin.top - margin.bottom;
+    const width = 1280 - margin.left - margin.right;
+    const height = 720 - margin.top - margin.bottom;
     const color = d3.scaleOrdinal(d3.schemeCategory10);
     const generator = d3
       .sankey()
@@ -699,11 +714,16 @@ function displayResult(result) {
       .nodePadding(32)
       .size([width, height]);
     const svg = d3
-      .select(resultContainer)
+      .select(entry)
       .append("svg")
-      .attr("class", "quizzer-result")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
+      //      .attr("width", width + margin.left + margin.right)
+      //      .attr("height", height + margin.top + margin.bottom)
+      .attr(
+        "viewBox",
+        `0 0 ${width + margin.left + margin.right} ${
+          height + margin.top + margin.bottom
+        }`
+      )
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     const nodes = [];
@@ -830,15 +850,28 @@ function displayResult(result) {
         "translate(" +
           d.x +
           "," +
-          (d.y = Math.max(0, Math.min(height - d.dy, e.y))) +
+          (d.y = Math.max(0, Math.min(height - d.dy, d.y))) +
           ")"
       );
       generator.relayout();
       link.attr("d", d3.sankeyLinkHorizontal());
     }
   }
+  resultsAvailable = true;
+  document.documentElement.classList.add("results-available");
+  showResults();
+}
 
-  document.body.appendChild(resultContainer);
+function hideResults() {
+  resultContainer.classList.add("hidden");
+}
+
+function showResults() {
+  resultContainer.classList.remove("hidden");
+}
+
+function toggleResults() {
+  resultContainer.classList.toggle("hidden");
 }
 
 /**
@@ -877,6 +910,9 @@ async function onPresenterMode(active) {
  */
 async function onSlideChange(event) {
   resetAssignmentState();
+  resultsAvailable = false;
+  document.documentElement.classList.remove("results-available");
+  hideResults();
   if (!Decker.isPresenterMode()) {
     return;
   }
