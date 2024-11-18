@@ -91,10 +91,6 @@
 }
 
 :root.awaiting-results .quizzer-button {
-  color: var(--color-warning);
-}
-
-:root.results-available .quizzer-button {
   color: var(--color-info);
 }
 
@@ -398,23 +394,6 @@ button[hidden] {
   background-color: var(--shade3);
 }
 
-.quizzer-result-dialog {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: transparent;
-  border: none;
-  --dialog-background: var(--background-color);
-}
-
-.dark .quizzer-dialog[open] {
-  --dialog-background: var(--foreground-color);
-}
-
 .quizzer-results-container {
   display: flex;
   flex-direction: row;
@@ -434,7 +413,7 @@ button[hidden] {
 
   z-index: 1024;
 
-  background-color: var(--dialog-background);
+  background-color: var(--background-color);
   box-shadow: 2px 2px 2px var(--foreground-color);
   border: 2px solid var(--accent5);
 
