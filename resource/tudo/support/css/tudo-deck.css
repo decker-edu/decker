@@ -1000,6 +1000,10 @@ section#title-slide .decker-link:hover {
   font-size: 0.75em;
 }
 
+.reveal:has(.slides section:first-child.present) .slide-number {
+  visibility: hidden;
+}
+
 /*********************************************
  * COMMENT BUBBLES & POP-UP
  *********************************************/
@@ -1260,7 +1264,9 @@ section#title-slide .decker-link:hover {
 
 /* possibility to hide quizzes */
 .hide-quizzes .reveal .quiz,
-.hide-quizzes .reveal .quiz * {
+.hide-quizzes .reveal .quiz *,
+.hide-quizzes .reveal .quizzer,
+.hide-quizzes .reveal .quizzer * {
   visibility: hidden;
 }
 
@@ -1664,4 +1670,20 @@ html.a11y .reveal a:hover {
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);
   transform: scale(1.05);
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--orangeish) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
 }

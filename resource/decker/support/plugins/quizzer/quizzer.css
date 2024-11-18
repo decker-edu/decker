@@ -1,7 +1,3 @@
-.quizzer {
-  padding: 1rem;
-}
-
 .quizzer :is(textarea, select, input, button) {
   font: inherit;
   letter-spacing: inherit;
@@ -14,6 +10,11 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  margin-bottom: 1em;
+
+  &:has(.question-paragraph:empty) {
+    display: none;
+  }
 }
 
 .quizzer-container.error .question-container {
@@ -44,6 +45,7 @@
 
 .quizzer.assignment .answer-container {
   align-items: stretch;
+  margin-top: 0;
 }
 
 .quizzer .solution-container {
@@ -51,7 +53,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: 0.5em;
 }
 
 .quizzer.choice .solution-container {
@@ -225,7 +227,6 @@
   display: grid;
   grid-template-areas: "label" "items";
   min-height: 64px;
-  gap: 1rem;
   border: 1px solid var(--foreground-color);
   border-radius: 0;
   background-color: var(--background-color);
@@ -248,7 +249,7 @@
 
 .category .items .answer {
   min-width: 128px;
-  box-shadow: 2px 2px 4px #222222;
+  box-shadow: 0px 0px 4px var(--blueish);
 }
 
 .categories {
@@ -263,8 +264,11 @@
 }
 
 .category > span {
-  font-weight: bold;
   grid-area: label;
+  font-weight: normal;
+  & > span {
+    font-weight: bold;
+  }
 }
 
 .quizzer .category .answer.selected {
@@ -416,39 +420,61 @@ button[hidden] {
   flex-direction: row;
   justify-content: center;
 
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  bottom: auto;
+  right: auto;
+  transform: translate(-50%, -50%);
+
+  width: 50vw;
+  height: 25vw;
+  min-width: 200px;
+  min-height: 100px;
+
   z-index: 1024;
 
   background-color: var(--dialog-background);
   box-shadow: 2px 2px 2px var(--foreground-color);
-
-  border-radius: 1rem;
   border: 2px solid var(--accent5);
-  bottom: 2rem;
-  width: 80vw;
-  padding: 0.5rem;
+
+  resize: both;
+  overflow: hidden;
+  border-radius: 0;
+
+  gap: 5%;
+  padding: 3%;
 }
 
-.close-hint {
-  width: 10rem;
-  cursor: pointer;
-
-  border: 2px solid var(--accent5);
-  border-radius: 0.5em;
-  padding: 0.5em;
-  background-color: var(--background-color);
-  color: var(--shade3);
-
-  font-size: 1rem;
-  z-index: 16;
+.quizzer-results-container .close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: transparent;
+  color: var(--icon-inactive-color);
+  &:hover {
+    color: var(--icon-hover-color);
+  }
 }
 
 .quizzer-result {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
   text-align: center;
+  flex: 1 1 0;
 }
 
-.quizzer-result:has(canvas) {
-  flex: 1 0 0;
+/* .quizzer-result:has(canvas) {
+  flex: 1 1 0;
+} */
+
+.quizzer-result > canvas {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .quizzer-assignment-result span {

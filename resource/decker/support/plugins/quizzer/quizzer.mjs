@@ -147,7 +147,7 @@ function parseQuizzes(reveal) {
         quizObject.type = "choice";
       }
       /* ... interpret each list in the container as a choice object ... */
-      const lists = quizzer.querySelectorAll(":scope > ul");
+      const lists = quizzer.querySelectorAll(":scope > ul.task-list");
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
@@ -528,12 +528,57 @@ function requireHost(callback) {
  * @param {*} result The result to be rendered. Right now the quiz and result need to match.
  * @returns
  */
-function renderResult(result) {
-  pollButton.title = l10n.showResults;
-  pollButton.ariaLabel = l10n.showResults;
-  while (resultContainer.firstElementChild) {
-    resultContainer.firstElementChild.remove();
-  }
+function displayResult(result) {
+  const resultContainer = document.createElement("div");
+
+  // close on slide change
+  Reveal.addEventListener("slidechanged", () => {
+    resultContainer.remove();
+  });
+
+  // close button
+  const closeButton = document.createElement("button");
+  closeButton.title = l10n.clickToClose;
+  closeButton.className = "close-button fa-button fas fa-times-circle";
+  resultContainer.appendChild(closeButton);
+  closeButton.addEventListener("click", () => {
+    resultContainer.remove();
+  });
+
+  // handle mouse translation
+  resultContainer.dragging = false;
+  resultContainer.dx = 0.0;
+  resultContainer.dy = 0.0;
+  resultContainer.onmousedown = (e) => {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    const w = resultContainer.clientWidth;
+    const h = resultContainer.clientHeight;
+    const o = 20;
+    if (x < w - o && y < h - o) {
+      resultContainer.dragging = true;
+      resultContainer.style.cursor = "move";
+      resultContainer.lastX = e.screenX;
+      resultContainer.lastY = e.screenY;
+    }
+  };
+  resultContainer.onmousemove = (e) => {
+    if (resultContainer.dragging) {
+      const x = e.screenX;
+      const y = e.screenY;
+      resultContainer.dx += x - resultContainer.lastX;
+      resultContainer.dy += y - resultContainer.lastY;
+      resultContainer.lastX = x;
+      resultContainer.lastY = y;
+      resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
+    }
+  };
+  resultContainer.onmouseup = (e) => {
+    resultContainer.style.cursor = "inherit";
+    resultContainer.dragging = false;
+  };
+
+  resultContainer.classList.add("quizzer-results-container");
   if (awaitingQuiz && awaitingQuiz.type === "choice") {
     const entryContainer = document.createElement("div");
     entryContainer.classList.add("quizzer-result");
@@ -808,6 +853,7 @@ function renderResult(result) {
       link.attr("d", d3.sankeyLinkHorizontal());
     }
   }
+<<<<<<< HEAD
   resultsAvailable = true;
   document.documentElement.classList.add("results-available");
   showResults();
@@ -819,6 +865,10 @@ function showResults() {
 
 function hideResults() {
   resultDialog.close();
+=======
+
+  document.body.appendChild(resultContainer);
+>>>>>>> 6801e623f233e9d8485ae4a112d5fa031d0d0d3f
 }
 
 /**
