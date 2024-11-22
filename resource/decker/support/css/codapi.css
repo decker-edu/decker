@@ -50,7 +50,7 @@ codapi-output pre {
 /* anchor to the codapi output div */
 codapi-toolbar {
   position: absolute;
-  top: 0em;
+  top: -2em;
   right: 0em;
 }
 
@@ -70,7 +70,7 @@ codapi-output a[href="#close"]:hover {
   background-color: var(--accent3-bg);
 }
 
-/* style th elink and the button the same */
+/* style the link and the button the same */
 codapi-toolbar button,
 codapi-output a[href="#close"] {
   cursor: pointer;
@@ -133,8 +133,28 @@ div.live-code div.label {
   color: var(--accent4-bg);
   font-size: 80%;
   padding: 0.3em;
-  top: 0.35em;
+  top: -2.15em;
   right: 4.5em;
   position: absolute;
   pointer-events: none;
+}
+
+figure.live-code codapi-toolbar button {
+    opacity: 0.3;
+    transition:0s 1s;
+}
+
+figure.live-code div.live-code div.label {
+    opacity: 0.3;
+    transition:0s 1s;
+}
+
+figure.live-code:hover codapi-toolbar button {
+    opacity: 1;
+    transition:0s;
+}
+
+figure.live-code:hover div.live-code div.label {
+    opacity: 1;
+    transition:0s;
 }
