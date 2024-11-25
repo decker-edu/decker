@@ -33,6 +33,8 @@ let qrRightLabel = document.createElement("span");
 let qrLink = document.createElement("a");
 let qrClose = document.createElement("button");
 
+let resultContainer;
+
 /**
  * Checks if the given rect contains the given (x,y) coordinate.
  * Used for checking if the QR Dialog itself is clicked or its backdrop.
@@ -504,6 +506,46 @@ function requireHost(callback) {
   }
 }
 
+function startDrag(e) {
+  const x = e.offsetX;
+  const y = e.offsetY;
+  const w = resultContainer.clientWidth;
+  const h = resultContainer.clientHeight;
+  const o = 20;
+  if (x < w - o && y < h - o) {
+    resultContainer.dragging = true;
+    resultContainer.style.cursor = "move";
+    resultContainer.lastX = e.screenX;
+    resultContainer.lastY = e.screenY;
+    e.preventDefault();
+    document.addEventListener("mousemove", drag);
+    document.addEventListener("mouseup", stopDrag);
+  }
+}
+
+function drag(e) {
+  if (resultContainer.dragging) {
+    const x = e.screenX;
+    const y = e.screenY;
+    resultContainer.dx += x - resultContainer.lastX;
+    resultContainer.dy += y - resultContainer.lastY;
+    resultContainer.lastX = x;
+    resultContainer.lastY = y;
+    resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
+    e.preventDefault();
+  }
+}
+
+function stopDrag(e) {
+  if (resultContainer.dragging) {
+    resultContainer.style.cursor = "inherit";
+    resultContainer.dragging = false;
+    e.preventDefault();
+    document.removeEventListener("mousemove", drag);
+    document.removeEventListener("mouseup", stopDrag);
+  }
+}
+
 /**
  * Creates the result container and displays the graphs and diagrams.
  * TODO: Send the quiz type with the result.
@@ -512,7 +554,11 @@ function requireHost(callback) {
  * @returns
  */
 function displayResult(result) {
-  const resultContainer = document.createElement("div");
+  // (re)create resultContainer
+  if (resultContainer) {
+    resultContainer.remove();
+  }
+  resultContainer = document.createElement("div");
 
   // close on slide change
   Reveal.addEventListener("slidechanged", () => {
@@ -532,34 +578,7 @@ function displayResult(result) {
   resultContainer.dragging = false;
   resultContainer.dx = 0.0;
   resultContainer.dy = 0.0;
-  resultContainer.onmousedown = (e) => {
-    const x = e.offsetX;
-    const y = e.offsetY;
-    const w = resultContainer.clientWidth;
-    const h = resultContainer.clientHeight;
-    const o = 20;
-    if (x < w - o && y < h - o) {
-      resultContainer.dragging = true;
-      resultContainer.style.cursor = "move";
-      resultContainer.lastX = e.screenX;
-      resultContainer.lastY = e.screenY;
-    }
-  };
-  resultContainer.onmousemove = (e) => {
-    if (resultContainer.dragging) {
-      const x = e.screenX;
-      const y = e.screenY;
-      resultContainer.dx += x - resultContainer.lastX;
-      resultContainer.dy += y - resultContainer.lastY;
-      resultContainer.lastX = x;
-      resultContainer.lastY = y;
-      resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
-    }
-  };
-  resultContainer.onmouseup = (e) => {
-    resultContainer.style.cursor = "inherit";
-    resultContainer.dragging = false;
-  };
+  resultContainer.onmousedown = startDrag;
 
   resultContainer.classList.add("quizzer-results-container");
   if (awaitingQuiz && awaitingQuiz.type === "choice") {
@@ -701,8 +720,8 @@ function displayResult(result) {
       .select(resultContainer)
       .append("svg")
       .attr("class", "quizzer-result")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
+      .attr("viewBox", "0 0 800 600")
+      .attr("preserveAspectRatio", "xMidYMid meet")
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     const nodes = [];

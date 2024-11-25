@@ -3,6 +3,7 @@
   letter-spacing: inherit;
   word-spacing: inherit;
   position: relative;
+  line-height: normal;
 }
 
 .quizzer .question-container {
@@ -60,11 +61,8 @@
   display: none;
 }
 
-:is(.correct, .wrong):hover .solution-popover {
-  display: block;
-}
-
-:is(.correct, .wrong):focus-visible .solution-popover {
+:is(.correct, .wrong):hover .solution-popover:not(:empty),
+:is(.correct, .wrong):focus-visible .solution-popover:not(:empty) {
   display: block;
 }
 
@@ -75,11 +73,14 @@
   padding: 0.5rem;
   border: 1px solid var(--shade2);
   border-radius: 0.5rem;
-  font-size: 1rem;
+  font-size: 1.2rem;
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%) translateY(105%);
+  max-width: 100%;
+  width: max-content;
+  border-color: inherit;
 }
 
 .solution-popover[hidden] {
@@ -422,13 +423,15 @@ button[hidden] {
   border-radius: 0;
 
   gap: 5%;
-  padding: 3%;
+  padding: var(--icon-size);
 }
 
 .quizzer-results-container .close-button {
   position: absolute;
   top: 0;
   right: 0;
+  margin: 0;
+  padding: 0;
   background-color: transparent;
   color: var(--icon-inactive-color);
   &:hover {
