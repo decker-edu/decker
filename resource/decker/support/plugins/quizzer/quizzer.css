@@ -409,7 +409,6 @@ button[hidden] {
   bottom: auto;
   right: auto;
   transform: translate(-50%, -50%);
-  transform-origin: top left;
 
   width: 50vw;
   height: 25vw;

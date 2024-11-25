@@ -603,7 +603,7 @@ function renderResult(result) {
       },
       options: {
         animation: {
-          duration: 0, // Some CSS Rule make this "float" into view instead of growing where it should
+          duration: 3000,
         },
         plugins: {
           title: { display: false },
@@ -672,7 +672,7 @@ function renderResult(result) {
         },
         options: {
           animation: {
-            duration: 0, // Some CSS Rule make this "float" into view instead of growing where it should
+            duration: 3000,
           },
           plugins: {
             title: { display: false },
@@ -724,6 +724,7 @@ function renderResult(result) {
           height + margin.top + margin.bottom
         }`
       )
+      .attr("preserveAspectRatio", "xMidYMid meet")
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     const nodes = [];
