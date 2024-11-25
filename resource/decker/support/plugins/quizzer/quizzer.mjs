@@ -563,6 +563,46 @@ function requireHost(callback) {
   }
 }
 
+function startDrag(e) {
+  const x = e.offsetX;
+  const y = e.offsetY;
+  const w = resultContainer.clientWidth;
+  const h = resultContainer.clientHeight;
+  const o = 20;
+  if (x < w - o && y < h - o) {
+    resultContainer.dragging = true;
+    resultContainer.style.cursor = "move";
+    resultContainer.lastX = e.screenX;
+    resultContainer.lastY = e.screenY;
+    e.preventDefault();
+    document.addEventListener("mousemove", drag);
+    document.addEventListener("mouseup", stopDrag);
+  }
+}
+
+function drag(e) {
+  if (resultContainer.dragging) {
+    const x = e.screenX;
+    const y = e.screenY;
+    resultContainer.dx += x - resultContainer.lastX;
+    resultContainer.dy += y - resultContainer.lastY;
+    resultContainer.lastX = x;
+    resultContainer.lastY = y;
+    resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
+    e.preventDefault();
+  }
+}
+
+function stopDrag(e) {
+  if (resultContainer.dragging) {
+    resultContainer.style.cursor = "inherit";
+    resultContainer.dragging = false;
+    e.preventDefault();
+    document.removeEventListener("mousemove", drag);
+    document.removeEventListener("mouseup", stopDrag);
+  }
+}
+
 /**
  * Creates the result container and displays the graphs and diagrams.
  * TODO: Send the quiz type with the result.
@@ -571,6 +611,7 @@ function requireHost(callback) {
  * @returns
  */
 function renderResult(result) {
+  showResults();
   const entries = resultContainer.querySelectorAll(".quizzer-result");
   for (const entry of entries) {
     entry.remove();
@@ -716,8 +757,6 @@ function renderResult(result) {
     const svg = d3
       .select(entry)
       .append("svg")
-      //      .attr("width", width + margin.left + margin.right)
-      //      .attr("height", height + margin.top + margin.bottom)
       .attr(
         "viewBox",
         `0 0 ${width + margin.left + margin.right} ${
@@ -860,7 +899,6 @@ function renderResult(result) {
   }
   resultsAvailable = true;
   document.documentElement.classList.add("results-available");
-  showResults();
 }
 
 function hideResults() {
