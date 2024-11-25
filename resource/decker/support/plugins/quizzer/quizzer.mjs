@@ -395,34 +395,7 @@ function createHostInterface(reveal) {
   resultContainer.dragging = false;
   resultContainer.dx = 0.0;
   resultContainer.dy = 0.0;
-  resultContainer.onmousedown = (e) => {
-    const x = e.offsetX;
-    const y = e.offsetY;
-    const w = resultContainer.clientWidth;
-    const h = resultContainer.clientHeight;
-    const o = 20;
-    if (x < w - o && y < h - o) {
-      resultContainer.dragging = true;
-      resultContainer.style.cursor = "move";
-      resultContainer.lastX = e.screenX;
-      resultContainer.lastY = e.screenY;
-    }
-  };
-  resultContainer.onmousemove = (e) => {
-    if (resultContainer.dragging) {
-      const x = e.screenX;
-      const y = e.screenY;
-      resultContainer.dx += x - resultContainer.lastX;
-      resultContainer.dy += y - resultContainer.lastY;
-      resultContainer.lastX = x;
-      resultContainer.lastY = y;
-      resultContainer.style.translate = `${resultContainer.dx}px ${resultContainer.dy}px`;
-    }
-  };
-  resultContainer.onmouseup = (e) => {
-    resultContainer.style.cursor = "inherit";
-    resultContainer.dragging = false;
-  };
+  resultContainer.onmousedown = startDrag;
 
   resultContainer.classList.add("quizzer-results-container");
 
