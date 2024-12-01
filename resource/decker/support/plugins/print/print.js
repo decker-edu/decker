@@ -84,57 +84,32 @@ function setupIframes() {
  * from the sixth video on in this configuration.
  */
 function setupVideos() {
-  let numVideos = 0;
-  const maxVideos = 5; // headless Chrome can handle 5 videos
-
   // go through all slides
   for (let slide of document.getElementsByTagName("section")) {
     // do we have a background video?
     if (slide.hasAttribute("data-background-video")) {
-      // handle headless Chrome bug
-      if (navigator.webdriver && numVideos >= maxVideos) {
-        slide.removeAttribute("data-background-video");
-      }
-
       // play video to 0.5s to get a poster frame
-      else {
-        var src = slide.getAttribute("data-background-video");
-        if (!src.includes("#t=")) {
-          src = src + "#t=0.5";
-          slide.setAttribute("data-background-video", src);
-        }
+      var src = slide.getAttribute("data-background-video");
+      if (!src.includes("#t=")) {
+        src = src + "#t=0.5";
+        slide.setAttribute("data-background-video", src);
       }
-
-      numVideos++;
     }
 
     // do we have videos on this slide?
     for (let video of slide.getElementsByTagName("video")) {
-      // handle headless Chrome bug
-      if (navigator.webdriver && numVideos >= maxVideos) {
-        /* do not load video */
-        video.src = "";
+      // play video to 0.5s to get a poster frame,
+      // but only if we don't have a poster already
+      if (video.hasAttribute("data-src") && !video.hasAttribute("poster")) {
+        var src = video.getAttribute("data-src");
+        if (!src.includes("#t=")) src = src + "#t=0.5";
+        video.src = src;
         video.removeAttribute("data-src");
-        /* hide video, since we cannot determine its size anyway */
-        video.style.display = "none";
       }
 
-      // play video to 0.5s to get a poster frame
-      else {
-        if (video.hasAttribute("data-src")) {
-          var src = video.getAttribute("data-src");
-          if (!src.includes("#t=")) src = src + "#t=0.5";
-
-          video.src = src;
-          video.removeAttribute("data-src");
-        }
-
-        video.removeAttribute("controls");
-        video.removeAttribute("data-autoplay");
-        video.removeAttribute("autoplay");
-      }
-
-      numVideos++;
+      video.removeAttribute("controls");
+      video.removeAttribute("data-autoplay");
+      video.removeAttribute("autoplay");
     }
   }
 }

@@ -1020,3 +1020,37 @@ div.block[popup]{
  ul li ul li {
    list-style-type: disc; /* Different bullet for nested list */
  }
+
+ /* Increase or decrease control size 
+    Using this for live demonstration 
+    during the HCI Lecture to show its
+    impact on the Chrome Lighthouse
+    accessibility inspector */
+ /* .reveal .controls {
+   font-size: 4rem; 
+ } */
+
+/* Blockquotes */
+
+.reveal q,
+.reveal blockquote {
+  quotes: none;
+}
+
+.reveal blockquote {
+  display: block;
+  text-align: left;
+  font-size: 0.9em;
+  position: relative;
+  width: 80%;
+  margin: 20px auto;
+  padding: 15px 15px;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  /* box-shadow: 0px 0px 2px rgba(0, 0, 0, 1); */
+}
+
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
+  display: inline block;
+}
