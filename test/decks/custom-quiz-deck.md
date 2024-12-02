@@ -2,6 +2,8 @@
 title: Custom Quizzes
 #quizzer:
 #  url: 'https://quiz.jetzt'
+reveal:
+  center: true
 ---
 
 # Choice Quiz
@@ -91,6 +93,20 @@ What attribute does the fox have and what does he do to the dog?
 What did you eat for dinner today?
 
 - [x] Mensa
+
+:::
+
+# Freetext Quiz Multiple Fields
+
+::: {.quizzer .freetext}
+
+What did you eat for dinner today?
+
+- [x] Mensa
+
+---
+
+- [x] Pizza
 
 :::
 
