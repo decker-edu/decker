@@ -500,12 +500,23 @@ export default {
       container.question.innerHTML = quiz.question;
     }
     if (quiz.choices.length > 1) {
-      const error = document.createElement("p");
-      error.innerText =
+      container.classList.add("error");
+      container.question.innerText =
         "Malformed Quiz Data: Multiple answer sets for a multiple choice quiz.";
+      parent.appendChild(container);
+      container.removeChild(container.solutionContainer);
       return;
     }
     const answers = quiz.choices[0];
+
+    if (!answers) {
+      container.classList.add("error");
+      container.question.innerText =
+        "Malformed Quiz Data: No answers could be parsed.";
+      parent.appendChild(container);
+      container.removeChild(container.solutionContainer);
+      return;
+    }
 
     for (const option of answers.options) {
       const button = document.createElement("button");
@@ -516,7 +527,7 @@ export default {
 
       button.setAttribute(
         "aria-description",
-        container.questionContainer.textContent
+        container.questionContainer.textContent.trim()
       );
 
       const popover = document.createElement("span");
