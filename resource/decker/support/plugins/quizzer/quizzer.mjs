@@ -146,7 +146,9 @@ function parseQuizzes(reveal) {
         quizObject.type = "choice";
       }
       /* ... interpret each list in the container as a choice object ... */
-      const lists = quizzer.querySelectorAll(":scope > ul");
+      const lists = quizzer.querySelectorAll(
+        ":scope *:not(li) > ul, :scope > ul"
+      );
       for (const list of lists) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
@@ -187,6 +189,36 @@ function parseQuizzes(reveal) {
         quizObject.choices.push(choiceObject);
         /* ... remove the list from the DOM ... */
         list.remove();
+      }
+      /* ... parse definition lists for assignments too ... */
+      if (quizObject.type === "assignment") {
+        const defLists = quizzer.querySelectorAll(":scope dl");
+        console.log(defLists);
+        for (const defList of defLists) {
+          const choiceObject = {
+            votes: 1, // By default you have at least one vote
+            options: [],
+          };
+          let currentCategory = undefined;
+          while (defList.firstElementChild) {
+            const child = defList.firstElementChild;
+            if (child.tagName === "DT") {
+              currentCategory = child.textContent;
+            }
+            if (child.tagName === "DD") {
+              const answerObject = {
+                label: undefined,
+                reason: undefined,
+                correct: false,
+              };
+              answerObject.label = child.textContent;
+              answerObject.reason = currentCategory;
+              choiceObject.options.push(answerObject);
+            }
+            child.remove();
+          }
+          quizObject.choices.push(choiceObject);
+        }
       }
       /* ... remove hr elements from DOM because they are only used as list separators ... */
       const hrules = quizzer.querySelectorAll("hr");
