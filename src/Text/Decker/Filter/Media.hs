@@ -595,7 +595,8 @@ javascriptBlock uri title caption = do
             [],
             [ ("data-tag", "script"),
               ("src", URI.render uri),
-              ("type", "module")
+              ("type", "module"),
+              ("defer", "defer")
             ]
           )
           []
