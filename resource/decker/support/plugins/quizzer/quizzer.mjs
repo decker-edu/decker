@@ -982,7 +982,12 @@ const Plugin = {
       return;
     }
     createHostInterface(reveal);
-    parseQuizzes(reveal);
+    try {
+      parseQuizzes(reveal);
+    } catch (error) {
+      console.error(error);
+      console.error("Canceling parsing and rendering quizzes.");
+    }
     reveal.on("ready", () => {
       reveal.on("slidechanged", onSlideChange);
       Decker.addPresenterModeListener(onPresenterMode);
