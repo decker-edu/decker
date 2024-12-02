@@ -25,11 +25,13 @@ import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
+import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
+import Text.Decker.Filter.Select (filterSelectedSlides)
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Template (expandTemplateMacros)
 import Text.Decker.Internal.Common
@@ -42,8 +44,6 @@ import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
-import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
-import Text.Decker.Filter.Select (filterSelectedSlides)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -99,7 +99,7 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path
-    -- >>= (\(Pandoc meta blocks) -> 
+    -- >>= (\(Pandoc meta blocks) ->
     --         do  putStrLn $ path <> "\n" <> show meta
     --             return (Pandoc meta blocks))
     >>= writeBack globalMeta path
@@ -116,7 +116,7 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   let meta' =
         addMetaField "projectPath" pathToProject
           $ addMetaField "supportPath" pathToSupport
-            $ addMetaField "documentPath" documentPath meta
+          $ addMetaField "documentPath" documentPath meta
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
@@ -288,6 +288,7 @@ runDeckerFilter filter docPath pandoc@(Pandoc docMeta blocks) = do
           $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
+  --   putNormal $ lookupMetaOrElse [] "decker.filter.resources" resultMeta
   return (Pandoc docMeta resultBlocks)
 
 runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
@@ -298,6 +299,7 @@ runNewFilter dispo filter docPath pandoc@(Pandoc docMeta blocks) = do
   (Pandoc resultMeta resultBlocks) <-
     liftIO $ runFilter2 dispo filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
+  --   putNormal $ lookupMetaOrElse [] "decker.filter.resources" resultMeta
   return (Pandoc docMeta resultBlocks)
 
 -- |  Runs the new decker media filter.

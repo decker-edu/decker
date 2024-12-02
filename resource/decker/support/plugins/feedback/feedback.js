@@ -17,6 +17,7 @@ class Feedback {
     interface: undefined,
     question_container: undefined,
     answer_container: undefined,
+    send_credentials: undefined,
   };
 
   reveal = undefined;
@@ -41,12 +42,14 @@ class Feedback {
     close_button: undefined,
     feedback_list: undefined,
     feedback_input: undefined,
+    feedback_send_button: undefined,
     feedback_login_area: undefined,
     feedback_login_button: undefined,
     feedback_credentials: {
       container: undefined,
       username_input: undefined,
       password_input: undefined,
+      login_button: undefined,
     },
   };
 
@@ -143,7 +146,7 @@ class Feedback {
       this.menu.container.inert = true;
       this.reveal.getRevealElement().inert = false;
       localStorage.removeItem("feedback-state");
-      this.glass.classList.remove("show");
+      this.glass.classList.remove("show", "blur");
       this.open_button.focus();
     }
   }
@@ -184,35 +187,36 @@ class Feedback {
   /**
    * Tries to perfom a login with the entered credentials.
    */
-  async sendLogin(event) {
-    if (event.key === "Enter") {
-      let credentials = {
-        login: this.menu.feedback_credentials.username_input.value,
-        password: this.menu.feedback_credentials.password_input.value,
-        deck: this.engine.deckId,
-      };
-      try {
-        const token = await this.engine.api.getLogin(credentials);
-        this.engine.token.admin = token.admin;
-        this.menu.feedback_login_area.classList.add("admin");
-        this.menu.feedback_credentials.username_input.value = "";
-        this.menu.feedback_credentials.password_input.value = "";
-        this.menu.feedback_credentials.container.classList.remove("visible");
-        this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
-        this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
-        this.menu.feedback_login_button.setAttribute(
-          "title",
-          this.localization.interface.logout_as_admin
-        );
-        this.menu.feedback_login_button.setAttribute(
-          "aria-label",
-          this.localization.interface.logout_as_admin
-        );
-        this.requestMenuContent();
-      } catch (error) {
-        console.error(error);
-        this.menu.feedback_credentials.password_input.value = "";
-      }
+  async sendLogin() {
+    let credentials = {
+      login: this.menu.feedback_credentials.username_input.value,
+      password: this.menu.feedback_credentials.password_input.value,
+      deck: this.engine.deckId,
+    };
+    try {
+      this.menu.feedback_credentials.password_input.classList.remove("error");
+      const token = await this.engine.api.getLogin(credentials);
+      this.engine.token.admin = token.admin;
+      this.menu.feedback_login_area.classList.add("admin");
+      this.menu.feedback_credentials.username_input.value = "";
+      this.menu.feedback_credentials.password_input.value = "";
+      this.menu.feedback_credentials.container.classList.remove("visible");
+      this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
+      this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
+      this.menu.feedback_login_button.setAttribute(
+        "title",
+        this.localization.interface.logout_as_admin
+      );
+      this.menu.feedback_login_button.setAttribute(
+        "aria-label",
+        this.localization.interface.logout_as_admin
+      );
+      this.requestMenuContent();
+    } catch (error) {
+      console.error(error);
+      this.menu.feedback_credentials.password_input.value = "";
+      this.menu.feedback_credentials.password_input.classList.add("error");
+      this.menu.feedback_credentials.password_input.focus();
     }
   }
 
@@ -221,48 +225,46 @@ class Feedback {
    * @param {*} event
    */
   async sendComment(event) {
-    if (event.key === "Enter" && event.shiftKey) {
-      let slideId = this.reveal.getCurrentSlide().id;
-      if (
-        document.documentElement.classList.contains("handout") &&
-        this.mostRecentSlideID
-      ) {
-        slideId = this.mostRecentSlideID;
-      }
-      if (this.menu.feedback_input.hasAttribute("answer")) {
-        try {
-          await this.engine.api.postAnswer(
-            this.menu.feedback_input.commentId,
-            this.engine.token.admin,
-            this.menu.feedback_input.value,
-            null
-          );
-          this.clearTextArea();
-          await this.requestMenuContent();
-          await this.requestSlideMenuUpdate();
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        try {
-          await this.engine.api.submitComment(
-            this.engine.deckId,
-            slideId,
-            this.engine.token.admin || this.usertoken,
-            this.menu.feedback_input.value,
-            this.menu.feedback_input.commentId,
-            window.location.toString()
-          );
-          this.clearTextArea();
-          await this.requestMenuContent();
-          await this.requestSlideMenuUpdate();
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      event.stopPropagation();
-      event.preventDefault();
+    let slideId = this.reveal.getCurrentSlide().id;
+    if (
+      document.documentElement.classList.contains("handout") &&
+      this.mostRecentSlideID
+    ) {
+      slideId = this.mostRecentSlideID;
     }
+    if (this.menu.feedback_input.hasAttribute("answer")) {
+      try {
+        await this.engine.api.postAnswer(
+          this.menu.feedback_input.commentId,
+          this.engine.token.admin,
+          this.menu.feedback_input.value,
+          null
+        );
+        this.clearTextArea();
+        await this.requestMenuContent();
+        await this.requestSlideMenuUpdate();
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      try {
+        await this.engine.api.submitComment(
+          this.engine.deckId,
+          slideId,
+          this.engine.token.admin || this.usertoken,
+          this.menu.feedback_input.value,
+          this.menu.feedback_input.commentId,
+          window.location.toString()
+        );
+        this.clearTextArea();
+        await this.requestMenuContent();
+        await this.requestSlideMenuUpdate();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   /**
@@ -466,7 +468,7 @@ class Feedback {
       }
       ${
         isAdmin
-          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
+          ? `<button class="fa fa-reply feedback-answer-question-button" title="${text.add}" aria-label="${text.add}"></button>`
           : ""
       }
       ${
@@ -528,7 +530,6 @@ class Feedback {
         this.answerQuestion(comment)
       );
     }
-    MathJax.typeset([question]);
     return question;
   }
 
@@ -571,7 +572,6 @@ class Feedback {
       let deleteButton = item.querySelector(".feedback-delete-answer-button");
       deleteButton.addEventListener("click", () => this.deleteAnswer(answer));
     }
-    MathJax.typeset([item]);
     return item;
   }
 
@@ -602,7 +602,7 @@ class Feedback {
         this.menu.feedback_list.appendChild(block);
       }
     }
-
+    MathJax.typeset([this.menu.feedback_list]);
     this.menu.feedback_list.scrollTop = 0;
   }
 
@@ -696,6 +696,7 @@ class Feedback {
       <div class="feedback-list"></div>
       <div class="feedback-question-input">
         <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
+        <button class="feedback-send-button" aria-label="${this.localization.send_comment}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment}</span></button>
       </div>
       <div class="feedback-footer">
         <div class="feedback-login">
@@ -704,6 +705,7 @@ class Feedback {
         <div class="feedback-credentials">
           <input id="feedback-username" placeholder="${text.username_placeholder}">
           <input id="feedback-password" placeholder="${text.password_placeholder}" type="password">
+          <button id="feedback-login-send" type="button" title="${text.send_credentials}" aria-label="${text.send_credentials}">Admin Login</button>
         </div>
       </div>
     </div>`;
@@ -725,6 +727,9 @@ class Feedback {
     this.menu.feedback_input = menu.querySelector(
       ".feedback-question-input textarea"
     );
+    this.menu.feedback_send_button = menu.querySelector(
+      ".feedback-send-button"
+    );
     this.menu.badge = menu.querySelector(".counter");
     this.menu.feedback_list = menu.querySelector(".feedback-list");
     this.menu.close_button = menu.querySelector(".feedback-close");
@@ -739,6 +744,9 @@ class Feedback {
       menu.querySelector("#feedback-username");
     this.menu.feedback_credentials.password_input =
       menu.querySelector("#feedback-password");
+    this.menu.feedback_credentials.login_button = menu.querySelector(
+      "#feedback-login-send"
+    );
 
     /* Add EventListeners */
 
@@ -747,19 +755,36 @@ class Feedback {
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
     );
+    this.menu.feedback_send_button.addEventListener("click", (e) =>
+      this.sendComment()
+    );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu()
     );
     this.menu.feedback_login_button.addEventListener("click", (event) =>
       this.toggleLoginArea()
     );
-    this.menu.feedback_input.addEventListener("keydown", (event) =>
-      this.sendComment(event)
-    );
+    this.menu.feedback_input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.shiftKey) {
+        this.sendComment(event);
+      }
+    });
 
     this.menu.feedback_credentials.password_input.addEventListener(
       "keydown",
-      (event) => this.sendLogin(event)
+      (event) => {
+        this.menu.feedback_credentials.password_input.classList.remove("error");
+        if (event.key === "Enter") {
+          this.sendLogin();
+        }
+      }
+    );
+
+    this.menu.feedback_credentials.login_button.addEventListener(
+      "click",
+      (event) => {
+        this.sendLogin();
+      }
     );
 
     this.reveal.addEventListener("slidechanged", () =>
@@ -815,6 +840,7 @@ let plugin = () => {
           "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
         answer_placeholder:
           "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
+        send_comment: "Send<br>Message",
         interface: {
           open_label: "Open Feedback Menu",
           menu_title: "Questions",
@@ -823,6 +849,7 @@ let plugin = () => {
           logout_as_admin: "Logout as Admin",
           username_placeholder: "Username",
           password_placeholder: "Password",
+          send_credentials: "Send credentials",
         },
         question_container: {
           upvote: "Up-vote question",
@@ -847,6 +874,7 @@ let plugin = () => {
             "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
           answer_placeholder:
             "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
+          send_comment: "Nachricht<br>senden",
           interface: {
             open_label: "Fragemenu öffnen",
             menu_title: "Fragen",
@@ -855,6 +883,7 @@ let plugin = () => {
             logout_as_admin: "Als Administrator abmelden",
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
+            send_credentials: "Anmeldedaten absenden",
           },
           question_container: {
             upvote: "Frage unterstützen",

@@ -17,17 +17,12 @@ import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 
-chromeUserDataDir = (</> "chrome") <$> transientDir
-
 chromeOptions :: FilePath -> FilePath -> IO [String]
 chromeOptions src out = do
-  dataDir <- chromeUserDataDir
   return
-    [ "--headless=old",
-      "--virtual-time-budget=5001",
-      "--disable-gpu",
-      "--print-to-pdf-no-header",
-      "--user-data-dir=" <> dataDir,
+    [ "--headless",
+      "--virtual-time-budget=5555",
+      "--no-pdf-header-footer",
       pdfOption out,
       modifySrc src
     ]
@@ -37,14 +32,12 @@ chromeOptions src out = do
 
 launchChrome :: FilePath -> FilePath -> IO (Either String String)
 launchChrome src out = do
-  dataDir <- chromeUserDataDir
   command <- chrome
   options <- chromeOptions src out
   case command of
     Left msg -> return $ Left msg
     Right cmd -> do
       -- putStrLn (cmd <> " " <> unwords options)
-      createDirectoryIfMissing True dataDir
       (exitCode, stdOut, stdErr) <-
         readProcessWithExitCode cmd options ""
       return $

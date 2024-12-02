@@ -39,11 +39,23 @@ export function toggleColor() {
 
 // Set up color scheme handling.
 export function initialize() {
-  if (window.matchMedia) {
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    query.addEventListener("change", updateHTML);
+  // get setting (light, dark, auto)
+  const setting = window.Decker?.meta?.colorscheme || "auto";
+  switch (setting) {
+    case "light":
+    case "dark":
+      document.documentElement.classList.add(setting);
+      break;
+
+    case "auto":
+    default:
+      if (window.matchMedia) {
+        const query = window.matchMedia("(prefers-color-scheme: dark)");
+        query.addEventListener("change", updateHTML);
+      }
+      updateHTML();
+      break;
   }
-  updateHTML();
 }
 
 // finally call initialize

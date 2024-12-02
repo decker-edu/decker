@@ -479,6 +479,10 @@ class SlideMenu {
       this.closeMenu(event)
     );
 
+    const colorSetting = window.Decker?.meta?.colorscheme;
+    if (colorSetting == "light" || colorSetting == "dark")
+      this.menu.color_button.disabled = true;
+
     this.initializeSlideList();
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)

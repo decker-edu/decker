@@ -8,17 +8,17 @@ Code blocks can be rendered as SVG images
 
 ## Formats
 
-- Graphviz (dot)
-- Gnuplot
-- Tikz
+-   Graphviz (dot)
+-   Gnuplot
+-   Tikz
 
----
+--------------------------------------------------------------------------------
 
 # Embedded PlantUML Code (SVG) {.columns}
 
 ## PlantUML {.left}
 
-````{.markdown}
+```` markdown
 ``` {.plantuml .render}
 @startuml
 skinparam shadowing false
@@ -30,7 +30,7 @@ Alice -> Bob: test
 
 ## SVG {.right}
 
-```{.plantuml .render width="60%"}
+``` {.plantuml .render width="60%"}
 @startuml
 skinparam shadowing false
 skinparam monochrome true
@@ -38,13 +38,19 @@ Alice -> Bob: test
 @enduml
 ```
 
----
+# \# Embedded Mermaid Code (SVG) {.columns}
 
-# Embedded Mermaid Code (SVG) {.columns}
+# Embedded Mermaid Code (SVG) {layout="columns"}
+
+## Needs `mermaid-cli` to be installed {.top}
+
+``` sh
+npm install -g @mermaid-js/mermaid-cli
+```
 
 ## Mermaid {.left}
 
-```` {.markdown}
+```` markdown
 ``` {.mermaid .render}
 graph TD
 A[Client] --> B[Load Balancer]
@@ -53,18 +59,18 @@ A[Client] --> B[Load Balancer]
 
 ## SVG {.right}
 
-```{.mermaid .render width="60%"}
+``` {.mermaid .render width="60%"}
 graph TD
 A[Client] --> B[Load Balancer]
 ```
 
----
+--------------------------------------------------------------------------------
 
 # Embedded Graphviz Code (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-````{.markdown}
+```` markdown
 ``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
@@ -81,7 +87,7 @@ digraph {
 
 ## Rendered {.right}
 
-```{.dot .render width="80%"}
+``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
   A [fillcolor = yellow]
@@ -94,13 +100,13 @@ digraph {
 }
 ```
 
----
+--------------------------------------------------------------------------------
 
 # Embedded Gnuplot (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-````{.gnuplot}
+```` gnuplot
 ``` {.gnuplot .render width="80%"}
 set samples 20, 20
 set isosamples 20, 20
@@ -116,7 +122,7 @@ splot 1 / (x*x + y*y + 1)
 
 ## Rendered {.right}
 
-```{.gnuplot .render}
+``` {.gnuplot .render}
 set samples 20, 20
 set isosamples 20, 20
 set hidden3d back offset 1 trianglepattern 3 undefined 1 altdiagonal bentover
@@ -128,13 +134,13 @@ DEBUG_TERM_VTIC = 118
 splot 1 / (x*x + y*y + 0.5)
 ```
 
----
+--------------------------------------------------------------------------------
 
 # PlantUML Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-```{.markdown}
+``` markdown
 ![](alice-bob.plantuml){.render}
 ```
 
@@ -142,13 +148,13 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](alice-bob.plantuml){.plantuml .render width="60%"}
 
----
+--------------------------------------------------------------------------------
 
 # Dot Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-```{.markdown}
+``` markdown
 ![](graph.dot){.dot .render}
 ```
 
@@ -156,13 +162,13 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](graph.dot){.dot .render}
 
----
+--------------------------------------------------------------------------------
 
 # Tikz Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-```{.markdown}
+``` markdown
 ![](tikz.tex){.render}
 ```
 
@@ -170,11 +176,11 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](tikz.tex){.tex .render}
 
----
+--------------------------------------------------------------------------------
 
 # Tikz Embedded
 
-```{.tex .render width="50%"}
+``` {.tex .render width="50%"}
 \documentclass{standalone}
 \usepackage{tikz}
 \usepackage{verbatim}
