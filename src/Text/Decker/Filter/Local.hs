@@ -292,7 +292,9 @@ checkAbsoluteUri uri =
     <> show uri
 
 needFile :: FilePath -> Filter ()
-needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
+needFile path = do
+    -- putStrLn $ "needfile: " <> path
+    modifyMeta (addMetaValue "decker.filter.resources" path)
 
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do

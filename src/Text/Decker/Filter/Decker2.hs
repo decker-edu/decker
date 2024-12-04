@@ -142,6 +142,6 @@ runFilter2 ::
 runFilter2 dispo filter pandoc@(Pandoc meta _) = do
   mutex <- newMVar 0
   templates <- newTVarIO Map.empty
-  (Pandoc _ blocks, FilterState meta _ _ _) <-
+  (Pandoc _ resultBlocks, FilterState resultMeta _ _ _) <-
     runStateT (walkM filter pandoc) (FilterState meta dispo mutex templates)
-  return $ Pandoc meta blocks
+  return $ Pandoc resultMeta resultBlocks
