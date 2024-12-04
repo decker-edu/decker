@@ -1,7 +1,7 @@
 ---
 title: Custom Quizzes
-#quizzer:
-#  url: 'https://quiz.jetzt'
+quizzer:
+  url: 'https://quiz.jetzt'
 reveal:
   center: true
 ---
@@ -23,9 +23,9 @@ What is **not** a mathematical operation?
 
 :::
 
-# Choic Quiz as a poll
+# Choice Quiz as a poll
 
-::: {.quizzer .choice}
+::: { .quizzer .choice }
 
 What is your semester?
 
@@ -33,6 +33,23 @@ What is your semester?
 - [ ] `3 - 4`
 - [ ] `5 - 6`
 - [ ] `>6`
+
+:::
+
+# Choice Quiz as a poll
+
+::: { .quizzer .choice }
+
+What is your semester?
+
+::: w50
+
+- [ ] `1 - 2`
+- [ ] `3 - 4`
+- [ ] `5 - 6`
+- [ ] `>6`
+
+:::
 
 :::
 
@@ -164,13 +181,30 @@ Test [#1] Two [#2] Three [#3]
 
 Assign these people to their correct group.
 
-- [ ] Hauer
-  - WiMis
+- [ ] Olaf
+  - Chancelor
 - [ ] Mario
-  - Profs
-- [ ] Harmeling
-  - Profs
-- [ ] Second
-  - Studis
+  - Professor
+- [ ] Linus
+  - Developer
+
+:::
+
+# Assignment Quiz via Definition List
+
+::: {.quizzer .assignment}
+
+Assign these people to their correct group.
+
+
+Chancelor
+: Olaf
+: Bauer
+
+Professor
+: Mario
+
+Developer
+: Linus
 
 :::
