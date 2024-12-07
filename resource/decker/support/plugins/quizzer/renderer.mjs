@@ -517,9 +517,7 @@ export default {
       container.removeChild(container.solutionContainer);
       return;
     }
-    if (answers.parent && answers.parent !== parent) {
-      container.answerContainer.appendChild(answers.parent);
-    }
+
     for (const option of answers.options) {
       const button = document.createElement("button");
       button.classList.add("answer");
@@ -567,11 +565,7 @@ export default {
         },
         { once: true }
       );
-      if (answers.parent && answers.parent !== parent) {
-        answers.parent.appendChild(button);
-      } else {
-        container.answers.appendChild(button);
-      }
+      container.answers.appendChild(button);
     }
     parent.appendChild(container);
   },
