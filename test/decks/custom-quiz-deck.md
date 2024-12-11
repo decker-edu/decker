@@ -220,3 +220,15 @@ Developer
 : Linus
 
 :::
+
+# Special Case: Image as question?
+
+::: {.quizzer .choice}
+
+![](./@f{u}nn%20y.png)
+
+- [x] Yes
+- [ ] No
+
+:::
+

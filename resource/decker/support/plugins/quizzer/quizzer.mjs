@@ -226,14 +226,20 @@ function parseQuizzes(reveal) {
         hrule.remove();
       }
       /* ... clean up empty spans and ps ... */
-      while (
-        quizzer.querySelectorAll(":is(span,p)[display]:empty").length > 0
-      ) {
-        const empties = quizzer.querySelectorAll(":is(p,span):empty");
+      let change;
+      do {
+        change = false;
+        const empties = quizzer.querySelectorAll(":is(p,span,div)");
         for (const empty of empties) {
-          empty.remove();
+          if (
+            empty.textContent.trim() === "" &&
+            empty.childElementCount === 0
+          ) {
+            change = true;
+            empty.remove();
+          }
         }
-      }
+      } while (change);
       /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
       quizObject.question = quizzer.innerHTML.trim();
       /* Clean up the entire quizzer container */
