@@ -233,9 +233,11 @@ function parseQuizzes(reveal) {
         for (const empty of empties) {
           if (
             empty.textContent.trim() === "" &&
-            empty.childElementCount === 0
+            empty.childElementCount === 0 &&
+            empty.style.clear !== "both" //prevent :vspace being deleted
           ) {
             change = true;
+            console.log(empty);
             empty.remove();
           }
         }
