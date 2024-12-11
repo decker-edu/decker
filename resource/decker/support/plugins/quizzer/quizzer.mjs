@@ -235,7 +235,7 @@ function parseQuizzes(reveal) {
         }
       }
       /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
-      quizObject.question = quizzer.textContent.trim();
+      quizObject.question = quizzer.innerHTML.trim();
       /* Clean up the entire quizzer container */
       while (quizzer.lastElementChild) {
         quizzer.lastElementChild.remove();
