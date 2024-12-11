@@ -53,6 +53,18 @@ What is your semester?
 
 :::
 
+# Choice Quiz with Math
+
+::: {.quizzer .choice}
+
+What is $A \times B$?
+
+- [x] $\begin{pmatrix}1 & 2 & 3\\4 & 5 & 6\\7 & 8 & 9\end{pmatrix}$
+- [ ] $\begin{pmatrix}a & b & c\\d & e & f\\g & h & i\end{pmatrix}$
+- [ ] $\begin{pmatrix}1 & 0 & 0\\0 & 1 & 0\\0 & 0 & 1\end{pmatrix}$
+
+:::
+
 # Select Quiz
 
 ::: {.quizzer .selection}
