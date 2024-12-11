@@ -153,6 +153,7 @@ function parseQuizzes(reveal) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
           options: [],
+          parent: list.parentElement,
         };
         /* ... where each list item is a possible answer ... */
         const items = list.querySelectorAll(":scope > li");
@@ -190,10 +191,9 @@ function parseQuizzes(reveal) {
         /* ... remove the list from the DOM ... */
         list.remove();
       }
-      /* ... parse definition lists for assignments too ... */
+      /* ... parse definition lists for assignments, too ... */
       if (quizObject.type === "assignment") {
         const defLists = quizzer.querySelectorAll(":scope dl");
-        console.log(defLists);
         for (const defList of defLists) {
           const choiceObject = {
             votes: 1, // By default you have at least one vote
@@ -235,7 +235,7 @@ function parseQuizzes(reveal) {
         }
       }
       /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
-      quizObject.question = quizzer.innerHTML.trim();
+      quizObject.question = quizzer.textContent.trim();
       /* Clean up the entire quizzer container */
       while (quizzer.lastElementChild) {
         quizzer.lastElementChild.remove();
@@ -986,7 +986,7 @@ const Plugin = {
       parseQuizzes(reveal);
     } catch (error) {
       console.error(error);
-      console.error("Canceling parsing and rendering quizzes.");
+      console.error("An error occured while parsing and rendering quizzes.");
     }
     reveal.on("ready", () => {
       reveal.on("slidechanged", onSlideChange);
