@@ -136,6 +136,7 @@ class Feedback {
         const anchors = this.reveal.getPlugin("ui-anchors");
         anchors.setInert(true);
       }
+      this.reveal.configure({ keyboard: false });
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
       this.menu.close_button.focus();
@@ -163,6 +164,9 @@ class Feedback {
       this.glass.classList.remove("show", "blur");
       if (event && event.detail === 0) {
         setTimeout(() => this.open_button.focus());
+      }
+      if (!document.documentElement.classList.contains("handout")) {
+        this.reveal.configure({ keyboard: true });
       }
     }
   }
@@ -626,6 +630,13 @@ class Feedback {
         this.menu.feedback_list.appendChild(block);
       }
     }
+    if (this.menu.feedback_list.firstElementChild) {
+      this.menu.feedback_list.firstElementChild.setAttribute("tabindex", "0");
+    }
+    const buttons = this.menu.feedback_list.querySelectorAll("button");
+    for (const button of buttons) {
+      button.setAttribute("tabindex", "-1");
+    }
     MathJax.typeset([this.menu.feedback_list]);
     this.menu.feedback_list.scrollTop = 0;
   }
@@ -721,9 +732,9 @@ class Feedback {
         <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}" role="menuitem">
         </button>
       </div>
-      <ul class="feedback-list"></ul>
+      <ul class="feedback-list" role="group"></ul>
       <div class="feedback-question-input">
-        <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
+        <textarea wrap="hard" placeholder="${this.localization.question_placeholder}"></textarea> 
         <button class="feedback-send-button" aria-label="${this.localization.send_comment_label}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment_html}</span></button>
       </div>
       <div class="feedback-footer">
@@ -844,6 +855,94 @@ class Feedback {
         }
       }
     );
+
+    this.menu.feedback_list.addEventListener("keydown", (event) => {
+      function changeFocus(element) {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          document.activeElement.removeAttribute("tabindex");
+        }
+        element.setAttribute("tabindex", "0");
+        element.focus();
+      }
+      const firstItem = this.menu.feedback_list.firstElementChild;
+      const lastItem = this.menu.feedback_list.lastElementChild;
+      if (event.key === "ArrowDown") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          if (document.activeElement === lastItem) {
+            changeFocus(firstItem);
+          } else {
+            const target = document.activeElement.nextElementSibling;
+            changeFocus(target);
+          }
+        }
+      }
+      if (event.key === "ArrowUp") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          if (document.activeElement === firstItem) {
+            changeFocus(lastItem);
+          } else {
+            const target = document.activeElement.previousElementSibling;
+            changeFocus(target);
+          }
+        }
+      }
+      if (event.key === "Enter") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          const controls =
+            document.activeElement.querySelector(".feedback-controls");
+          const buttons = controls.querySelectorAll("button");
+          const focusOutListener = function (event) {
+            if (controls.contains(event.relatedTarget)) {
+              return;
+            }
+            controls.removeEventListener("focusout", focusOutListener);
+            for (const button of buttons) {
+              button.setAttribute("tabindex", "-1");
+            }
+          };
+          controls.addEventListener("focusout", focusOutListener);
+          for (const button of buttons) {
+            button.removeAttribute("tabindex");
+          }
+          if (buttons.length > 0) {
+            buttons[0].focus();
+          }
+        }
+      }
+      if (event.key === "Escape") {
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        ) {
+          const listElement = document.activeElement.closest("li");
+          listElement.focus();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }
+      if (event.key === "Tab") {
+        // If we have focus on one of the buttons
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        ) {
+          const controls = document.activeElement.closest(".feedback-controls");
+          const buttons = controls.querySelectorAll("button");
+          const firstButton = buttons[0];
+          const lastButton = buttons[buttons.length - 1];
+          if (document.activeElement === lastButton && !event.shiftKey) {
+            firstButton.focus();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          if (document.activeElement === firstButton && event.shiftKey) {
+            lastButton.focus();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }
+      }
+    });
 
     this.menu.close_button.addEventListener("keydown", (event) => {
       if (event.key === "Tab" && event.shiftKey) {
