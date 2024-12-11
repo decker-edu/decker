@@ -18,6 +18,7 @@ body.reveal-viewport {
   --inner-width: calc(
     var(--slide-width) - 2 * var(--block-border-width) - 2 * var(--block-outset)
   );
+  line-height: 1.5;
 }
 
 .reveal {
@@ -28,7 +29,6 @@ body.reveal-viewport {
 .reveal .slides > section {
   width: var(--slide-width);
   height: var(--slide-height);
-  line-height: 1.5;
   text-align: left;
   padding: 0;
 }
