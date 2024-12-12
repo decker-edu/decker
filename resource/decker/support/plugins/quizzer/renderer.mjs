@@ -481,6 +481,61 @@ export default {
     parent.appendChild(container);
   },
 
+  renderChoiceButtons(choices) {
+    const container = document.createElement("div");
+    container.className = "answer-container";
+    for (const option of choices.options) {
+      const button = document.createElement("button");
+      button.classList.add("answer");
+      button.innerHTML = option.label;
+
+      button.dataset["letter"] = option.letter;
+
+      const popover = document.createElement("span");
+      popover.className = "solution-popover";
+      popover.setAttribute("aria-hidden", true);
+
+      button.appendChild(popover);
+      // The Popover API only allows positioning relative to the viewport right now.
+      // Doing manual positioning and functionality via CSS right now but once the
+      // Anchoring API is available this will be much easier.
+      //      popover.popover = "manual";
+      //      button.popoverTargetElement = popover;
+      //      button.popoverTargetAction = "show";
+
+      button.addEventListener(
+        "click",
+        (event) => {
+          if (option.reason) {
+            popover.innerHTML = option.reason;
+          }
+          if (option.correct) {
+            button.classList.add("correct");
+            const checkmark = document.createElement("span");
+            checkmark.classList.add("checkmark", "fas", "fa-check");
+            button.appendChild(checkmark);
+            button.setAttribute(
+              "aria-description",
+              `${l10n.correct} ${option.reason ? option.reason : l10n.noReason}`
+            );
+          } else {
+            button.classList.add("wrong");
+            const checkmark = document.createElement("span");
+            checkmark.classList.add("checkmark", "fas", "fa-times");
+            button.appendChild(checkmark);
+            button.setAttribute(
+              "aria-description",
+              `${l10n.wrong} ${option.reason ? option.reason : l10n.noReason}`
+            );
+          }
+        },
+        { once: true }
+      );
+      container.appendChild(button);
+    }
+    return container;
+  },
+
   /**
    * Render a choice quiz:
    *

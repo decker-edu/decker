@@ -22,6 +22,15 @@
   color: var(--color-error);
 }
 
+.quizzer.choice {
+  display: flex;
+  flex-direction: column;
+}
+
+.center .quizzer.choice {
+  text-align: center;
+}
+
 .quizzer .answer-container {
   display: flex;
   flex-direction: column;
