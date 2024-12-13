@@ -397,17 +397,25 @@ function createHostInterface(reveal) {
       if (slide && slide.quiz) {
         activeQuiz = slide.quiz;
         document.documentElement.classList.add("active-poll");
-        startAudio.addEventListener(
+        startAudio?.addEventListener(
           "ended",
           (event) => {
-            if (document.documentElement.classList.contains("active-poll")) {
+            if (
+              loopAudio &&
+              document.documentElement.classList.contains("active-poll")
+            ) {
               loopAudio.loop = true;
-              loopAudio?.play();
+              loopAudio.play();
             }
           },
           { once: true }
         );
         startAudio?.play();
+        // If loop is defined but start is not, just start loop
+        if (!startAudio && loopAudio) {
+          loopAudio.loop = true;
+          loopAudio.play();
+        }
         host.sendQuiz(activeQuiz);
         return;
       }
@@ -636,9 +644,11 @@ function stopDrag(e) {
  */
 function renderResult(result) {
   showResults();
-  loopAudio.pause();
-  loopAudio.currentTime = 0;
-  endAudio.play();
+  if (loopAudio) {
+    loopAudio.pause();
+    loopAudio.currentTime = 0;
+  }
+  endAudio?.play();
   const entries = resultContainer.querySelectorAll(".quizzer-result");
   for (const entry of entries) {
     entry.remove();
@@ -1011,16 +1021,22 @@ const Plugin = {
       console.error("An error occured while parsing and rendering quizzes.");
     }
     if (Decker.meta.quizzer?.audio?.start) {
-      console.log(Decker.meta.quizzer?.audio?.start);
       startAudio = new Audio(Decker.meta.quizzer.audio.start);
+      startAudio.volume = Decker.meta.quizzer.audio.volume
+        ? Decker.meta.quizzer.audio.volume
+        : 1.0;
     }
     if (Decker.meta.quizzer?.audio?.loop) {
-      console.log(Decker.meta.quizzer?.audio?.loop);
       loopAudio = new Audio(Decker.meta.quizzer.audio.loop);
+      loopAudio.volume = Decker.meta.quizzer.audio.volume
+        ? Decker.meta.quizzer.audio.volume
+        : 1.0;
     }
     if (Decker.meta.quizzer?.audio?.end) {
-      console.log(Decker.meta.quizzer?.audio?.end);
       endAudio = new Audio(Decker.meta.quizzer.audio.end);
+      endAudio.volume = Decker.meta.quizzer.audio.volume
+        ? Decker.meta.quizzer.audio.volume
+        : 1.0;
     }
     reveal.on("ready", () => {
       reveal.on("slidechanged", onSlideChange);
