@@ -397,10 +397,16 @@ function createHostInterface(reveal) {
       if (slide && slide.quiz) {
         activeQuiz = slide.quiz;
         document.documentElement.classList.add("active-poll");
-        startAudio.addEventListener("ended", (event) => {
-          loopAudio.loop = true;
-          loopAudio?.play();
-        });
+        startAudio.addEventListener(
+          "ended",
+          (event) => {
+            if (document.documentElement.classList.contains("active-poll")) {
+              loopAudio.loop = true;
+              loopAudio?.play();
+            }
+          },
+          { once: true }
+        );
         startAudio?.play();
         host.sendQuiz(activeQuiz);
         return;
@@ -1005,12 +1011,15 @@ const Plugin = {
       console.error("An error occured while parsing and rendering quizzes.");
     }
     if (Decker.meta.quizzer?.audio?.start) {
+      console.log(Decker.meta.quizzer?.audio?.start);
       startAudio = new Audio(Decker.meta.quizzer.audio.start);
     }
     if (Decker.meta.quizzer?.audio?.loop) {
+      console.log(Decker.meta.quizzer?.audio?.loop);
       loopAudio = new Audio(Decker.meta.quizzer.audio.loop);
     }
     if (Decker.meta.quizzer?.audio?.end) {
+      console.log(Decker.meta.quizzer?.audio?.end);
       endAudio = new Audio(Decker.meta.quizzer.audio.end);
     }
     reveal.on("ready", () => {
