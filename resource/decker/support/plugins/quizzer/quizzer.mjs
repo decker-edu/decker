@@ -39,6 +39,12 @@ let resultContainer = document.createElement("div");
 let closeResultsButton = document.createElement("button");
 let resultsAvailable = false;
 
+/* Audio */
+
+let startAudio = undefined;
+let loopAudio = undefined;
+let endAudio = undefined;
+
 /**
  * Checks if the given rect contains the given (x,y) coordinate.
  * Used for checking if the QR Dialog itself is clicked or its backdrop.
@@ -391,6 +397,11 @@ function createHostInterface(reveal) {
       if (slide && slide.quiz) {
         activeQuiz = slide.quiz;
         document.documentElement.classList.add("active-poll");
+        startAudio.addEventListener("ended", (event) => {
+          loopAudio.loop = true;
+          loopAudio?.play();
+        });
+        startAudio?.play();
         host.sendQuiz(activeQuiz);
         return;
       }
@@ -619,6 +630,9 @@ function stopDrag(e) {
  */
 function renderResult(result) {
   showResults();
+  loopAudio.pause();
+  loopAudio.currentTime = 0;
+  endAudio.play();
   const entries = resultContainer.querySelectorAll(".quizzer-result");
   for (const entry of entries) {
     entry.remove();
@@ -989,6 +1003,15 @@ const Plugin = {
     } catch (error) {
       console.error(error);
       console.error("An error occured while parsing and rendering quizzes.");
+    }
+    if (Decker.meta.quizzer?.audio?.start) {
+      startAudio = new Audio(Decker.meta.quizzer.audio.start);
+    }
+    if (Decker.meta.quizzer?.audio?.loop) {
+      loopAudio = new Audio(Decker.meta.quizzer.audio.loop);
+    }
+    if (Decker.meta.quizzer?.audio?.end) {
+      endAudio = new Audio(Decker.meta.quizzer.audio.end);
     }
     reveal.on("ready", () => {
       reveal.on("slidechanged", onSlideChange);
