@@ -1021,19 +1021,43 @@ const Plugin = {
       console.error("An error occured while parsing and rendering quizzes.");
     }
     if (Decker.meta.quizzer?.audio?.start) {
-      startAudio = new Audio(Decker.meta.quizzer.audio.start);
+      let startAudioSource;
+      if (Decker.meta.quizzer.audio.start === "default") {
+        const url = new URL(import.meta.url);
+        const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+        startAudioSource = path + "/wwm-question.mp3";
+      } else {
+        startAudioSource = Decker.meta.quizzer.audio.start;
+      }
+      startAudio = new Audio(startAudioSource);
       startAudio.volume = Decker.meta.quizzer.audio.volume
         ? Decker.meta.quizzer.audio.volume
         : 1.0;
     }
     if (Decker.meta.quizzer?.audio?.loop) {
-      loopAudio = new Audio(Decker.meta.quizzer.audio.loop);
+      let loopAudioSource;
+      if (Decker.meta.quizzer.audio.loop === "default") {
+        const url = new URL(import.meta.url);
+        const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+        loopAudioSource = path + "/wwm-loop.mp3";
+      } else {
+        loopAudioSource = Decker.meta.quizzer.audio.loop;
+      }
+      loopAudio = new Audio(loopAudioSource);
       loopAudio.volume = Decker.meta.quizzer.audio.volume
         ? Decker.meta.quizzer.audio.volume
         : 1.0;
     }
     if (Decker.meta.quizzer?.audio?.end) {
-      endAudio = new Audio(Decker.meta.quizzer.audio.end);
+      let endAudioSource;
+      if (Decker.meta.quizzer.audio.end === "default") {
+        const url = new URL(import.meta.url);
+        const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+        endAudioSource = path + "/wwm-answer.mp3";
+      } else {
+        endAudioSource = Decker.meta.quizzer.audio.end;
+      }
+      endAudio = new Audio(endAudioSource);
       endAudio.volume = Decker.meta.quizzer.audio.volume
         ? Decker.meta.quizzer.audio.volume
         : 1.0;

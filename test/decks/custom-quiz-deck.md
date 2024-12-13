@@ -3,9 +3,9 @@ title: Custom Quizzes
 quizzer:
   url: 'https://quiz.jetzt'
   audio:
-    start: "../../support/plugins/quizzer/wwm-question.mp3"
-    loop: "../../support/plugins/quizzer/wwm-loop.mp3"
-    end: "../../support/plugins/quizzer/wwm-answer.mp3"
+    start: 'default'
+    loop: 'default'
+    end: 'default'
     volume: 0.75
 reveal:
   center: true
