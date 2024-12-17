@@ -232,3 +232,17 @@ Developer
 
 :::
 
+# Special Case: vspace inside question?
+
+::: {.quizzer .choice}
+
+Test
+
+[:vspace](128px)
+
+Test
+
+- [x] Yes
+- [ ] No
+
+:::
