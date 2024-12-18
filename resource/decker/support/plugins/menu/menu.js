@@ -110,7 +110,11 @@ class SlideMenu {
         const anchors = this.reveal.getPlugin("ui-anchors");
         anchors.setInert(true);
       }
-      this.reveal.getRevealElement().inert = true;
+      if (document.documentElement.classList.contains("handout")) {
+        document.getElementById("handout-container").inert = true;
+      } else {
+        this.reveal.getRevealElement().inert = true;
+      }
       this.disableKeybinds();
       this.glass.classList.add("show");
       this.menu.home_button.removeAttribute("tabindex");
@@ -137,7 +141,11 @@ class SlideMenu {
         const anchors = this.reveal.getPlugin("ui-anchors");
         anchors.setInert(false);
       }
-      this.reveal.getRevealElement().inert = false;
+      if (document.documentElement.classList.contains("handout")) {
+        document.getElementById("handout-container").inert = false;
+      } else {
+        this.reveal.getRevealElement().inert = false;
+      }
       for (const button of this.plugin_buttons.querySelectorAll("button")) {
         button.setAttribute("tabindex", -1);
       }
