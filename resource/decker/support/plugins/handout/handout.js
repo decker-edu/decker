@@ -68,6 +68,7 @@ let localization = {
   deactivate_handout_mode: "Deactivate Handout Mode (H,H,H)",
   handout_mode_on: `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
   handout_mode_off: `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
+  comment_header: "Questions and Comments",
 };
 
 if (navigator.language === "de") {
@@ -75,6 +76,7 @@ if (navigator.language === "de") {
   localization.deactivate_handout_mode = "Handout-Modus abschalten (H,H,H)";
   localization.handout_mode_on = `<span>Handout-Modus: <strong style="color:var(--accent3);">AN</strong></span>`;
   localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
+  localization.comment_header = "Fragen und Kommentare";
 }
 
 function activateHandoutMode() {
@@ -93,6 +95,7 @@ function activateHandoutMode() {
     meta.setAttribute("content", unlimited);
   }
   const currentSlide = Reveal.getCurrentSlide();
+  const allSlides = Reveal.getSlides();
 
   // Switch state of view menu button
   if (pluginButton) {
@@ -182,6 +185,52 @@ function activateHandoutMode() {
     handoutSlides.appendChild(section);
   }
 
+  // setup slides feedback
+  if (Reveal.hasPlugin("feedback")) {
+    const feedback = Reveal.getPlugin("feedback");
+    const engine = feedback.getEngine();
+    console.log(engine);
+    for (const slide of allSlides) {
+      engine.api
+        .getComments(engine.deckId, slide.id, null)
+        .then((comments) => {
+          if (comments.length > 0) {
+            const container = document.createElement("div");
+            container.className = "handout-feedback-container";
+            //            slide.parentElement.insertBefore(
+            //              container,
+            //              slide.nextElementSibling
+            //            );
+            slide.appendChild(container);
+            const heading = document.createElement("h4");
+            heading.innerText = localization.comment_header;
+            container.appendChild(heading);
+            const commentWrapper = document.createElement("div");
+            commentWrapper.className = "handout-feedback-comments";
+            container.appendChild(commentWrapper);
+            for (const comment of comments) {
+              const message = document.createElement("div");
+              message.className = "handout-feedback-comment";
+              message.innerHTML = comment.html;
+              commentWrapper.appendChild(message);
+              MathJax.typeset([message]);
+              for (const answer of comment.answers) {
+                const message = document.createElement("div");
+                message.className = "handout-feedback-answer";
+                message.innerHTML = answer.html;
+                commentWrapper.appendChild(message);
+                MathJax.typeset([message]);
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("[HANDOUT FEEDBACK] Error while fetching comments.");
+          console.error(error);
+        });
+    }
+  }
+
   // create intersection observers
   createVisibleSlideIntersectionObserver(topLevelSections);
   createSRCIntersectionObserver();
@@ -204,6 +253,13 @@ function disassembleHandoutMode() {
   const meta = document.querySelector("meta[name=viewport]");
   if (meta) {
     meta.setAttribute("content", storedMetaViewport);
+  }
+
+  const commentContainers = document.querySelectorAll(
+    ".handout-feedback-container"
+  );
+  for (const container of commentContainers) {
+    container.remove();
   }
 
   // Change state of view menu button

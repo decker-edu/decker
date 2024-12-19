@@ -469,20 +469,21 @@ class Feedback {
     let isAnswered = comment.answers && comment.answers.length > 0;
 
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<li class="feedback-item">
+    template.innerHTML = String.raw`<li class="feedback-item" role="menuitem">
   <div class="feedback-content">
     ${comment.html}
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
-      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${
-      comment.votes > 0 ? comment.votes : ""
-    }</span>
+      <span class="votes" title="${text.votes}" aria-label="${
+      comment.votes > 0 ? comment.votes : 0
+    } ${text.votes}">${comment.votes > 0 ? comment.votes : ""}</span>
       <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${
       !isAuthor ? "canvote" : "cantvote"
     } ${comment.didvote ? "didvote" : ""}"
         title="${comment.didvote ? text.downvote : text.upvote}"
-        aria-label="${comment.didvote ? text.downvote : text.upvote}">
+        aria-label="${comment.didvote ? text.downvote : text.upvote}"
+        aria-disabled="${isAuthor}">
       </button>
       ${
         isDeletable
@@ -504,12 +505,12 @@ class Feedback {
           ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${
               isDeletable ? text.reset : text.answered
             }" aria-label="${isDeletable ? text.reset : text.answered}" ${
-              !isDeletable ? "disabled" : ""
+              !isDeletable ? "aria-disabled" : ""
             }></button>`
           : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${
               isDeletable ? text.mark : text.notanswered
             }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${
-              !isDeletable ? "disabled" : ""
+              !isDeletable ? "aria-disabled" : ""
             }></button>`
       }
     </div>
@@ -636,6 +637,7 @@ class Feedback {
     const buttons = this.menu.feedback_list.querySelectorAll("button");
     for (const button of buttons) {
       button.setAttribute("tabindex", "-1");
+      button.setAttribute("aria-hidden", true);
     }
     MathJax.typeset([this.menu.feedback_list]);
     this.menu.feedback_list.scrollTop = 0;
@@ -898,14 +900,17 @@ class Feedback {
             controls.removeEventListener("focusout", focusOutListener);
             for (const button of buttons) {
               button.setAttribute("tabindex", "-1");
+              button.setAttribute("aria-hidden", true);
             }
           };
           controls.addEventListener("focusout", focusOutListener);
           for (const button of buttons) {
             button.removeAttribute("tabindex");
+            button.removeAttribute("aria-hidden");
           }
           if (buttons.length > 0) {
             buttons[0].focus();
+            event.preventDefault();
           }
         }
       }
