@@ -58,6 +58,7 @@ import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Pandoc (Meta)
 import Text.Pandoc.Definition (nullMeta)
+import Text.Decker.Reader.Markdown (formatStdin)
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -79,10 +80,12 @@ runDeckerArgs args theRules = do
   case deckerMeta of
     Right meta -> do
       context <- initContext flags meta
-      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
+      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check", "format"]
       case targets of
         [command] | command `elem` commands -> runCommand context command rules
-        _ -> runTargets context targets rules
+        _ -> do
+          warnVersion
+          runTargets context targets rules
     Left err -> do
       putStrLn "ERROR: cannot find `decker.yaml`"
       exitFailure
@@ -227,6 +230,7 @@ runCommand context command rules = do
       -- runShake context rules'
       runShake context rules
       killThread id
+    "format" -> formatStdin
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
@@ -354,7 +358,6 @@ initContext extra meta = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
-  when devRun $ putStrLn "This is a DEVELOPMENT RUN"
   return $ ActionContext extra devRun external server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
@@ -438,7 +441,6 @@ putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 -- deleted on Windows.
 runClean :: Bool -> IO ()
 runClean totally = do
-  warnVersion
   putStrLn $ "# Removing " <> publicDir
   tryRemoveDirectory publicDir
   putStrLn $ "# Removing " <> privateDir

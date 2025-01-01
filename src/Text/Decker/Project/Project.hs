@@ -165,7 +165,7 @@ setProjectDirectory :: IO ()
 setProjectDirectory = do
   projectDir <- findProjectRoot
   Directory.setCurrentDirectory projectDir
-  putStrLn $ "# Running decker in: " <> projectDir
+  -- putStrLn $ "# Running decker in: " <> projectDir
 
 sourceRegexes :: [String] =
   [ "-deck.md\\'",
