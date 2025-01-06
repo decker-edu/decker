@@ -1,35 +1,38 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module MetaTests
-  ( metaTests
-  ) where
+  ( metaTests,
+  )
+where
 
-import qualified Data.Map.Strict as M
-import qualified Data.Text as Text
-
+import Data.Map.Strict qualified as M
+import Data.Text qualified as Text
 import Test.Hspec
-
 import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
 
 m1 =
   Meta
-    (M.fromList
-       [ ("bool", MetaBool True)
-       , ( "write-back"
-         , MetaMap
-             (M.fromList
-                [ ("line-columns", MetaString "80")
-                , ("line-wrap", MetaString "none")
-                ]))
-       , ("top", MetaMap (M.fromList [("bool", MetaBool True)]))
-       , ( "list"
-         , MetaList
-             [ MetaMap (M.fromList [("bool0", MetaBool True)])
-             , MetaMap (M.fromList [("bool1", MetaBool True)])
-             , MetaMap (M.fromList [("bool2", MetaBool True)])
-             ])
-       ])
+    ( M.fromList
+        [ ("bool", MetaBool True),
+          ( "write-back",
+            MetaMap
+              ( M.fromList
+                  [ ("line-columns", MetaString "80"),
+                    ("line-wrap", MetaString "none")
+                  ]
+              )
+          ),
+          ("top", MetaMap (M.fromList [("bool", MetaBool True)])),
+          ( "list",
+            MetaList
+              [ MetaMap (M.fromList [("bool0", MetaBool True)]),
+                MetaMap (M.fromList [("bool1", MetaBool True)]),
+                MetaMap (M.fromList [("bool2", MetaBool True)])
+              ]
+          )
+        ]
+    )
 
 m2 =
   Meta (M.fromList [("level1", MetaMap (M.fromList [("one", MetaString "0")]))])
@@ -41,17 +44,12 @@ m3 = Meta (M.fromList [("list", MetaList [MetaString "some/where/img.png"])])
 
 m3' =
   Meta
-    (M.fromList
-       [ ( "list"
-         , MetaList [MetaString "img.png", MetaString "some/where/img.png"])
-       ])
-
-m3'' =
-  Meta
-    (M.fromList
-       [ ( "list"
-         , MetaList [MetaString "img.jpg", MetaString "some/where/img.png"])
-       ])
+    ( M.fromList
+        [ ( "list",
+            MetaList [MetaString "img.png", MetaString "some/where/img.png"]
+          )
+        ]
+    )
 
 m4 =
   Meta
@@ -65,43 +63,55 @@ m4'' = Meta (M.fromList [("level1", MetaString "Gone.")])
 
 m5 =
   Meta
-    (M.fromList
-       [ ( "level1"
-         , MetaMap
-             (M.fromList
-                [("one", MetaList [MetaString "brot", MetaString "butter"])]))
-       ])
+    ( M.fromList
+        [ ( "level1",
+            MetaMap
+              ( M.fromList
+                  [("one", MetaList [MetaString "brot", MetaString "butter"])]
+              )
+          )
+        ]
+    )
 
 m5' =
   Meta
-    (M.fromList
-       [ ( "level1"
-         , MetaMap
-             (M.fromList
-                [("one", MetaList [MetaString "BROT", MetaString "BUTTER"])]))
-       ])
+    ( M.fromList
+        [ ( "level1",
+            MetaMap
+              ( M.fromList
+                  [("one", MetaList [MetaString "BROT", MetaString "BUTTER"])]
+              )
+          )
+        ]
+    )
 
 m6 =
   Meta
-    (M.fromList
-       [ ( "level1"
-         , MetaMap
-             (M.fromList
-                [ ("one", MetaList [MetaString "brot", MetaString "butter"])
-                , ("two", MetaString "salz")
-                ]))
-       ])
+    ( M.fromList
+        [ ( "level1",
+            MetaMap
+              ( M.fromList
+                  [ ("one", MetaList [MetaString "brot", MetaString "butter"]),
+                    ("two", MetaString "salz")
+                  ]
+              )
+          )
+        ]
+    )
 
 m6' =
   Meta
-    (M.fromList
-       [ ( "level1"
-         , MetaMap
-             (M.fromList
-                [ ("one", MetaList [MetaString "BROT", MetaString "BUTTER"])
-                , ("two", MetaString "SALZ")
-                ]))
-       ])
+    ( M.fromList
+        [ ( "level1",
+            MetaMap
+              ( M.fromList
+                  [ ("one", MetaList [MetaString "BROT", MetaString "BUTTER"]),
+                    ("two", MetaString "SALZ")
+                  ]
+              )
+          )
+        ]
+    )
 
 m7 = Meta (M.fromList [])
 
@@ -121,10 +131,10 @@ metaTests = do
       lookupMeta "list[2].bool2" m1 `shouldBe` Just True
   describe "getMetaInt" $
     it "looks up a top-level int meta value" $
-    lookupMeta "write-back.line-columns" m1 `shouldBe` Just (80 :: Int)
+      lookupMeta "write-back.line-columns" m1 `shouldBe` Just (80 :: Int)
   describe "getMetaString" $
     it "looks up a top-level int meta value" $
-    lookupMeta "write-back.line-wrap" m1 `shouldBe` Just ("none" :: String)
+      lookupMeta "write-back.line-wrap" m1 `shouldBe` Just ("none" :: String)
   describe "setMetaValue" $ do
     it "sets the value in a nested map" $
       setMetaValue "level1.one" (MetaString "1") m2 `shouldBe` m2'

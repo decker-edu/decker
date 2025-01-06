@@ -365,7 +365,7 @@ writeToMarkdown pandoc@(Pandoc pmeta _) = do
             . disableExtension Ext_multiline_tables
             . disableExtension Ext_grid_tables
             . disableExtension Ext_raw_html
-            . enableExtension Ext_auto_identifiers
+            . disableExtension Ext_auto_identifiers
         )
           pandocExtensions
   let options =

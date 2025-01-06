@@ -20,7 +20,6 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch hiding (try)
-import Data.Aeson (encode)
 import Data.ByteString.Char8 qualified as BS
 import Data.ByteString.UTF8 qualified as UTF8
 import Data.Char
@@ -76,19 +75,14 @@ runDeckerArgs args theRules = do
         if null targets
           then theRules
           else want targets >> withoutActions theRules
-  deckerMeta <- readMetaDataFile deckerMetaFile
-  case deckerMeta of
-    Right meta -> do
-      context <- initContext flags meta
-      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check", "format"]
-      case targets of
-        [command] | command `elem` commands -> runCommand context command rules
-        _ -> do
-          warnVersion
-          runTargets context targets rules
-    Left err -> do
-      putStrLn "ERROR: cannot find `decker.yaml`"
-      exitFailure
+  meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
+  context <- initContext flags meta
+  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check", "format"]
+  case targets of
+    [command] | command `elem` commands -> runCommand context command rules
+    _ -> do
+      warnVersion
+      runTargets context targets rules
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
