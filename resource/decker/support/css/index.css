@@ -64,7 +64,7 @@ body.index div.search.results table.search {
   margin-left: 0.25rem;
 }
 
-a.handout-link {
+.handout-link {
   display: inline-block;
   vertical-align: bottom;
   position: relative;
@@ -72,7 +72,7 @@ a.handout-link {
   height: 1em;
 }
 
-a.handout-link::before {
+.handout-link::before {
   display: block;
   position: absolute;
   content: "";
@@ -84,7 +84,7 @@ a.handout-link::before {
   border-radius: 2px;
 }
 
-a.handout-link::after {
+.handout-link::after {
   display: block;
   position: absolute;
   content: "";
@@ -99,4 +99,78 @@ a.handout-link::after {
 a.handout-link:hover::before,
 a.handout-link:hover::after {
   background-color: var(--accent5);
+}
+
+dialog {
+  background-color: var(--background-color);
+  text-align: center;
+}
+
+dialog::backdrop {
+  backdrop-filter: blur(2px);
+}
+
+dialog .handout-link::before,
+dialog .handout-link::after {
+  background-color: var(--background-color);
+}
+
+dialog h2 {
+  padding-top: 0;
+  padding-bottom: 1rem;
+  color: var(--foreground-color);
+}
+
+dialog div.group {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+dialog a {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--background-color);
+  background-color: var(--accent5);
+  font-size: 1.5rem;
+}
+
+dialog a:hover {
+  color: var(--background-color);
+  background-color: var(--accent5-fg);
+  text-decoration: none;
+}
+
+dialog a i {
+  font-size: 3rem;
+  margin: 1rem;
+}
+
+dialog a:visited {
+  color: var(--background-color);
+}
+
+dialog button.fas {
+  display: inline-block;
+  position: absolute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground-color);
+  top: 0;
+  right: 0;
+  font-size: 1.5rem;
+  margin: 0.5rem;
+  border-radius: 100%;
+}
+
+dialog button:hover {
+  color: var(--accent1);
 }
