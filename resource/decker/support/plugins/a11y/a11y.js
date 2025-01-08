@@ -11,8 +11,11 @@ let a11yMode;
 
 let pluginButton = undefined;
 
+let slidesAmount = 0;
+
 function addScreenReaderSlideNumbers() {
   const slides = document.querySelectorAll(".slides > section");
+  slidesAmount = slides.length;
   slides.forEach((slide, h) => {
     const subslides = slide.querySelectorAll("section");
     if (subslides.length > 0) {
@@ -31,7 +34,7 @@ function addScreenReaderSlideNumber(slide, h, v) {
     const innerHTML = header.innerHTML;
     let replacementHTML = `<span class="sr-only">${localization.slide} ${
       h + 1
-    }${v ? "." + v : ""}`;
+    }${v ? "." + v : ""} / ${slidesAmount}`;
     if (header.textContent.trim() !== "") {
       replacementHTML = replacementHTML + `,</span><span>${innerHTML}</span>`;
     } else {
