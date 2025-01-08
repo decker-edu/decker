@@ -700,7 +700,7 @@ const plugin = () => {
       menu.initializeButton();
       menu.initializeMenu();
 
-      document.body.appendChild(menu.menu.container);
+      document.body.prepend(menu.menu.container);
 
       this.getSlideList = () => {
         return menu.getSlideList();

@@ -976,7 +976,7 @@ class Feedback {
       let anchors = this.reveal.getPlugin("ui-anchors");
       anchors.placeButton(this.open_button, this.position);
     }
-    document.body.appendChild(this.menu.container);
+    document.body.prepend(this.menu.container);
 
     /* Temporary Solution */
     this.glass = document.querySelector("#glass");
