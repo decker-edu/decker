@@ -25,6 +25,7 @@ import Text.DocTemplates (Context, compileTemplateFile, toContext)
 import Text.Pandoc
   ( Block (CodeBlock, Para, Plain, RawBlock),
     Inline (Link, RawInline),
+    Meta,
     Pandoc (..),
     Template,
     renderTemplate,
@@ -121,10 +122,8 @@ getTemplate filename = do
       return template
     Just template -> return template
 
-readTemplateFile :: String -> Filter (Template Text)
-readTemplateFile filename = do
-  meta <- gets meta
-  let base :: String = lookupMetaOrElse "." "decker.base-dir" meta
+readTemplateFileIO :: String -> String -> IO (FilePath, Either String (Template Text))
+readTemplateFileIO base filename = do
   let path1 = makeProjectPath base filename
   let path2 = projectDir </> "templates" </> filename
   let path3 = supportDir </> "templates" </> filename
@@ -134,28 +133,32 @@ readTemplateFile filename = do
   -- tries two template locations in order and tries the second one only if the
   -- first one cannot be found. if the template cannot be found it throws an
   -- either.
-  (path, template) <-
-    liftIO
-      $ handle
-        ( \(SomeException _) ->
-            handle
-              ( \(SomeException _) ->
-                  handle
-                    ( \(SomeException err) ->
-                        throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err)
-                    )
-                    $ compileTemplate path3
-              )
-              $ compileTemplate path2
-        )
-      $ compileTemplate path1
+  handle
+    ( \(SomeException _) ->
+        handle
+          ( \(SomeException _) ->
+              handle
+                ( \(SomeException err) ->
+                    throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err)
+                )
+                $ compileTemplate path3
+          )
+          $ compileTemplate path2
+    )
+    $ compileTemplate path1
+
+readTemplateFile :: String -> Filter (Template Text)
+readTemplateFile filename = do
+  meta <- gets meta
+  let base :: String = lookupMetaOrElse "." "decker.base-dir" meta
+  (path, template) <- liftIO $ readTemplateFileIO base filename
   case template of
     Right template -> do
       needFile path
       return template
     Left err -> do
       return $ throw (ResourceException $ "Cannot parse template file: " <> filename <> ": " <> show err)
-  where
-    compileTemplate path = do
-      t <- compileTemplateFile path
-      return (path, t)
+
+compileTemplate path = do
+  t <- compileTemplateFile path
+  return (path, t)
