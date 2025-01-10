@@ -236,6 +236,7 @@ deckerRules = do
       deps <- getDeps
       let sources = Map.elems (deps ^. questions)
       need sources
+      -- renderQuestionBrowser meta (deps ^. questions) out
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
@@ -265,6 +266,8 @@ deckerRules = do
     generated %> \out -> do
       deps <- getDeps
       meta <- getGlobalMeta
+      targets <- liftIO targetsFile
+      need [targets]
       writeIndexLists meta deps out
     --
     generatedIndex %> \out -> do
@@ -330,17 +333,31 @@ deckerRules = do
   withTargetDocs "Provide information about project parameters, sources and targets" $
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
-      putWarn $ "\nproject directory: " ++ project
-      putWarn $ "public directory: " ++ publicDir
-      putWarn $ "support directory: " ++ supportDir
       meta <- getGlobalMeta
       deps <- getDeps
       resources <- liftIO $ deckerResources meta
-      putWarn $ "template source: " <> show resources
-      putWarn "\ndependencies:\n"
-      putWarn (groom deps)
-      putWarn "\ntop level meta data:\n"
-      putWarn (groom meta)
+      liftIO $ do
+        putStrLn $ "\nproject directory: " ++ project
+        putStrLn $ "public directory: " ++ publicDir
+        putStrLn $ "support directory: " ++ supportDir
+        putStrLn $ "transient directory: " ++ transient
+        putStrLn $ "template source: " <> show resources
+  --
+  withTargetDocs "Provide information about project parameters, sources and targets" $
+    phony "more-info" $ do
+      need ["info"]
+      meta <- getGlobalMeta
+      liftIO $ do
+        putStrLn "\ntop level meta data:\n"
+        putStrLn (groom meta)
+  --
+  withTargetDocs "Provide information about project parameters, sources and targets" $
+    phony "even-more-info" $ do
+      need ["more-info"]
+      deps <- getDeps
+      liftIO $ do
+        putStrLn "\ndependencies:\n"
+        putStrLn (groom deps)
   --
   withTargetDocs "Check the existence of usefull external programs" $
     phony "check" $
@@ -349,7 +366,7 @@ deckerRules = do
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
       deps <- getDeps
-      need [indexFile, "static-files"]
+      need [indexFile, generatedIndex, "static-files"]
       -- Resources and their locations are now recorded in deps
       need $ Map.keys (deps ^. resources)
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
@@ -392,6 +409,10 @@ deckerRules = do
               let dst = intercalate ":" [host, path]
               ssh [host, "mkdir -p", path] Nothing
               rsync [src, dst] Nothing
+
+renderQuestionBrowser :: Meta -> Dependencies -> FilePath -> Action ()
+renderQuestionBrowser meta questDeps out = do
+  return ()
 
 createPublicManifest :: Action ()
 createPublicManifest = do

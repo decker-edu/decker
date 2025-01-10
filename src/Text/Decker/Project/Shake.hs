@@ -51,13 +51,13 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
+import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Pandoc (Meta)
 import Text.Pandoc.Definition (nullMeta)
-import Text.Decker.Reader.Markdown (formatStdin)
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -94,11 +94,6 @@ runTargets context targets rules = do
     let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
 
-  -- always rescan the targets file in case files where added or removed
-  let meta = context ^. globalMeta
-  targets <- targetsFile
-  scanTargetsToFile meta targets
-
   -- Always run at least once
   runShake context rules
 
@@ -117,6 +112,11 @@ runTargets context targets rules = do
 
 runShake :: ActionContext -> Rules () -> IO ()
 runShake context rules = do
+  -- always rescan the targets file in case files where added or removed
+  let meta = context ^. globalMeta
+  targets <- targetsFile
+  scanTargetsToFile meta targets
+
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
 
@@ -126,6 +126,7 @@ _runShakeSlyly context rules = do
   let meta = context ^. globalMeta
   targets <- targetsFile
   scanTargetsToFile meta targets
+  
   let flags = context ^. extra
   extractMetaIntoFile flags
   options <- deckerShakeOptions context
