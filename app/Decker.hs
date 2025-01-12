@@ -30,6 +30,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -39,7 +40,6 @@ import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
-import Text.Decker.Project.ActionContext (actionContext, extra, Flags (LectureFlag))
 
 main :: IO ()
 main = do
@@ -91,12 +91,10 @@ indexFile = publicDir </> "index.html"
 
 run :: IO ()
 run = do
-  warnVersion
   runDecker deckerRules
 
 runArgs :: [String] -> IO ()
 runArgs args = do
-  warnVersion
   runDeckerArgs args deckerRules
 
 deckerRules = do
@@ -114,6 +112,7 @@ deckerRules = do
   addHelpSuffix "  - pdf - Build PDF versions of all decks (*-deck.md)."
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"
+  addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -237,6 +236,7 @@ deckerRules = do
       deps <- getDeps
       let sources = Map.elems (deps ^. questions)
       need sources
+      -- renderQuestionBrowser meta (deps ^. questions) out
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
@@ -266,6 +266,8 @@ deckerRules = do
     generated %> \out -> do
       deps <- getDeps
       meta <- getGlobalMeta
+      targets <- liftIO targetsFile
+      need [targets]
       writeIndexLists meta deps out
     --
     generatedIndex %> \out -> do
@@ -331,17 +333,31 @@ deckerRules = do
   withTargetDocs "Provide information about project parameters, sources and targets" $
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
-      putWarn $ "\nproject directory: " ++ project
-      putWarn $ "public directory: " ++ publicDir
-      putWarn $ "support directory: " ++ supportDir
       meta <- getGlobalMeta
       deps <- getDeps
       resources <- liftIO $ deckerResources meta
-      putWarn $ "template source: " <> show resources
-      putWarn "\ndependencies:\n"
-      putWarn (groom deps)
-      putWarn "\ntop level meta data:\n"
-      putWarn (groom meta)
+      liftIO $ do
+        putStrLn $ "\nproject directory: " ++ project
+        putStrLn $ "public directory: " ++ publicDir
+        putStrLn $ "support directory: " ++ supportDir
+        putStrLn $ "transient directory: " ++ transient
+        putStrLn $ "template source: " <> show resources
+  --
+  withTargetDocs "Provide information about project parameters, sources and targets" $
+    phony "more-info" $ do
+      need ["info"]
+      meta <- getGlobalMeta
+      liftIO $ do
+        putStrLn "\ntop level meta data:\n"
+        putStrLn (groom meta)
+  --
+  withTargetDocs "Provide information about project parameters, sources and targets" $
+    phony "even-more-info" $ do
+      need ["more-info"]
+      deps <- getDeps
+      liftIO $ do
+        putStrLn "\ndependencies:\n"
+        putStrLn (groom deps)
   --
   withTargetDocs "Check the existence of usefull external programs" $
     phony "check" $
@@ -350,7 +366,7 @@ deckerRules = do
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
       deps <- getDeps
-      need [indexFile, "static-files"]
+      need [indexFile, generatedIndex, "static-files"]
       -- Resources and their locations are now recorded in deps
       need $ Map.keys (deps ^. resources)
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
@@ -361,7 +377,7 @@ deckerRules = do
       -- TODO handle pages as well
       if LectureFlag `elem` flags
         then do
-        case lookupMeta "publish.rsync.destination" meta of
+          case lookupMeta "publish.rsync.destination" meta of
             Just (destination :: String) -> do
               -- clean out the public dir
               liftIO $ runClean False
@@ -381,18 +397,22 @@ deckerRules = do
               publishWithRsync src destination meta
             _ -> putError "publish.rsync.destination not configured"
         else do
-            need ["support"]
-            getDeps >>= needTargets' [decks, pages]
-            createPublicManifest
-            let src = publicDir ++ "/"
-            case lookupMeta "publish.rsync.destination" meta of
-                Just destination -> publishWithRsync src destination meta
-                _ -> do
-                    let host = lookupMetaOrFail "rsync-destination.host" meta
-                    let path = lookupMetaOrFail "rsync-destination.path" meta
-                    let dst = intercalate ":" [host, path]
-                    ssh [host, "mkdir -p", path] Nothing
-                    rsync [src, dst] Nothing
+          need ["support"]
+          getDeps >>= needTargets' [decks, pages]
+          createPublicManifest
+          let src = publicDir ++ "/"
+          case lookupMeta "publish.rsync.destination" meta of
+            Just destination -> publishWithRsync src destination meta
+            _ -> do
+              let host = lookupMetaOrFail "rsync-destination.host" meta
+              let path = lookupMetaOrFail "rsync-destination.path" meta
+              let dst = intercalate ":" [host, path]
+              ssh [host, "mkdir -p", path] Nothing
+              rsync [src, dst] Nothing
+
+renderQuestionBrowser :: Meta -> Dependencies -> FilePath -> Action ()
+renderQuestionBrowser meta questDeps out = do
+  return ()
 
 createPublicManifest :: Action ()
 createPublicManifest = do
