@@ -41,6 +41,7 @@ let eraserRadius = 10;
 let laserCursor;
 let penCursor;
 let currentCursor;
+let lineCursor;
 
 // whether stroke is a laser-point-stroke
 let isLaserStroke = false;
@@ -57,6 +58,9 @@ const PEN = 1;
 const ERASER = 2;
 const LASER = 3;
 const MOVE = 4;
+const LINE = 5;
+const RECT = 6;
+const CIRC = 7;
 let tool = PEN;
 
 // variable used to block leaving HTML page
@@ -158,6 +162,8 @@ let buttonGrid;
 let buttonAdd;
 let buttonUndo;
 let buttonPen;
+let buttonLine;
+let buttonRect;
 let buttonEraser;
 let buttonLaser;
 let colorPicker;
@@ -250,6 +256,46 @@ function createGUI() {
   );
   buttonPen.setAttribute("role", "switch");
   buttonPen.style.position = "relative";
+
+  buttonLine = createButton(
+    "fas fa-slash radiobutton",
+    () => {
+      if (!buttons.classList.contains("visible")) {
+        showPanel();
+        buttonLine.focus();
+        return;
+      }
+      if (tool != LINE) {
+        selectTool(LINE);
+      } else {
+        toggleColorPicker();
+      }
+    },
+    false,
+    "Draw line"
+  );
+  buttonLine.setAttribute("role", "switch");
+  buttonLine.style.position = "relative";
+
+  buttonRect = createButton(
+    "far fa-square radiobutton",
+    () => {
+      if (!buttons.classList.contains("visible")) {
+        showPanel();
+        buttonRect.focus();
+        return;
+      }
+      if (tool != RECT) {
+        selectTool(RECT);
+      } else {
+        toggleColorPicker();
+      }
+    },
+    false,
+    "Draw rectangle"
+  );
+  buttonRect.setAttribute("role", "switch");
+  buttonRect.style.position = "relative";
 
   buttonEraser = createButton(
     "fas fa-eraser radiobutton",
@@ -413,6 +459,9 @@ function createGridPattern() {
       <pattern id="gridPattern" width="${pageWidth}" height="${pageHeight}" patternUnits="userSpaceOnUse">
           <rect width="${rectWidth}" height="${rectHeight}" fill="url(#smallPattern)" style="stroke:var(--base02); stroke-width:3px;"/>
       </pattern>
+      <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" stroke="context-stroke" fill="context-fill"/>
+      </marker>
   </defs>`;
 }
 
@@ -477,6 +526,31 @@ function createPenCursor() {
     "url(" + cursorCanvas.toDataURL() + ") " + radius + " " + radius + ", auto";
 }
 
+function createLineCursor() {
+  let ctx = cursorCanvas.getContext("2d");
+
+  // adjust canvas size and cursor radius using Reveal scale
+  const slideScale = Reveal.getScale();
+  const radius = Math.max(2, 0.5 * penWidth * slideScale);
+  const width = radius * 2;
+  cursorCanvas.width = width + 1;
+  cursorCanvas.height = width + 1;
+
+  // we cannot use penColor, since this might be contain a CSS variable
+  // instead we have to evalute it
+  let color = getComputedStyle(buttonLine).color;
+
+  ctx.clearRect(0, 0, width, width);
+  ctx.fillStyle = ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
+  ctx.fill();
+
+  lineCursor =
+    "url(" + cursorCanvas.toDataURL() + ") " + radius + " " + radius + ", auto";
+}
+
 function createEraserCursor() {
   let ctx = cursorCanvas.getContext("2d");
 
@@ -536,10 +610,14 @@ function selectTool(newTool) {
   buttonLaser.dataset.active =
     buttonEraser.dataset.active =
     buttonPen.dataset.active =
+    buttonLine.dataset.active =
+    buttonRect.dataset.active =
       false;
   buttonLaser.setAttribute("aria-checked", "false");
   buttonEraser.setAttribute("aria-checked", "false");
   buttonPen.setAttribute("aria-checked", "false");
+  buttonLine.setAttribute("aria-checked", "false");
+  buttonRect.setAttribute("aria-checked", "false");
 
   switch (tool) {
     case PEN:
@@ -559,6 +637,18 @@ function selectTool(newTool) {
       buttonLaser.dataset.active = true;
       buttonLaser.setAttribute("aria-checked", "true");
       selectCursor(laserCursor);
+      break;
+
+    case LINE:
+      buttonLine.dataset.active = true;
+      buttonLine.setAttribute("aria-checked", "true");
+      selectCursor(penCursor);
+      break;
+
+    case RECT:
+      buttonRect.dataset.active = true;
+      buttonRect.setAttribute("aria-checked", "true");
+      selectCursor(penCursor);
       break;
   }
 
@@ -799,7 +889,7 @@ function clearLaserStrokes() {
  * return grid rect
  */
 function getGridRect() {
-  if (svg) return svg.querySelector("svg>rect");
+  if (svg) return svg.querySelector("svg>rect.grid");
 }
 
 /*
@@ -832,6 +922,8 @@ function toggleGrid() {
     rect.style.fill = "url(#gridPattern)";
     rect.style.stroke = "none";
     rect.style.pointerEvents = "none";
+
+    rect.classList = "grid";
 
     buttonGrid.dataset.active = true;
     buttonGrid.setAttribute("aria-checked", "true");
@@ -971,6 +1063,7 @@ function parseAnnotations(storage) {
         // use global SVG
         svg = setupSVG(slide);
         if (svg) {
+          console.log(page.svg);
           svg.innerHTML = page.svg;
           svg.style.display = "none";
         }
@@ -1167,6 +1260,24 @@ function isPointInStroke(path, point) {
   return false;
 }
 
+function renderLine(start, end, line) {
+  const [x1, y1] = start;
+  const [x2, y2] = end;
+  line.setAttribute("x1", x1);
+  line.setAttribute("y1", y1);
+  line.setAttribute("x2", x2);
+  line.setAttribute("y2", y2);
+}
+
+function renderRect(start, end, rect) {
+  const [x1, y1] = start;
+  const [x2, y2] = end;
+  rect.setAttribute("x", x1 > x2 ? x2 : x1);
+  rect.setAttribute("y", y1 > y2 ? y2 : y1);
+  rect.setAttribute("width", Math.abs(x2 - x1));
+  rect.setAttribute("height", Math.abs(y2 - y1));
+}
+
 /*****************************************************************
  * GUI methods to start, continue, and stop a stroke
  * Are called from pointer/mouse callback
@@ -1250,6 +1361,44 @@ function continueStroke(evt) {
   renderStroke(points, stroke);
 }
 
+function isPointInLineBounds(line, point) {
+  let [x, y] = point;
+  let x1 = parseInt(line.getAttribute("x1"));
+  let x2 = parseInt(line.getAttribute("x2"));
+  let y1 = parseInt(line.getAttribute("y1"));
+  let y2 = parseInt(line.getAttribute("y2"));
+  let inX = false;
+  let inY = false;
+  if (x1 < x2 && x1 <= x && x2 >= x) {
+    inX = true;
+  } else if (x1 > x2 && x1 >= x && x2 <= x) {
+    inX = true;
+  }
+  if (y1 < y2 && y1 <= y && y2 >= y) {
+    inY = true;
+  } else if (y1 > y2 && y1 >= y && y2 <= y) {
+    inY = true;
+  }
+  return inX && inY;
+}
+
+function isPointInRectBounds(rect, point) {
+  let [x, y] = point;
+  let rx = parseInt(rect.getAttribute("x"));
+  let ry = parseInt(rect.getAttribute("y"));
+  let rw = parseInt(rect.getAttribute("width"));
+  let rh = parseInt(rect.getAttribute("height"));
+  let inX = false;
+  let inY = false;
+  if (rx <= x && rx + rw >= x) {
+    inX = true;
+  }
+  if (ry <= y && ry + rh >= y) {
+    inY = true;
+  }
+  return inX && inY;
+}
+
 /*
  * stop current stroke:
  */
@@ -1266,6 +1415,86 @@ function stopStroke(evt) {
   stroke = null;
 
   // new stroke -> we have to save
+  needToSave(true);
+}
+
+let lineStart = undefined;
+let line = undefined;
+let lineEnd = undefined;
+
+function startLine(evt) {
+  if (line) return;
+  const mouseX = evt.offsetX / slideZoom;
+  const mouseY = evt.offsetY / slideZoom;
+  line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  svg.appendChild(line);
+  line.style.stroke = penColor;
+  line.style.strokeWidth = penWidth + "px";
+  line.style.fill = penColor;
+  line.setAttribute("marker-end", "url(#arrowhead)");
+  lineStart = [mouseX, mouseY];
+  lineEnd = [mouseX, mouseY];
+  pushUndoHistory("draw line");
+  renderLine(lineStart, lineEnd, line);
+}
+
+function continueLine(evt) {
+  if (!line) return;
+  const mouseX = evt.offsetX / slideZoom;
+  const mouseY = evt.offsetY / slideZoom;
+  lineEnd = [mouseX, mouseY];
+  renderLine(lineStart, lineEnd, line);
+}
+
+function stopLine(evt) {
+  if (!line) return;
+  const mouseX = evt.offsetX / slideZoom;
+  const mouseY = evt.offsetY / slideZoom;
+  lineEnd = [mouseX, mouseY];
+  renderLine(lineStart, lineEnd, line);
+  line = null;
+  lineStart = null;
+  lineEnd = null;
+  needToSave(true);
+}
+
+let rectStart = undefined;
+let rect = undefined;
+let rectEnd = undefined;
+
+function startRect(evt) {
+  if (rect) return;
+  const mouseX = evt.offsetX / slideZoom;
+  const mouseY = evt.offsetY / slideZoom;
+  rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  svg.appendChild(rect);
+  rect.style.stroke = penColor;
+  rect.style.strokeWidth = penWidth + "px";
+  rect.style.fill = stroke;
+  rect.style.fillOpacity = 0;
+  rectStart = [mouseX, mouseY];
+  rectEnd = [mouseX, mouseY];
+  pushUndoHistory("draw rect");
+  renderRect(rectStart, rectEnd, rect);
+}
+
+function continueRect(evt) {
+  if (!rect) return;
+  const mouseX = evt.offsetX / slideZoom;
+  const mouseY = evt.offsetY / slideZoom;
+  rectEnd = [mouseX, mouseY];
+  renderRect(rectStart, rectEnd, rect);
+}
+
+function stopRect(evt) {
+  if (!rect) return;
+  const mouseX = evt.offsetX / slideZoom;
+  const mouseY = evt.offsetY / slideZoom;
+  rectEnd = [mouseX, mouseY];
+  renderRect(rectStart, rectEnd, rect);
+  rect = null;
+  rectStart = null;
+  rectEnd = null;
   needToSave(true);
 }
 
@@ -1286,6 +1515,22 @@ function eraseStroke(evt) {
       needToSave(true);
     }
   });
+
+  svg.querySelectorAll("line").forEach((line) => {
+    if (isPointInLineBounds(line, point)) {
+      pushUndoHistory("erase line");
+      line.remove();
+      needToSave(true);
+    }
+  });
+
+  svg.querySelectorAll("rect").forEach((rect) => {
+    if (isPointInRectBounds(rect, point)) {
+      pushUndoHistory("erase rect");
+      rect.remove();
+      needToSave(true);
+    }
+  });
 }
 
 /*****************************************************************
@@ -1301,6 +1546,10 @@ function pointerMode(evt) {
 
   switch (evt.pointerType) {
     case "pen": {
+      // line selected
+      if (tool == LINE) return LINE;
+      // rect selected
+      if (tool == RECT) return RECT;
       // eraser selected && pen on wacom (button 1) -> eraser
       if (tool == ERASER && evt.buttons == 1) return ERASER;
       // eraser tip on wacom -> eraser
@@ -1314,6 +1563,10 @@ function pointerMode(evt) {
       break;
     }
     case "mouse": {
+      // line selected
+      if (tool == LINE) return LINE;
+      // rect selected
+      if (tool == RECT) return RECT;
       // eraser selected && left mouse -> eraser
       if (tool == ERASER && evt.buttons == 1) return ERASER;
       // pen selected && middle mouse -> eraser
@@ -1360,6 +1613,18 @@ function pointerdown(evt) {
       hideCursor();
       startStroke(evt);
       return killEvent(evt);
+
+    case LINE:
+      clearTimeout(hideCursorTimeout);
+      hideCursor();
+      startLine(evt);
+      return killEvent(evt);
+
+    case RECT:
+      clearTimeout(hideCursorTimeout);
+      hideCursor();
+      startRect(evt);
+      return killEvent(evt);
   }
 }
 
@@ -1397,6 +1662,14 @@ function pointermove(evt) {
       continueStroke(evt);
       return killEvent(evt);
 
+    case LINE:
+      continueLine(evt);
+      return killEvent(evt);
+
+    case RECT:
+      continueRect(evt);
+      return killEvent(evt);
+
     default:
       // user stopped laser stroke by lifting pen
       // while keeping pen button down (hence no pointerup)
@@ -1419,6 +1692,9 @@ function pointerup(evt) {
 
   // finish pen stroke
   if (stroke) stopStroke(evt);
+  // finish line
+  if (line) stopLine(evt);
+  if (rect) stopRect(evt);
 
   // select cursor based on tool (NOT pointerMode!)
   switch (tool) {
@@ -1432,6 +1708,14 @@ function pointerup(evt) {
 
     case ERASER:
       selectCursor(eraserCursor);
+      break;
+
+    case LINE:
+      selectCursor(penCursor);
+      break;
+
+    case RECT:
+      selectCursor(penCursor);
       break;
   }
 
@@ -1699,6 +1983,7 @@ const Plugin = {
     createLaserCursor();
     createEraserCursor();
     createPenCursor();
+    createLineCursor();
 
     // set default state
     toggleWhiteboard(false);
