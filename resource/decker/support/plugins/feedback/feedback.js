@@ -574,7 +574,7 @@ class Feedback {
     let html = answer.html ? answer.html : "";
     let template = document.createElement("template");
     template.innerHTML = String.raw`
-      <div class="feedback-item answer">
+      <li class="feedback-item answer">
         <div class="feedback-content">
           ${html}
         </div>
@@ -595,7 +595,7 @@ class Feedback {
               : ""
           }
         </div>
-      </div>`;
+      </li>`;
     let item = template.content.cloneNode(true);
     if (isAdmin) {
       let deleteButton = item.querySelector(".feedback-delete-answer-button");
