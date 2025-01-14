@@ -9,7 +9,9 @@ import Control.Exception
 import Data.ByteString.Lazy qualified as LB
 import Development.Shake
 import System.Decker.OS
+import System.Directory
 import System.Exit
+import System.FilePath
 import System.Process
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
