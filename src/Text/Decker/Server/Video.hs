@@ -115,6 +115,8 @@ slow =
     "+faststart",
     "-vcodec",
     "libx264",
+    "-af", 
+    "speechnorm",
     "-r",
     "30",
     "-metadata",
