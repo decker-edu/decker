@@ -38,7 +38,6 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Groom
-import Text.Pandoc hiding (lookupMeta)
 import Text.Decker.Project.ActionContext (actionContext, extra, Flags (LectureFlag))
 
 main :: IO ()
@@ -199,10 +198,9 @@ deckerRules = do
       -- files existence with the Shake function `doesFileExist`.
       exists <- doesFileExist annot
       when exists $ need [annot]
-      let url = serverUrl </> makeRelative publicDir src <> "?print-pdf#/"
       need [src]
+      let url = serverUrl </> makeRelative publicDir src 
       putInfo $ "# chrome started ... (for " <> out <> ")"
-      -- result <- liftIO $ launchChrome url out
       meta <- getGlobalMeta
       liftIO $ runExternal "chrome" url out meta
       putInfo $ "# chrome finished (for " <> out <> ")"
@@ -367,11 +365,10 @@ deckerRules = do
       meta <- getGlobalMeta
       context <- actionContext
       let flags = context ^. extra
-      -- TODO handle pages as well
-      if LectureFlag `elem` flags
-        then do
-        case lookupMeta "publish.rsync.destination" meta of
-            Just (destination :: String) -> do
+      case lookupMeta "publish.rsync.destination" meta of
+        Just (destination :: String) -> do
+          if LectureFlag `elem` flags
+            then do
               -- clean out the public dir
               liftIO $ runClean False
               -- includes index and static resources
@@ -387,21 +384,14 @@ deckerRules = do
               -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
               createPublicManifest
               let src = publicDir ++ "/"
-              publishWithRsync src destination meta
-            _ -> putError "publish.rsync.destination not configured"
-        else do
-            need ["support"]
-            getDeps >>= needTargets' [decks, pages]
-            createPublicManifest
-            let src = publicDir ++ "/"
-            case lookupMeta "publish.rsync.destination" meta of
-                Just destination -> publishWithRsync src destination meta
-                _ -> do
-                    let host = lookupMetaOrFail "rsync-destination.host" meta
-                    let path = lookupMetaOrFail "rsync-destination.path" meta
-                    let dst = intercalate ":" [host, path]
-                    ssh [host, "mkdir -p", path] Nothing
-                    rsync [src, dst] Nothing
+              liftIO $ runExternal "rsync" src destination meta
+            else do
+              need ["support"]
+              getDeps >>= needTargets' [decks, pages]
+              createPublicManifest
+              let src = publicDir ++ "/"
+              liftIO $ runExternal "rsync" src destination meta
+        Nothing -> putError "publish.rsync.destination not configured"
 
 createPublicManifest :: Action ()
 createPublicManifest = do

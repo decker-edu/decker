@@ -175,12 +175,10 @@ external-tools:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       arguments:
         - "--headless"
-        - "--virtual-time-budget=5001"
-        - "--disable-gpu"
+        - "--virtual-time-budget=5555"
         - "--no-pdf-header-footer"
-        - "--user-data-dir=${tmpdir}"
         - "--print-to-pdf=${output}"
-        - "${input}"
+        - "${input}?print-pdf#/"
       help: ""
   mermaid:
     macos:
