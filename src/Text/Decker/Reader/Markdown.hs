@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,

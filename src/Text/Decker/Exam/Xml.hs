@@ -254,10 +254,10 @@ embedImages base (Image (id, cls, kv) inlines (url, title)) = do
   return $ Image (id, cls, kv) inlines (toText dataUrl, title)
 embedImages base inline = return inline
 
-embedFigure :: FilePath -> Block -> Action Block
-embedFigure base (Plain [img]) = Plain . List.singleton <$> embedImages base img
-embedFigure base (Para [img]) = Para . List.singleton <$> embedImages base img
-embedFigure base block = return block
+-- embedFigure :: FilePath -> Block -> Action Block
+-- embedFigure base (Plain [img]) = Plain . List.singleton <$> embedImages base img
+-- embedFigure base (Para [img]) = Para . List.singleton <$> embedImages base img
+-- embedFigure base block = return block
 
 embedCode :: Block -> Block
 embedCode (CodeBlock attr code) = CodeBlock attr code
