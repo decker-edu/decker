@@ -39,7 +39,6 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Groom
-import Text.Decker.Project.ActionContext (actionContext, extra, Flags (LectureFlag))
 
 main :: IO ()
 main = do
@@ -235,7 +234,6 @@ deckerRules = do
       deps <- getDeps
       let sources = Map.elems (deps ^. questions)
       need sources
-      -- renderQuestionBrowser meta (deps ^. questions) out
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
@@ -409,10 +407,6 @@ deckerRules = do
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
         Nothing -> putError "publish.rsync.destination not configured"
-
-renderQuestionBrowser :: Meta -> Dependencies -> FilePath -> Action ()
-renderQuestionBrowser meta questDeps out = do
-  return ()
 
 createPublicManifest :: Action ()
 createPublicManifest = do

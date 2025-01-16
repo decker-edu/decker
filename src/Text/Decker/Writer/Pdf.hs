@@ -16,8 +16,6 @@ import Text.Decker.Resource.Template
 import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
-import System.Exit
-import System.Process (readProcessWithExitCode)
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
