@@ -78,7 +78,20 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check", "format"]
+  let commands =
+        [ "clean",
+          "purge",
+          "example",
+          "serve",
+          "crunch",
+          "crrrunch",
+          "transcribe",
+          "transcrrribe",
+          "pdf",
+          "version",
+          "check",
+          "format"
+        ]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> do
