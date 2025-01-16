@@ -287,6 +287,7 @@ readDeckerMeta file = do
 -- 4. Remove all traces of this from the meta data
 runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter docPath pandoc@(Pandoc docMeta blocks) = do
+  -- liftIO $ putStrLn $ "docPath: " <> docPath
   let deckerMeta =
         setMetaValue "decker.doc-path" docPath
           $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta

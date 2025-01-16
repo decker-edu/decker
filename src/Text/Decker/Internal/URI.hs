@@ -66,6 +66,9 @@ makeProjectUriPath base uriString = do
     Nothing | not (null (uriFilePath uri)) -> do
       let path = makeProjectPath base (uriFilePath uri)
       uri <- URI.render <$> setUriFilePath (toText path) uri
+      -- putStrLn $ "base: " <> base
+      -- putStrLn $ "  in: " <> show uriString
+      -- putStrLn $ " out: " <> show uri
       return uri
     _ -> return uriString
 
