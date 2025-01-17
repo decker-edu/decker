@@ -286,10 +286,9 @@ deckerRules = do
       let src = dropExtension out
       need [src]
       putInfo $ "# plantuml (for " <> out <> ")"
-      -- plantuml [src] (Just $ src -<.> "svg")
       meta <- getGlobalMeta
       liftIO $ runExternalForSVG "plantuml" src out meta
-      liftIO $ Dir.renameFile (src -<.> "svg") out
+      -- liftIO $ Dir.renameFile (src -<.> "svg") out
     --
     "**/*.mmd.svg" %> \out -> do
       let src = dropExtension out

@@ -165,10 +165,12 @@ external-tools:
       - "${input}"
     help: ""
   plantuml:
+    pipe: true
     command: "plantuml"
     arguments:
       - "-tsvg"
-      - "${input}"
+      - "-pipe"
+      # - "${input}"
     help: ""
   chrome:
     macos:

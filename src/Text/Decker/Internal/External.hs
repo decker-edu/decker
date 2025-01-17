@@ -16,15 +16,18 @@ import Data.Maybe
 import Data.Text qualified as Text
 import Development.Shake
 import Relude hiding (id)
+import System.Exit (ExitCode (..))
+import System.IO (hClose)
+import System.Info qualified
 import System.Process
 import Text.Blaze.Renderer.Utf8 (renderMarkup)
 import Text.Blaze.Svg11 hiding (path)
 import Text.Blaze.Svg11.Attributes hiding (path, style)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Meta (lookupMetaOrFail, isMetaSet)
+import Text.Decker.Internal.Meta (isMetaSet, lookupMetaOrElse, lookupMetaOrFail)
 import Text.Pandoc (Meta)
-import qualified System.Info
+import System.IO.Extra (openFile)
 
 data Option = Option String | InputFile FilePath | OutputFile FilePath
   deriving (Show)
@@ -34,6 +37,7 @@ runExternal tool inPath outPath meta = do
   transient <- transientDir
   case selectProgramDefinition tool meta of
     Just program -> do
+      let pipe = lookupMetaOrElse False (program <> ".pipe") meta
       let command :: String =
             lookupMetaOrFail (program <> ".command") meta
       let arguments =
@@ -41,7 +45,8 @@ runExternal tool inPath outPath meta = do
               $ lookupMetaOrFail (program <> ".arguments") meta
       putStrLn $ "# " <> intercalate " " ([command] <> arguments) <> " (for " <> outPath <> ")"
       catch
-        (callProcess command arguments)
+        -- (callProcess command arguments)
+        (call command arguments inPath outPath pipe)
         ( \(SomeException e) -> do
             let help :: String =
                   lookupMetaOrFail (program <> ".help") meta
@@ -62,17 +67,42 @@ runExternal tool inPath outPath meta = do
         <> tool
         <> "\n\n"
 
+call command arguments inPath outPath pipe = do
+  if pipe
+    then runWithRedirection command arguments inPath outPath
+    else callProcess command arguments
+
+runWithRedirection :: FilePath -> [String] -> FilePath -> FilePath -> IO ()
+runWithRedirection program args inFile outFile = do
+  inHandle <- openFile inFile ReadMode
+  outHandle <- openFile outFile WriteMode
+  (_, _, _, ph) <-
+    createProcess
+      (proc program args)
+        { std_in = UseHandle inHandle,
+          std_out = UseHandle outHandle
+        }
+  -- Wait for the process to complete
+  exitCode <- waitForProcess ph
+  -- Clean up
+  hClose inHandle
+  hClose outHandle
+  case exitCode of
+    ExitSuccess -> return ()
+    failure@(ExitFailure e) -> error "failed"
+
 selectProgramDefinition :: String -> Meta -> Maybe Text
 selectProgramDefinition tool meta =
-    let osId = case System.Info.os of
-                "darwin" -> "macos"
-                "mingw32" -> "windows"
-                _ -> "linux"
-        config = "external-tools." <> toText tool
-        osConfig = config <> "." <> osId
-    in if | isMetaSet osConfig meta -> Just osConfig
-          | isMetaSet config meta -> Just config
-          | otherwise -> Nothing
+  let osId = case System.Info.os of
+        "darwin" -> "macos"
+        "mingw32" -> "windows"
+        _ -> "linux"
+      config = "external-tools." <> toText tool
+      osConfig = config <> "." <> osId
+   in if
+        | isMetaSet osConfig meta -> Just osConfig
+        | isMetaSet config meta -> Just config
+        | otherwise -> Nothing
 
 substituteInOut :: FilePath -> FilePath -> FilePath -> [String] -> [String]
 substituteInOut input output transient =
@@ -90,7 +120,6 @@ runExternalForSVG tool inPath outPath meta = do
     (runExternal tool inPath outPath meta)
     (\(SomeException e) -> renderErrorSvg (Just outPath) (show e))
 
-
 renderErrorSvg :: Maybe String -> String -> IO ()
 renderErrorSvg dst msg = do
   putStrLn $ "# ERROR: " <> msg
@@ -103,4 +132,3 @@ renderErrorSvg dst msg = do
       let bytes = renderMarkup svg
       B.writeFile out bytes
     Nothing -> return ()
-
