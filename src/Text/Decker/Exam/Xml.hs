@@ -12,7 +12,6 @@ import Control.Lens hiding (Choice)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base64 qualified as B64
 import Data.ByteString.UTF8 qualified as UTF8
-import Data.List qualified as List
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Development.Shake
@@ -28,7 +27,9 @@ import Text.XML qualified as XML
 -- Renders a catalog of all questions sorted by LectureId and TopicId.
 renderXmlCatalog ::
   [Question] -> FilePath -> Action ()
-renderXmlCatalog questions out = do
+renderXmlCatalog allQuestions out = do
+  let questions = filter _qstExam allQuestions
+  putNormal $ "Compiling " <> show (length questions) <> " questions to Moodle XML."
   rendered <- mapM (renderMarkdownFields . insertTitle) questions
   let sorted = sortQuestions rendered
       nodes = concatMap renderXML sorted

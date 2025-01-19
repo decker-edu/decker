@@ -1,9 +1,5 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -133,6 +129,9 @@ renderQuestionToHtml h id quest = do
           H.tr $ do
             H.th "topic id"
             H.td $ toHtml (quest ^. qstTopicId)
+          H.tr $ do
+            H.th "exam"
+            H.td $ toHtml (quest ^. qstExam)
           H.tr $ do
             H.th "path"
             H.td $
