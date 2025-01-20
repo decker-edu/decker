@@ -9,7 +9,6 @@
 
 // import functionality for light/dark mode
 import * as colorScheme from "../../js/color-scheme.js";
-import * as flyingFocus from "../../flyingFocus/flying-focus.js";
 
 class SlideMenu {
   reveal;
@@ -121,9 +120,6 @@ class SlideMenu {
       this.menu.container.scroll(0, 0);
       if (event && event.detail === 0) {
         this.menu.close_button.focus();
-        setTimeout(() => {
-          flyingFocus.recenter();
-        }, 500);
       }
       // scrolling the current slide into view now conflicts with the entire menu being scrollable
       // document.querySelector(".decker-menu .current-slide")?.scrollIntoView();

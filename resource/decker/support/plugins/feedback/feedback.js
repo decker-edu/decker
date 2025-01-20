@@ -6,7 +6,6 @@
  * @author Sebastian Hauer (rewrite)
  */
 import client from "./api-client.js";
-import * as flyingFocus from "../../flyingFocus/flying-focus.js";
 class Feedback {
   timeout = 500;
 
@@ -142,9 +141,6 @@ class Feedback {
       this.menu.close_button.focus();
       if (event && event.detail === 0) {
         this.menu.close_button.focus();
-        setTimeout(() => {
-          flyingFocus.recenter();
-        }, 500);
       }
     }
   }
