@@ -18,6 +18,7 @@ body.reveal-viewport {
   --inner-width: calc(
     var(--slide-width) - 2 * var(--block-border-width) - 2 * var(--block-outset)
   );
+  line-height: 1.5;
 }
 
 .reveal {
@@ -28,7 +29,6 @@ body.reveal-viewport {
 .reveal .slides > section {
   width: var(--slide-width);
   height: var(--slide-height);
-  line-height: 1.5;
   text-align: left;
   padding: 0;
 }
@@ -1010,6 +1010,11 @@ section#title-slide .decker-link {
 }
 section#title-slide .decker-link:hover {
   font-size: 0.75em;
+}
+
+/* hide slide number of title slide */
+.reveal:has(.slides section:first-child.present) .slide-number {
+  visibility: hidden;
 }
 
 /*********************************************

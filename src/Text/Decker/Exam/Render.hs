@@ -43,7 +43,7 @@ import Text.Decker.Writer.Layout
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
 compileQuestionToHtml meta base quest = do
-  traverseOf qstTitle render
+ traverseOf qstTitle render
     =<< traverseOf qstQuestion render
     =<< traverseOf qstAnswer (compileAnswerToHtml meta base) quest
   where
@@ -68,6 +68,7 @@ renderSnippetToHtml meta base markdown = do
   filtered <-
     mergeDocumentMeta (setMetaValue "decker.use-data-src" False meta) pandoc
       >>= adjustResourcePathsA base
+      -- >>= (\p -> print p >> return p)
       >>= deckerMediaFilter (Disposition Page Html) base
   liftIO $ handleError $ runPure $ writeHtml45String options meta $ walk dropPara filtered
 
@@ -168,7 +169,7 @@ renderQuestionBrowser base questions = do
             H.script ! A.type_ "module" ! A.src "/support/js/catalog.js" $ ""
             H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
             H.script ! A.src "/support/js/reload.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/js/catalog.css"
+            H.link ! A.rel "stylesheet" ! A.href "/support/css/catalog.css"
           H.body $ do
             H.header $ do
               H.h1 ("Question Browser (" <> show (length questions) <> ")")
@@ -214,7 +215,7 @@ renderQuestionBrowser base questions = do
       H.div
         ! A.dataAttribute "lecture" (toValue lid)
         ! A.dataAttribute "topic" (toValue tid)
-        $ toHtml $ map (questButton) quests
+        $ toHtml $ map questButton quests
 
 groupQuestions :: [Question] -> [(Text, [(Text, [Question])])]
 groupQuestions questions = sorted
@@ -255,6 +256,5 @@ renderCatalog meta files out =
     putInfo $ "# catalog (for " <> out <> ")"
     questions <- liftIO $ mapM readQuestion files
     mapM (compileQuestionToHtml meta base) questions
-      -- >>= renderQuestionCatalog base
       >>= renderQuestionBrowser base
       >>= (liftIO . Text.writeFile out)

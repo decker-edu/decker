@@ -20,7 +20,6 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch hiding (try)
-import Data.Aeson (encode)
 import Data.ByteString.Char8 qualified as BS
 import Data.ByteString.UTF8 qualified as UTF8
 import Data.Char
@@ -52,6 +51,7 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
+import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
@@ -75,17 +75,14 @@ runDeckerArgs args theRules = do
         if null targets
           then theRules
           else want targets >> withoutActions theRules
-  deckerMeta <- readMetaDataFile deckerMetaFile
-  case deckerMeta of
-    Right meta -> do
-      context <- initContext flags meta
-      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
-      case targets of
-        [command] | command `elem` commands -> runCommand context command rules
-        _ -> runTargets context targets rules
-    Left err -> do
-      putStrLn "ERROR: cannot find `decker.yaml`"
-      exitFailure
+  meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
+  context <- initContext flags meta
+  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check", "format"]
+  case targets of
+    [command] | command `elem` commands -> runCommand context command rules
+    _ -> do
+      warnVersion
+      runTargets context targets rules
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
@@ -96,11 +93,6 @@ runTargets context targets rules = do
   when (OpenFlag `elem` flags) $ do
     let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
-
-  -- always rescan the targets file in case files where added or removed
-  let meta = context ^. globalMeta
-  targets <- targetsFile
-  scanTargetsToFile meta targets
 
   -- Always run at least once
   runShake context rules
@@ -120,6 +112,11 @@ runTargets context targets rules = do
 
 runShake :: ActionContext -> Rules () -> IO ()
 runShake context rules = do
+  -- always rescan the targets file in case files where added or removed
+  let meta = context ^. globalMeta
+  targets <- targetsFile
+  scanTargetsToFile meta targets
+
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
 
@@ -129,6 +126,7 @@ _runShakeSlyly context rules = do
   let meta = context ^. globalMeta
   targets <- targetsFile
   scanTargetsToFile meta targets
+  
   let flags = context ^. extra
   extractMetaIntoFile flags
   options <- deckerShakeOptions context
@@ -227,6 +225,7 @@ runCommand context command rules = do
       -- runShake context rules'
       runShake context rules
       killThread id
+    "format" -> formatStdin
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
@@ -354,7 +353,6 @@ initContext extra meta = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
-  when devRun $ putStrLn "This is a DEVELOPMENT RUN"
   return $ ActionContext extra devRun external server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
@@ -438,7 +436,6 @@ putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 -- deleted on Windows.
 runClean :: Bool -> IO ()
 runClean totally = do
-  warnVersion
   putStrLn $ "# Removing " <> publicDir
   tryRemoveDirectory publicDir
   putStrLn $ "# Removing " <> privateDir
