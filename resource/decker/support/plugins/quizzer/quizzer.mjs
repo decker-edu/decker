@@ -39,6 +39,12 @@ let resultContainer = document.createElement("div");
 let closeResultsButton = document.createElement("button");
 let resultsAvailable = false;
 
+/* Audio */
+
+let startAudio = undefined;
+let loopAudio = undefined;
+let endAudio = undefined;
+
 /**
  * Checks if the given rect contains the given (x,y) coordinate.
  * Used for checking if the QR Dialog itself is clicked or its backdrop.
@@ -153,7 +159,6 @@ function parseQuizzes(reveal) {
         const choiceObject = {
           votes: 1, // By default you have at least one vote
           options: [],
-          parent: list.parentElement,
         };
         /* ... where each list item is a possible answer ... */
         const items = list.querySelectorAll(":scope > li");
@@ -189,7 +194,7 @@ function parseQuizzes(reveal) {
         }
         quizObject.choices.push(choiceObject);
         /* ... remove the list from the DOM ... */
-        list.remove();
+        list.choices = choiceObject;
       }
       /* ... parse definition lists for assignments, too ... */
       if (quizObject.type === "assignment") {
@@ -219,34 +224,6 @@ function parseQuizzes(reveal) {
           }
           quizObject.choices.push(choiceObject);
         }
-      }
-      /* ... remove hr elements from DOM because they are only used as list separators ... */
-      const hrules = quizzer.querySelectorAll("hr");
-      for (const hrule of hrules) {
-        hrule.remove();
-      }
-      /* ... clean up empty spans and ps ... */
-      let change;
-      do {
-        change = false;
-        const empties = quizzer.querySelectorAll(":is(p,span,div)");
-        for (const empty of empties) {
-          if (
-            empty.textContent.trim() === "" &&
-            empty.childElementCount === 0 &&
-            empty.style.clear !== "both" //prevent :vspace being deleted
-          ) {
-            change = true;
-            console.log(empty);
-            empty.remove();
-          }
-        }
-      } while (change);
-      /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
-      quizObject.question = quizzer.innerHTML.trim();
-      /* Clean up the entire quizzer container */
-      while (quizzer.lastElementChild) {
-        quizzer.lastElementChild.remove();
       }
       /* Refine the quiz object for network */
       for (const choice of quizObject.choices) {
@@ -293,11 +270,34 @@ function parseQuizzes(reveal) {
           letter = String.fromCharCode(letter.charCodeAt(0) + 1);
         }
       }
+      if (quizObject.type === "choice") {
+        for (const list of lists) {
+          const container = Renderer.renderChoiceButtons(list.choices);
+          list.replaceWith(container);
+        }
+      } else {
+        for (const list of lists) {
+          list.remove();
+        }
+      }
+      /* ... remove hr elements from DOM because they are only used as list separators ... */
+      const hrules = quizzer.querySelectorAll("hr");
+      for (const hrule of hrules) {
+        hrule.remove();
+      }
+      /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
+      quizObject.question = quizzer.innerHTML.trim();
+      /* Clean up the entire quizzer container */
+      if (quizObject.type !== "choice") {
+        while (quizzer.lastElementChild) {
+          quizzer.lastElementChild.remove();
+        }
+      }
       /* Archive the quiz object into the quizzer container */
       quizzer.quiz = quizObject;
       /* Render the quiz interface according to its type */
       if (quizObject.type === "choice") {
-        Renderer.renderChoiceQuiz(quizzer, quizObject);
+        // Renderer.renderChoiceQuiz(quizzer, quizObject);
       } else if (quizObject.type === "freetext") {
         Renderer.renderFreeTextQuiz(quizzer, quizObject);
       } else if (quizObject.type === "selection") {
@@ -397,6 +397,25 @@ function createHostInterface(reveal) {
       if (slide && slide.quiz) {
         activeQuiz = slide.quiz;
         document.documentElement.classList.add("active-poll");
+        startAudio?.addEventListener(
+          "ended",
+          (event) => {
+            if (
+              loopAudio &&
+              document.documentElement.classList.contains("active-poll")
+            ) {
+              loopAudio.loop = true;
+              loopAudio.play();
+            }
+          },
+          { once: true }
+        );
+        startAudio?.play();
+        // If loop is defined but start is not, just start loop
+        if (!startAudio && loopAudio) {
+          loopAudio.loop = true;
+          loopAudio.play();
+        }
         host.sendQuiz(activeQuiz);
         return;
       }
@@ -625,6 +644,11 @@ function stopDrag(e) {
  */
 function renderResult(result) {
   showResults();
+  if (loopAudio) {
+    loopAudio.pause();
+    loopAudio.currentTime = 0;
+  }
+  endAudio?.play();
   const entries = resultContainer.querySelectorAll(".quizzer-result");
   for (const entry of entries) {
     entry.remove();
@@ -995,6 +1019,48 @@ const Plugin = {
     } catch (error) {
       console.error(error);
       console.error("An error occured while parsing and rendering quizzes.");
+    }
+    if (Decker.meta.quizzer?.audio?.start) {
+      let startAudioSource;
+      if (Decker.meta.quizzer.audio.start === "default") {
+        const url = new URL(import.meta.url);
+        const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+        startAudioSource = path + "/wwm-question.mp3";
+      } else {
+        startAudioSource = Decker.meta.quizzer.audio.start;
+      }
+      startAudio = new Audio(startAudioSource);
+      startAudio.volume = Decker.meta.quizzer.audio.volume
+        ? Decker.meta.quizzer.audio.volume
+        : 1.0;
+    }
+    if (Decker.meta.quizzer?.audio?.loop) {
+      let loopAudioSource;
+      if (Decker.meta.quizzer.audio.loop === "default") {
+        const url = new URL(import.meta.url);
+        const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+        loopAudioSource = path + "/wwm-loop.mp3";
+      } else {
+        loopAudioSource = Decker.meta.quizzer.audio.loop;
+      }
+      loopAudio = new Audio(loopAudioSource);
+      loopAudio.volume = Decker.meta.quizzer.audio.volume
+        ? Decker.meta.quizzer.audio.volume
+        : 1.0;
+    }
+    if (Decker.meta.quizzer?.audio?.end) {
+      let endAudioSource;
+      if (Decker.meta.quizzer.audio.end === "default") {
+        const url = new URL(import.meta.url);
+        const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+        endAudioSource = path + "/wwm-answer.mp3";
+      } else {
+        endAudioSource = Decker.meta.quizzer.audio.end;
+      }
+      endAudio = new Audio(endAudioSource);
+      endAudio.volume = Decker.meta.quizzer.audio.volume
+        ? Decker.meta.quizzer.audio.volume
+        : 1.0;
     }
     reveal.on("ready", () => {
       reveal.on("slidechanged", onSlideChange);

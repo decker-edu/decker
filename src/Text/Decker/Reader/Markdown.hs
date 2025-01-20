@@ -8,6 +8,7 @@ module Text.Decker.Reader.Markdown
     processCites,
     deckerMediaFilter,
     mergeDocumentMeta,
+    formatStdin,
   )
 where
 
@@ -123,7 +124,10 @@ addPathInfo documentPath (Pandoc meta blocks) = do
 parseMarkdownFile :: FilePath -> Action Pandoc
 parseMarkdownFile path = do
   markdown <- liftIO $ Text.readFile path
-  liftIO $ runIOorExplode (readMarkdown pandocReaderOpts markdown)
+  liftIO $ parseMarkdown markdown
+
+parseMarkdown :: Text -> IO Pandoc
+parseMarkdown text = runIOorExplode (readMarkdown pandocReaderOpts text)
 
 -- | Writes a Pandoc document to a file in Markdown format. Throws an exception
 -- if something goes wrong
@@ -344,21 +348,18 @@ deckerPipeline (Disposition Handout Html) =
     ]
 deckerPipeline disp = error $ "Disposition not supported: " <> show disp
 
--- | Writes a pandoc document atomically to a markdown file.
-writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
-writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
-  putNormal $ "# write back markdown (" <> filepath <> ")"
+writeToMarkdown :: Pandoc -> IO Text
+writeToMarkdown pandoc@(Pandoc pmeta _) = do
   template <-
-    liftIO
-      ( compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$"
-          >>= handleLeftM
-      )
+    compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$"
+      >>= handleLeftM
+
   let columns = lookupMetaOrElse 80 "write-back.line-columns" pmeta
   let wrapOpt :: Text -> WrapOption
       wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
-  let wrap = lookupMetaOrElse "none" "write-back.line-wrap" pmeta
+  let wrap = lookupMetaOrElse "auto" "write-back.line-wrap" pmeta
   let extensions =
         ( disableExtension Ext_simple_tables
             . disableExtension Ext_multiline_tables
@@ -375,8 +376,18 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
             writerWrapText = wrapOpt wrap,
             writerSetextHeaders = False
           }
-  markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
+  runIO (writeMarkdown options pandoc) >>= handleError
+
+-- | Writes a pandoc document atomically to a markdown file.
+writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
+writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
+  putNormal $ "# write back markdown (" <> filepath <> ")"
+  markdown <- liftIO $ writeToMarkdown pandoc
   fileContent <- liftIO $ Text.readFile filepath
   when (markdown /= fileContent)
     $ withTempFile
       (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)
+
+formatStdin :: IO ()
+formatStdin = do
+  Text.getContents >>= parseMarkdown >>= writeToMarkdown >>= Text.putStr

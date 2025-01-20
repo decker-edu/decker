@@ -2,8 +2,14 @@
 title: Custom Quizzes
 quizzer:
   url: 'https://quiz.jetzt'
+  audio:
+    start: 'default'
+    loop: 'default'
+    end: 'default'
+    volume: 0.75
 reveal:
   center: true
+
 ---
 
 # Choice Quiz
