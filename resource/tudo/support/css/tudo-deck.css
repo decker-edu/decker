@@ -1693,3 +1693,20 @@ html.a11y .reveal a:hover {
   color: var(--accent6-bbg);
   transform: scale(1.05);
 }
+
+a,
+button,
+input,
+select,
+li,
+textarea {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--orangeish) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
+}
