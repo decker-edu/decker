@@ -32,7 +32,6 @@ class SlideMenu {
     this.plugin_buttons = {
       container: undefined,
     };
-    this.glass = undefined;
     this.position = position;
     this.localization = undefined;
   }
@@ -90,11 +89,12 @@ class SlideMenu {
    * @param {*} event
    */
   toggleMenu(event) {
-    if (this.inert) {
+    if (!this.menu.container.open) {
       this.openMenu(event);
     } else {
       this.closeMenu(event);
     }
+    event.stopPropagation();
   }
 
   /**
@@ -102,17 +102,12 @@ class SlideMenu {
    * @param {*} event
    */
   openMenu(event) {
-    if (this.inert) {
-      this.inert = false;
-      this.reveal.getRevealElement().inert = true;
-      this.disableKeybinds();
-      this.glass.classList.add("show");
-      if (event && event.detail === 0) {
-        this.menu.close_button.focus();
-        //        setTimeout(() => this.menu.close_button.focus(), 500);
-      }
-      document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
+    this.disableKeybinds();
+    this.menu.container.showModal();
+    if (event && event.detail === 0) {
+      this.menu.close_button.focus();
     }
+    document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
   }
 
   /**
@@ -120,14 +115,10 @@ class SlideMenu {
    * @param {*} event
    */
   closeMenu(event) {
-    if (!this.inert) {
-      this.inert = true;
-      this.reveal.getRevealElement().inert = false;
-      this.enableKeybinds();
-      this.glass.classList.remove("show");
-      if (event && event.detail === 0) {
-        this.open_button.focus();
-      }
+    this.menu.container.close();
+    this.enableKeybinds();
+    if (event && event.detail === 0) {
+      this.open_button.focus();
     }
   }
 
@@ -418,7 +409,7 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-labeledby="decker-menu-button" inert>
+    template.innerHTML = String.raw`<dialog class="decker-menu" id="decker-menu" role="menu" aria-labeledby="decker-menu-button">
       <div class="menu-header">
         <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
         </button>
@@ -433,7 +424,7 @@ class SlideMenu {
           </button>
         </div>
       </div>
-     </div>`;
+     </dialog>`;
     let container = template.content.firstElementChild;
     this.menu.container = container;
 
@@ -488,14 +479,16 @@ class SlideMenu {
       this.traverseList(event)
     );
 
-    /* Temporary Solution */
-    this.glass = document.querySelector("#glass");
-    if (!this.glass) {
-      this.glass = document.createElement("div");
-      this.glass.id = "glass";
-      document.body.appendChild(this.glass);
-    }
-    this.glass.addEventListener("click", (event) => this.closeMenu(event));
+    document.addEventListener("click", (event) => {
+      if (!this.menu.container.open) {
+        return;
+      }
+      const [mx, my] = [event.x, event.y];
+      const rect = this.menu.container.getBoundingClientRect();
+      if (mx > rect.x + rect.width) {
+        this.closeMenu();
+      }
+    });
   }
 
   addMenuButton(id, icon, title, callback) {

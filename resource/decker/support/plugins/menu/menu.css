@@ -6,7 +6,38 @@
   z-index: 256;
   background: var(--menu-background-color);
   color: var(--menu-text-color);
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+
+  border: none;
   border-right: 2px solid var(--menu-border-color);
+  padding: 0;
+  margin: 0;
+
+  transition: transform 0.5s, display 0.5s;
+  transition-behavior: allow-discrete;
+  transform: translateX(-100%);
+}
+
+/* Weird dialog padding fix */
+.decker-menu:modal {
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.decker-menu[open] {
+  transform: translateX(0);
+
+  @starting-style {
+    transform: translateX(-100%);
+  }
+}
+
+.decker-menu::backdrop {
+  backdrop-filter: blur(4px) brightness(50%);
 }
 
 .menu-header {
@@ -235,4 +266,21 @@ fieldset {
 
 .light #decker-menu-color-button::before {
   content: '\f186'
+}
+
+a,
+button,
+input,
+select,
+li,
+textarea {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--orangeish) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
 }
