@@ -114,41 +114,23 @@ class Feedback {
   }
 
   /**
-   * Turns the menu on or off, based on its current state.
-   */
-  toggleMenu() {
-    if (this.menu.container.inert) this.openMenu();
-    else this.closeMenu();
-  }
-
-  /**
    * Opens the menu and updates its content. Also focuses the first button in the menu.
    */
   openMenu() {
-    if (this.menu.container.inert) {
-      this.menu.container.inert = false;
-      // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
-      // TODO: Find a better way to deal with this
-      if (!document.documentElement.classList.contains("handout"))
-        this.requestMenuContent();
-      this.reveal.getRevealElement().inert = true;
-      // localStorage.setItem("feedback-state", "open");
-      this.glass.classList.add("show");
-      this.menu.close_button.focus();
-    }
+    this.menu.container.showModal();
+    if (!document.documentElement.classList.contains("handout"))
+      this.requestMenuContent();
+    this.reveal.getRevealElement().inert = true;
+    this.menu.close_button.focus();
   }
 
   /**
    * Closes the menu and focuses the button that opened it.
    */
   closeMenu() {
-    if (!this.menu.container.inert) {
-      this.menu.container.inert = true;
-      this.reveal.getRevealElement().inert = false;
-      localStorage.removeItem("feedback-state");
-      this.glass.classList.remove("show", "blur");
-      this.open_button.focus();
-    }
+    this.menu.container.close();
+    this.reveal.getRevealElement().inert = false;
+    this.open_button.focus();
   }
 
   /**
@@ -686,7 +668,7 @@ class Feedback {
       <div class="feedback-badge"></div>
     </button>`;
 
-    let menu_string = String.raw`<div id="feedback-menu" class="feedback-menu slide-in-right" role="menu" inert>
+    let menu_string = String.raw`<dialog id="feedback-menu" class="feedback-menu" role="menu">
       <div class="feedback-header">
         <div class="counter">0</div>
         <div class="feedback-title">${text.menu_title}</div>
@@ -708,7 +690,7 @@ class Feedback {
           <button id="feedback-login-send" type="button" title="${text.send_credentials}" aria-label="${text.send_credentials}">Admin Login</button>
         </div>
       </div>
-    </div>`;
+    </dialog>`;
 
     let button_template = document.createElement("template");
     let menu_template = document.createElement("template");
