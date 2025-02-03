@@ -10,7 +10,6 @@ module Text.Decker.Internal.Meta
     adjustMetaStringsBelowM,
     adjustMetaValue,
     adjustMetaValueM,
-    embedMetaMeta,
     fromPandocMeta,
     isMetaSet,
     lookupInDictionary,
@@ -46,13 +45,15 @@ import Data.Maybe
 import Data.Text qualified as Text
 import Data.Vector qualified as Vec
 import Data.Yaml qualified as Y
-import Development.Shake (writeFileChanged)
+import Development.Shake (writeFileChanged, Action)
 import Relude
 import Text.Decker.Internal.Common (pandocReaderOpts)
 import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
+import System.FilePath (takeDirectory)
+import qualified System.Directory as Dir
 
 -- TODO: extract this value from global meta data.
 replaceLists :: [[Text]]
@@ -453,7 +454,3 @@ writeMetaDataFile :: FilePath -> Meta -> IO ()
 writeMetaDataFile file meta = do
   writeFileChanged file $ decodeUtf8 $ Y.encode (fromPandocMeta meta)
 
-embedMetaMeta :: Pandoc -> Pandoc
-embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks
-  where
-    metaMeta = addMetaField "decker-meta" (decodeUtf8 $ A.encodePretty $ fromPandocMeta meta :: Text) meta

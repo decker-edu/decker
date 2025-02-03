@@ -25,7 +25,7 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Pandoc (Meta)
 import Text.Pandoc.Builder (nullMeta)
-import Text.Decker.Reader.Markdown (readDeckerMetaIO)
+import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 
 -- | Rules for transcribiung videos. Mp4 videos are transcribed using
 -- whisper.ccp if they have not yet been transcribed.

@@ -15,9 +15,11 @@ import System.FilePath.Posix
 import System.Process
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.External (runExternal)
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
 import Web.Scotty.Trans
+import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 
 -- | Returns a JSON list of all existing WEBM video fragments for a recording
 listRecordings :: AppActionM ()
@@ -79,6 +81,20 @@ convertVideoMp4 webm mp4 = do
   where
     runFfmpeg src dst = do
       tmp <- uniqueTransientFileName dst
+      meta <- readDeckerMetaIO deckerMetaFile
+      runExternal "webmtomp4" src tmp meta
+      let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
+      putStrLn $ "# calling: ffmpeg " <> List.unwords args
+      callProcess "ffmpeg" args
+      renameFile tmp dst
+
+convertVideoMp4_ :: FilePath -> FilePath -> IO ()
+convertVideoMp4_ webm mp4 = do
+  putStrLn $ "# concat (" <> webm <> " -> " <> mp4 <> ")"
+  runFfmpeg webm mp4
+  where
+    runFfmpeg src dst = do
+      tmp <- uniqueTransientFileName dst
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
@@ -115,7 +131,7 @@ slow =
     "+faststart",
     "-vcodec",
     "libx264",
-    "-af", 
+    "-af",
     "speechnorm",
     "-r",
     "30",

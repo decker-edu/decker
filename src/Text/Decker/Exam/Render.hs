@@ -39,6 +39,8 @@ import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Decker.Writer.Layout
 import Text.Decker.Exam.Xml (renderMarkdownFields)
+import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
+import Text.Decker.Filter.Decker2 (deckerMediaFilter)
 
 -- import Text.Pretty.Simple
 
