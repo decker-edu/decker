@@ -178,16 +178,12 @@ deckerRules = do
       need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-times.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-transcript.json" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
       needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
     publicDir <//> "*-deck.pdf" %> \out -> do

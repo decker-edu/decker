@@ -4,7 +4,9 @@ module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,
     readMarkdownFile,
     readDeckerMeta,
+    readDeckerMetaIO,
     readMetaData,
+    readMetaDataIO,
     processCites,
     deckerMediaFilter,
     mergeDocumentMeta,
@@ -149,7 +151,7 @@ expandMeta globalMeta base (Pandoc docMeta content) = do
 -- | Adjusts meta data values that reference local files needed at run-time (by
 -- some plugin, presumeably) and at compile-time (by some template). Lists of
 -- these variables can be specified in the meta data.
-adjustMetaPaths :: Meta -> FilePath -> Meta -> Action Meta
+adjustMetaPaths :: (MonadFail m, MonadIO m) => Meta -> FilePath -> Meta -> m Meta
 adjustMetaPaths globalMeta base meta = do
   let variables = pathVariables (mergePandocMeta meta globalMeta)
   adjustMetaVariables (adjust base) variables meta
@@ -188,7 +190,7 @@ needMetaTargets base meta =
       unless isDir (need [pathString])
       return path
 
-adjustMetaVariables :: (Text -> Action Text) -> [Text] -> Meta -> Action Meta
+adjustMetaVariables :: (MonadFail m, MonadIO m) => (Text -> m Text) -> [Text] -> Meta -> m Meta
 adjustMetaVariables action keys meta = foldM func meta keys
   where
     func meta key = adjustMetaStringsBelowM action key meta
@@ -257,6 +259,13 @@ readAdditionalMeta globalMeta base meta = do
   moreMeta <- traverse (readMetaData globalMeta) metaFiles
   return $ foldr mergePandocMeta meta (reverse moreMeta)
 
+readAdditionalMetaIO :: Meta -> FilePath -> Meta -> IO Meta
+readAdditionalMetaIO globalMeta base meta = do
+  let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [String]
+  putStrLn $ "# --> readAdditionalMeta: " <> show metaFiles
+  moreMeta <- traverse (readMetaDataIO globalMeta) metaFiles
+  return $ foldr mergePandocMeta meta (reverse moreMeta)
+
 -- | Reads a meta data file. All values that are paths to local project files
 -- are made absolute. Files referenced in `meta-data` are recursively loaded
 -- and merged.
@@ -268,6 +277,13 @@ readMetaData globalMeta path = do
   meta <- liftIO $ fromRight nullMeta <$> readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
 
+readMetaDataIO :: Meta -> FilePath -> IO Meta
+readMetaDataIO globalMeta path = do
+  putStrLn $ "# --> readMetaDataIO: " <> path
+  let base = takeDirectory path
+  meta <- liftIO $ fromRight nullMeta <$> readMetaDataFile path
+  adjustMetaPaths globalMeta base meta >>= readAdditionalMetaIO globalMeta base
+
 readDeckerMeta :: FilePath -> Action Meta
 readDeckerMeta file = do
   deckerMeta <- readMetaData nullMeta file
@@ -275,6 +291,15 @@ readDeckerMeta file = do
   argsMeta <- readMetaData nullMeta args
   let baseMeta = mergePandocMeta argsMeta deckerMeta
   defaultMeta <- readTemplateMeta baseMeta
+  return $ mergePandocMeta baseMeta defaultMeta
+
+readDeckerMetaIO :: FilePath -> IO Meta
+readDeckerMetaIO file = do
+  deckerMeta <- readMetaDataIO nullMeta file
+  args <- metaArgsFile
+  argsMeta <- readMetaDataIO nullMeta args
+  let baseMeta = mergePandocMeta argsMeta deckerMeta
+  defaultMeta <- readTemplateMetaIO baseMeta
   return $ mergePandocMeta baseMeta defaultMeta
 
 -- | Runs a new style decker filter. That means

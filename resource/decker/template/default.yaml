@@ -230,3 +230,34 @@ external-tools:
       - "${output}"
       - "${input}"
     help: https://en.wikipedia.org/wiki/PdfTeX
+  mp4towav:
+    command: ffmpeg
+    arguments:
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-acodec"
+      - "pcm_s16le"
+      - "-ac"
+      - "1"
+      - "-ar"
+      - "16000"
+      - "-af"
+      - "speechnorm"
+      - "${output}"
+    help: ""
+  whisper:
+    command: "whisper-cli"
+    arguments:
+      - "--file"
+      - "${input}"
+      - "-m"
+      - "/opt/whisper/ggml-large-v3.bin"
+      - "-bs"
+      - "5"
+      - "-mc"
+      - "0"
+      - "--output-vtt" 
+      - "--output-file"
+      - "${output}"
+    help: ""

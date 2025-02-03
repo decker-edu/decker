@@ -18,12 +18,14 @@ import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crrrunch (needsRebuild)
+import Text.Decker.Internal.External (runExternal, runExternalArgs)
 import Text.Decker.Internal.Helper (replaceSuffix)
 import Text.Decker.Internal.Meta (lookupMetaOrElse, readMetaDataFile)
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Pandoc (Meta)
 import Text.Pandoc.Builder (nullMeta)
+import Text.Decker.Reader.Markdown (readDeckerMetaIO)
 
 -- | Rules for transcribiung videos. Mp4 videos are transcribed using
 -- whisper.ccp if they have not yet been transcribed.
@@ -75,7 +77,7 @@ transcriptionRules = do
 transcribeAllRecordings :: ActionContext -> IO ()
 transcribeAllRecordings context = do
   -- language of all the recordings
-  let meta = context ^. globalMeta
+  meta <- readDeckerMetaIO deckerMetaFile
   let lang = lookupMetaOrElse "de" "whisper.lang" meta
   targets <- scanTargets meta
   -- Need vtts transcriptions for each deck that has a MP4 video transcoded (chrunched).
@@ -97,13 +99,24 @@ transcribeAllRecordings context = do
 transcribe :: Meta -> FilePath -> String -> String -> Bool -> IO ()
 transcribe meta mp4 vtt lang translate = do
   whenM (needsRebuild vtt [mp4]) $ do
+    id9 <- toString <$> liftIO randomId
+    transient <- transientDir
+    let wav = transient </> takeFileName mp4 <> "-" <> id9 <.> "wav"
+    putStrLn $ "# whisper (for " <> vtt <> ")"
+    runExternal "mp4towav" mp4 wav meta
+    let extra = ["--translate" | translate] <> ["--language", lang]
+    runExternalArgs "whisper" extra wav (dropExtension vtt) meta
+    removeFile wav
+
+transcribe_ :: Meta -> FilePath -> String -> String -> Bool -> IO ()
+transcribe_ meta mp4 vtt lang translate = do
+  whenM (needsRebuild vtt [mp4]) $ do
     let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" meta
     let model = baseDir </> lookupMetaOrElse "models/ggml-large.bin" "whisper.model" meta
     id9 <- toString <$> liftIO randomId
     transient <- transientDir
     let wav = transient </> takeFileName mp4 <> "-" <> id9 <.> "wav"
     putStrLn $ "# whisper (for " <> vtt <> ")"
-
     let ffmpegOptions = lookupMetaOrElse ["-af", "speechnorm"] "whisper.options.ffmpeg" meta
     let ffmpegArgs = ["-y", "-i", mp4, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "16000"] <> ffmpegOptions <> [wav]
     -- putStrLn $ "ffmpeg " <> intercalate " " ffmpegArgs
@@ -119,11 +132,11 @@ transcribe meta mp4 vtt lang translate = do
     call whisper whisperArgs
 
     -- putStrLn $ "rm " <> wav
-    liftIO $ removeFile wav
+    removeFile wav
 
 call cmd args = do
   (code, out, err) <- readProcessWithExitCode cmd args ""
   return ()
-  -- putStrLn err
-  -- putStrLn out
 
+-- putStrLn err
+-- putStrLn out

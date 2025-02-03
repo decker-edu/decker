@@ -6,6 +6,7 @@
 
 module Text.Decker.Internal.External
   ( runExternal,
+    runExternalArgs,
     runExternalForSVG,
   )
 where
@@ -18,6 +19,7 @@ import Development.Shake
 import Relude hiding (id)
 import System.Exit (ExitCode (..))
 import System.IO (hClose)
+import System.IO.Extra (openFile)
 import System.Info qualified
 import System.Process
 import Text.Blaze.Renderer.Utf8 (renderMarkup)
@@ -27,13 +29,16 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta (isMetaSet, lookupMetaOrElse, lookupMetaOrFail)
 import Text.Pandoc (Meta)
-import System.IO.Extra (openFile)
 
 data Option = Option String | InputFile FilePath | OutputFile FilePath
   deriving (Show)
 
 runExternal :: String -> FilePath -> FilePath -> Meta -> IO ()
 runExternal tool inPath outPath meta = do
+  runExternalArgs tool [] inPath outPath meta
+
+runExternalArgs :: String -> [String] -> FilePath -> FilePath -> Meta -> IO ()
+runExternalArgs tool args inPath outPath meta = do
   transient <- transientDir
   case selectProgramDefinition tool meta of
     Just program -> do
@@ -41,8 +46,12 @@ runExternal tool inPath outPath meta = do
       let command :: String =
             lookupMetaOrFail (program <> ".command") meta
       let arguments =
-            substituteInOut inPath outPath transient
-              $ lookupMetaOrFail (program <> ".arguments") meta
+            args
+              <> substituteInOut
+                inPath
+                outPath
+                transient
+                (lookupMetaOrFail (program <> ".arguments") meta)
       putStrLn $ "# " <> intercalate " " ([command] <> arguments) <> " (for " <> outPath <> ")"
       catch
         -- (callProcess command arguments)
