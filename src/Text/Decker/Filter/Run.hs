@@ -5,13 +5,9 @@ module Text.Decker.Filter.Run where
 import Development.Shake (Action, need)
 import Relude
 import System.FilePath (takeDirectory)
-import Text.Decker.Filter.Filter (Disposition)
-import Text.Decker.Filter.Monad (Filter, FilterState (..))
 import Text.Decker.Internal.Meta
 import Text.Pandoc (Pandoc)
 import Text.Pandoc.Definition (Pandoc (..))
-import qualified Data.Map as Map
-import Text.Pandoc.Walk (Walkable)
 
 -- | Runs a new style decker filter. That means
 --

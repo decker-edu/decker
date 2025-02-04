@@ -3,7 +3,6 @@
 module Text.Decker.Internal.MetaExtra where
 
 import Data.Aeson.Encode.Pretty qualified as A
-import Data.Text (Text)
 import Development.Shake (Action, putVerbose, need)
 import Relude
 import System.Directory qualified as Dir

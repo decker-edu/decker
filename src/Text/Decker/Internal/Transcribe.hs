@@ -13,7 +13,6 @@ import Development.Shake.FilePath
 import Relude
 import System.Directory (removeFile)
 import System.Directory qualified as Dir
-import System.Process (readProcessWithExitCode)
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
@@ -107,36 +106,3 @@ transcribe meta mp4 vtt lang translate = do
     let extra = ["--translate" | translate] <> ["--language", lang]
     runExternalArgs "whisper" extra wav (dropExtension vtt) meta
     removeFile wav
-
-transcribe_ :: Meta -> FilePath -> String -> String -> Bool -> IO ()
-transcribe_ meta mp4 vtt lang translate = do
-  whenM (needsRebuild vtt [mp4]) $ do
-    let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" meta
-    let model = baseDir </> lookupMetaOrElse "models/ggml-large.bin" "whisper.model" meta
-    id9 <- toString <$> liftIO randomId
-    transient <- transientDir
-    let wav = transient </> takeFileName mp4 <> "-" <> id9 <.> "wav"
-    putStrLn $ "# whisper (for " <> vtt <> ")"
-    let ffmpegOptions = lookupMetaOrElse ["-af", "speechnorm"] "whisper.options.ffmpeg" meta
-    let ffmpegArgs = ["-y", "-i", mp4, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "16000"] <> ffmpegOptions <> [wav]
-    -- putStrLn $ "ffmpeg " <> intercalate " " ffmpegArgs
-    call "ffmpeg" ffmpegArgs
-
-    let selector = toText $ if translate then "translate" else lang
-    let options = lookupMetaOrElse ["-bs", "5", "-mc", "0"] ("whisper.options." <> selector) meta
-    let translateOption = ["--translate" | translate]
-    let whisperArgs = ["--file", wav, "-m", model, "--language", lang] <> translateOption <> options <> ["--output-vtt", "--output-file", dropExtension vtt]
-
-    let whisper = baseDir </> "main"
-    -- putStrLn $ whisper <> intercalate " " whisperArgs
-    call whisper whisperArgs
-
-    -- putStrLn $ "rm " <> wav
-    removeFile wav
-
-call cmd args = do
-  (code, out, err) <- readProcessWithExitCode cmd args ""
-  return ()
-
--- putStrLn err
--- putStrLn out

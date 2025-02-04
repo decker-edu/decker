@@ -12,7 +12,6 @@ import Relude
 import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
-import System.Process
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External (runExternal)
@@ -82,22 +81,7 @@ convertVideoMp4 webm mp4 = do
     runFfmpeg src dst = do
       tmp <- uniqueTransientFileName dst
       meta <- readDeckerMetaIO deckerMetaFile
-      runExternal "webmtomp4" src tmp meta
-      let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
-      putStrLn $ "# calling: ffmpeg " <> List.unwords args
-      callProcess "ffmpeg" args
-      renameFile tmp dst
-
-convertVideoMp4_ :: FilePath -> FilePath -> IO ()
-convertVideoMp4_ webm mp4 = do
-  putStrLn $ "# concat (" <> webm <> " -> " <> mp4 <> ")"
-  runFfmpeg webm mp4
-  where
-    runFfmpeg src dst = do
-      tmp <- uniqueTransientFileName dst
-      let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
-      putStrLn $ "# calling: ffmpeg " <> List.unwords args
-      callProcess "ffmpeg" args
+      runExternal "tomp4-copy" src tmp meta
       renameFile tmp dst
 
 -- | Converts a WEBM video file into an MP4 video file on the slow track. The audio is
@@ -107,10 +91,9 @@ transcodeVideoMp4 webm mp4 = do
   runFfmpeg webm mp4
   where
     runFfmpeg src dst = do
+      meta <- readDeckerMetaIO deckerMetaFile
       tmp <- uniqueTransientFileName dst
-      let args = ["-nostdin", "-v", "fatal", "-y", "-i", src] <> slow <> [tmp]
-      putStrLn $ "# calling: ffmpeg " <> List.unwords args
-      callProcess "ffmpeg" args
+      runExternal "tomp4-transcode" src tmp meta
       renameFile tmp dst
 
 -- Transcoding parameters
@@ -147,30 +130,26 @@ slow =
 -- Turns out the 'concat protocol' is not gonna cut it if stream parameters
 -- differ even slightly. Must use the 'concat demuxer' which unfortunately
 -- must transcode the video stream, which might take a while.
-concatVideoMp4 :: [String] -> [FilePath] -> FilePath -> IO ()
-concatVideoMp4 ffmpegArgs files mp4 = do
+concatVideoMp4 :: [FilePath] -> FilePath -> IO ()
+concatVideoMp4 files mp4 = do
   let sorted = sort files
   listFile <- mkListFile sorted mp4
   putStrLn $ "# concat (" <> intercalate ", " sorted <> " -> " <> mp4 <> ")"
-  concatVideoMp4' ffmpegArgs listFile mp4
+  concatVideoMp4' listFile mp4
 
 mkListFile webms mp4 = do
   let listFile = mp4 <.> "list"
   writeFile listFile (List.unlines $ map (\f -> "file '../" <> f <> "'") webms)
   return listFile
 
-concatVideoMp4' :: [String] -> FilePath -> FilePath -> IO ()
-concatVideoMp4' ffmpegArgs listFile mp4 = do
+concatVideoMp4' :: FilePath -> FilePath -> IO ()
+concatVideoMp4' listFile mp4 = do
   runFfmpeg listFile mp4
   where
     runFfmpeg listFile dst = do
+      meta <- readDeckerMetaIO deckerMetaFile
       tmp <- uniqueTransientFileName dst
-      let args =
-            ["-nostdin", "-v", "warning", "-y", "-f", "concat", "-safe", "0", "-i", listFile]
-              <> ffmpegArgs
-              <> ["-acodec", "aac", tmp]
-      putStrLn $ "# calling: ffmpeg " <> List.unwords args
-      callProcess "ffmpeg" args
+      runExternal "tomp4-concat" listFile tmp meta
       renameFile tmp dst
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
@@ -196,12 +175,12 @@ appendVideoUpload transcode upload webm = do
       let name1 = setSequenceNumber 1 webm
       renameFile single name0
       renameFile upload name1
-      when transcode $ concatVideoMp4 fast [name0, name1] mp4
+      when transcode $ concatVideoMp4 [name0, name1] mp4
     multiple -> do
       let number = getHighestSequenceNumber multiple
       let name = setSequenceNumber (number + 1) webm
       renameFile upload name
-      when transcode $ concatVideoMp4 fast (multiple <> [name]) mp4
+      when transcode $ concatVideoMp4 (multiple <> [name]) mp4
 
 -- | Sets the sequence number of a file. The number is appended to the base file
 -- name just before the extension.

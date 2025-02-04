@@ -6,7 +6,6 @@ import Data.Text qualified as Text
 import Development.Shake
 import Text.Decker.Internal.Common
 import Text.Decker.Project.Project
-import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Decker.Internal.MetaExtra (readDeckerMeta)

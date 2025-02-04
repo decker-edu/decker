@@ -10,7 +10,6 @@ where
 
 import Control.Monad
 import Control.Monad.Loops
-import Data.List qualified as List
 import Data.Maybe
 import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
@@ -23,7 +22,6 @@ import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
 import Text.Decker.Filter.Macro
-import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
@@ -36,7 +34,6 @@ import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Resource
-import Text.Decker.Resource.Template
 import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc

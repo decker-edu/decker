@@ -1,9 +1,5 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -34,7 +30,6 @@ import Text.Decker.Exam.Question
 import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
-import Text.Decker.Reader.Markdown
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Decker.Writer.Layout

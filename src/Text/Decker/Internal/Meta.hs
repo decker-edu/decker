@@ -34,7 +34,7 @@ where
 
 import Control.Exception
 import Data.Aeson qualified as A
-import Data.Aeson.Encode.Pretty qualified as A
+-- import Data.Aeson.Encode.Pretty qualified as A
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.List qualified as List
@@ -45,15 +45,13 @@ import Data.Maybe
 import Data.Text qualified as Text
 import Data.Vector qualified as Vec
 import Data.Yaml qualified as Y
-import Development.Shake (writeFileChanged, Action)
+import Development.Shake (writeFileChanged)
 import Relude
 import Text.Decker.Internal.Common (pandocReaderOpts)
 import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
-import System.FilePath (takeDirectory)
-import qualified System.Directory as Dir
 
 -- TODO: extract this value from global meta data.
 replaceLists :: [[Text]]
