@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 {-# HLINT ignore "Used otherwise as a pattern" #-}
 
 module Text.Decker.Project.Shake
@@ -45,8 +46,10 @@ import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crrrunch
+import Text.Decker.Internal.External (checkExternal)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Glob (fastGlobDirs)
@@ -59,8 +62,6 @@ import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Pandoc (Meta)
 import Text.Pandoc.Definition (nullMeta)
-import Text.Decker.Internal.External (checkExternal)
-import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do

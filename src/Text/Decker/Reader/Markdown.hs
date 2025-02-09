@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,
@@ -123,6 +124,9 @@ parseMarkdownFile path = do
 parseMarkdown :: Text -> IO Pandoc
 parseMarkdown text = runIOorExplode (readMarkdown pandocReaderOpts text)
 
+parseMarkdownWithOpts :: Text -> ReaderOptions -> IO Pandoc
+parseMarkdownWithOpts text opts = runIOorExplode (readMarkdown opts text)
+
 -- | Writes a Pandoc document to a file in Markdown format. Throws an exception
 -- if something goes wrong
 writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
@@ -211,7 +215,7 @@ writeToMarkdown pandoc@(Pandoc pmeta _) = do
             . disableExtension Ext_multiline_tables
             . disableExtension Ext_grid_tables
             . disableExtension Ext_raw_html
-            . enableExtension Ext_auto_identifiers
+            . disableExtension Ext_auto_identifiers
         )
           pandocExtensions
   let options =
@@ -236,4 +240,14 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
 
 formatStdin :: IO ()
 formatStdin = do
-  Text.getContents >>= parseMarkdown >>= writeToMarkdown >>= Text.putStr
+  let opts =
+        def
+          { readerExtensions =
+              disableExtension Ext_auto_identifiers
+                $ disableExtension Ext_implicit_figures
+                $ enableExtension Ext_emoji pandocExtensions,
+            readerColumns = 999
+          }
+  Text.getContents >>= parseMarkdown opts >>= writeToMarkdown >>= Text.putStr
+  where
+    parseMarkdown opts text = runIOorExplode (readMarkdown opts text)

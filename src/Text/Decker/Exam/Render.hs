@@ -131,6 +131,9 @@ renderQuestionToHtml h id quest = do
             H.th "topic id"
             H.td $ toHtml (quest ^. qstTopicId)
           H.tr $ do
+            H.th "exam"
+            H.td $ toHtml (quest ^. qstExam)
+          H.tr $ do
             H.th "path"
             H.td $
               H.code $

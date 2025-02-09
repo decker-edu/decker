@@ -13,7 +13,6 @@ import Control.Lens hiding (Choice)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base64 qualified as B64
 import Data.ByteString.UTF8 qualified as UTF8
-import Data.List qualified as List
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Development.Shake
@@ -29,7 +28,9 @@ import Text.XML qualified as XML
 -- Renders a catalog of all questions sorted by LectureId and TopicId.
 renderXmlCatalog ::
   [Question] -> FilePath -> Action ()
-renderXmlCatalog questions out = do
+renderXmlCatalog allQuestions out = do
+  let questions = filter _qstExam allQuestions
+  putNormal $ "Compiling " <> show (length questions) <> " questions to Moodle XML."
   rendered <- mapM (renderMarkdownFields . insertTitle) questions
   let sorted = sortQuestions rendered
       nodes = concatMap renderXML sorted
@@ -255,10 +256,10 @@ embedImages base (Image (id, cls, kv) inlines (url, title)) = do
   return $ Image (id, cls, kv) inlines (toText dataUrl, title)
 embedImages base inline = return inline
 
-embedFigure :: FilePath -> Block -> Action Block
-embedFigure base (Plain [img]) = Plain . List.singleton <$> embedImages base img
-embedFigure base (Para [img]) = Para . List.singleton <$> embedImages base img
-embedFigure base block = return block
+-- embedFigure :: FilePath -> Block -> Action Block
+-- embedFigure base (Plain [img]) = Plain . List.singleton <$> embedImages base img
+-- embedFigure base (Para [img]) = Para . List.singleton <$> embedImages base img
+-- embedFigure base block = return block
 
 embedCode :: Block -> Block
 embedCode (CodeBlock attr code) = CodeBlock attr code
