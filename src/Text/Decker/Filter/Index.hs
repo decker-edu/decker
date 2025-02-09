@@ -22,6 +22,7 @@ import Text.Decker.Reader.Markdown
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
 
 -- For lookup use: http://glench.github.io/fuzzyset.js/
 
