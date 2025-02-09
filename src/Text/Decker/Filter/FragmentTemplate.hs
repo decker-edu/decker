@@ -25,7 +25,6 @@ import Text.DocTemplates (Context, compileTemplateFile, toContext)
 import Text.Pandoc
   ( Block (CodeBlock, Para, Plain, RawBlock),
     Inline (Link, RawInline),
-    Meta,
     Pandoc (..),
     Template,
     renderTemplate,
