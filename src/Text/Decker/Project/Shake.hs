@@ -1,4 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Used otherwise as a pattern" #-}
 
 module Text.Decker.Project.Shake
   ( runDecker,
@@ -57,6 +59,8 @@ import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Pandoc (Meta)
 import Text.Pandoc.Definition (nullMeta)
+import Text.Decker.Internal.External (checkExternal)
+import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -78,10 +82,10 @@ runDeckerArgs args theRules = do
   case deckerMeta of
     Right meta -> do
       context <- initContext flags meta
-      let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check", "format"]
+      let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format"]
       case targets of
         [command] | command `elem` commands -> runCommand context command rules
-        _ -> do
+        otherwise -> do
           warnVersion
           runTargets context targets rules
     Left err -> do
@@ -130,7 +134,7 @@ _runShakeSlyly context rules = do
   let meta = context ^. globalMeta
   targets <- targetsFile
   scanTargetsToFile meta targets
-  
+
   let flags = context ^. extra
   extractMetaIntoFile flags
   options <- deckerShakeOptions context
@@ -209,40 +213,26 @@ forkServer context = do
 
 runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
 runCommand context command rules = do
+  meta <- readDeckerMetaIO deckerMetaFile
   case command of
+    "check" -> checkExternal meta
     "clean" -> runClean False
     "purge" -> runClean True
-    "example" -> writeExampleProject (context ^. globalMeta)
+    "example" -> writeExampleProject meta
     "serve" -> do
       forkServer context
       handleUploads context
     "crunch" -> crunchAllRecordings context
-    "crrrunch" -> crunchAllRecordings context
-    "transcribe" -> transcribeRecordings context
-    "transcrrribe" -> transcribeAllRecordings context
+    "transcribe" -> transcribeAllRecordings meta
     "version" -> putDeckerVersion
     "pdf" -> do
       putStrLn (toString pdfMsg)
       id <- forkServer context
-      -- let rules' = want ["build-pdf"] >> withoutActions rules
-      -- runShake context rules'
       runShake context rules
       killThread id
     "format" -> formatStdin
     _ -> error "Unknown command. Should not happen."
   exitSuccess
-
--- crunchRecordings :: ActionContext -> IO ()
--- crunchRecordings context = runShakeSlyly context crunchRules
-
-transcribeRecordings :: ActionContext -> IO ()
-transcribeRecordings context = do
-  let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" (context ^. globalMeta)
-  exists <- Dir.doesFileExist $ baseDir </> "main"
-  if exists
-    then transcribeAllRecordings context
-    else -- then runShakeSlyly context transcriptionRules
-      putStrLn "Install https://github.com/ggerganov/whisper.cpp to generate transcriptions."
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =

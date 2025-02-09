@@ -20,11 +20,9 @@ import Text.Decker.Internal.Crrrunch (needsRebuild)
 import Text.Decker.Internal.External (runExternal, runExternalArgs)
 import Text.Decker.Internal.Helper (replaceSuffix)
 import Text.Decker.Internal.Meta (lookupMetaOrElse, readMetaDataFile)
-import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Pandoc (Meta)
 import Text.Pandoc.Builder (nullMeta)
-import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 
 -- | Rules for transcribiung videos. Mp4 videos are transcribed using
 -- whisper.ccp if they have not yet been transcribed.
@@ -73,10 +71,9 @@ transcriptionRules = do
         liftIO $ transcribe meta mp4 out lang False
 
 -- Replaces the Shake dependency nightmare with straight forward modtime checking.
-transcribeAllRecordings :: ActionContext -> IO ()
-transcribeAllRecordings context = do
+transcribeAllRecordings :: Meta -> IO ()
+transcribeAllRecordings meta = do
   -- language of all the recordings
-  meta <- readDeckerMetaIO deckerMetaFile
   let lang = lookupMetaOrElse "de" "whisper.lang" meta
   targets <- scanTargets meta
   -- Need vtts transcriptions for each deck that has a MP4 video transcoded (chrunched).

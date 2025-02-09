@@ -8,15 +8,18 @@ module Text.Decker.Internal.External
   ( runExternal,
     runExternalArgs,
     runExternalForSVG,
+    checkExternal,
   )
 where
 
 import Control.Exception
 import Data.ByteString.Lazy qualified as B
+import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Text qualified as Text
 import Development.Shake
 import Relude hiding (id)
+import System.Directory (findExecutable)
 import System.Exit (ExitCode (..))
 import System.IO (hClose)
 import System.IO.Extra (openFile)
@@ -27,8 +30,8 @@ import Text.Blaze.Svg11 hiding (path)
 import Text.Blaze.Svg11.Attributes hiding (path, style)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Meta (isMetaSet, lookupMetaOrElse, lookupMetaOrFail)
-import Text.Pandoc (Meta)
+import Text.Decker.Internal.Meta (isMetaSet, lookupMeta, lookupMetaOrElse, lookupMetaOrFail)
+import Text.Pandoc (Meta, MetaValue)
 
 data Option = Option String | InputFile FilePath | OutputFile FilePath
   deriving (Show)
@@ -141,3 +144,20 @@ renderErrorSvg dst msg = do
       let bytes = renderMarkup svg
       B.writeFile out bytes
     Nothing -> return ()
+
+-- | extracts commands used for external programs and checks if the executables
+-- can be found on the system
+checkExternal :: Meta -> IO ()
+checkExternal meta = do
+  let external :: Map.Map Text MetaValue = lookupMetaOrElse Map.empty "external-tools" meta
+  let programs = map toString (Map.keys external)
+  let commands = map (selectCommand meta) programs
+  list <- mapM findExe commands
+  putStrLn "external commands:"
+  forM_ (zip programs list) $ \(p, e) ->
+    putStrLn $ "  " <> p <> ": " <> fromMaybe "-" e
+  where
+    findExe = maybe (return Nothing) findExecutable
+    selectCommand meta prog = do
+      key <- selectProgramDefinition prog meta
+      lookupMeta (key <> ".command") meta
