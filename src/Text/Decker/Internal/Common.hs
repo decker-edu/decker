@@ -117,8 +117,6 @@ targetsFile = (</> "targets.yaml") <$> transientDir
 
 metaArgsFile = (</> "meta-args.yaml") <$> transientDir
 
-externalStatusFile = (</> "external-programs.json") <$> transientDir
-
 indexSource = "index.md"
 
 deckSuffix = "-deck.md"

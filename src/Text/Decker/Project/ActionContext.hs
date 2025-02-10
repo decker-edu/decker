@@ -38,7 +38,6 @@ data Flags
 data ActionContext = ActionContext
   { _extra :: [Flags],
     _devRun :: Bool,
-    _externalStatus :: [(String, Bool)],
     _server :: TVar ServerState,
     _watch :: IORef Bool,
     _actionChan :: TChan ActionMsg,
