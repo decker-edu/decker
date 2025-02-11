@@ -5,7 +5,9 @@
  * @author Henrik Tramberend
  * @author Sebastian Hauer (rewrite)
  */
+
 import client from "./api-client.js";
+import client2 from "./api-client-v2.js";
 
 class Feedback {
   timeout = 500;
@@ -78,9 +80,14 @@ class Feedback {
    * @param {*} base A URL.
    * @param {*} deckId A unique id from deck.yaml or the deck markdown.
    */
-  createEngine(base, deckId) {
+  createEngine(base, deckId, version) {
     this.engine.deckId = deckId || this.deckURL;
-    this.engine.api = new client(base);
+    this.engine.version = version || "1";
+    if (this.engine.version === "1") {
+      this.engine.api = new client(base);
+    } else {
+      this.engine.api = new client2(base);
+    }
     this.prepareEngine();
   }
 
@@ -420,7 +427,11 @@ class Feedback {
       voter: this.usertoken,
     };
     try {
-      await this.engine.api.voteComment(vote);
+      if (comment.didvote) {
+        await this.engine.api.deleteVote(vote);
+      } else {
+        await this.engine.api.postVote(vote);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -755,8 +766,8 @@ class Feedback {
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
     );
-    this.menu.feedback_send_button.addEventListener("click", (e) =>
-      this.sendComment()
+    this.menu.feedback_send_button.addEventListener("click", (event) =>
+      this.sendComment(event)
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu()
@@ -908,7 +919,8 @@ let plugin = () => {
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];
-      if (url) instance.createEngine(url, id);
+      let ver = instance.config?.version || instance.config?.["version"];
+      if (url) instance.createEngine(url, id, ver);
     },
   };
 };

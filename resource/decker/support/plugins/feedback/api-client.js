@@ -76,7 +76,16 @@ class RESTClient {
     });
   }
 
-  async voteComment(vote) {
+  async postVote(vote) {
+    return fetch(this.base + "/vote", {
+      method: "PUT",
+      mode: this.cors ? "cors" : "same-origin",
+      cache: "no-store",
+      body: JSON.stringify(vote),
+    });
+  }
+
+  async deleteVote(vote) {
     return fetch(this.base + "/vote", {
       method: "PUT",
       mode: this.cors ? "cors" : "same-origin",

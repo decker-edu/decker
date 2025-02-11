@@ -1,8 +1,9 @@
 ---
 author: 'Henrik Tramberend'
 feedback:
-  base-url: 'https://decker.cs.tu-dortmund.de/feedback/'
+  base-url: 'http://localhost:3000/api'
   deck-id: 'hauer-test-engine-deck'
+  version: '2'
 help: 0
 controls: false
 title: Decker Engine Test
