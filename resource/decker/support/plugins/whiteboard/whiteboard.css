@@ -210,21 +210,27 @@ html.print-pdf #whiteboardButtons {
    This prevents dragging them with the Wacom pen (w/o using the mouse).
    The following setting show the scrollbar when the whiteboard is active.
    Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
-.reveal .slides.active::-webkit-scrollbar {
+.reveal .slides.whiteboard-active::-webkit-scrollbar {
   width: 9px;
 }
-.reveal .slides.active::-webkit-scrollbar-track {
+.reveal .slides.whiteboard-active::-webkit-scrollbar-track {
   -webkit-border-radius: 5px;
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.1);
 }
-.reveal .slides.active::-webkit-scrollbar-thumb {
+.reveal .slides.whiteboard-active::-webkit-scrollbar-thumb {
   -webkit-border-radius: 5px;
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.2);
 }
-.reveal .slides.active::-webkit-scrollbar-thumb:hover {
+.reveal .slides.whiteboard-active::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
+}
+
+/* prevent accidential text selection through whiteboard
+   (still don't understand when/why/how this happens) */
+.reveal .slides.whiteboard-active {
+  user-select: none;
 }
 
 :root.hide-annotations svg.whiteboard {

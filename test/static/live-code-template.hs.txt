@@ -1,0 +1,8 @@
+import Data.Text
+mario = "MARIO"
+main = do
+  print "the template added this"
+  
+  ##CODE##
+  
+  print "the template added this"

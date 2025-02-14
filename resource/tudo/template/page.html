@@ -18,7 +18,7 @@ $endfor$
 $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$">
 $endif$
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 $if(template.favicon)$
     <link rel="shortcut icon" href="$template.favicon$">
 $endif$
@@ -49,6 +49,11 @@ $endif$
 
     <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/tudo-page.css">
+    $if(template.font)$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/$template.font$.css">
+    $else$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
+    $endif$
     <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
     $for(template.css)$
     <link rel="stylesheet" href="$template.css$"/>
@@ -107,7 +112,7 @@ $body$
 
     <!-- spruch fuer ladebildschirm -->
     <div id="waiting-screen" class="glass">
-      <div id="waiting-spinner" class="fas fa-cog"></div>
+      <div id="waiting-spinner" class="fas fa-cog fa-spin"></div>
       <div id="waiting-quote">
         <div id="waiting-quote-text"></div>
         <div id="waiting-quote-author"></div>

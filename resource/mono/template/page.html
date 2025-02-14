@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$"$if(dir)$ dir="$dir$"$endif$>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <script type="module">
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker("$decker-meta-url$");
+  </script>
+
+$for(author-meta)$
+  <meta name="author" content="$author-meta$" />
+$endfor$
+$if(date-meta)$
+  <meta name="dcterms.date" content="$date-meta$" />
+$endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$" />
+$endif$
+$if(description-meta)$
+  <meta name="description" content="$description-meta$" />
+$endif$
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+  <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+  <!-- Default Pandoc CSS for HTML documents -->
+  <style>
+    $styles.html()$
+  </style>
+
+  <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+   :root {
+     $for(css-light-colors/pairs)$
+       --light-$it.key$: $it.value$;
+     $endfor$
+     $for(css-dark-colors/pairs)$
+       --dark-$it.key$: $it.value$;
+     $endfor$
+   }
+   @media (prefers-color-scheme: light) {
+     :root {
+       $for(css-light-color-declarations)$
+         $css-light-color-declarations$
+       $endfor$
+     }
+
+     :root.dark {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+   }
+   @media (prefers-color-scheme: dark) {
+     :root {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+
+     :root.light {
+       $for(css-light-color-declarations)$
+         $css-light-color-declarations$
+       $endfor$
+     }
+   }
+   :root {
+     $for(css-declarations)$
+       $css-declarations$
+     $endfor$
+   }
+ </style>
+
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
+
+  <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
+
+  <!-- hard-coded styles for the mono resource pack -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/mono.css" />
+
+$for(template.css)$
+  <link rel="stylesheet" href="$template.css$" />
+$endfor$
+
+<!-- setup MathJax ------------------------------------------------------>
+<script type="module">
+    import * as math from "$decker-support-dir$/js/page-math.js";
+    Decker.meta.math = { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math };
+    math.init();
+</script>    
+  
+$for(header-includes)$
+  $header-includes$
+$endfor$
+</head>
+
+<body class="page">
+$for(include-before)$
+$include-before$
+$endfor$
+$if(title)$
+<header id="title-block-header">
+<h1 class="title">$title$</h1>
+$if(subtitle)$
+<p class="subtitle">$subtitle$</p>
+$endif$
+$for(author)$
+<p class="author">$author$</p>
+$endfor$
+$if(date)$
+<p class="date">$date$</p>
+$endif$
+</header>
+$endif$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+  <script>
+    var socket = new WebSocket("ws://" + location.host + "/reload");
+    socket.onmessage = function (event) {
+      if (event.data.startsWith("reload!")) 
+        window.location.reload(true);
+    };
+  </script>
+  $for(template.js)$
+  <script src="$template.js$"></script>
+  $endfor$
+  $for(template.js-module)$
+  <script type="module" src="$template.js$"></script>
+  $endfor$
+  $for(template.page.js)$
+  <script src="$template.page.js$"></script>
+  $endfor$
+  $for(template.page.js-module)$
+  <script type="module" src="$template.page.js-module$"></script>
+  $endfor$
+</body>
+</html>

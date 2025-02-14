@@ -8,11 +8,16 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./structure.css");
 @import url("./style.css");
 @import url("./media.css");
+@import url("./sizes.css");
+
+:root {
+  --root-font-size: 38px;
+}
 
 /* Box sizing is much nicer for calculations. */
 body.deck {
   box-sizing: border-box;
-  font-size: 38px;
+  font-size: var(--root-font-size);
 }
 
 /* Title slide (simple) */
@@ -219,10 +224,9 @@ div.block[popup="center-down"] {
 div.decker-flash-panel {
   z-index: 1000;
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
   padding: 0;
   margin: 0;
   display: flex;
@@ -232,8 +236,9 @@ div.decker-flash-panel {
   align-content: center;
 }
 
+/* This is not display: none so screen readers have time to actually read out the content */
 div.decker-flash-panel:not(.flashing) {
-  display: none;
+  visibility: hidden;
 }
 
 div.decker-flash-panel div.content {

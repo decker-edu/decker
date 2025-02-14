@@ -52,6 +52,7 @@ dependencies:
   - deepseq
   - directory
   - doctemplates
+  - doclayout
   - exceptions
   - extra
   - file-embed
@@ -130,14 +131,6 @@ ghc-options:
 library:
   source-dirs:
     - src
-  when:
-    - condition: os(windows)
-      then:
-        source-dirs: src-win
-        exposed-modules: "System.Decker.OS"
-      else:
-        source-dirs: src-unix
-        exposed-modules: "System.Decker.OS"
 
 executables:
   decker:

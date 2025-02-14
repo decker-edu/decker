@@ -4,17 +4,24 @@ poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
 # poll-server: ws://localhost:3003/quiz
 save-polls: true
 
+# enable some experimental features
+experiments:
+  # fragment templates are needed for Codapi live-code support
+  fragment-templates: true
+
+# highlightjs: "xcode"
+
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
-      - "#fbf7ef"
-      - "#f1e9d2"
+      - "#F3F2F1"
+      - "#E6E5E1"
       - "#8faaab"
       - "#98a8a8"
       - "#657377"
       - "#5b7279"
-      - "#093946"
-      - "#002d38"
+      - "#212C37"
+      - "#171F27"
       - "#dd459d"
       - "#f23749"
       - "#d56500"
@@ -24,14 +31,14 @@ palette:
       - "#2b90d8"
       - "#7d80d1"
     dark: # OKSolar (https://meat.io/oksolar)
-      - "#002d38"
-      - "#093946"
+      - "#171F27"
+      - "#212C37"
       - "#5b7279"
       - "#657377"
       - "#98a8a8"
       - "#8faaab"
-      - "#f1e9d2"
-      - "#fbf7ef"
+      - "#E6E5E1"
+      - "#F3F2F1"
       - "#dd459d"
       - "#f23749"
       - "#d56500"
@@ -52,7 +59,6 @@ reveal:
   hash: true
   height: 1080
   help: false
-  # hideInactiveCursor: false
   hideCursorTime: 2000
   hideInactiveCursor: true
   history: false

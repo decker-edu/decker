@@ -32,6 +32,11 @@ $endif$
   meta data values. -->
   <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
 
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
+
+
   <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
   into a style sheet. Default values can come from `variables.css`. -->
   <style class="css-declarations">
@@ -110,9 +115,13 @@ $highlighting-css$
   </style>
 $endif$
 
+<!-- This is the template's very own css  -->
+<link rel="stylesheet" href="$decker-support-dir$/css/wburg.css">
+
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
+
 
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
@@ -230,6 +239,8 @@ $endif$
 $for(template.js)$
   <script type="module" src="$template.js$"></script>
 $endfor$
+
+<script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
 
 <!--  Injection of own code for reveal's highlight.js is not as trivial as it seems. A good overview
 is found in this issue: https://github.com/hakimel/reveal.js/issues/2761

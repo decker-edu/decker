@@ -1,13 +1,12 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Resource.Template
   ( TemplateCache,
     readTemplate,
     readTemplateMeta,
+    readTemplateMetaIO,
     templateFile,
   )
 where
@@ -108,6 +107,13 @@ readTemplateMeta meta = do
   packMeta <- readTemplateMeta' pack
   return $ mergePandocMeta packMeta deckerMeta
 
+readTemplateMetaIO :: Meta -> IO Meta
+readTemplateMetaIO meta = do
+  (Resources decker pack) <- liftIO $ deckerResources meta
+  deckerMeta <- readTemplateMetaIO' decker
+  packMeta <- readTemplateMetaIO' pack
+  return $ mergePandocMeta packMeta deckerMeta
+  
 readTemplateMeta' :: Source -> Action Meta
 readTemplateMeta' (DeckerExecutable baseDir) = do
   executable <- liftIO getExecutablePath
@@ -123,9 +129,27 @@ readTemplateMeta' (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
   putInfo $ "# loading meta data from: " <> defaultMeta
   need [defaultMeta]
-  liftIO $ readMetaDataFile defaultMeta
+  liftIO $ fromRight nullMeta <$> readMetaDataFile defaultMeta
 readTemplateMeta' None = do
   putInfo "# no pack, no meta data"
+  return nullMeta
+
+readTemplateMetaIO' :: Source -> IO Meta
+readTemplateMetaIO' (DeckerExecutable baseDir) = do
+  executable <- liftIO getExecutablePath
+  putStrLn $ "# extracting meta data from: " <> executable
+  liftIO $
+    toPandocMeta <$> (extractEntry (baseDir </> defaultMetaPath) executable >>= decodeThrow)
+readTemplateMetaIO' (LocalZip zipPath) = do
+  putStrLn $ "# extracting meta data from: " <> zipPath
+  liftIO $
+    toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+readTemplateMetaIO' (LocalDir baseDir) = do
+  let defaultMeta = baseDir </> defaultMetaPath
+  putStrLn $ "# loading meta data from: " <> defaultMeta
+  liftIO $ fromRight nullMeta <$> readMetaDataFile defaultMeta
+readTemplateMetaIO' None = do
+  putStrLn "# no pack, no meta data"
   return nullMeta
 
 type SourceM = ReaderT Resources IO

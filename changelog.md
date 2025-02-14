@@ -2,6 +2,61 @@
 
 ## decker 0.14.0
 
+- Palette for charts can now be defined in YAML in `chart.colors`. 
+  For this to work, disable the color plugin of Chart.js.
+  ``` yaml
+  chart:
+    colors:
+      - #ff0000
+      - #00ff00
+      - #00ff00
+    defaults:
+      plugins:
+        colors:
+          enabled: false
+  ```
+
+- The colorscheme ("light" or "dark") can now be enforced in YAML. Simply add
+    ``` yaml
+    colorscheme: "light"
+    ```
+    or `colorscheme: "dark"` to your YAML settings.
+
+-   The feedback menu now has a "send" button.
+-   The admin login button in the feedback menu is now clearly visible and also has a button to send the login request.
+
+- Add a legend to the feedback menu that is only visible on mobile devices (small screens).
+-   Decks can now be accessed in Presenter, Handout and A11Y Mode directly
+    by appending ?presenter, ?handout or ?a11y to the deck's url.
+
+-   The index page can now insert direct links to Presenter, Handout or A11Y
+    Mode.
+    Which of these is displayed can be configured with:
+
+    ``` yaml
+    index:
+      progress: true
+      links:
+        - a11y
+        - handout
+        - presenter
+    ```
+
+-   Handout Mode now supports zooming both by the (-)/(+) buttons in the
+    top right corner and the browser's native zoom level. In addition,
+    if the slides are zoomed away from, they center while if they are
+    zoomed in they attach to the left side of the screen to properly
+    allow scrolling the page. (Previously they fell out of the left side
+    of the viewport).
+
+-   All modes (presenter, handout, a11y) as well as functions accessible
+    only by keyboard inputs (recorder) are now accessible through buttons
+    in the main navigation menu. This solves the issue of some lecture
+    halls not providing a keyboard.
+
+-   The settings menu has been removed and replaced by a single
+    light / dark mode switch.
+
 -   Zooming in/out of a slide element is by default triggered via 
     double-click (left mouse button). It can now be configured to react on 
     double-click, triple-click, or alt-click (alt-key and left mouse).

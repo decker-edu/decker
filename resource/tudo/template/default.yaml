@@ -40,6 +40,15 @@ explain:
   useGreenScreen: false
 
 chart:
+  colors:
+    - "#f5871f"
+    - "#84B819"
+    - "#2a9ddf"
+    - "#c82829"
+    - "#3e999f"
+    - "#a3685a"
+    - "#eab700"
+    - "#8959a8"
   defaults:
     font: {family: "Lato", size: 20 }
     plugins:
@@ -47,6 +56,8 @@ chart:
         font: { weight: "normal", size: 30 }
       legend:
         position: "bottom"
+      colors:
+        enabled: false
 
 # live captions through WebSpeech API
 live-captions: true
@@ -57,7 +68,12 @@ speech-recognition-language: de-DE
 showDeckerLink: true
 
 # progress bar on index page
-progress: true
+index:
+  progress: true
+  links:
+    - a11y
+    - handout
+#    - presenter
 
 palette:
   contrast: 0.40

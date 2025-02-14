@@ -24,16 +24,13 @@ class SlideMenu {
       container: undefined,
       home_button: undefined,
       search_button: undefined,
-      pdf_button: undefined,
-      settings_button: undefined,
+      print_button: undefined,
+      color_button: undefined,
       close_button: undefined,
       slide_list: undefined,
     };
-    this.settings = {
+    this.plugin_buttons = {
       container: undefined,
-      fragments_toggle: undefined,
-      annotations_toggle: undefined,
-      color_choice: undefined,
     };
     this.glass = undefined;
     this.position = position;
@@ -111,7 +108,8 @@ class SlideMenu {
       this.disableKeybinds();
       this.glass.classList.add("show");
       if (event && event.detail === 0) {
-        setTimeout(() => this.menu.close_button.focus(), 500);
+        this.menu.close_button.focus();
+        //        setTimeout(() => this.menu.close_button.focus(), 500);
       }
       document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
     }
@@ -123,7 +121,6 @@ class SlideMenu {
    */
   closeMenu(event) {
     if (!this.inert) {
-      this.closeSettings();
       this.inert = true;
       this.reveal.getRevealElement().inert = false;
       this.enableKeybinds();
@@ -134,51 +131,15 @@ class SlideMenu {
     }
   }
 
-  toggleSettings() {
-    if (this.settings.container.inert) {
-      this.openSettings();
-    } else {
-      this.closeSettings();
-    }
-  }
-
-  openSettings() {
-    this.settings.container.inert = false;
-    this.menu.slide_list.inert = true;
-    this.menu.settings_button.setAttribute(
-      "title",
-      this.localization.close_settings_label
-    );
-    this.menu.settings_button.setAttribute(
-      "aria-label",
-      this.localization.close_settings_label
-    );
-  }
-
-  closeSettings() {
-    this.settings.container.inert = true;
-    this.menu.slide_list.inert = false;
-    this.menu.settings_button.setAttribute(
-      "title",
-      this.localization.open_settings_label
-    );
-    this.menu.settings_button.setAttribute(
-      "aria-label",
-      this.localization.open_settings_label
-    );
-  }
-
   /**
    * Navigate to index page
    */
   goToIndex() {
-    if (confirm(this.localization.index_confirmation)) {
-      let projectPath = Decker.meta.projectPath;
-      if (projectPath.endsWith("/")) {
-        window.location = projectPath + "index.html";
-      } else {
-        window.location = projectPath + "/index.html";
-      }
+    let projectPath = Decker.meta.projectPath;
+    if (projectPath.endsWith("/")) {
+      window.location = projectPath + "index.html";
+    } else {
+      window.location = projectPath + "/index.html";
     }
   }
 
@@ -216,21 +177,6 @@ class SlideMenu {
 
   enableKeybinds() {
     this.reveal.configure({ keyboard: true });
-  }
-
-  /**
-   * Enables or disables the fragmentation of slides.
-   */
-  toggleFragments() {
-    let animations = this.reveal.getConfig().fragments;
-    this.reveal.configure({ fragments: !animations });
-    if (!animations) {
-      this.settings.fragments_toggle.checked = true;
-      this.settings.fragments_toggle.setAttribute("aria-checked", "true");
-    } else {
-      this.settings.fragments_toggle.checked = false;
-      this.settings.fragments_toggle.setAttribute("aria-checked", "false");
-    }
   }
 
   /**
@@ -474,16 +420,16 @@ class SlideMenu {
     let template = document.createElement("template");
     template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-labeledby="decker-menu-button" inert>
       <div class="menu-header">
-        <div class="menu-header-buttons">
-          <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
-          </button>
+        <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
+        </button>
+        <div class="menu-header-button-group">
           <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem">
           </button>
           <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem">
           </button>
           <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem">
           </button>
-          <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}" role="menuitem">
+          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem">
           </button>
         </div>
       </div>
@@ -498,13 +444,17 @@ class SlideMenu {
     this.menu.search_button = container.querySelector(
       "#decker-menu-search-button"
     );
-    this.menu.pdf_button = container.querySelector("#decker-menu-print-button");
-    this.menu.settings_button = container.querySelector(
-      "#decker-menu-settings-button"
+    this.menu.print_button = container.querySelector(
+      "#decker-menu-print-button"
+    );
+    this.menu.color_button = container.querySelector(
+      "#decker-menu-color-button"
     );
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
     );
+
+    this.plugin_buttons = container.querySelector(".menu-header-button-group");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -516,19 +466,24 @@ class SlideMenu {
     this.menu.search_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.pdf_button.addEventListener("click", (event) => this.printPDF());
-    this.menu.pdf_button.addEventListener("click", (event) =>
+    this.menu.print_button.addEventListener("click", (event) =>
+      this.printPDF()
+    );
+    this.menu.print_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.settings_button.addEventListener("click", (event) =>
-      this.toggleSettings()
+    this.menu.color_button.addEventListener("click", (event) =>
+      colorScheme.toggleColor()
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
 
+    const colorSetting = window.Decker?.meta?.colorscheme;
+    if (colorSetting == "light" || colorSetting == "dark")
+      this.menu.color_button.disabled = true;
+
     this.initializeSlideList();
-    this.initializeSettingsMenu();
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
@@ -556,12 +511,24 @@ class SlideMenu {
     );
     if (menuHeaderButtons.length > 0) {
       const container = menuHeaderButtons[0];
-      container.insertBefore(button, this.menu.settings_button);
+      container.insertBefore(button, this.menu.color_button);
     }
   }
 
-  toggleAnnotations() {
-    document.documentElement.classList.toggle("hide-annotations");
+  addPluginButton(id, icon, title, callback) {
+    const button = document.createElement("button");
+    button.id = id;
+    button.classList.add("fa-button", "fas", icon);
+    button.title = title;
+    button.setAttribute("aria-label", title);
+    button.setAttribute("role", "menuitem");
+    button.addEventListener("click", callback);
+    this.plugin_buttons.appendChild(button);
+    button.setLabel = function (value) {
+      button.setAttribute("aria-label", value);
+      button.title = value;
+    };
+    return button;
   }
 
   clearCurrentSlideMark() {
@@ -586,92 +553,6 @@ class SlideMenu {
     this.clearCurrentSlideMark();
     this.setCurrentSlideMark(slide);
   }
-
-  initializeSettingsMenu() {
-    const animations = this.reveal.getConfig().fragments;
-    const colorModePreference = colorScheme.getPreference();
-    let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="menu-settings" inert>
-    <div class="settings-item">
-      <div class="settings-toggle-wrapper">
-        <label for="setting-toggle-fragments" class="settings-toggle" aria-label="${
-          this.localization.toggle_fragments_label
-        }">
-          <input id="setting-toggle-fragments" class="settings-toggle-checkbox" type="checkbox" ${
-            animations ? "checked" : ""
-          } />
-          <span class="slider round"></span>
-        </label>
-        <label for="setting-toggle-fragments">${
-          this.localization.toggle_fragments_label
-        }</label>
-      </div>
-    </div>
-    <div class="settings-item">
-      <div class="settings-toggle-wrapper">
-        <label for="setting-toggle-annotations" class="settings-toggle" aria-label="${
-          this.localization.toggle_annotations_label
-        }">
-          <input id="setting-toggle-annotations" class="settings-toggle-checkbox" type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-        <label for="setting-toggle-annotations">${
-          this.localization.toggle_annotations_label
-        }</label>
-      </div>
-    </div>
-    <div class="settings-item">
-      <div class="settings-choice-wrapper">
-        <fieldset id="color-choice">
-          <legend>${this.localization.choose_color_label}</legend>
-          <div class="choice-pair">
-            <input id="system-color-radio" type="radio" name="color-mode" value="system" aria-label="${
-              this.localization.system_color_choice
-            }" ${colorModePreference === "system" ? "checked" : ""}>
-            <label for="system-color-radio">${
-              this.localization.system_color_choice
-            }</label>
-          </div>
-          <div class="choice-pair">
-            <input id="light-color-radio" type="radio" name="color-mode" value="light" aria-label="${
-              this.localization.light_color_choice
-            }" ${colorModePreference === "light" ? "checked" : ""}>
-            <label for="light-color-radio">${
-              this.localization.light_color_choice
-            }</label>
-          </div>
-          <div class="choice-pair">
-            <input id="dark-color-radio" type="radio" name="color-mode" value="dark" aria-label="${
-              this.localization.dark_color_choice
-            }" ${colorModePreference === "dark" ? "checked" : ""}>
-            <label for="dark-color-radio">${
-              this.localization.dark_color_choice
-            }</label>
-          </div>
-        </fieldset>
-      </div>
-    </div>
-  </div>`;
-    this.settings.container = template.content.firstElementChild;
-    this.menu.container.appendChild(this.settings.container);
-    this.settings.fragments_toggle = this.settings.container.querySelector(
-      "#setting-toggle-fragments"
-    );
-    this.settings.fragments_toggle.addEventListener("change", (event) =>
-      this.toggleFragments()
-    );
-    this.settings.color_choice =
-      this.settings.container.querySelector("#color-choice");
-    this.settings.color_choice.addEventListener("change", (event) => {
-      colorScheme.setPreference(event.target.value);
-    });
-    this.settings.annotations_toggle = this.settings.container.querySelector(
-      "#setting-toggle-annotations"
-    );
-    this.settings.annotations_toggle.addEventListener("change", (event) =>
-      this.toggleAnnotations(event.target.checked)
-    );
-  }
 }
 
 const printMode = /print-pdf/gi.test(window.location.search);
@@ -684,6 +565,7 @@ const plugin = () => {
     getListItemByID: undefined,
     updateCurrentSlideMark: undefined,
     addMenuButton: undefined,
+    addPluginButton: undefined,
     inhibitKeyboard: undefined,
     init(reveal) {
       if (printMode) return;
@@ -693,14 +575,9 @@ const plugin = () => {
         home_button_label: "Go to Index Page",
         search_button_label: "Toggle Searchbar",
         print_pdf_label: "Print PDF",
-        open_settings_label: "Open Settings",
-        close_settings_label: "Close Settings",
-        toggle_fragments_label: "Show Slide Animations",
-        choose_color_label: "Choose Color Mode",
-        system_color_choice: "System Default",
-        light_color_choice: "Light Mode",
-        dark_color_choice: "Dark Mode",
-        toggle_annotations_label: "Show Annotations",
+        toggle_colors_label: "Toggle Color Mode",
+        open_views_label: "Open View Menu",
+        close_views_label: "Close View Menu",
         close_label: "Close Navigation Menu",
         no_title: "No Title",
         title: "Navigation",
@@ -716,14 +593,9 @@ const plugin = () => {
           home_button_label: "Zurück zur Materialübersicht",
           search_button_label: "Suchleiste umschalten",
           print_pdf_label: "Als PDF drucken",
-          open_settings_label: "Einstellungen öffnen",
-          close_settings_label: "Einstellungen schließen",
-          toggle_fragments_label: "Animationen anzeigen",
-          choose_color_label: "Farbschema auswählen",
-          system_color_choice: "Systemeinstellung",
-          light_color_choice: "Helles Farbschema",
-          dark_color_choice: "Dunkles Farbschema",
-          toggle_annotations_label: "Annotationen einblenden",
+          toggle_colors_label: "Farbmodus umschalten",
+          open_views_label: "Anzeigemenu öffnen",
+          close_views_label: "Anzeigemenu schließen",
           close_label: "Navigationsmenu schließen",
           no_title: "Kein Titel",
           title: "Navigation",
@@ -751,6 +623,10 @@ const plugin = () => {
 
       this.addMenuButton = (id, icon, title, callback) => {
         menu.addMenuButton(id, icon, title, callback);
+      };
+
+      this.addPluginButton = (id, icon, title, callback) => {
+        return menu.addPluginButton(id, icon, title, callback);
       };
 
       this.updateCurrentSlideMark = (slide) => {

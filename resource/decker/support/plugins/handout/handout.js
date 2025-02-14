@@ -16,6 +16,42 @@ let visibleSlideIntersectionObserver = undefined;
 let srcIntersectionObserver = undefined;
 let visibleSlides = new Set();
 
+/**
+ * The slide scale should represent the ratio between reveal's
+ * "canvas size" and the window's actual size. It is used to scale up the slides
+ * in handout mode to be (almost) fullscreen width on default zoom factor.
+ * This value should be constant but it is currently impossible to get the window's actual
+ * on screen size to allow you to calculate this value as a constant.
+ * In a window with a screen width of 1920 and a reveal width of 1280
+ * this value should always be 1.5, regardless of internal zoom level.
+ * Sadly, zooming in and out on desktop changes all retrievable values:
+ * window.innerWidth, window.outerWidth, even the window.screen API AND
+ * the new visualViewport API only reports the new, but no "original" values
+ * AND does not report a proper scale factor (it is always 1 on desktop as it
+ * is supposed to track pinch-zoom events).
+ *
+ * This value can (or rather should) not be pre-calculated as
+ * the user might enter the page already zoomed in, so the initial
+ * value is not trustworthy.
+ *
+ * You could calculate the value back to its original form by
+ * multiplying slide and viewport widths with the devicePixelRatio.
+ *
+ * This does not work on Apple devices though as Safari always reports
+ * a devicePixelRatio of '2' on Retina displays regardless of the
+ * actual zoom factor. This is reported as a "bug" on WebKit's
+ * issue tracker and has been ignored for the past 8 years:
+ *
+ * https://bugs.webkit.org/show_bug.cgi?id=124862
+ *
+ * Apple/Safari seem to be the only browsers to not scale
+ * the pixel device ratio based on the user's zoom level.
+ *
+ * The fact that there is no API or system to detect the user's
+ * zoom level across all devices seems to have been an issue for
+ * at least 12 years.
+ * https://css-tricks.com/can-javascript-detect-the-browsers-zoom-level/
+ */
 let slideScale = 1;
 let userScale = 1;
 
@@ -23,8 +59,45 @@ const handoutContainer = document.createElement("div");
 const handoutSlides = document.createElement("div");
 handoutContainer.appendChild(handoutSlides);
 
+let storedMetaViewport = undefined;
+
+let pluginButton = undefined;
+
+let localization = {
+  activate_handout_mode: "Activate Handout Mode (H,H,H)",
+  deactivate_handout_mode: "Deactivate Handout Mode (H,H,H)",
+  handout_mode_on: `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
+  handout_mode_off: `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
+};
+
+if (navigator.language === "de") {
+  localization.activate_handout_mode = "Handout-Modus anschalten (H,H,H)";
+  localization.deactivate_handout_mode = "Handout-Modus abschalten (H,H,H)";
+  localization.handout_mode_on = `<span>Handout-Modus: <strong style="color:var(--accent3);">AN</strong></span>`;
+  localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
+}
+
 function activateHandoutMode() {
+  /* Store and modify viewport meta tag to allow mobile device zooming */
+  const meta = document.querySelector("meta[name=viewport]");
+  if (meta) {
+    storedMetaViewport = meta.getAttribute("content");
+    const scalable = storedMetaViewport.replace(
+      /user-scalable=no/,
+      "user-scalable=yes"
+    );
+    const unlimited = scalable.replace(
+      /\s*maximum-scale=([0-9]|\.)*\s*,?\s*/,
+      " "
+    );
+    meta.setAttribute("content", unlimited);
+  }
   const currentSlide = Reveal.getCurrentSlide();
+
+  // Switch state of view menu button
+  if (pluginButton) {
+    pluginButton.setLabel(localization.deactivate_handout_mode);
+  }
 
   // Store current reveal config and disable everything but keyboard shortcuts
   const currentConfiguration = Reveal.getConfig();
@@ -115,11 +188,27 @@ function activateHandoutMode() {
   revealElem.parentElement.insertBefore(handoutContainer, revealElem);
   attachWindowEventListeners();
 
+  /* adjust height of extra whiteboard slides */
+  handoutContainer
+    .querySelectorAll("svg.whiteboard")
+    .forEach(makeWhiteboardVisible);
+
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
   currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
 }
 
 function disassembleHandoutMode() {
+  /* Restore old viewport meta */
+  const meta = document.querySelector("meta[name=viewport]");
+  if (meta) {
+    meta.setAttribute("content", storedMetaViewport);
+  }
+
+  // Change state of view menu button
+  if (pluginButton) {
+    pluginButton.setLabel(localization.activate_handout_mode);
+  }
+
   // Restore configuration
   Reveal.configure(previousRevealConfiguration);
 
@@ -177,12 +266,8 @@ function makeSlidesVisible(slideElement) {
   for (const slide of slides) {
     slide.inert = false;
     slide.hidden = false;
+    slide.style.display = "block";
     slide.removeAttribute("aria-hidden");
-    //if the slide has a whiteboard make it visible
-    const whiteboard = slide.getElementsByClassName("whiteboard")[0];
-    if (whiteboard) {
-      makeWhiteboardVisible(whiteboard);
-    }
   }
 }
 
@@ -343,9 +428,11 @@ function createSRCIntersectionObserver() {
  * Scale slide container to fit screen width without changing internal slide resolution
  */
 function onWindowResize(event) {
+  /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
   const viewportWidth = viewport.offsetWidth;
+
   slideScale = viewportWidth / slideWidth;
   updateScaling();
 }
@@ -354,8 +441,28 @@ function onWindowResize(event) {
 function updateScaling() {
   // clamp to (slightly smaller than) one to avoid horizontal scrollbar
   if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
+  if (localStorage) {
+    localStorage.setItem("handoutScale", userScale);
+  }
+  // This is where slideScale is used to make the default "fullscreen"
   const scale = slideScale * userScale;
-  handoutSlides.style.transform = `scale(${scale})`;
+  handoutSlides.style.setProperty("--scale-factor", scale);
+  const containerRect = handoutContainer.getBoundingClientRect();
+  const slidesRect = handoutSlides.getBoundingClientRect();
+  // if the slides are larger than the viewport: scale from top left to fit to screen
+  if (slidesRect.width > containerRect.width) {
+    handoutSlides.style.transformOrigin = "top left";
+    handoutSlides.style.margin = "0";
+    handoutSlides.style.left = "0";
+    handoutSlides.style.translate = "0";
+  } else {
+    handoutSlides.style.transformOrigin = null;
+    handoutSlides.style.margin = null;
+    handoutSlides.style.left = null;
+    handoutSlides.style.translate = null;
+  }
+  if (centralSlide)
+    centralSlide.scrollIntoView({ behavior: "instant", block: "center" });
 }
 
 /* return slide scaling factor */
@@ -460,6 +567,20 @@ function toggleHandoutMode() {
   } else {
     disassembleHandoutMode();
   }
+  if (handoutSlideMode) {
+    Decker.flash.message(localization.handout_mode_on);
+  } else {
+    Decker.flash.message(localization.handout_mode_off);
+  }
+}
+
+function attachAnimatedIcon(button) {
+  const first = document.createElement("div");
+  first.className = "top-anim-rect";
+  const second = document.createElement("div");
+  second.className = "bottom-anim-rect";
+  button.appendChild(first);
+  button.appendChild(second);
 }
 
 /**
@@ -469,15 +590,14 @@ function toggleHandoutMode() {
 function createButtons() {
   // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
-  if (menu && menu.addMenuButton) {
-    menu.addMenuButton(
+  if (menu && !!menu.addPluginButton) {
+    pluginButton = menu.addPluginButton(
       "menu-handout-button",
-      "fa-file-arrow-down",
-      navigator.language === "de"
-        ? "Handout-Modus umschalten"
-        : "Toggle Handout Mode",
+      "animated-button",
+      localization.activate_handout_mode,
       toggleHandoutMode
     );
+    attachAnimatedIcon(pluginButton);
   }
 
   // add zoom in/out buttons
@@ -485,6 +605,8 @@ function createButtons() {
   if (anchors) {
     let buttonMinus = document.createElement("button");
     buttonMinus.id = "handout-minus";
+    buttonMinus.ariaLabel =
+      navigator.language === "de" ? "Verkleinern" : "Zoom Out";
     buttonMinus.className = "fa-button fa-solid fa-magnifying-glass-minus";
     buttonMinus.onclick = () => {
       userScale /= 1.25;
@@ -492,6 +614,8 @@ function createButtons() {
     };
     let buttonPlus = document.createElement("button");
     buttonPlus.id = "handout-plus";
+    buttonPlus.ariaLabel =
+      navigator.language === "de" ? "Vergrößern" : "Zoom In";
     buttonPlus.className = "fa-button fa-solid fa-magnifying-glass-plus";
     buttonPlus.onclick = () => {
       userScale *= 1.25;
@@ -502,12 +626,22 @@ function createButtons() {
   }
 }
 
+const a11y = /a11y/gi.test(window.location.search);
+const handout = /handout/gi.test(window.location.search);
+
 const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
   init: (reveal) => {
     Reveal = reveal;
     createButtons();
+
+    if (localStorage) {
+      const initScale = localStorage.getItem("handoutScale");
+      if (initScale) {
+        userScale = initScale;
+      }
+    }
 
     /* Add triple click H to toggle handout mode to reveal keybindings */
     reveal.addKeyBinding(
@@ -519,18 +653,13 @@ const Plugin = {
 
       Decker.tripleClick(() => {
         toggleHandoutMode();
-
-        if (handoutSlideMode) {
-          Decker.flash.message(
-            `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`
-          );
-        } else {
-          Decker.flash.message(
-            `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
-          );
-        }
       })
     );
+    if (a11y || handout) {
+      Reveal.addEventListener("ready", () => {
+        toggleHandoutMode();
+      });
+    }
   },
 };
 

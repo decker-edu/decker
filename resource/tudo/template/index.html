@@ -6,7 +6,7 @@
     <meta name="generator" content="pandoc">
 
     <!-- PWA Kram -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
@@ -56,6 +56,11 @@ $endif$
 
     <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/tudo-index.css">
+    $if(template.font)$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/$template.font$.css">
+    $else$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
+    $endif$
     <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
     $for(template.index.css)$
     <link rel="stylesheet" href="$template.index.css$">

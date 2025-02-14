@@ -9,6 +9,33 @@ let Reveal;
 
 let a11yMode;
 
+let pluginButton = undefined;
+
+function addScreenReaderSlideNumbers() {
+  const slides = document.querySelectorAll(".slides > section");
+  slides.forEach((slide, h) => {
+    const subslides = slide.querySelectorAll("section");
+    if (subslides.length > 0) {
+      subslides.forEach((subslide, v) => {
+        addScreenReaderSlideNumber(subslide, h, v);
+      });
+      return;
+    }
+    addScreenReaderSlideNumber(slide, h);
+  });
+}
+
+function addScreenReaderSlideNumber(slide, h, v) {
+  const header = slide.querySelector("h1");
+  if (header && header.textContent.trim() !== "") {
+    const innerHTML = header.innerHTML;
+    const replacementHTML = `<span class="sr-only">${localization.slide} ${
+      h + 1
+    }${v ? "." + v : ""}, </span>${innerHTML}`;
+    header.innerHTML = replacementHTML;
+  }
+}
+
 /**
  * Adds inert to all inactive slides and adds an on-slidechanged callback to reveal
  * to toggle inert on the slides changed.
@@ -68,14 +95,85 @@ function addCustomSpacebarHandler() {
   }
 }
 
+function toggleAccessibility() {
+  a11yMode = !a11yMode;
+
+  if (a11yMode) {
+    pluginButton.ariaPressed = true;
+    pluginButton.setLabel(localization.deactivate_accessibility);
+    document.documentElement.classList.add("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      modifyMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      modifyMedia(audio);
+    }
+    Decker.flash.message(localization.accessible_colors_on);
+    if (window.MathJax) {
+      window.MathJax.startup.document.options.enableMenu = true;
+      window.MathJax.startup.document.menu.menu
+        .findID("Accessibility", "Activate")
+        .variable.setter(true);
+      window.MathJax.startup.document.menu.loadingPromise.then(() => {
+        window.MathJax.startup.document.rerender();
+      });
+    }
+  } else {
+    pluginButton.ariaPressed = false;
+    pluginButton.setLabel(localization.activate_accessibility);
+    document.documentElement.classList.remove("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      restoreMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      restoreMedia(audio);
+    }
+    Decker.flash.message(localization.accessible_colors_off);
+    if (window.MathJax) {
+      // Does it make sense to remove this again if once activated?
+      window.MathJax.startup.document.options.enableMenu = false;
+      window.MathJax.startup.document.menu.menu
+        .findID("Accessibility", "Activate")
+        .variable.setter(false);
+      window.MathJax.startup.document.menu.loadingPromise.then(() => {
+        window.MathJax.startup.document.rerender();
+      });
+    }
+  }
+}
+
+const localization = {
+  activate_accessibility: "Activate Accessibility Features (A,A,A)",
+  deactivate_accessibility: "Deactivate Accessibility Features (A,A,A)",
+  accessible_colors_on: `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`,
+  accessible_colors_off: `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`,
+  slide: "Slide",
+};
+
+if (navigator.language === "de") {
+  localization.activate_accessibility =
+    "Barrierefreie Funktionen anschalten (A,A,A)";
+  localization.deactivate_accessibility =
+    "Barrierefreie Funktionen abschalten (A,A,A)";
+  localization.accessible_colors_on = `<span>Kontrastfarben: <strong style="color:var(--accent3);">AN</strong></span>`;
+  localization.accessible_colors_off = `<span>Kontrastfarben: <strong style="color:var(--accent1);">AUS</strong></span>`;
+  localization.slide = "Folie";
+}
+
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "a11y",
   init: (reveal) => {
     Reveal = reveal;
-    // This may no longer be necessary if we clearly recommend the handout mode to people using assistive technology
-    // fixTabsByInert();
+    fixTabsByInert();
     addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
+    addScreenReaderSlideNumbers();
     reveal.addKeyBinding(
       {
         keyCode: 65,
@@ -83,38 +181,24 @@ const Plugin = {
         description: "Toggle Decker Accessibility Adjustments (Triple Click)",
       },
 
-      Decker.tripleClick(() => {
-        a11yMode = !a11yMode;
-
-        if (a11yMode) {
-          document.documentElement.classList.add("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            modifyMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            modifyMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
-          );
-        } else {
-          document.documentElement.classList.remove("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            restoreMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            restoreMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
-          );
-        }
-      })
+      Decker.tripleClick(toggleAccessibility)
     );
+    reveal.addEventListener("ready", () => {
+      const menuPlugin = reveal.getPlugin("decker-menu");
+      if (!!menuPlugin && !!menuPlugin.addPluginButton) {
+        pluginButton = menuPlugin.addPluginButton(
+          "decker-menu-a11y-button",
+          "fa-universal-access",
+          localization.activate_accessibility,
+          toggleAccessibility
+        );
+      }
+    });
+    if (a11y) {
+      Reveal.addEventListener("ready", () => {
+        toggleAccessibility();
+      });
+    }
   },
 };
 

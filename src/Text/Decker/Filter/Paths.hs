@@ -80,7 +80,7 @@ adjustResourcePathsA base pandoc = do
     adjustBlock block = return block
     -- Adjusts the value of one attribute.
     adjustAttrib :: (Text, Text) -> Action (Text, Text)
-    adjustAttrib (k, v) = (k,) <$> (liftIO $ makeProjectUriPath base v)
+    adjustAttrib (k, v) = (k,) <$> liftIO (makeProjectUriPath base v)
     -- Adjusts the values of all key value attributes that are listed in keys.
     adjustAttribs :: [Text] -> [(Text, Text)] -> Action [(Text, Text)]
     adjustAttribs keys kvs = do

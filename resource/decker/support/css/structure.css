@@ -4,96 +4,88 @@ page.css and handout.css. */
 
 /* Reset Reveal CSS to sane values */
 .reveal .slides {
-  text-align: left;
+    text-align: left;
 }
 
 /* Allows slide relative positioning of non-immediate children. */
 section div.alignment {
-  display: relative;
+    display: relative;
 }
 
 /* This value depends on the height of the slide that Reveal sets. */
-section pre {
-  max-height: 500px;
-}
-
-/* Override Pandoc's setting.  */
-.sourceCode {
-  overflow: hidden;
-}
-
-pre,
-pre.sourceCode {
-  overflow: scroll;
+div.sourceCode {
+    max-height: var(--code-block-max-height);
+    overflow: scroll;
 }
 
 /* Make this behave like a normal pre element. Used for inline code display. */
 span.pre {
-  display: block;
-  max-height: 500px;
-  white-space: pre;
-  unicode-bidi: embed;
-  overflow: scroll;
+    display: block;
+    max-height: calc(var(--code-block-max-height)/2);
+    white-space: pre;
+    unicode-bidi: embed;
+    overflow: scroll;
 }
+
 span.pre code {
-  white-space: pre;
+    white-space: pre;
 }
 
 /* Empty headers should not get in the way. */
 :is(h1, h2):empty {
-  display: none;
+    display: none;
 }
 
 /* Layout */
 
 /* Old-style row layout (.columns), also MarioCols. */
 div.layout.row:is(.columns, .grid) {
-  display: flex;
-  flex-flow: row nowrap;
-  gap: var(--margin-columns);
+    display: flex;
+    flex-flow: row nowrap;
+    gap: var(--margin-columns);
 }
 
-div.layout.row:is(.columns, .grid) > div.area {
-  flex: 1;
-  /* Really important to make pre elements work in flex items. */
-  min-width: 0;
+div.layout.row:is(.columns, .grid)>div.area {
+    flex: 1;
+    /* Really important to make pre elements work in flex items. */
+    min-width: 0;
 }
 
 /* Old syntax to control column width. */
-div.layout.row:is(.columns, .grid) > div.area[grow="2"] {
-  flex: 2;
+div.layout.row:is(.columns, .grid)>div.area[grow="2"] {
+    flex: 2;
 }
 
-div.layout.row:is(.columns, .grid) > div.area[grow="3"] {
-  flex: 3;
+div.layout.row:is(.columns, .grid)>div.area[grow="3"] {
+    flex: 3;
 }
 
-div.layout.row:is(.columns, .grid) > div.area[grow="4"] {
-  flex: 4;
+div.layout.row:is(.columns, .grid)>div.area[grow="4"] {
+    flex: 4;
 }
 
-div.layout.row:is(.columns, .grid) > div.area[grow="5"] {
-  flex: 5;
+div.layout.row:is(.columns, .grid)>div.area[grow="5"] {
+    flex: 5;
 }
 
-div.layout.row:is(.columns, .grid) > div.area[grow="6"] {
-  flex: 6;
+div.layout.row:is(.columns, .grid)>div.area[grow="6"] {
+    flex: 6;
 }
 
 div.grid-layout {
-  display: grid;
+    display: grid;
 }
 
 /* Column spacing in a row */
-div.layout.row:is(.columns, .grid) > div.area {
-  margin-left: 1rem;
-  margin-right: 1rem;
+div.layout.row:is(.columns, .grid)>div.area {
+    margin-left: 1rem;
+    margin-right: 1rem;
 }
 
-div.layout.row:is(.columns, .grid) > div.area:first-child {
-  margin-left: 0;
+div.layout.row:is(.columns, .grid)>div.area:first-child {
+    margin-left: 0;
 }
 
-div.layout.row:is(.columns, .grid) > div.area:last-child {
-  margin-right: 0;
+div.layout.row:is(.columns, .grid)>div.area:last-child {
+    margin-right: 0;
 }

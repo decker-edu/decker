@@ -25,3 +25,6 @@ private/
 stack.yaml.lock
 test/decks/*.svg
 index.md.generated
+third-party/chart.js/auto/package-lock.json
+third-party/chart.js/helpers/package-lock.json
+package-lock.json

@@ -1,15 +1,20 @@
 # Compiler Config
 
+# enable some experimental features
+experiments:
+  # fragment templates are needed for Codapi live-code support
+  fragment-templates: false
+
 runtime-path-variables:
-  - 'logos' # find title-page logos
-  - 'affiliation' # find title-page logos of affiliations
-  - 'author' # find title-page photos of authors
-  - 'authors' # as above
-  - 'teaser' # find title-page teaser images
-  - 'template' # find custom deck and page js and css files
-  - 'rpv-test.leaf-path'    # TODO test value, should be moved somewhere else
-  - 'rpv-test.leaf-no-path' # TODO test value, should be moved somewhere else
-  - 'rpv-test.branch'       # TODO test value, should be moved somewhere else
+  - "logos" # find title-page logos
+  - "affiliation" # find title-page logos of affiliations
+  - "author" # find title-page photos of authors
+  - "authors" # as above
+  - "teaser" # find title-page teaser images
+  - "template" # find custom deck and page js and css files
+  - "rpv-test.leaf-path" # TODO test value, should be moved somewhere else
+  - "rpv-test.leaf-no-path" # TODO test value, should be moved somewhere else
+  - "rpv-test.branch" # TODO test value, should be moved somewhere else
 
 # Plugin Config
 
@@ -27,10 +32,19 @@ chart:
 math:
   scale: 1
 
+# Index Page config
+
+index:
+  progress: true
+  links:
+    - a11y
+    - handout
+#    - presenter
+
 # Reveal Config
 
 reveal:
-  backgroundTransition: 'none'
+  backgroundTransition: "none"
   center: true
   controls: true
   fragmentInURL: true
@@ -47,26 +61,21 @@ reveal:
   progress: true
   slideNumber: true
   touch: true
-  transition: 'slide'
+  transition: "slide"
   vertical-slides: true
   viewDistance: 2
   width: 1280
 
-# Template Config
-
-template:
-  favicon: 'support/icons/favicon.ico'
-
 # Title Config
 
-title: '<Undefined Title>'
+title: "<Undefined Title>"
 
 # Whisper Config
 
 whisper:
-  base-dir: '/usr/local/share/whisper.cpp'
-  model: 'models/ggml-large.bin'
-  lang: 'de'
+  base-dir: "/usr/local/share/whisper.cpp"
+  model: "models/ggml-large.bin"
+  lang: "de"
 
 # Index Page Config
 
@@ -74,58 +83,66 @@ progress: true
 
 # Language Config
 
-lang: 'de'
+lang: "de"
 
 # Language dictionary. Currently for quiz elements
 dictionary:
   de:
     exam:
-      Easy: 'Leicht'
-      Hard: 'Schwer'
-      Medium: 'Mittelschwer'
-      again-button: 'Nochmal'
-      placeholder: 'Antwort eingeben'
-      points: 'Punkte'
-      solution: 'Lösung'
-      solve-button: 'Lösen'
-      reset-button: 'Zurücksetzen'
-      qrcode-button: 'QRCode'
-      poll-button: 'Poll'
-      stop-button: 'Stopp'
+      Easy: "Leicht"
+      Hard: "Schwer"
+      Medium: "Mittelschwer"
+      again-button: "Nochmal"
+      placeholder: "Antwort eingeben"
+      points: "Punkte"
+      solution: "Lösung"
+      solve-button: "Lösen"
+      reset-button: "Zurücksetzen"
+      qrcode-button: "QRCode"
+      poll-button: "Poll"
+      stop-button: "Stopp"
     quiz:
-      solution: 'Lösung zeigen'
-      reset-button: 'Zurücksetzen'
+      solution: "Lösung zeigen"
+      reset-button: "Zurücksetzen"
       input-placeholder: "Eingeben und 'Enter'"
-      qmi-drag-hint: 'Objekte per Drag&Drop ziehen…'
-      qmi-drop-hint: '…und hier in die richtige Kategorie einsortieren.'
-      ic-placeholder: 'Option auswählen…'
+      qmi-drag-hint: "Objekte per Drag&Drop ziehen…"
+      qmi-drop-hint: "…und hier in die richtige Kategorie einsortieren."
+      ic-placeholder: "Option auswählen…"
   en:
     exam:
-      Easy: 'Easy'
-      Hard: 'Hard'
-      Medium: 'Medium'
-      again-button: 'Again'
-      placeholder: 'Type in answer'
-      points: 'Points'
-      solution: 'Solution'
-      solve-button: 'Solve'
-      reset-button: 'Reset'
-      qrcode-button: 'QRCode'
-      poll-button: 'Poll'
-      stop-button: 'Stop'
+      Easy: "Easy"
+      Hard: "Hard"
+      Medium: "Medium"
+      again-button: "Again"
+      placeholder: "Type in answer"
+      points: "Points"
+      solution: "Solution"
+      solve-button: "Solve"
+      reset-button: "Reset"
+      qrcode-button: "QRCode"
+      poll-button: "Poll"
+      stop-button: "Stop"
     quiz:
-      solution: 'Show Solution'
-      reset-button: 'Reset'
+      solution: "Show Solution"
+      reset-button: "Reset"
       input-placeholder: "Type and press 'Enter'"
-      qmi-drag-hint: 'Drag items from here…'
-      qmi-drop-hint: '…and put them here into the correct category.'
-      ic-placeholder: 'Select option…'
+      qmi-drag-hint: "Drag items from here…"
+      qmi-drop-hint: "…and put them here into the correct category."
+      ic-placeholder: "Select option…"
 
-# 'decker publish' config:
+test: # TODO: @mono this should probably go somewhere else, maybe add a test.yaml that only gets included if run via 'stack run -- --server' locally
+  only-default: "From default.yaml"
+  default-decker: "From default.yaml"
+  default-decker-deck: "From default.yaml"
+  merge-list:
+    - "This line is from default.yaml"
+  some-value: "This line is from default.yaml"
 
-publish:
+# external tools
+external-tools:
   rsync:
-    options: # old default publish.rsync.options: ('--chmod=go-w' breaks things in managed systems)
+    command: rsync
+    arguments:
       - "--recursive"
       - "--copy-links"
       - "--delete"
@@ -134,11 +151,175 @@ publish:
       - "--chmod=a+r,go-w"
       - "--no-owner"
       - "--copy-links"
-
-test: # TODO: @mono this should probably go somewhere else, maybe add a test.yaml that only gets included if run via 'stack run -- --server' locally
-  only-default: 'From default.yaml'
-  default-decker: 'From default.yaml'
-  default-decker-deck: 'From default.yaml'
-  merge-list:
-    - 'This line is from default.yaml'
-  some-value: 'This line is from default.yaml'
+      - "${input}"
+      - "${output}"
+    help: ""
+  gnuplot:
+    command: "gnuplot"
+    arguments:
+      - "-d"
+      - "-e"
+      - "set terminal svg"
+      - "-e"
+      - "set output '${output}'"
+      - "${input}"
+    help: ""
+  plantuml:
+    pipe: true
+    command: "plantuml"
+    arguments:
+      - "-tsvg"
+      - "-pipe"
+      # - "${input}"
+    help: ""
+  chrome:
+    macos:
+      command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      arguments:
+        - "--headless"
+        - "--virtual-time-budget=5555"
+        - "--no-pdf-header-footer"
+        - "--print-to-pdf=${output}"
+        - "${input}?print-pdf#/"
+      help: ""
+  mermaid:
+    macos:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+    windows:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+    linux:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+  dot:
+    command: dot
+    arguments:
+      - "-Tsvg"
+      - "-o${output}"
+      - "${input}"
+    help: https://graphviz.org/
+  pdf2svg:
+    command: pdf2svg
+    arguments:
+      - "${input}"
+      - "${output}"
+    help: https://github.com/dawbarton/pdf2svg
+  pdflatex:
+    command: pdflatex
+    arguments:
+      - "-halt-on-error"
+      - "-interaction=batchmode"
+      - "-no-shell-escape"
+      - "-output-directory"
+      - "${output}"
+      - "${input}"
+    help: https://en.wikipedia.org/wiki/PdfTeX
+  mp4towav:
+    command: ffmpeg
+    arguments:
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-acodec"
+      - "pcm_s16le"
+      - "-ac"
+      - "1"
+      - "-ar"
+      - "16000"
+      - "-af"
+      - "speechnorm"
+      - "${output}"
+    help: ""
+  whisper:
+    command: "whisper-cli"
+    arguments:
+      - "--file"
+      - "${input}"
+      - "-m"
+      - "/opt/whisper/ggml-large-v3.bin"
+      - "-bs"
+      - "5"
+      - "-mc"
+      - "0"
+      - "--output-vtt" 
+      - "--output-file"
+      - "${output}"
+    help: ""
+  tomp4-copy:
+    command: "ffmpeg"
+    arguments:
+      - "-nostdin"
+      - "-v"
+      - "fatal"
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-vcodec"
+      - "copy"
+      - "-acodec"
+      - "aac"
+      - "${output}"
+  tomp4-transcode:
+    command: "ffmpeg"
+    arguments:
+      - "-nostdin"
+      - "-v"
+      - "fatal"
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-pix_fmt"
+      - "yuv420p"
+      - "-crf"
+      - "27"
+      - "-preset"
+      - "slow"
+      - "-tune"
+      - "stillimage"
+      - "-ac"
+      - "1"
+      - "-movflags"
+      - "+faststart"
+      - "-vcodec"
+      - "libx264"
+      - "-af"
+      - "speechnorm"
+      - "-r"
+      - "30"
+      - "-metadata"
+      - "comment=decker-crunched"
+      - "${output}"
+  tomp4-concat:
+    command: "ffmpeg"
+    arguments:
+      - "-nostdin"
+      - "-v"
+      - "fatal"
+      - "-y"
+      - "-f"
+      - "concat"
+      - "-safe"
+      - "0"
+      - "-i"
+      - "${input}"
+      - "-vcodec"
+      - "copy"
+      - "-acodec"
+      - "aac"
+      - "${output}"

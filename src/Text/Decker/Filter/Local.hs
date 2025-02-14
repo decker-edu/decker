@@ -45,7 +45,7 @@ instance RawHtml [Block] where
 -- | File-extensions that should be treated as image
 imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
 
-videoExt = ["mp4", "mov", "ogg", "avi"]
+videoExt = ["mp4", "mov", "ogg", "avi", "webm"]
 
 audioExt = ["mp3", "aiff", "wav"]
 
@@ -177,7 +177,7 @@ mkFigureTag content caption (id, cs, kvs) =
 inlinesToMarkdown :: [Inline] -> Filter Text
 inlinesToMarkdown [] = return ""
 inlinesToMarkdown inlines = do
-  FilterState meta _ _ <- get
+  FilterState meta _ _ _ <- get
   liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc nullMeta [Plain inlines]))
 
 -- | Renders a list of inlines to HTML.
@@ -189,14 +189,14 @@ inlinesToHtml inlines = blocksToHtml [Plain inlines]
 blocksToHtml :: [Block] -> Filter Html
 blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
-  FilterState meta _ _ <- get
+  FilterState meta _ _ _ <- get
   liftIO $ runIOorExplode (writeHtml5 writerHtmlOptions (Pandoc meta blocks))
 
 -- | Renders a list of blocks to Markdown.
 blocksToMarkdown :: [Block] -> Filter Text
 blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
-  FilterState meta _ _ <- get
+  FilterState meta _ _ _ <- get
   liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc meta blocks))
 
 writerHtmlOptions =
@@ -292,7 +292,9 @@ checkAbsoluteUri uri =
     <> show uri
 
 needFile :: FilePath -> Filter ()
-needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
+needFile path = do
+    -- putStrLn $ "needfile: " <> path
+    modifyMeta (addMetaValue "decker.filter.resources" path)
 
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do

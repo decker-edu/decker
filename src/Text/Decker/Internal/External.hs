@@ -5,242 +5,159 @@
 {-# HLINT ignore "Use unwords" #-}
 
 module Text.Decker.Internal.External
-  ( ssh,
-    rsync,
-    dot,
-    plantuml,
-    gnuplot,
-    pdflatex,
-    pdf2svg,
-    ffmpeg,
-    checkExternalPrograms,
-    forceCheckExternalPrograms,
+  ( runExternal,
+    runExternalArgs,
+    runExternalForSVG,
+    checkExternal,
   )
 where
 
 import Control.Exception
-import Control.Lens
-import Data.Aeson
 import Data.ByteString.Lazy qualified as B
-import Data.List (lookup)
-import Data.List qualified as List
+import Data.Map.Strict qualified as Map
 import Data.Maybe
+import Data.Text qualified as Text
 import Development.Shake
-import Development.Shake.FilePath (takeDirectory)
-import Relude
-import System.Console.ANSI
-import System.Directory qualified as Dir
-import System.Exit
+import Relude hiding (id)
+import System.Directory (findExecutable)
+import System.Exit (ExitCode (..))
+import System.IO (hClose)
+import System.IO.Extra (openFile)
+import System.Info qualified
 import System.Process
 import Text.Blaze.Renderer.Utf8 (renderMarkup)
-import Text.Blaze.Svg11 (docType)
+import Text.Blaze.Svg11 hiding (path)
+import Text.Blaze.Svg11.Attributes hiding (path, style)
 import Text.Decker.Internal.Common
-import Text.Decker.Project.ActionContext
+import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Meta (isMetaSet, lookupMeta, lookupMetaOrElse, lookupMetaOrFail)
+import Text.Pandoc (Meta, MetaValue)
 
-data ExternalProgram = ExternalProgram
-  { -- options :: [CmdOption],
-    path :: String,
-    args :: [String],
-    testArgs :: [String],
-    help :: String
-  }
+data Option = Option String | InputFile FilePath | OutputFile FilePath
+  deriving (Show)
 
-programs :: [(String, ExternalProgram)]
-programs =
-  [ ( "ssh",
-      ExternalProgram
-        -- []
-        "ssh"
-        []
-        ["-V"]
-        (helpText "`ssh` (https://www.openssh.com)")
-    ),
-    ( "rsync",
-      ExternalProgram
-        -- []
-        "rsync"
-        []
-        ["--version"]
-        (helpText "`rsync` (https://rsync.samba.org)")
-    ),
-    ( "dot",
-      ExternalProgram
-        -- []
-        "dot"
-        ["-Tsvg"]
-        ["-V"]
-        (helpText "Graphviz (http://www.graphviz.org)")
-    ),
-    ( "plantuml",
-      ExternalProgram
-        -- []
-        "plantuml"
-        ["-tsvg"]
-        ["--version"]
-        (helpText "Plantuml (https://plantuml.com)")
-    ),
-    ( "gnuplot",
-      ExternalProgram
-        -- []
-        "gnuplot"
-        ["-d", "-e", "\"set terminal svg\""]
-        ["-V"]
-        (helpText "Gnuplot (http://gnuplot.sourceforge.net)")
-    ),
-    ( "pdflatex",
-      ExternalProgram
-        -- []
-        "pdflatex"
-        ["-halt-on-error", "-interaction=batchmode", "-no-shell-escape"]
-        ["--version"]
-        (helpText "LaTeX (https://www.tug.org/texlive/)")
-    ),
-    ( "pdf2svg",
-      ExternalProgram
-        -- []
-        "pdf2svg"
-        []
-        []
-        (helpText "LaTeX (https://github.com/dawbarton/pdf2svg)")
-    ),
-    ( "ffmpeg",
-      ExternalProgram
-        -- []
-        "ffmpeg"
-        []
-        ["--help"]
-        (helpText "FFMpeg (https://ffmpeg.org)")
+runExternal :: String -> FilePath -> FilePath -> Meta -> IO ()
+runExternal tool inPath outPath meta = do
+  runExternalArgs tool [] inPath outPath meta
+
+runExternalArgs :: String -> [String] -> FilePath -> FilePath -> Meta -> IO ()
+runExternalArgs tool args inPath outPath meta = do
+  transient <- transientDir
+  case selectProgramDefinition tool meta of
+    Just program -> do
+      let pipe = lookupMetaOrElse False (program <> ".pipe") meta
+      let command :: String =
+            lookupMetaOrFail (program <> ".command") meta
+      let arguments =
+            args
+              <> substituteInOut
+                inPath
+                outPath
+                transient
+                (lookupMetaOrFail (program <> ".arguments") meta)
+      putStrLn $ "# " <> intercalate " " ([command] <> arguments) <> " (for " <> outPath <> ")"
+      catch
+        -- (callProcess command arguments)
+        (call command arguments inPath outPath pipe)
+        ( \(SomeException e) -> do
+            let help :: String =
+                  lookupMetaOrFail (program <> ".help") meta
+            throw
+              $ ExternalException
+              $ "\nexternal tool configured but unable to run: "
+              <> tool
+              <> "\nfor more information consult: "
+              <> help
+              <> "\n\n"
+              <> show e
+        )
+    Nothing ->
+      liftIO
+        $ throw
+        $ ExternalException
+        $ "\nexternal tool not configured: "
+        <> tool
+        <> "\n\n"
+
+call command arguments inPath outPath pipe = do
+  if pipe
+    then runWithRedirection command arguments inPath outPath
+    else callProcess command arguments
+
+runWithRedirection :: FilePath -> [String] -> FilePath -> FilePath -> IO ()
+runWithRedirection program args inFile outFile = do
+  inHandle <- openFile inFile ReadMode
+  outHandle <- openFile outFile WriteMode
+  (_, _, _, ph) <-
+    createProcess
+      (proc program args)
+        { std_in = UseHandle inHandle,
+          std_out = UseHandle outHandle
+        }
+  -- Wait for the process to complete
+  exitCode <- waitForProcess ph
+  -- Clean up
+  hClose inHandle
+  hClose outHandle
+  case exitCode of
+    ExitSuccess -> return ()
+    failure@(ExitFailure e) -> error "failed"
+
+selectProgramDefinition :: String -> Meta -> Maybe Text
+selectProgramDefinition tool meta =
+  let osId = case System.Info.os of
+        "darwin" -> "macos"
+        "mingw32" -> "windows"
+        _ -> "linux"
+      config = "external-tools." <> toText tool
+      osConfig = config <> "." <> osId
+   in if
+        | isMetaSet osConfig meta -> Just osConfig
+        | isMetaSet config meta -> Just config
+        | otherwise -> Nothing
+
+substituteInOut :: FilePath -> FilePath -> FilePath -> [String] -> [String]
+substituteInOut input output transient =
+  map
+    ( toString
+        . Text.replace "${input}" (toText input)
+        . Text.replace "${output}" (toText output)
+        . Text.replace "${tmpdir}" (toText transient)
+        . toText
     )
-  ]
 
-type Program = [String] -> Maybe FilePath -> Action ()
+runExternalForSVG :: String -> FilePath -> FilePath -> Meta -> IO ()
+runExternalForSVG tool inPath outPath meta = do
+  catch
+    (runExternal tool inPath outPath meta)
+    (\(SomeException e) -> renderErrorSvg (Just outPath) (show e))
 
-ssh :: Program
-ssh = makeProgram "ssh"
+renderErrorSvg :: Maybe String -> String -> IO ()
+renderErrorSvg dst msg = do
+  putStrLn $ "# ERROR: " <> msg
+  case dst of
+    Just out -> do
+      let svg =
+            docTypeSvg ! viewbox "0 0 512 512" $ do
+              style "text{font-size:30px;fill:red;}"
+              text_ ! x "20" ! y "20" $ toSvg $ toText msg
+      let bytes = renderMarkup svg
+      B.writeFile out bytes
+    Nothing -> return ()
 
-rsync :: Program
-rsync = makeProgram "rsync"
-
-dot :: Program
-dot = makeProgram "dot"
-
-plantuml :: Program
-plantuml = makeProgram "plantuml"
-
-gnuplot :: Program
-gnuplot = makeProgram "gnuplot"
-
-pdflatex :: Program
-pdflatex = makeProgram "pdflatex"
-
-pdf2svg :: Program
-pdf2svg = makeProgram "pdf2svg"
-
-ffmpeg :: Program
-ffmpeg = makeProgram "ffmpeg"
-
-helpText :: String -> String
-helpText name = name ++ " reported a problem:"
-
-{--
-makeProgram' :: String -> ([String] -> Action ())
-makeProgram' name =
-  let external = fromJust $ List.lookup name programs
-   in (\arguments -> do
-         (Exit code, Stdout out, Stderr err) <-
-           command
-             (options external)
-             (path external)
-             (args external ++ arguments)
-         case code of
-           ExitSuccess -> return ()
-           ExitFailure _ ->
-             throw $
-             ExternalException $
-             "\n" ++ help external ++ "\n\n" ++ err ++ "\n\n" ++ out)
---}
-
-makeProgram :: String -> [String] -> Maybe FilePath -> Action ()
-makeProgram name =
-  let external = fromJust $ List.lookup name programs
-   in ( \arguments dst -> do
-          context <- actionContext
-          let status = context ^. externalStatus
-          if fromMaybe False (lookup name status)
-            then do
-              let command = intercalate " " $ [path external] <> args external <> arguments
-              putNormal $ "# " ++ command
-              liftIO $ callCommand command
-            else do
-              case dst of
-                Just out -> do
-                  putError $ "External program '" <> name <> "' is not available. Rendering error to '" <> out <> "'."
-                  let bytes = renderMarkup docType
-                  liftIO $ B.writeFile out bytes
-                Nothing ->
-                  putError $ "External program '" <> name <> "' is not available."
-      )
-
-checkProgram :: String -> IO Bool
-checkProgram name =
-  handle (\(SomeException _) -> return False) $ do
-    let external = fromJust $ List.lookup name programs
-    (code, _, _) <-
-      readProcessWithExitCode (path external) (testArgs external) ""
-    case code of
-      ExitFailure status
-        | status == 127 -> return False
-      _ -> return True
-
-forceCheckExternalPrograms :: IO ()
-forceCheckExternalPrograms = do
-  external <- externalStatusFile
-  exists <- Dir.doesFileExist external
-  when exists $ Dir.removeFile external
-  checkExternalPrograms
-    >>= printExternalPrograms
-
-printExternalPrograms :: [(String, Bool)] -> IO ()
-printExternalPrograms status = do
-  putStrLn "# external programs:"
-  mapM_ print programs
+-- | extracts commands used for external programs and checks if the executables
+-- can be found on the system
+checkExternal :: Meta -> IO ()
+checkExternal meta = do
+  let external :: Map.Map Text MetaValue = lookupMetaOrElse Map.empty "external-tools" meta
+  let programs = map toString (Map.keys external)
+  let commands = map (selectCommand meta) programs
+  list <- mapM findExe commands
+  putStrLn "external commands:"
+  forM_ (zip programs list) $ \(p, e) ->
+    putStrLn $ "  " <> p <> ": " <> fromMaybe "-" e
   where
-    print (name, info) = do
-      let found = isJust $ lookup name status
-      if found
-        then
-          putStrLn
-            $ "  "
-            ++ setSGRCode [SetColor Foreground Vivid Blue]
-            ++ name
-            ++ setSGRCode [Reset]
-            ++ ": "
-            ++ setSGRCode [SetColor Foreground Vivid Green]
-            ++ "found"
-            ++ setSGRCode [Reset]
-        else
-          putStrLn
-            $ "  "
-            ++ setSGRCode [SetColor Foreground Vivid Blue]
-            ++ name
-            ++ setSGRCode [Reset]
-            ++ ": "
-            ++ setSGRCode [SetColor Foreground Vivid Red]
-            ++ "missing"
-            ++ setSGRCode [Reset]
-            ++ " ("
-            ++ help info
-            ++ ")"
-
-checkExternalPrograms :: IO [(String, Bool)]
-checkExternalPrograms = do
-  external <- externalStatusFile
-  exists <- Dir.doesFileExist external
-  if exists
-    then do
-      fromJust <$> decodeFileStrict external
-    else do
-      status <- zip (map fst programs) <$> mapM (checkProgram . fst) programs
-      Dir.createDirectoryIfMissing True (takeDirectory external)
-      encodeFile external status
-      return status
+    findExe = maybe (return Nothing) findExecutable
+    selectCommand meta prog = do
+      key <- selectProgramDefinition prog meta
+      lookupMeta (key <> ".command") meta

@@ -1,18 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Text.Decker.Exam.Xml
   ( renderXmlCatalog,
+    renderMarkdownFields,
   )
 where
 
 import Control.Exception
 import Control.Lens hiding (Choice)
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString.UTF8 as UTF8
-import qualified Data.Map as M
-import qualified Data.Text as T
+import Data.ByteString qualified as BS
+import Data.ByteString.Base64 qualified as B64
+import Data.ByteString.UTF8 qualified as UTF8
+import Data.Map qualified as M
+import Data.Text qualified as T
 import Development.Shake
 import Development.Shake.FilePath
 import Relude
@@ -21,12 +23,14 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.URI
 import Text.Pandoc
 import Text.Pandoc.Walk
-import qualified Text.XML as XML
+import Text.XML qualified as XML
 
 -- Renders a catalog of all questions sorted by LectureId and TopicId.
 renderXmlCatalog ::
   [Question] -> FilePath -> Action ()
-renderXmlCatalog questions out = do
+renderXmlCatalog allQuestions out = do
+  let questions = filter _qstExam allQuestions
+  putNormal $ "Compiling " <> show (length questions) <> " questions to Moodle XML."
   rendered <- mapM (renderMarkdownFields . insertTitle) questions
   let sorted = sortQuestions rendered
       nodes = concatMap renderXML sorted
@@ -39,76 +43,78 @@ renderXmlCatalog questions out = do
       [renderCategoryXML question, renderQuestionXML question]
     renderCategoryXML :: Question -> XML.Node
     renderCategoryXML question =
-      XML.NodeElement $
-        XML.Element
+      XML.NodeElement
+        $ XML.Element
           "question"
           (M.fromList [("type", "category")])
-          [ XML.NodeElement $
-              XML.Element
+          [ XML.NodeElement
+              $ XML.Element
                 "category"
                 M.empty
-                [ XML.NodeElement $
-                    XML.Element
+                [ XML.NodeElement
+                    $ XML.Element
                       "text"
                       M.empty
-                      [ XML.NodeContent $
-                          T.concat
+                      [ XML.NodeContent
+                          $ T.concat
                             [ "$course$/",
                               _qstLectureId question,
                               "/",
                               _qstTopicId question
                             ]
                       ]
-                ],
-            XML.NodeElement $
-              XML.Element
-                "questiontext"
-                (M.fromList [("format", "html")])
-                [ XML.NodeElement $
-                    XML.Element
-                      "text"
-                      M.empty
-                      [XML.NodeContent (_qstQuestion question)]
                 ]
+                -- exported questions do have no text here
+                --     ,
+                -- XML.NodeElement
+                --   $ XML.Element
+                --     "questiontext"
+                --     (M.fromList [("format", "html")])
+                --     [ XML.NodeElement
+                --         $ XML.Element
+                --           "text"
+                --           M.empty
+                --           [XML.NodeContent (_qstQuestion question)]
+                --     ]
           ]
     renderQuestionXML :: Question -> XML.Node
     renderQuestionXML question =
-      XML.NodeElement $
-        XML.Element
+      XML.NodeElement
+        $ XML.Element
           "question"
           (M.fromList [("type", xmlAnswerType question)])
-          ( [ XML.NodeElement $
-                XML.Element
+          ( [ XML.NodeElement
+                $ XML.Element
                   "name"
                   M.empty
-                  [ XML.NodeElement $
-                      XML.Element "text" M.empty [XML.NodeContent (_qstTitle question)]
+                  [ XML.NodeElement
+                      $ XML.Element "text" M.empty [XML.NodeContent (_qstTitle question)]
                   ],
-              XML.NodeElement $
-                XML.Element
+              XML.NodeElement
+                $ XML.Element
                   "questiontext"
                   (M.fromList [("format", "html")])
-                  [ XML.NodeElement $
-                      XML.Element
+                  [ XML.NodeElement
+                      $ XML.Element
                         "text"
                         M.empty
                         [XML.NodeContent (_qstQuestion question)]
                   ],
-              XML.NodeElement $
-                XML.Element "answernumbering" M.empty [XML.NodeContent "none"],
-              XML.NodeElement $
-                XML.Element
+              XML.NodeElement
+                $ XML.Element "answernumbering" M.empty [XML.NodeContent "none"],
+              XML.NodeElement
+                $ XML.Element
                   "shuffleanswers"
                   M.empty
                   [XML.NodeContent (if _qstShuffleAnswers question then "1" else "0")],
-              XML.NodeElement $
-                XML.Element
+              XML.NodeElement
+                $ XML.Element
                   "defaultgrade"
                   M.empty
                   [XML.NodeContent (T.pack $ show (_qstPoints question))],
               XML.NodeElement $ XML.Element "penalty" M.empty [XML.NodeContent "0"],
-              XML.NodeElement $
-                XML.Element
+              XML.NodeElement
+                $ XML.Element
                   "single"
                   M.empty
                   [ XML.NodeContent
@@ -124,22 +130,22 @@ renderXmlCatalog questions out = do
         renderAnswer (MultipleChoice choices) =
           map (renderChoice $ correctAnswers choices) choices
         renderAnswer (FillText fillText correctWords) =
-          [ XML.NodeElement $
-              XML.Element
+          [ XML.NodeElement
+              $ XML.Element
                 "answer"
                 (M.fromList [("fraction", "0")])
                 [XML.NodeElement $ XML.Element "text" M.empty []]
           ]
         renderAnswer (FreeForm heightInMm correctAnswer) =
-          [ XML.NodeElement $
-              XML.Element
+          [ XML.NodeElement
+              $ XML.Element
                 "answer"
                 (M.fromList [("fraction", "100")])
                 [XML.NodeElement $ XML.Element "text" M.empty [XML.NodeContent correctAnswer]]
           ]
         renderAnswer (Numerical correctAnswer) =
-          [ XML.NodeElement $
-              XML.Element
+          [ XML.NodeElement
+              $ XML.Element
                 "answer"
                 (M.fromList [("fraction", "100")])
                 [XML.NodeElement $ XML.Element "text" M.empty [XML.NodeContent (show correctAnswer)]]
@@ -147,34 +153,34 @@ renderXmlCatalog questions out = do
         renderAnswer (MultipleAnswers widthInMm answers) =
           map renderSubQuestion answers
         renderSubQuestion answer =
-          XML.NodeElement $
-            XML.Element
+          XML.NodeElement
+            $ XML.Element
               "subquestion"
               M.empty
-              [ XML.NodeElement $
-                  XML.Element "text" M.empty [XML.NodeContent (_oneDetail answer)],
-                XML.NodeElement $
-                  XML.Element
+              [ XML.NodeElement
+                  $ XML.Element "text" M.empty [XML.NodeContent (_oneDetail answer)],
+                XML.NodeElement
+                  $ XML.Element
                     "answer"
                     M.empty
-                    [ XML.NodeElement $
-                        XML.Element
+                    [ XML.NodeElement
+                        $ XML.Element
                           "text"
                           M.empty
                           [XML.NodeContent (_oneCorrect answer)]
                     ]
               ]
         renderChoice n (Choice answer correct) =
-          XML.NodeElement $
-            XML.Element
+          XML.NodeElement
+            $ XML.Element
               "answer"
               ( M.fromList
                   [ ( "fraction",
                       if correct
                         then T.pack $ show (100.0 / fromIntegral n)
                         else
-                          T.pack $
-                            show
+                          T.pack
+                            $ show
                               ( if n > 1
                                   then -100.0
                                   else 0
@@ -182,8 +188,8 @@ renderXmlCatalog questions out = do
                     )
                   ]
               )
-              [ XML.NodeElement $
-                  XML.Element "text" M.empty [XML.NodeContent answer]
+              [ XML.NodeElement
+                  $ XML.Element "text" M.empty [XML.NodeContent answer]
               ]
 
 correctAnswers :: [Choice] -> Int
@@ -249,6 +255,11 @@ embedImages base (Image (id, cls, kv) inlines (url, title)) = do
   --       ("style", "width:100%;max-width:40em;") : filter ((/=) "style" . fst) kv
   return $ Image (id, cls, kv) inlines (toText dataUrl, title)
 embedImages base inline = return inline
+
+-- embedFigure :: FilePath -> Block -> Action Block
+-- embedFigure base (Plain [img]) = Plain . List.singleton <$> embedImages base img
+-- embedFigure base (Para [img]) = Para . List.singleton <$> embedImages base img
+-- embedFigure base block = return block
 
 embedCode :: Block -> Block
 embedCode (CodeBlock attr code) = CodeBlock attr code

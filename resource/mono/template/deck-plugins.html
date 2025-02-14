@@ -6,27 +6,14 @@
   import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
   import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
   import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
-  // import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+  import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
   import printPlugin from './$decker-support-dir$/plugins/print/print.js';
-  // import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
-  import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
-$if(poll)$
-  import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
-$endif$
-  // import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
+  import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
   import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
   import examinerPlugin from "./$decker-support-dir$/plugins/examiner/examiner.js";
-  // import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
+  import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
   import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
-  import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
-$if(highlightjs)$
-  // import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
-$endif$
-  import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
-$if(live-captions)$
-  // import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
-$endif$
-  // import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+  import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
   import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
 
   let revealConfig = { 
@@ -35,11 +22,9 @@ $endif$
 
     // plugin configuration
     math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
-    // chart: Decker.meta.chart,
+    chart: Decker.meta.chart,
     menu: Decker.meta.menu,
     explain: Decker.meta.explain,
-    feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
-    // jingles: Decker.meta.jingles,
     whiteboard: Decker.meta.whiteboard,
     
     // list of plugins
@@ -47,29 +32,15 @@ $endif$
        deckerPlugin,
        uiAnchorsPlugin,
        mathPlugin,
-       // chartsPlugin,
+       chartsPlugin,
        whiteboardPlugin,
        searchPlugin,
-       // zoomPlugin,
        printPlugin,
-       // jinglesPlugin,
-       // quizWuePlugin,
        explainPlugin,
        examinerPlugin,
        menuPlugin,
-       feedbackPlugin,
-$if(highlightjs)$
-       // highlightPlugin,
-$endif$
-       notesPlugin,
-$if(live-captions)$
-       // captionPlugin,
-$endif$
-       // a11yPlugin,
+       a11yPlugin,
        handoutPlugin,
-$if(poll)$
-       pollPlugin,
-$endif$
     ]
   };
   

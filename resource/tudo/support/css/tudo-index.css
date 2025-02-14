@@ -1,5 +1,4 @@
 @import url("../vendor/fontawesome/css/all.css");
-@import url("../fonts/lato.css");
 
 /**********************/
 /* Variables
@@ -90,13 +89,11 @@ details input {
 html {
   width: 100%;
   height: 100dvh;
-  font-family: "Lato";
   position: relative;
   accent-color: var(--accent3);
 }
 
 body.index {
-  font-family: "Lato";
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -229,6 +226,8 @@ body.index table {
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
+  border-top: 1px solid var(--shade4);
+  border-bottom: 1px solid var(--shade4);
 }
 
 body.index table caption {
@@ -245,7 +244,7 @@ body.index table th {
 }
 
 body.index table th {
-  border-bottom: 1px solid;
+  border-bottom: 1px solid var(--shade4);
 }
 
 body.index table th,
@@ -284,10 +283,4 @@ td[align="left"] {
 p {
   margin-top: 1rem;
   margin-bottom: 1rem;
-}
-
-progress {
-  accent-color: initial;
-  margin: auto 0.5em;
-  width: 3em;
 }

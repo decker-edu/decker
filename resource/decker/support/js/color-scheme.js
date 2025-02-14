@@ -6,27 +6,6 @@
  * @author Mario Botsch
  */
 
-// returns "light", "dark", or "system"
-export function getPreference() {
-  const storage = localStorage.getItem("color-mode");
-  return storage ? storage : "system";
-}
-
-// Given "light", "dark", or "system" as argument,
-// the preference is stored in localStorage.
-// Afterwards, updateHTML is called, which sets the class
-// "light" or "dark" on the <html> element.
-export function setPreference(mode) {
-  if (mode === "dark") {
-    localStorage.setItem("color-mode", "dark");
-  } else if (mode === "light") {
-    localStorage.setItem("color-mode", "light");
-  } else if (mode === "system") {
-    localStorage.removeItem("color-mode");
-  }
-  updateHTML();
-}
-
 // Determine current color preference and then set
 // either "light" or "dark" as class on <html> element.
 function updateHTML() {
@@ -35,7 +14,7 @@ function updateHTML() {
     window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light";
-  const storage = localStorage.getItem("color-mode");
+  const storage = sessionStorage.getItem("color-mode");
   const mode = storage ? storage : system;
   if (mode === "dark") {
     document.documentElement.classList.add("dark");
@@ -46,13 +25,37 @@ function updateHTML() {
   }
 }
 
+export function toggleColor() {
+  if (document.documentElement.classList.contains("dark")) {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+    sessionStorage.setItem("color-mode", "light");
+  } else {
+    document.documentElement.classList.remove("light");
+    document.documentElement.classList.add("dark");
+    sessionStorage.setItem("color-mode", "dark");
+  }
+}
+
 // Set up color scheme handling.
 export function initialize() {
-  if (window.matchMedia) {
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    query.addEventListener("change", updateHTML);
+  // get setting (light, dark, auto)
+  const setting = window.Decker?.meta?.colorscheme || "auto";
+  switch (setting) {
+    case "light":
+    case "dark":
+      document.documentElement.classList.add(setting);
+      break;
+
+    case "auto":
+    default:
+      if (window.matchMedia) {
+        const query = window.matchMedia("(prefers-color-scheme: dark)");
+        query.addEventListener("change", updateHTML);
+      }
+      updateHTML();
+      break;
   }
-  updateHTML();
 }
 
 // finally call initialize

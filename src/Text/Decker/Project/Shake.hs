@@ -1,4 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Used otherwise as a pattern" #-}
 
 module Text.Decker.Project.Shake
   ( runDecker,
@@ -10,6 +13,7 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
+    runClean,
   )
 where
 
@@ -19,12 +23,12 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch hiding (try)
-import Data.Aeson hiding (Error)
 import Data.ByteString.Char8 qualified as BS
 import Data.ByteString.UTF8 qualified as UTF8
 import Data.Char
 import Data.Dynamic
 import Data.HashMap.Strict qualified as HashMap
+import Data.HashMap.Strict qualified as Map
 import Data.List.Extra qualified as List
 import Data.Maybe
 import Data.Set qualified as Set
@@ -42,19 +46,22 @@ import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crrrunch
-import Text.Decker.Internal.External
+import Text.Decker.Internal.External (checkExternal)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
+import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
-import Text.Pandoc hiding (Verbosity)
+import Text.Pandoc (Meta)
+import Text.Pandoc.Definition (nullMeta)
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -72,12 +79,19 @@ runDeckerArgs args theRules = do
         if null targets
           then theRules
           else want targets >> withoutActions theRules
-  meta <- readMetaDataFile globalMetaFileName
-  context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
-  case targets of
-    [command] | command `elem` commands -> runCommand context command rules
-    _ -> runTargets context targets rules
+  deckerMeta <- readMetaDataFile deckerMetaFile
+  case deckerMeta of
+    Right meta -> do
+      context <- initContext flags meta
+      let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format"]
+      case targets of
+        [command] | command `elem` commands -> runCommand context command rules
+        otherwise -> do
+          warnVersion
+          runTargets context targets rules
+    Left err -> do
+      putStrLn "ERROR: cannot find `decker.yaml`"
+      exitFailure
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
@@ -88,11 +102,6 @@ runTargets context targets rules = do
   when (OpenFlag `elem` flags) $ do
     let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
-
-  -- always rescan the targets file in case files where added or removed
-  let meta = context ^. globalMeta
-  targets <- targetsFile
-  scanTargetsToFile meta targets
 
   -- Always run at least once
   runShake context rules
@@ -112,15 +121,21 @@ runTargets context targets rules = do
 
 runShake :: ActionContext -> Rules () -> IO ()
 runShake context rules = do
-  options <- deckerShakeOptions context
-  shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
-
-runShakeSlyly :: ActionContext -> Rules () -> IO ()
-runShakeSlyly context rules = do
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
   targets <- targetsFile
   scanTargetsToFile meta targets
+
+  options <- deckerShakeOptions context
+  shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
+
+_runShakeSlyly :: ActionContext -> Rules () -> IO ()
+_runShakeSlyly context rules = do
+  -- always rescan the targets file in case files where added or removed
+  let meta = context ^. globalMeta
+  targets <- targetsFile
+  scanTargetsToFile meta targets
+
   let flags = context ^. extra
   extractMetaIntoFile flags
   options <- deckerShakeOptions context
@@ -199,40 +214,26 @@ forkServer context = do
 
 runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
 runCommand context command rules = do
+  meta <- readDeckerMetaIO deckerMetaFile
   case command of
+    "check" -> checkExternal meta
     "clean" -> runClean False
     "purge" -> runClean True
-    "example" -> writeExampleProject (context ^. globalMeta)
+    "example" -> writeExampleProject meta
     "serve" -> do
       forkServer context
       handleUploads context
     "crunch" -> crunchAllRecordings context
-    "crrrunch" -> crunchAllRecordings context
-    "transcribe" -> transcribeRecordings context
-    "transcrrribe" -> transcribeAllRecordings context
+    "transcribe" -> transcribeAllRecordings meta
     "version" -> putDeckerVersion
-    "check" -> forceCheckExternalPrograms
     "pdf" -> do
       putStrLn (toString pdfMsg)
       id <- forkServer context
-      -- let rules' = want ["build-pdf"] >> withoutActions rules
-      -- runShake context rules'
       runShake context rules
       killThread id
+    "format" -> formatStdin
     _ -> error "Unknown command. Should not happen."
   exitSuccess
-
--- crunchRecordings :: ActionContext -> IO ()
--- crunchRecordings context = runShakeSlyly context crunchRules
-
-transcribeRecordings :: ActionContext -> IO ()
-transcribeRecordings context = do
-  let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" (context ^. globalMeta)
-  exists <- Dir.doesFileExist $ baseDir </> "main"
-  if exists
-    then transcribeAllRecordings context
-    -- then runShakeSlyly context transcriptionRules
-    else putStrLn "Install https://github.com/ggerganov/whisper.cpp to generate transcriptions."
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -285,7 +286,12 @@ deckerFlags =
       ['P']
       ["poser"]
       (GetOpt.NoArg $ Right PoserFlag)
-      "Transcode recordings immediately to MP4."
+      "Transcode recordings immediately to MP4.",
+    GetOpt.Option
+      ['l']
+      ["lecture"]
+      (GetOpt.NoArg $ Right LectureFlag)
+      "Enable lecture publishing."
   ]
 
 parsePortArg :: String -> Either String Flags
@@ -320,9 +326,13 @@ addMetaFlags flags meta =
 extractMetaIntoFile :: [Flags] -> IO ()
 extractMetaIntoFile flags = do
   let metaFlags = HashMap.fromList $ map (\(MetaValueFlag k v) -> (k, v)) $ filter aMetaValue flags
-  let json = decodeUtf8 $ encode metaFlags
+  let metaFlags' =
+        if LectureFlag `elem` flags
+          then Map.insert "lecture.publish" "yes" metaFlags
+          else metaFlags
+  let meta = HashMap.foldrWithKey (\key val m -> addMetaKeyValue (toText key) (toText val) m) nullMeta metaFlags'
   argsFile <- metaArgsFile
-  writeFileChanged argsFile json
+  writeMetaDataFile argsFile meta
 
 aMetaValue (MetaValueFlag _ _) = True
 aMetaValue _ = False
@@ -332,13 +342,11 @@ initContext extra meta = do
   transient <- transientDir
   createDirectoryIfMissing True transient
   devRun <- isDevelopmentRun
-  external <- checkExternalPrograms
   server <- newTVarIO (ServerState [] Set.empty)
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
-  when devRun $ putStrLn "This is a DEVELOPMENT RUN"
-  return $ ActionContext extra devRun external server watch chan public (addMetaFlags extra meta)
+  return $ ActionContext extra devRun server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
@@ -421,7 +429,6 @@ putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 -- deleted on Windows.
 runClean :: Bool -> IO ()
 runClean totally = do
-  warnVersion
   putStrLn $ "# Removing " <> publicDir
   tryRemoveDirectory publicDir
   putStrLn $ "# Removing " <> privateDir

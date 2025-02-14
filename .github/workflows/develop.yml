@@ -44,6 +44,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-
 
+      - name: Install bzip2 with dev headers
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y bzip2 libbz2-dev
+
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
         with:

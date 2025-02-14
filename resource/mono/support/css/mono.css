@@ -1,34 +1,28 @@
 @import url("./block-manip.css");
 
+:root {
+  --normal-font-weight: 400;
+  --code-font-weight: 500;
+  --bold-font-weight: 600;
+  --header-font-weight: 700;
+}
+
 @font-face {
   font-family: "Recursive";
   src: url("../fonts/Recursive.woff2") format("woff2-variations");
   font-weight: 300 1000;
   text-rendering: optimizeLegibility;
-}
-
-@font-face {
-  font-family: "Comic Mono";
-  src: url("../fonts/comic-mono-latin-400-normal.woff2")
-    format("woff2-variations");
-  font-weight: 400;
-  text-rendering: optimizeLegibility;
-}
-
-@font-face {
-  font-family: "Comic Mono";
-  src: url("../fonts/comic-mono-latin-700-normal.woff2")
-    format("woff2-variations");
-  font-weight: 700;
-  text-rendering: optimizeLegibility;
+  font-style: normal;
 }
 
 body.deck {
   font-size: 40px;
+  color: var(--foreground-color);
   font-family: "Recursive", sans-serif;
   font-variation-settings:
     "MONO" 0,
-    "CASL" 0.6;
+    "CASL" var(--casl);
+  font-weight: var(--normal-font-weight);
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -39,10 +33,12 @@ body.handout,
 body.page,
 body.index {
   font-size: 16px;
+  color: var(--foreground-color);
   font-family: "Recursive", sans-serif;
   font-variation-settings:
     "MONO" 0,
-    "CASL" 0.6;
+    "CASL" var(--casl);
+  font-weight: var(--normal-font-weight);
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -51,15 +47,28 @@ body.index {
 
 /* Inline code */
 code {
-  /* font-family: "Recursive", monospace; */
-  /* font-variation-settings: */
-  /* "MONO" 1, */
-  /* "CASL" 0.5; */
-  font-family: "Comic Mono", monospace;
-  font-weight: bold;
   font-size: 100%;
-  caret-color: var(--accent0);
+  color: var(--foreground-color);
+  font-family: "Recursive", monospace;
+  font-variation-settings:
+    "MONO" 1,
+    "CASL" var(--casl);
+  font-weight: var(--code-font-weight);
+  caret-color: var(--shade7);
   padding: 0.2em;
+}
+
+/* Bold Sstuff*/
+strong {
+  font-weight: var(--bold-font-weight);
+}
+
+summary {
+  font-weight: var(--bold-font-weight);
+}
+
+th {
+  font-weight: var(--bold-font-weight);
 }
 
 /* Code blocks. */
@@ -74,10 +83,30 @@ code {
   outline: solid 10px var(--accent7);
 }
 
+div.media {
+  margin: var(--vertical-margin) 0;
+}
+
 /* Headers */
 h1,
+h1.title {
+  font-size: 130%;
+  font-weight: var(--header-font-weight);
+}
+
+body.deck h1 {
+  font-size: 150%;
+  font-weight: var(--header-font-weight);
+}
+
 h2 {
-  color: var(--shade6);
+  font-size: 120%;
+  font-weight: var(--header-font-weight);
+}
+
+h3 {
+  font-size: 110%;
+  font-weight: var(--header-font-weight);
 }
 
 section.inverse :is(h1, h2) {
@@ -262,7 +291,7 @@ div.block.accent7 {
 }
 
 div.block.accent7 h2 {
-  color: var(--shad01);
+  color: var(--shade1);
   background-color: var(--accent7);
 }
 
@@ -290,7 +319,6 @@ section.inverse .figure :is(img, svg, pre, span.pre, video, iframe, object) {
 /* Overwrite Pandoc's syntax highlighting CSS with palette colors */
 pre > code.sourceCode {
   white-space: pre;
-  position: relative;
 }
 
 pre > code.sourceCode > span {
@@ -371,7 +399,7 @@ pre.numberSource {
 
 div.sourceCode {
   color: var(--shade7);
-  background-color: var(--shade1);
+  background-color: var(--code-background-color);
 }
 
 @media screen {
@@ -387,7 +415,7 @@ code span.al {
 /* Alert */
 code span.an {
   color: var(--accent4);
-  font-weight: bold;
+  font-weight: var(--bold-font-weight);
 }
 
 /* Annotation */
@@ -416,7 +444,7 @@ code span.ch {
 /* Char */
 code span.cn {
   color: var(--accent1);
-  font-weight: bold;
+  font-weight: var(--bold-font-weight);
 }
 
 /* Constant */
@@ -427,7 +455,7 @@ code span.co {
 /* Comment */
 code span.cv {
   color: var(--shade5);
-  font-weight: bold;
+  font-weight: var(--bold-font-weight);
 }
 
 /* CommentVar */
@@ -471,12 +499,13 @@ code span.im {
 /* Import */
 code span.in {
   color: var(--accent3);
-  font-weight: bold;
+  font-weight: var(--bold-font-weight);
 }
 
 /* Information */
 code span.kw {
   color: var(--accent5);
+  font-weight: var(--bold-font-weight);
 }
 
 /* Keyword */
@@ -491,7 +520,7 @@ code span.ot {
 /* Other */
 code span.pp {
   color: var(--accent1);
-  font-weight: bold;
+  font-weight: var(--bold-font-weight);
 }
 
 /* Preprocessor */
@@ -521,7 +550,7 @@ code span.vs {
 /* VerbatimString */
 code span.wa {
   color: var(--accent1);
-  font-weight: bold;
+  font-weight: var(--bold-font-weight);
 }
 
 /* Warning */
@@ -538,4 +567,91 @@ li.task-no input[type="checkbox"] {
   vertical-align: baseline;
   padding: 0;
   margin-bottom: 0;
+}
+
+/* Some additional colors */
+:root {
+  /* primary colors */
+  --red: #ff0000;
+  --green: #00ff00;
+  --blue: #0000ff;
+  --black: #000000;
+  --block-outset: 1rem;
+}
+
+/* Colors for the grid templates */
+@media (prefers-color-scheme: light) {
+  :root {
+    --canvas: color(
+      from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05)
+    );
+    --grid: var(--light-shade2);
+  }
+  :root.dark {
+    --canvas: color(
+      from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8)
+    );
+    --grid: var(--dark-shade2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: color(
+      from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8)
+    );
+    --grid: var(--dark-shade2);
+  }
+  :root.light {
+    --canvas: color(
+      from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05)
+    );
+    --grid: var(--light-shade2);
+  }
+}
+
+/* Override some of Pandoc's defaults. */
+code span.dt {
+  text-decoration: none;
+}
+
+/* Promary RGB color stuff*/
+span.red.bg {
+  color: var(--shade0);
+  background-color: var(--red);
+}
+
+span.green.bg {
+  color: var(--shade7);
+  background-color: var(--green);
+}
+
+span.blue.bg {
+  color: var(--shade1);
+  background-color: var(--blue);
+}
+
+span.black.bg {
+  color: var(--shade1);
+  background-color: var(--black);
+}
+
+span.red {
+  color: var(--red);
+}
+
+span.green {
+  color: var(--green);
+}
+
+span.blue {
+  color: var(--blue);
+}
+
+span:is(.red, .green, .blue, .black) {
+  border-radius: calc(var(--block-border-radius) / 1);
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  margin-left: -0.2em;
+  margin-right: -0.2em;
 }

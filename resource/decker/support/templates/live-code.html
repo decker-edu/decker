@@ -1,0 +1,68 @@
+<div class="media">
+  <figure class="live-code">
+    <div
+      class="live-code"
+      $if(height)$
+      style="max-height&colon;$height$&semi;"
+      $endif$
+    >
+      <pre
+        class="live-code language-$language/lowercase$ $classes$"
+      ><code id="$rnd-id$" class="live-code language-$language/lowercase$">$codeEsc$</code></pre>
+      <div class="label">$if(sandbox)$$sandbox$$else$$language$$endif$</div>
+    </div>
+    <codapi-snippet
+      id="$id$"
+      engine="$if(engine)$$engine$$else$codapi$endif$"
+      sandbox="$if(sandbox)$$sandbox/lowercase$$else$$language/lowercase$$endif$"
+      editor="external"
+      selector="#$rnd-id$"
+      class="$classes$"
+      $attribs$
+    >
+    </codapi-snippet>
+    <script type="module">
+      // import dynamically because we need to construct the module selector. "./" is needed because
+      // import selectors meant as file pathes cannot start just path component.
+      let codejar = await import(
+        "./" + Decker.meta.supportPath + "/vendor/codejar/codejar.js"
+      );
+      let hljs = await import(
+        "./" + Decker.meta.supportPath + "/vendor/highlight/es/highlight.js"
+      ).then((m) => m.default);
+      let $language$ = await import(
+        "./" +
+          Decker.meta.supportPath +
+          "/vendor/highlight/es/languages/$language/lowercase$.min.js"
+      ).then((m) => m.default);
+
+      hljs.configure({
+        ignoreUnescapedHTML: true,
+      });
+      hljs.registerLanguage("$language/lowercase$", $language$);
+      let highlight = (code) => {
+        code.removeAttribute("data-highlighted");
+        hljs.highlightElement(code);
+      };
+
+      let code = document.querySelector("#$rnd-id$");
+      code.setAttribute("data-highlighted", "");
+
+      // initial highlighting
+      highlight(code);
+
+      // start CodeJar on the code. Let it handle highlighting.
+      codejar.CodeJar(code, highlight, {
+        tab: " ".repeat(2),
+        addClosing: false,
+      });
+
+      // CodeJar fiddles with the style attribute of out code element. Reset that.
+      code.style.whiteSpace = "pre";
+      code.style.overflowX = "scroll";
+      code.style.overflowY = "scroll";
+      code.style.tabSize = 2;
+    </script>
+    <figcaption>$caption$</figcaption>
+  </figure>
+</div>

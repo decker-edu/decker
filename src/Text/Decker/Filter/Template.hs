@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Filter.Template (expandTemplateMacros) where
+module Text.Decker.Filter.Template (expandTemplateMacros, splice) where
 
 import Data.List qualified as List
 import Data.Text qualified as Text
@@ -88,7 +88,7 @@ expandTemplateMacros (Pandoc meta blocks) = do
           _ -> Nothing
 
     -- Substitutes macro arguments into text fragments in various Inline elements
-    substituteInline args (Str text) = Str (substitute args text)
+    substituteInline args (Str text) = RawInline "html" (substitute args text)
     substituteInline args (Code attr text) = Code (substituteAttr args attr) (substitute args text)
     substituteInline args (Span attr inlines) =
       Span (substituteAttr args attr) inlines
@@ -133,9 +133,9 @@ expandTemplateMacros (Pandoc meta blocks) = do
           fallback = viaNonEmpty last params
        in asum $ map (`List.lookup` args) params <> [fallback]
 
-substituteOne template (name, value) =
-  Text.intercalate value
-    $ Text.splitOn (":(" <> name <> ")") template
+-- substituteOne template (name, value) =
+--   Text.intercalate value
+--     $ Text.splitOn (":(" <> name <> ")") template
 
 class Splice a b where
   splice :: Text -> a -> b
@@ -144,13 +144,13 @@ instance Splice Inline Inline where
   splice macro = id
 
 instance Splice Text Inline where
-  splice macro = Str
+  splice macro = RawInline "html"
 
 instance Splice Text [Inline] where
-  splice macro text = [Str text]
+  splice macro text = [RawInline "html" text]
 
 instance Splice Text Block where
-  splice macro text = Para [Str text]
+  splice macro text = Para [RawInline "html" text]
 
 instance Splice [Inline] [Inline] where
   splice macro = id

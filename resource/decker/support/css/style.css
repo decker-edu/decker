@@ -36,6 +36,15 @@ pre {
   line-height: 1;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--header-color);
+}
+
 h1 {
   font-size: 1.8em;
   font-weight: bold;
@@ -129,11 +138,11 @@ table caption {
 }
 tbody {
   margin-top: 0.5em;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
+  border-top: 0.03em solid black;
+  border-bottom: 0.03em solid black;
 }
 th {
-  border-top: 1px solid black;
+  border-top: 0.03em solid black;
   padding: 0.2em 0.5em 0.2em 0.5em;
   font-weight: bolder;
 }
@@ -153,7 +162,7 @@ div.block {
 
 /* No bottom margin for last elements in a stack. */
 :is(h1, p, div, ul, ol, table):last-child {
-  margin-bottom: 0 !important;
+  margin-bottom: 0;
 }
 
 /* Align headers with blocks. */
@@ -216,7 +225,16 @@ div.block.accent7 {
   background-color: var(--accent7-bbg);
 }
 
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+span:is(
+    .accent0,
+    .accent1,
+    .accent2,
+    .accent3,
+    .accent4,
+    .accent5,
+    .accent6,
+    .accent7
+  ) {
   padding-left: 0.2em;
   padding-right: 0.2em;
   margin-left: -0.2em;
@@ -416,4 +434,21 @@ button.fa-button:focus,
 button.fa-button::-moz-focus-inner {
   outline: none;
   border: none;
+}
+
+/* details that pop up. per default only with wrapped details
+elements from H2 boxes. */
+div.details-frame:has(details.popup) {
+  position: relative;
+  height: 1.8em;
+}
+
+div.details-frame details[open].popup {
+  position: absolute;
+  background-color: var(--accent4-bbg);
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  border-radius: var(--block-border-radius);
+  z-index: 2;
+  padding: 0.8em;
+  margin: -0.8em;
 }

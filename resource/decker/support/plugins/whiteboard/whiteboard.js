@@ -108,8 +108,8 @@ function readConfig() {
   ];
 
   // reveal setting wrt slide dimension
-  pageHeight = Reveal.getConfig().height;
-  pageWidth = Reveal.getConfig().width;
+  pageHeight = parseInt(Reveal.getConfig().height);
+  pageWidth = parseInt(Reveal.getConfig().width);
 
   // reveal elements
   slides = document.querySelector(".reveal .slides");
@@ -280,7 +280,6 @@ function createGUI() {
     "Pick Laserpointer"
   );
   buttonLaser.setAttribute("role", "switch");
-  buttonLaser.ondblclick = toggleLightSaber;
 
   buttonWhiteboard = createButton(
     "fas fa-edit checkbox",
@@ -400,7 +399,8 @@ function createGridPattern() {
   svg.style.width = "10px";
   svg.style.height = "10px";
   svg.style.pointerEvents = "none";
-  slides.insertBefore(svg, slides.firstChild);
+  const viewport = Reveal.getViewportElement();
+  viewport.insertBefore(svg, viewport.firstChild);
 
   const h = Math.floor(Math.min(pageWidth, pageHeight) / 25);
   const rectWidth = pageWidth - 2;
@@ -581,29 +581,6 @@ function toggleEraser() {
   else selectTool(ERASER);
 }
 
-/*
- * switch between normal laser and light saber
- */
-let lightSaberActive = false;
-function toggleLightSaber() {
-  const url = new URL(import.meta.url);
-  const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
-
-  lightSaberActive = !lightSaberActive;
-
-  if (lightSaberActive) {
-    const lightSaberOn = new Audio(path + "/lightSaberOn.mp3");
-    lightSaberOn.play();
-    laserCursor = "url(" + path + "/lightSaber.png" + ") 2 2, auto";
-    selectTool(LASER);
-  } else {
-    const lightSaberOff = new Audio(path + "/lightSaberOff.mp3");
-    lightSaberOff.play();
-    createLaserCursor();
-    selectTool(LASER);
-  }
-}
-
 function toggleColorPicker() {
   colorPicker.classList.toggle("active");
 }
@@ -636,7 +613,7 @@ function enableWhiteboard() {
   clearTimeout(autoToggleTimer);
 
   // show scrollbar
-  slides.classList.add("active");
+  slides.classList.add("whiteboard-active");
 
   // show buttons
   buttons.classList.add("active");
@@ -653,7 +630,7 @@ function disableWhiteboard() {
   clearTimeout(autoToggleTimer);
 
   // hide scrollbar
-  slides.classList.remove("active");
+  slides.classList.remove("whiteboard-active");
 
   // hide buttons
   buttons.classList.remove("active");
@@ -1373,8 +1350,7 @@ function pointerdown(evt) {
 
     case LASER:
       clearTimeout(hideCursorTimeout);
-      if (lightSaberActive) showCursor();
-      else hideCursor();
+      hideCursor();
       isLaserStroke = true;
       startStroke(evt);
       return killEvent(evt);

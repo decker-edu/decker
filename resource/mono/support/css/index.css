@@ -6,137 +6,199 @@
 @import url("./media.css");
 
 html {
-  color: var(--foreground-color);
-  background-color: var(--background-color);
+    color: var(--foreground-color);
+    background-color: var(--background-color);
 }
 
 body.index {
-  padding-top: 0;
+    padding-top: 0;
 }
 
 body.index header {
-  font-size: 150%;
-  background-position: center;
-  background-color: #eee;
+    font-size: 150%;
+    background-position: center;
+    background-color: var(--shade1);
 
-  border-bottom: 1px solid #ddd;
-  padding: 2rem 1.5rem;
+    border-bottom: 1px solid var(--shade2);
 
-  /* This sets the right and left margins to cancel out the body's margins. It's
+    /* This sets the right and left margins to cancel out the body's margins. It's
   width is still the same, but the background stretches across the page's width.
   */
 
-  margin: -2rem calc(0px - (50vw - 50%)) 2rem;
-  margin-bottom: 1rem;
+    margin-top: 0;
+    margin-bottom: 1em;
 
-  /* Shorthand for:
-	margin-top: -2rem;
-	margin-bottom: 2rem;
-	margin-left: calc(0px - (50vw - 50%));
-	margin-right: calc(0px - (50vw - 50%)); */
+    padding-top: 1em;
+    padding-bottom: 1em;
 
-  padding-left: calc(50vw - 50%);
-  padding-right: calc(50vw - 50%);
+    margin-left: calc(0px - (50vw - 50%));
+    margin-right: calc(0px - (50vw - 50%));
+    padding-left: calc(50vw - 50%);
+    padding-right: calc(50vw - 50%);
 }
 
 body.index {
-  box-sizing: border-box;
-  font-size: 16px;
-  max-width: 52em;
-  color: var(--foreground-color);
-  background-color: var(--background-color);
+    box-sizing: border-box;
+    font-size: 16px;
+    max-width: 52em;
+    color: var(--foreground-color);
+    background-color: var(--background-color);
 }
 
 body.index div.block {
-  padding: 0.4em 0.8em;
-  margin: 0.4em -0.8em;
+    padding: 0.4em 0.8em;
+    margin: 0.4em -0.8em;
+}
+
+body.index header p.subtitle {
+    font-size: 80%
+}
+
+body.index header div.author p{
+    font-size: 70%
 }
 
 code {
-  font-size: 100%;
+    font-size: 100%;
 }
 
-pre > code {
-  font-size: 90%;
+pre>code {
+    font-size: 90%;
 }
 
 figure {
-  margin: 0;
+    margin: 0;
 }
 
 p {
-  word-wrap: normal;
+    word-wrap: normal;
 }
 
 body.index table {
-  margin-left: auto;
-  margin-right: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 body.index progress {
-  /* Enable those pseudo-elements below */
-  appearance: none;
+    /* Enable those pseudo-elements below */
+    appearance: none;
 
-  width: 5em;
-  height: 0.5em;
+    width: 5em;
+    height: 0.5em;
 
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 body.index ::-webkit-progress-bar {
-  background-color: var(--shade1);
-  border: 1px solid var(--shade3);
-  border-radius: 0.5em;
+    background-color: var(--shade1);
+    border: 1px solid var(--shade3);
+    border-radius: 0.5em;
 }
 
 body.index ::-webkit-progress-value {
-  background-color: var(--accent3);
-  border-radius: 0.5em;
+    background-color: var(--accent3);
+    border-radius: 0.5em;
 }
 
 body.index ::-moz-progress-bar {
-  background-color: var(--accent3);
-  /* border-radius: 0.5em; */
+    background-color: var(--accent3);
+    /* border-radius: 0.5em; */
 }
 
 body.index input.search {
-  font-size: 1em;
+    font-size: 1em;
 }
 
 body.index i.fa-solid.fa-magnifying-glass::before {
-  color: var(--accent5);
-  font-weight: bold;
+    color: var(--accent5);
+    font-weight: bold;
 }
 
 body.index div.search-box {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 1em;
-  width: 14em;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    width: 14em;
 }
 
 body.index table {
-  width: 90%;
-  display: table;
-  margin-left: auto;
-  margin-right: auto;
+    width: 90%;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 body.index div.search table.search {
-  display: none;
-  text-align: left;
+    display: none;
+    text-align: left;
 }
 
 body.index div.search.results table.search {
-  display: table;
+    display: table;
 }
 
 body.index .label {
-  border-radius: 1em;
-  padding-left: 0.7em;
-  padding-right: 0.7em;
-  margin-left: 1em;
-  margin-right: 1em;
-  font-size: 80%;
-  font-weight: bold;
+    border-radius: 1em;
+    padding-left: 0.7em;
+    padding-right: 0.7em;
+    margin-left: 1em;
+    margin-right: 1em;
+    font-size: 80%;
+    font-weight: bold;
+}
+
+.link-additions {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 0.25rem;
+    margin-left: 0.25rem;
+    align-items: center;
+}
+
+.link-additions a:hover {
+    margin: -0.2rem;
+    padding: 0.2rem;
+}
+
+a.handout-link {
+    display: inline-block;
+    box-sizing: content-box;
+    vertical-align: bottom;
+    position: relative;
+    width: 1em;
+    height: 1em;
+}
+
+a.handout-link::before {
+    display: block;
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0.05em;
+    width: 0.8em;
+    height: 0.45em;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+}
+
+a.handout-link::after {
+    display: block;
+    position: absolute;
+    content: "";
+    bottom: 0;
+    left: 0.05em;
+    width: 0.8em;
+    height: 0.45em;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+}
+
+a.handout-link:hover::before {
+    top: 0.25em;
+    left: 0.3em;
+}
+
+a.handout-link:hover::after {
+    bottom: 0.25em;
+    left: 0.3em;
 }

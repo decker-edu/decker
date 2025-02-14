@@ -1,4 +1,7 @@
 :root {
+  /* variable font setting for Recursive*/
+  --casl: 0.3;
+
   /* Icon settings */
   --icon-size: 1rem;
 
@@ -26,6 +29,24 @@
   --violetish: var(--accent6);
   --brownish: var(--accent7);
 
+  --light-red: var(--accent0-bg);
+  --light-orange: var(--accent1-bg);
+  --light-yellow: var(--accent2-bg);
+  --light-green: var(--accent3-bg);
+  --light-teal: var(--accent4-bg);
+  --light-blue: var(--accent5-bg);
+  --light-violet: var(--accent6-bg);
+  --light-brown: var(--accent7-bg);
+
+  --dark-red: var(--accent0-fg);
+  --dark-orange: var(--accent1-fg);
+  --dark-yellow: var(--accent2-fg);
+  --dark-green: var(--accent3-fg);
+  --dark-teal: var(--accent4-fg);
+  --dark-blue: var(--accent5-fg);
+  --dark-violet: var(--accent6-fg);
+  --dark-brown: var(--accent7-fg);
+
   /* Semantic Colors */
   --color-error: var(--redish);
   --color-alert: var(--orangeish);
@@ -37,7 +58,7 @@
      current palette. Colors can be set arbitrarily. */
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
-  --header-color: var(--shade6);
+  --header-color: var(--shade5);
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
   --icon-active-color: var(--accent5);
@@ -88,4 +109,7 @@
   --green-border-color: var(--accent3);
   --red-background-color: var(--accent0-bbg);
   --red-border-color: var(--accent0);
+
+  /* default maximum code block height */
+  --code-block-max-height: 800px;
 }
