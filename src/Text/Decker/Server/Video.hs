@@ -12,7 +12,6 @@ import Relude
 import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
-import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External (runExternal)
 import Text.Decker.Server.Types

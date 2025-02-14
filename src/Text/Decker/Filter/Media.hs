@@ -31,7 +31,6 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta (lookupMetaOrFail)
 import Text.Decker.Internal.URI
-import Text.Decker.Server.Video
 import Text.Pandoc
 import Text.Printf
 import Text.URI (URI, unRText, uriFragment)
