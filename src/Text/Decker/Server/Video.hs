@@ -18,6 +18,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
 import Web.Scotty.Trans
+import Text.Decker.Internal.Helper (safeRenameFile, uniqueTransientFileName)
 
 -- | Returns a JSON list of all existing WEBM video fragments for a recording
 listRecordings :: AppActionM ()
@@ -51,18 +52,6 @@ existingVideos webm = do
   let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
   sort <$> globDir1 (compile $ file <> "*" <> ext) dir
 
--- Unique transient tmp filename
-uniqueTransientFileName :: FilePath -> IO FilePath
-uniqueTransientFileName base = do
-  transient <- transientDir
-  id <- toString <$> randomId
-  return
-    $ transient
-    </> dropExtension (takeFileName base)
-      <> "-"
-      <> id
-      <.> takeExtension base
-
 writeBody :: FilePath -> IO ByteString -> IO ()
 writeBody path reader = do
   chunk <- reader
@@ -83,8 +72,7 @@ convertVideoMp4 webm mp4 = do
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      copyFileWithMetadata tmp dst
-      removeFile tmp
+      safeRenameFile tmp dst
 
 -- | Converts a WEBM video file into an MP4 video file on the slow track. The audio is
 -- transcoded to AAC.
@@ -97,8 +85,7 @@ transcodeVideoMp4 webm mp4 = do
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src] <> slow <> [tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      copyFileWithMetadata tmp dst
-      removeFile tmp
+      safeRenameFile tmp dst
 
 -- Transcoding parameters
 fast = ["-preset", "fast", "-vcodec", "copy"]
@@ -156,8 +143,7 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
               <> ["-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      copyFileWithMetadata tmp dst
-      removeFile tmp
+      safeRenameFile tmp dst
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
 -- previous uploads are removed.
@@ -167,8 +153,7 @@ replaceVideoUpload transcode upload webm = do
   mapM_ removeFile webms
   let mp4 = replaceExtension webm ".mp4"
   when transcode $ convertVideoMp4 upload mp4
-  copyFileWithMetadata upload webm
-  removeFile upload
+  safeRenameFile upload webm
 
 -- | Appends the uploaded WEBM video to potentially already existing fragments.
 appendVideoUpload :: Bool -> FilePath -> FilePath -> IO ()

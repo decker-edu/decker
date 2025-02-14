@@ -214,8 +214,7 @@ compileCodeBlock attr@(id, classes, _) code caption = do
                 createDirectoryIfMissing True (takeDirectory path)
                 tmp <- uniqueTransientFileName path
                 Text.writeFile tmp code
-                copyFileWithMetadata tmp path
-                removeFile tmp
+                safeRenameFile tmp path
                 putStrLn $ "# write (" <> path <> ")"
           )
       uri <- lift $ URI.mkURI (toText path)
