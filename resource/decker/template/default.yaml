@@ -173,6 +173,15 @@ external-tools:
       # - "${input}"
     help: ""
   chrome:
+    linux:
+      command: "chrome"
+      arguments:
+        - "--headless"
+        - "--virtual-time-budget=5555"
+        - "--no-pdf-header-footer"
+        - "--print-to-pdf=${output}"
+        - "${input}?print-pdf#/"
+      help: ""
     macos:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       arguments:
