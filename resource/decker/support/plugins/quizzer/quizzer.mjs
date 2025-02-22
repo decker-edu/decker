@@ -118,7 +118,7 @@ function parseQuizzes(reveal) {
   const slides = reveal.getSlides();
   /* For each slide of reveal ... */
   for (const slide of slides) {
-    const quizzers = slide.querySelectorAll(":scope .quizzer");
+    const quizzers = slide.querySelectorAll(":scope div.quizzer");
     /* ... check if there are more than one quiz on the slide and if so, replace the content of the slide with an error message ... */
     if (quizzers.length > 1) {
       const layout = slide.querySelector(":scope .layout");
@@ -270,9 +270,30 @@ function parseQuizzes(reveal) {
           letter = String.fromCharCode(letter.charCodeAt(0) + 1);
         }
       }
+      /* Special handling of choice */
       if (quizObject.type === "choice") {
         for (const list of lists) {
           const container = Renderer.renderChoiceButtons(list.choices);
+          list.replaceWith(container);
+        }
+      } else if (quizObject.type === "freetext") {
+        const paragraphs = quizzer.querySelectorAll("p");
+        for (const paragraph of paragraphs) {
+          const textNode = document.createTextNode(paragraph.innerText);
+          paragraph.replaceWith(textNode);
+        }
+        for (const list of lists) {
+          const container = Renderer.renderFreeTextInput(list.choices);
+          list.replaceWith(container);
+        }
+      } else if (quizObject.type === "selection") {
+        const paragraphs = quizzer.querySelectorAll("p");
+        for (const paragraph of paragraphs) {
+          const textNode = document.createTextNode(paragraph.innerText);
+          paragraph.replaceWith(textNode);
+        }
+        for (const list of lists) {
+          const container = Renderer.renderSelectBox(list.choices);
           list.replaceWith(container);
         }
       } else {
@@ -288,7 +309,11 @@ function parseQuizzes(reveal) {
       /* ... after parsing the answers, interpret the rest of the inner quiz as the question ... */
       quizObject.question = quizzer.innerHTML.trim();
       /* Clean up the entire quizzer container */
-      if (quizObject.type !== "choice") {
+      if (
+        quizObject.type !== "choice" &&
+        quizObject.type !== "freetext" &&
+        quizObject.type !== "selection"
+      ) {
         while (quizzer.lastElementChild) {
           quizzer.lastElementChild.remove();
         }
@@ -299,9 +324,9 @@ function parseQuizzes(reveal) {
       if (quizObject.type === "choice") {
         // Renderer.renderChoiceQuiz(quizzer, quizObject);
       } else if (quizObject.type === "freetext") {
-        Renderer.renderFreeTextQuiz(quizzer, quizObject);
+        // Renderer.renderFreeTextQuiz(quizzer, quizObject);
       } else if (quizObject.type === "selection") {
-        Renderer.renderSelectionQuiz(quizzer, quizObject);
+        // Renderer.renderSelectionQuiz(quizzer, quizObject);
       } else if (quizObject.type === "assignment") {
         Renderer.renderAssignmentQuiz(quizzer, quizObject);
       }

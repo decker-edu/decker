@@ -125,9 +125,11 @@ What attribute does the fox have and what does he do to the dog?
 
 ::: {.quizzer .freetext}
 
-What did you eat for dinner today?
+I ate 
 
 - [x] Mensa
+
+for dinner today.
 
 :::
 
@@ -238,3 +240,96 @@ Developer
 
 :::
 
+# Special Case: vspace inside question?
+
+::: {.quizzer .choice}
+
+Test
+
+[:vspace](128px)
+
+Test
+
+- [x] Yes
+- [ ] No
+
+:::
+
+#
+
+::: {.quizzer .selection}
+
+Decker is a software built using  
+
+- [ ] Scala
+    - Unfortunately not.
+    - A second tooltip.
+- [X] Haskell
+    - Due to Pandoc.
+- [ ] Java
+    - Surely not.
+- [ ] Ruby 
+    - hm no
+
+and builds upon the tool
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+.
+
+:::
+
+# Block Behavior
+
+## Test {.test}
+
+Block Content
+
+# H2 QIC
+
+## Hello World {.quizzer .selection}
+
+This is some Text.
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+Paragraph tags are removed from the entire question.
+
+Hello World. This is a new paragraph.
+
+![](./@f{u}nn%20y.png)
+
+This is another paragraph.
+
+
+# Test
+
+::: qic
+
+This is some Text.
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+::: test
+
+These paragraphs are inside a div, they are not removed.
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+What is happending here?
+
+:::
+
+![](./@f{u}nn%20y.png)
+
+This is another paragraph.
+
+:::

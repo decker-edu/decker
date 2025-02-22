@@ -361,6 +361,42 @@ export default {
   },
 
   /**
+   *
+   * @param {*} choices
+   */
+  renderSelectBox(choices) {
+    const select = document.createElement("select");
+    const placeholder = document.createElement("option");
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.innerText = l10n.pickMessage;
+    placeholder.reason = l10n.pickReason;
+    placeholder.correct = false;
+    select.appendChild(placeholder);
+    const options = choices.options;
+    for (const option of options) {
+      const item = document.createElement("option");
+      item.innerText = option.label;
+      item.reason = option.reason;
+      item.correct = option.correct;
+      select.appendChild(item);
+    }
+    // Use an input-wrapper to align the checkmark.
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("input-wrapper");
+    wrapper.appendChild(select);
+
+    const popover = document.createElement("div");
+    popover.className = "solution-popover";
+    wrapper.appendChild(popover);
+
+    select.addEventListener("change", (event) => {
+      solveSelection(select);
+    });
+    return wrapper;
+  },
+
+  /**
    * Render a selection quiz:
    *
    * *------------------*
@@ -415,6 +451,51 @@ export default {
     }
     container.solver.remove();
     parent.appendChild(container);
+  },
+
+  renderFreeTextInput(choices) {
+    const input = document.createElement("input");
+    input.placeholder = l10n.placeholder;
+    const wrapper = document.createElement("wrapper");
+    wrapper.classList.add("input-wrapper");
+    wrapper.appendChild(input);
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
+      let checkmark = wrapper.querySelector(".checkmark");
+      if (!checkmark) {
+        checkmark = document.createElement("span");
+        checkmark.classList.add("checkmark", "fas", "fa-times");
+        wrapper.appendChild(checkmark);
+      }
+      wrapper.classList.add("wrong");
+      checkmark.classList.add("fa-times");
+      input.setAttribute("aria-description", l10n.wrong);
+      for (const option of choices.options) {
+        if (option.label === input.value) {
+          if (option.correct === true) {
+            wrapper.classList.remove("wrong");
+            wrapper.classList.add("correct");
+            checkmark.classList.remove("fa-times");
+            checkmark.classList.add("fa-check");
+            if (option.reason) {
+              input.setAttribute(
+                "aria-description",
+                l10n.correct + " " + option.reason
+              );
+            }
+            break;
+          } else if (option.reason) {
+            input.setAttribute(
+              "aria-description",
+              l10n.wrong + " " + option.reason
+            );
+          }
+        }
+      }
+    });
+    return wrapper;
   },
 
   /**
@@ -481,6 +562,11 @@ export default {
     parent.appendChild(container);
   },
 
+  /**
+   *
+   * @param {*} choices
+   * @returns
+   */
   renderChoiceButtons(choices) {
     const container = document.createElement("div");
     container.className = "answer-container";
