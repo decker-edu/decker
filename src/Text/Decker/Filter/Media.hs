@@ -31,7 +31,6 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta (lookupMetaOrFail)
 import Text.Decker.Internal.URI
-import Text.Decker.Server.Video
 import Text.Pandoc
 import Text.Printf
 import Text.URI (URI, unRText, uriFragment)
@@ -218,7 +217,7 @@ compileCodeBlock attr@(id, classes, _) code caption = do
                 createDirectoryIfMissing True (takeDirectory path)
                 tmp <- uniqueTransientFileName path
                 Text.writeFile tmp code
-                renameFile tmp path
+                safeRenameFile tmp path
                 putStrLn $ "# write (" <> path <> ")"
           )
       uri <- lift $ URI.mkURI (toText path)
