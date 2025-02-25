@@ -48,7 +48,7 @@ What is your semester?
 
 What is your semester?
 
-::: w50
+::: {width=50%}
 
 - [ ] `1 - 2`
 - [ ] `3 - 4`
@@ -255,7 +255,7 @@ Test
 
 :::
 
-#
+# Old Selection Quiz Syntax
 
 ::: {.quizzer .selection}
 
