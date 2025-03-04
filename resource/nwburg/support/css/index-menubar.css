@@ -1,0 +1,135 @@
+/* General Styles for Menu */
+.menu-bar {
+    display: flex; /* Horizontal layout for desktop */
+    justify-content: flex-start;
+    /* background-color: #063D79; Example color */
+    /* padding: 10px; */
+    list-style-type: none;
+    margin: 8px 262px;
+    position: absolute;
+    z-index: 1;
+    background: hsla(0, 0%, 100%, .9);
+    width: -webkit-fill-available;
+}
+
+.menu-item-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.menu-bar ul {
+    margin: 0;
+    padding: 0;
+}
+
+.menu-bar li {
+    position: relative; /* Needed for submenu positioning */
+}
+
+.menu-bar > ul {
+    width: inherit;
+    display: flex; /* Horizontal layout for top-level items */
+    flex-direction: row;
+    justify-content: space-between;
+    list-style-type: none;
+    line-height: 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+li.menu-item  {
+    margin-bottom: 0%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* .menu-bar > ul > li {
+    margin: 0 15px; }/* Add spacing between menu items */
+
+.menu-bar a,
+.menu-bar span {
+    display: block;
+    padding: 0 15px;
+    text-decoration: none;
+    color: #063D79;
+    font-family: "Roboto", sans-serif;
+}
+
+.menu-bar a:hover,
+.menu-bar span:hover {
+    text-decoration: underline;
+}
+
+/* Submenu Styles */
+.menu-bar ul ul {
+    display: none; /* Hidden by default */
+    position: absolute; /* Position submenus below parent items */
+    top: 100%; /* Align below the parent menu item */
+    left: 0;
+    background-color: white; /* Matches main menu color */
+    padding: 0;
+    list-style-type: none;
+    z-index: 1000;
+    
+}
+
+.menu-bar ul ul li {
+    width: 200px; /* Fixed width for submenu items */
+    list-style-type:none;
+    text-transform: capitalize;
+}
+
+.menu-bar ul ul li :hover {
+    color: #063D79;
+}
+
+.menu-bar ul ul li ul {
+    font-weight: lighter;
+}
+
+.menu-bar ul ul a {
+    padding: 10px 15px;
+}
+
+/* Show submenu on hover for desktop */
+.menu-bar li:hover > ul {
+    display: block;
+}
+
+/* Responsive Styles for Mobile */
+@media (max-width: 768px) {
+    .menu-bar {
+        flex-direction: column; /* Stack items vertically */
+        
+    }
+
+    .menu-bar > ul {
+        flex-direction: column; /* Stack top-level items */
+    }
+
+    .menu-bar ul ul {
+        position: static; /* Align submenus under parent items */
+        display: none; /* Hidden by default */
+    }
+
+    .menu-bar li > ul {
+        display: none; /* Default state */
+    }
+
+    .menu-bar li.open > ul {
+        display: block; /* Visible when parent is clicked */
+    }
+
+    .menu-bar a,
+    .menu-bar span {
+        padding: 10px;
+    }
+}
+
+.custom-card {
+    background-color: red;
+    color: green;
+}
