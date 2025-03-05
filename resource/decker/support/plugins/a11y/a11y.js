@@ -36,7 +36,7 @@ function addScreenReaderSlideNumber(slide, h, v) {
       h + 1
     }${v ? "." + v : ""} / ${slidesAmount}`;
     if (header.textContent.trim() !== "") {
-      replacementHTML = replacementHTML + `,</span><span>${innerHTML}</span>`;
+      replacementHTML = replacementHTML + `, </span><span>${innerHTML}</span>`;
     } else {
       replacementHTML = replacementHTML + "</span>";
     }
