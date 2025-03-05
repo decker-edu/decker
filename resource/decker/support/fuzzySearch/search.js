@@ -102,6 +102,14 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
         <td><a target="_blank" href="./${url}">${sInfo.slideTitle}</a></td>
         <td>${count}</td>`;
 
+        const indexMode = Decker.meta.index?.mode || "insert";
+        if (indexMode === "modal") {
+          const links = item.querySelectorAll("a");
+          for (const link of links) {
+            addModalToLink(link);
+          }
+        }
+
         results.appendChild(item);
       }
     }

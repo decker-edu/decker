@@ -140,145 +140,154 @@ function setupProgressIndicator(container, url) {
   };
 }
 
+let modalDialog = undefined;
+let modalLinkGroup = undefined;
+let modalMessage = undefined;
+let modalCloseButton = undefined;
+
 function modalLinks() {
   const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
   const links = document.querySelectorAll(selector);
 
-  const modal = document.createElement("dialog");
-  document.body.appendChild(modal);
+  modalDialog = document.createElement("dialog");
+  document.body.appendChild(modalDialog);
 
-  const visitMessage = document.createElement("h2");
-  modal.appendChild(visitMessage);
+  modalMessage = document.createElement("h2");
+  modalDialog.appendChild(modalMessage);
 
-  const modes = Decker.meta.index?.links || [];
+  modalLinkGroup = document.createElement("div");
+  modalLinkGroup.className = "group";
 
-  const linkGroup = document.createElement("div");
-  linkGroup.className = "group";
+  modalDialog.appendChild(modalLinkGroup);
 
-  modal.appendChild(linkGroup);
-
-  const closeButton = document.createElement("button");
-  closeButton.addEventListener("click", (event) => {
-    modal.close();
+  modalCloseButton = document.createElement("button");
+  modalCloseButton.addEventListener("click", (event) => {
+    modalDialog.close();
   });
-  closeButton.className = "fas fa-times";
-  closeButton.ariaLabel =
+  modalCloseButton.className = "fas fa-times";
+  modalCloseButton.ariaLabel =
     navigator.language === "de" ? "Dialog Schließen" : "Close Dialog";
-  closeButton.title =
+  modalCloseButton.title =
     navigator.language === "de" ? "Dialog Schließen" : "Close Dialog";
-  modal.appendChild(closeButton);
+  modalDialog.appendChild(modalCloseButton);
 
   for (const link of links) {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      visitMessage.innerText =
-        navigator.language === "de"
-          ? `Präsentation ${link.textContent} aufrufen?`
-          : `Visit Slide Deck ${link.textContent}?`;
-      while (linkGroup.firstElementChild) {
-        linkGroup.firstElementChild.remove();
-      }
-      const normalLink = document.createElement("a");
-      normalLink.href = link.href;
-      linkGroup.appendChild(normalLink);
-      const normalIcon = document.createElement("i");
-      normalIcon.className = "fas fa-chalkboard";
-      normalLink.appendChild(normalIcon);
-      const normalLabel = document.createElement("span");
-      normalLink.appendChild(normalLabel);
-      normalLabel.innerText = "Präsentation";
-      normalLink.setAttribute(
+    addModalToLink(link);
+  }
+}
+
+function addModalToLink(link) {
+  const modes = Decker.meta.index?.links || [];
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    modalMessage.innerText =
+      navigator.language === "de"
+        ? `Präsentation ${link.textContent} aufrufen?`
+        : `Visit Slide Deck ${link.textContent}?`;
+    // remove previous elements in the link group
+    while (modalLinkGroup.firstElementChild) {
+      modalLinkGroup.firstElementChild.remove();
+    }
+    const normalLink = document.createElement("a");
+    normalLink.href = link.href;
+    modalLinkGroup.appendChild(normalLink);
+    const normalIcon = document.createElement("i");
+    normalIcon.className = "fas fa-chalkboard";
+    normalLink.appendChild(normalIcon);
+    const normalLabel = document.createElement("span");
+    normalLink.appendChild(normalLabel);
+    normalLabel.innerText = "Präsentation";
+    normalLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? "Präsentation aufrufen"
+        : "Access presentation"
+    );
+    normalLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? "Präsentation aufrufen"
+        : "Access presentation"
+    );
+    if (modes.includes("a11y")) {
+      const a11yLink = document.createElement("a");
+      const a11yIcon = document.createElement("i");
+      const a11yLabel = document.createElement("span");
+      a11yLink.appendChild(a11yIcon);
+      a11yLink.appendChild(a11yLabel);
+      a11yLink.href = link.href + "?a11y";
+      a11yIcon.className = "fas fa-universal-access";
+      a11yLink.setAttribute(
         "title",
         navigator.language === "de"
-          ? "Präsentation aufrufen"
-          : "Access presentation"
+          ? "In barrierearmer Darstellung öffnen"
+          : "Access in accessibility mode"
       );
-      normalLink.setAttribute(
+      a11yLink.setAttribute(
         "aria-label",
         navigator.language === "de"
-          ? "Präsentation aufrufen"
-          : "Access presentation"
+          ? "In barrierearmer Darstellung öffnen"
+          : "Access in accessibility mode"
       );
-      if (modes.includes("a11y")) {
-        const a11yLink = document.createElement("a");
-        const a11yIcon = document.createElement("i");
-        const a11yLabel = document.createElement("span");
-        a11yLink.appendChild(a11yIcon);
-        a11yLink.appendChild(a11yLabel);
-        a11yLink.href = link.href + "?a11y";
-        a11yIcon.className = "fas fa-universal-access";
-        a11yLink.setAttribute(
-          "title",
-          navigator.language === "de"
-            ? "In barrierearmer Darstellung öffnen"
-            : "Access in accessibility mode"
-        );
-        a11yLink.setAttribute(
-          "aria-label",
-          navigator.language === "de"
-            ? "In barrierearmer Darstellung öffnen"
-            : "Access in accessibility mode"
-        );
-        a11yLabel.innerText =
-          navigator.language === "de" ? "Barrierearm" : "Accessible";
-        linkGroup.appendChild(a11yLink);
-      }
+      a11yLabel.innerText =
+        navigator.language === "de" ? "Barrierearm" : "Accessible";
+      modalLinkGroup.appendChild(a11yLink);
+    }
 
-      if (modes.includes("handout")) {
-        const handoutLink = document.createElement("a");
-        const handoutIcon = document.createElement("i");
-        const handoutLabel = document.createElement("span");
-        handoutLink.appendChild(handoutIcon);
-        handoutLink.appendChild(handoutLabel);
-        handoutIcon.className = "handout-link";
-        handoutLink.href = link.href + "?handout";
-        handoutLink.setAttribute(
-          "title",
-          navigator.language === "de"
-            ? "In Handout-Darstellung öffnen"
-            : "Access in handout mode"
-        );
-        handoutLink.setAttribute(
-          "aria-label",
-          navigator.language === "de"
-            ? "In Handout-Darstellung öffnen"
-            : "Access in handout mode"
-        );
-        handoutLabel.innerText =
-          navigator.language === "de" ? "Handout" : "Handout";
-        linkGroup.appendChild(handoutLink);
-      }
+    if (modes.includes("handout")) {
+      const handoutLink = document.createElement("a");
+      const handoutIcon = document.createElement("i");
+      const handoutLabel = document.createElement("span");
+      handoutLink.appendChild(handoutIcon);
+      handoutLink.appendChild(handoutLabel);
+      handoutIcon.className = "handout-link";
+      handoutLink.href = link.href + "?handout";
+      handoutLink.setAttribute(
+        "title",
+        navigator.language === "de"
+          ? "In Handout-Darstellung öffnen"
+          : "Access in handout mode"
+      );
+      handoutLink.setAttribute(
+        "aria-label",
+        navigator.language === "de"
+          ? "In Handout-Darstellung öffnen"
+          : "Access in handout mode"
+      );
+      handoutLabel.innerText =
+        navigator.language === "de" ? "Handout" : "Handout";
+      modalLinkGroup.appendChild(handoutLink);
+    }
 
-      if (modes.includes("presenter")) {
-        const presenterLink = document.createElement("a");
-        const presenterIcon = document.createElement("i");
-        const presenterLabel = document.createElement("span");
-        presenterLink.appendChild(presenterIcon);
-        presenterLink.appendChild(presenterLabel);
-        presenterLink.href = link.href + "?a11y";
-        presenterIcon.className = "fas fa-chalkboard-teacher";
-        presenterLink.setAttribute(
-          "title",
-          navigator.language === "de"
-            ? "Im Präsentationsmodus öffnen"
-            : "Access in presenter mode"
-        );
-        presenterLink.setAttribute(
-          "aria-label",
-          navigator.language === "de"
-            ? "Im Präsentationsmodus öffnen"
-            : "Access in presenter mode"
-        );
-        presenterLabel.innerText =
-          navigator.language === "de"
-            ? "Präsentationsdarstellung"
-            : "Presenter Display";
-        linkGroup.appendChild(presenterLink);
-      }
-      modal.showModal();
-    });
-  }
+    if (modes.includes("presenter")) {
+      const presenterLink = document.createElement("a");
+      const presenterIcon = document.createElement("i");
+      const presenterLabel = document.createElement("span");
+      presenterLink.appendChild(presenterIcon);
+      presenterLink.appendChild(presenterLabel);
+      presenterLink.href = link.href + "?a11y";
+      presenterIcon.className = "fas fa-chalkboard-teacher";
+      presenterLink.setAttribute(
+        "title",
+        navigator.language === "de"
+          ? "Im Präsentationsmodus öffnen"
+          : "Access in presenter mode"
+      );
+      presenterLink.setAttribute(
+        "aria-label",
+        navigator.language === "de"
+          ? "Im Präsentationsmodus öffnen"
+          : "Access in presenter mode"
+      );
+      presenterLabel.innerText =
+        navigator.language === "de"
+          ? "Präsentationsdarstellung"
+          : "Presenter Display";
+      modalLinkGroup.appendChild(presenterLink);
+    }
+    modalDialog.showModal();
+  });
 }
 
 /* Index Pages should be small enough that loading all sources at once
