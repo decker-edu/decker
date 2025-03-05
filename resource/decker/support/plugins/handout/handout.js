@@ -197,10 +197,6 @@ function activateHandoutMode() {
           if (comments.length > 0) {
             const container = document.createElement("div");
             container.className = "handout-feedback-container";
-            //            slide.parentElement.insertBefore(
-            //              container,
-            //              slide.nextElementSibling
-            //            );
             slide.appendChild(container);
             const heading = document.createElement("h4");
             heading.innerText = localization.comment_header;
@@ -616,13 +612,10 @@ function makeWhiteboardVisible(svg) {
 function toggleHandoutMode() {
   if (!handoutSlideMode) {
     activateHandoutMode();
+    Decker.flash.message(localization.handout_mode_off);
   } else {
     disassembleHandoutMode();
-  }
-  if (handoutSlideMode) {
     Decker.flash.message(localization.handout_mode_on);
-  } else {
-    Decker.flash.message(localization.handout_mode_off);
   }
 }
 
