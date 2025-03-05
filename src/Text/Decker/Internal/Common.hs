@@ -71,7 +71,6 @@ pandocWriterOpts =
   def
     { writerExtensions =
         disableExtension Ext_implicit_figures
-          $ disableExtension Ext_auto_identifiers
           $ enableExtension Ext_emoji pandocExtensions,
       writerSectionDivs = False,
       writerReferenceLocation = EndOfBlock
@@ -83,7 +82,6 @@ pandocReaderOpts =
   def
     { readerExtensions =
         disableExtension Ext_implicit_figures
-          $ disableExtension Ext_auto_identifiers
           $ enableExtension Ext_emoji pandocExtensions,
       readerColumns = 999
     }
@@ -118,8 +116,6 @@ deckerMetaFile = "decker.yaml"
 targetsFile = (</> "targets.yaml") <$> transientDir
 
 metaArgsFile = (</> "meta-args.yaml") <$> transientDir
-
-externalStatusFile = (</> "external-programs.json") <$> transientDir
 
 indexSource = "index.md"
 

@@ -130,11 +130,19 @@ dictionary:
       qmi-drop-hint: "…and put them here into the correct category."
       ic-placeholder: "Select option…"
 
-# 'decker publish' config:
+test: # TODO: @mono this should probably go somewhere else, maybe add a test.yaml that only gets included if run via 'stack run -- --server' locally
+  only-default: "From default.yaml"
+  default-decker: "From default.yaml"
+  default-decker-deck: "From default.yaml"
+  merge-list:
+    - "This line is from default.yaml"
+  some-value: "This line is from default.yaml"
 
-publish:
+# external tools
+external-tools:
   rsync:
-    options: # old default publish.rsync.options: ('--chmod=go-w' breaks things in managed systems)
+    command: rsync
+    arguments:
       - "--recursive"
       - "--copy-links"
       - "--delete"
@@ -143,11 +151,184 @@ publish:
       - "--chmod=a+r,go-w"
       - "--no-owner"
       - "--copy-links"
-
-test: # TODO: @mono this should probably go somewhere else, maybe add a test.yaml that only gets included if run via 'stack run -- --server' locally
-  only-default: "From default.yaml"
-  default-decker: "From default.yaml"
-  default-decker-deck: "From default.yaml"
-  merge-list:
-    - "This line is from default.yaml"
-  some-value: "This line is from default.yaml"
+      - "${input}"
+      - "${output}"
+    help: ""
+  gnuplot:
+    command: "gnuplot"
+    arguments:
+      - "-d"
+      - "-e"
+      - "set terminal svg"
+      - "-e"
+      - "set output '${output}'"
+      - "${input}"
+    help: ""
+  plantuml:
+    pipe: true
+    command: "plantuml"
+    arguments:
+      - "-tsvg"
+      - "-pipe"
+      # - "${input}"
+    help: ""
+  chrome:
+    linux:
+      command: "chrome"
+      arguments:
+        - "--headless"
+        - "--virtual-time-budget=5555"
+        - "--no-pdf-header-footer"
+        - "--print-to-pdf=${output}"
+        - "${input}?print-pdf#/"
+      help: ""
+    macos:
+      command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      arguments:
+        - "--headless"
+        - "--virtual-time-budget=5555"
+        - "--no-pdf-header-footer"
+        - "--print-to-pdf=${output}"
+        - "${input}?print-pdf#/"
+      help: ""
+  mermaid:
+    macos:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+    windows:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+    linux:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+  dot:
+    command: dot
+    arguments:
+      - "-Tsvg"
+      - "-o${output}"
+      - "${input}"
+    help: https://graphviz.org/
+  pdf2svg:
+    command: pdf2svg
+    arguments:
+      - "${input}"
+      - "${output}"
+    help: https://github.com/dawbarton/pdf2svg
+  pdflatex:
+    command: pdflatex
+    arguments:
+      - "-halt-on-error"
+      - "-interaction=batchmode"
+      - "-no-shell-escape"
+      - "-output-directory"
+      - "${output}"
+      - "${input}"
+    help: https://en.wikipedia.org/wiki/PdfTeX
+  mp4towav:
+    command: ffmpeg
+    arguments:
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-acodec"
+      - "pcm_s16le"
+      - "-ac"
+      - "1"
+      - "-ar"
+      - "16000"
+      - "-af"
+      - "speechnorm"
+      - "${output}"
+    help: ""
+  whisper:
+    command: "whisper-cli"
+    arguments:
+      - "--file"
+      - "${input}"
+      - "-m"
+      - "/opt/whisper/ggml-large-v3.bin"
+      - "-bs"
+      - "5"
+      - "-mc"
+      - "0"
+      - "--output-vtt" 
+      - "--output-file"
+      - "${output}"
+    help: ""
+  tomp4-copy:
+    command: "ffmpeg"
+    arguments:
+      - "-nostdin"
+      - "-v"
+      - "fatal"
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-vcodec"
+      - "copy"
+      - "-acodec"
+      - "aac"
+      - "${output}"
+  tomp4-transcode:
+    command: "ffmpeg"
+    arguments:
+      - "-nostdin"
+      - "-v"
+      - "fatal"
+      - "-y"
+      - "-i"
+      - "${input}"
+      - "-pix_fmt"
+      - "yuv420p"
+      - "-crf"
+      - "27"
+      - "-preset"
+      - "slow"
+      - "-tune"
+      - "stillimage"
+      - "-ac"
+      - "1"
+      - "-movflags"
+      - "+faststart"
+      - "-vcodec"
+      - "libx264"
+      - "-af"
+      - "speechnorm"
+      - "-r"
+      - "30"
+      - "-metadata"
+      - "comment=decker-crunched"
+      - "${output}"
+  tomp4-concat:
+    command: "ffmpeg"
+    arguments:
+      - "-nostdin"
+      - "-v"
+      - "fatal"
+      - "-y"
+      - "-f"
+      - "concat"
+      - "-safe"
+      - "0"
+      - "-i"
+      - "${input}"
+      - "-vcodec"
+      - "copy"
+      - "-acodec"
+      - "aac"
+      - "${output}"

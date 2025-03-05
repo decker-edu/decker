@@ -213,9 +213,22 @@ function prev() {
   jumpToTime(currentVideoSlideIndex() - 1);
 }
 
+// store player volume in local storage
+function storePlayerVolume() {
+  if (player) {
+    // get current volume
+    let vol = player.volume();
+    // round to two digits
+    vol = Math.round(vol * 100) / 100;
+    // save in local storage
+    localStorage.setItem(player.storage, vol);
+  }
+}
+
 // Stops the video and navigates Reveal to the current slide.
 function stop() {
   player.pause();
+  storePlayerVolume();
   goToSlide(currentVideoSlideIndex());
   return true;
 }
@@ -1067,6 +1080,11 @@ function createPlayerGUI() {
     },
     3
   );
+
+  // restore previous volume from localStorage
+  player.storage = "decker-explain-volume";
+  const storedVolume = localStorage.getItem(player.storage);
+  if (storedVolume) player.volume(storedVolume);
 }
 
 function toggleRecordPanel() {
@@ -1781,6 +1799,9 @@ function setupCallbacks() {
     { keyCode: 86, key: "V", description: "Toggle Camera" },
     toggleCamera
   );
+
+  // Store video player volume on page leave
+  window.addEventListener("beforeunload", storePlayerVolume);
 
   // Intercept page leave when we are recording
   window.addEventListener("beforeunload", (evt) => {

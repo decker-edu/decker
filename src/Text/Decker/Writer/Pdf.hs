@@ -1,6 +1,5 @@
 module Text.Decker.Writer.Pdf
-  ( launchChrome,
-    markdownToPdfHandout,
+  ( markdownToPdfHandout,
     markdownToPdfPage,
   )
 where
@@ -8,9 +7,6 @@ where
 import Control.Exception
 import Data.ByteString.Lazy qualified as LB
 import Development.Shake
-import System.Decker.OS
-import System.Exit
-import System.Process
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
@@ -20,35 +16,6 @@ import Text.Decker.Resource.Template
 import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
-
-chromeOptions :: FilePath -> FilePath -> IO [String]
-chromeOptions src out = do
-  return
-    [ "--headless",
-      "--virtual-time-budget=5555",
-      "--no-pdf-header-footer",
-      pdfOption out,
-      modifySrc src
-    ]
-  where
-    modifySrc path = path ++ "?print-pdf#/"
-    pdfOption path = "--print-to-pdf=" ++ path
-
-launchChrome :: FilePath -> FilePath -> IO (Either String String)
-launchChrome src out = do
-  command <- chrome
-  options <- chromeOptions src out
-  case command of
-    Left msg -> return $ Left msg
-    Right cmd -> do
-      -- putStrLn (cmd <> " " <> unwords options)
-      (exitCode, stdOut, stdErr) <-
-        readProcessWithExitCode cmd options ""
-      return $
-        case exitCode of
-          ExitSuccess -> Right ("Completed: " ++ src ++ " -> " ++ out)
-          ExitFailure code ->
-            Left ("Error " <> show code <> ": " <> stdOut <> "\n" <> stdErr)
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()

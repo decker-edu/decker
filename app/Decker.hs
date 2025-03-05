@@ -28,6 +28,7 @@ import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
+    ( runExternal, runExternalForSVG )
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
@@ -37,9 +38,7 @@ import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
-import Text.Decker.Writer.Pdf
 import Text.Groom
-import Text.Pandoc hiding (lookupMeta)
 
 main :: IO ()
 main = do
@@ -179,16 +178,12 @@ deckerRules = do
       need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-times.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-transcript.json" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
       needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
     publicDir <//> "*-deck.pdf" %> \out -> do
@@ -198,13 +193,12 @@ deckerRules = do
       -- files existence with the Shake function `doesFileExist`.
       exists <- doesFileExist annot
       when exists $ need [annot]
-      let url = serverUrl </> makeRelative publicDir src
       need [src]
+      let url = serverUrl </> makeRelative publicDir src 
       putInfo $ "# chrome started ... (for " <> out <> ")"
-      result <- liftIO $ launchChrome url out
-      case result of
-        Right _ -> putInfo $ "# chrome finished (for " <> out <> ")"
-        Left msg -> error msg
+      meta <- getGlobalMeta
+      liftIO $ runExternal "chrome" url out meta
+      putInfo $ "# chrome finished (for " <> out <> ")"
     --
     publicDir <//> "*-handout.html" %> \out -> do
       src <- lookupSource handouts out <$> getDeps
@@ -236,7 +230,6 @@ deckerRules = do
       deps <- getDeps
       let sources = Map.elems (deps ^. questions)
       need sources
-      -- renderQuestionBrowser meta (deps ^. questions) out
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
@@ -281,40 +274,52 @@ deckerRules = do
       whenM (liftIO $ Dir.doesFileExist src) $ do
         need [src]
         putInfo $ "# sassc (for " <> out <> ")"
-        command [] "sassc" [src, out]
+        -- command [] "sassc" [src, out]
+        meta <- getGlobalMeta
+        liftIO $ runExternalForSVG "sassc" src out meta
     --
     "**/*.plantuml.svg" %> \out -> do
       let src = dropExtension out
       need [src]
       putInfo $ "# plantuml (for " <> out <> ")"
-      plantuml [src] (Just $ src -<.> "svg")
-      liftIO $ Dir.renameFile (src -<.> "svg") out
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "plantuml" src out meta
+      -- liftIO $ Dir.renameFile (src -<.> "svg") out
     --
     "**/*.mmd.svg" %> \out -> do
       let src = dropExtension out
       need [src]
       putInfo $ "# mermaid (for " <> out <> ")"
-      mermaid ["-i", src, "-o", out] (Just out)
+      -- mermaid ["-i", src, "-o", out] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "mermaid" src out meta
     --
     "**/*.dot.svg" %> \out -> do
       let src = dropExtension out
       need [src]
       putInfo $ "# dot (for " <> out <> ")"
-      dot ["-o" ++ out, src] (Just out)
+      -- dot ["-o" ++ out, src] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "dot" src out meta
     --
     "**/*.gnuplot.svg" %> \out -> do
       let src = dropExtension out
       need [src]
       putInfo $ "# gnuplot (for " <> out <> ")"
-      gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
+      -- gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "gnuplot" src out meta
     --
     "**/*.tex.svg" %> \out -> do
       let src = dropExtension out
       let pdf = src -<.> ".pdf"
       let dir = takeDirectory src
       need [src]
-      pdflatex ["-output-directory", dir, src] Nothing
-      pdf2svg [pdf, out] (Just out)
+      -- pdflatex ["-output-directory", dir, src] Nothing
+      -- pdf2svg [pdf, out] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternal "pdflatex" src dir meta
+      liftIO $ runExternalForSVG "pdf2svg" pdf out meta
       liftIO (Dir.removeFile pdf `catch` (\(SomeException _) -> return ()))
   --
   -- Catch all. Just copy project/* to public/*. This nicely handles ALL
@@ -359,10 +364,6 @@ deckerRules = do
         putStrLn "\ndependencies:\n"
         putStrLn (groom deps)
   --
-  withTargetDocs "Check the existence of usefull external programs" $
-    phony "check" $
-      liftIO forceCheckExternalPrograms
-  --
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
       deps <- getDeps
@@ -374,11 +375,10 @@ deckerRules = do
       meta <- getGlobalMeta
       context <- actionContext
       let flags = context ^. extra
-      -- TODO handle pages as well
-      if LectureFlag `elem` flags
-        then do
-          case lookupMeta "publish.rsync.destination" meta of
-            Just (destination :: String) -> do
+      case lookupMeta "publish.rsync.destination" meta of
+        Just (destination :: String) -> do
+          if LectureFlag `elem` flags
+            then do
               -- clean out the public dir
               liftIO $ runClean False
               -- includes index and static resources
@@ -394,25 +394,14 @@ deckerRules = do
               -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
               createPublicManifest
               let src = publicDir ++ "/"
-              publishWithRsync src destination meta
-            _ -> putError "publish.rsync.destination not configured"
-        else do
-          need ["support"]
-          getDeps >>= needTargets' [decks, pages]
-          createPublicManifest
-          let src = publicDir ++ "/"
-          case lookupMeta "publish.rsync.destination" meta of
-            Just destination -> publishWithRsync src destination meta
-            _ -> do
-              let host = lookupMetaOrFail "rsync-destination.host" meta
-              let path = lookupMetaOrFail "rsync-destination.path" meta
-              let dst = intercalate ":" [host, path]
-              ssh [host, "mkdir -p", path] Nothing
-              rsync [src, dst] Nothing
-
-renderQuestionBrowser :: Meta -> Dependencies -> FilePath -> Action ()
-renderQuestionBrowser meta questDeps out = do
-  return ()
+              liftIO $ runExternal "rsync" src destination meta
+            else do
+              need ["support"]
+              getDeps >>= needTargets' [decks, pages]
+              createPublicManifest
+              let src = publicDir ++ "/"
+              liftIO $ runExternal "rsync" src destination meta
+        Nothing -> putError "publish.rsync.destination not configured"
 
 createPublicManifest :: Action ()
 createPublicManifest = do
@@ -436,11 +425,6 @@ createPublicManifest = do
 --   annotSrc <- calcSource' annotDst
 --   exists <- liftIO $ Dir.doesFileExist annotSrc
 --   when exists $ need [annotDst]
-
-publishWithRsync :: String -> String -> Meta -> Action ()
-publishWithRsync source destination meta = do
-  let options = lookupMetaOrElse [] "publish.rsync.options" meta :: [String]
-  rsync (options <> [source, destination]) Nothing
 
 waitForYes :: IO ()
 waitForYes = do

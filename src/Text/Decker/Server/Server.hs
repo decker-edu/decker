@@ -38,6 +38,7 @@ import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Printf
 import Web.Scotty.Trans as Scotty
+import Text.Decker.Internal.Helper (uniqueTransientFileName)
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =

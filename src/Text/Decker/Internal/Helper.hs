@@ -4,7 +4,7 @@ module Text.Decker.Internal.Helper where
 
 -- import Codec.FFmpeg
 import Codec.Picture
-import Control.Lens
+import Control.Lens ((^?))
 import Control.Monad.Catch
 import Control.Monad.State
 import Data.Aeson.Lens
@@ -24,20 +24,22 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
+import Text.Decker.Internal.Common (transientDir)
+import Text.Decker.Filter.Util (randomId)
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
 
 -- | Monadic version of list concatenation.
-(<++>) :: Monad m => m [a] -> m [a] -> m [a]
+(<++>) :: (Monad m) => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
 
-repeatIfTrue :: Monad m => m Bool -> m ()
+repeatIfTrue :: (Monad m) => m Bool -> m ()
 repeatIfTrue action = do
   again <- action
   when again $ repeatIfTrue action
 
-whenTrue :: Monad m => m Bool -> m () -> m ()
+whenTrue :: (Monad m) => m Bool -> m () -> m ()
 whenTrue bool action = do
   true <- bool
   when true action
@@ -50,7 +52,7 @@ replaceSuffix :: String -> String -> String -> String
 replaceSuffix srcSuffix targetSuffix filename =
   dropSuffix srcSuffix filename ++ targetSuffix
 
-unique :: Ord a => [a] -> [a]
+unique :: (Ord a) => [a] -> [a]
 unique = Set.toList . Set.fromList
 
 time :: String -> IO a -> IO a
@@ -69,8 +71,8 @@ removeFile_ x = removeFile x `catch` \(SomeException e) -> return ()
 -- | Copy a directory and its contents recursively
 copyDir :: FilePath -> FilePath -> IO ()
 copyDir src dst = do
-  unlessM (Dir.doesDirectoryExist src) $
-    throwM (ResourceException "src does not exist or is not a directory")
+  unlessM (Dir.doesDirectoryExist src)
+    $ throwM (ResourceException "src does not exist or is not a directory")
   dstExists <- Dir.doesDirectoryExist dst
   if dstExists && (List.last (splitPath src) /= List.last (splitPath dst))
     then copyDir src (dst </> List.last (splitPath src))
@@ -112,7 +114,7 @@ fileIsNewer a b = do
         else return False
     else return aexists
 
-handleLeft :: ToText a => Either a b -> b
+handleLeft :: (ToText a) => Either a b -> b
 handleLeft (Right x) = x
 handleLeft (Left e) = error $ toText e
 
@@ -133,8 +135,8 @@ isDevelopmentRun = do
 warnVersion :: IO ()
 warnVersion = do
   devRun <- isDevelopmentRun
-  when (isDevelopmentVersion && not devRun) $
-    printf
+  when (isDevelopmentVersion && not devRun)
+    $ printf
       "\nWARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s, build date: %s). Please be sure that you know what you're doing.\n"
       deckerVersion
       deckerGitBranch
@@ -171,7 +173,7 @@ removeCommonPrefix =
 isPrefix :: FilePath -> FilePath -> Bool
 isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
   where
-    isPrefix_ :: Eq a => [a] -> [a] -> Bool
+    isPrefix_ :: (Eq a) => [a] -> [a] -> Bool
     isPrefix_ (a : as) (b : bs)
       | a == b = isPrefix_ as bs
       | otherwise = False
@@ -233,3 +235,20 @@ videoSize path =
 --     Nothing -> do
 --       cleanup
 --       return Nothing
+
+safeRenameFile :: FilePath -> FilePath -> IO ()
+safeRenameFile tmp dst = do
+  copyFileWithMetadata tmp dst
+  removeFile tmp
+
+-- Unique transient tmp filename
+uniqueTransientFileName :: FilePath -> IO FilePath
+uniqueTransientFileName base = do
+  transient <- transientDir
+  id <- toString <$> randomId
+  return
+    $ transient
+    </> dropExtension (takeFileName base)
+      <> "-"
+      <> id
+      <.> takeExtension base

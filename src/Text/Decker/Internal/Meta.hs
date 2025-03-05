@@ -10,7 +10,6 @@ module Text.Decker.Internal.Meta
     adjustMetaStringsBelowM,
     adjustMetaValue,
     adjustMetaValueM,
-    embedMetaMeta,
     fromPandocMeta,
     isMetaSet,
     lookupInDictionary,
@@ -35,7 +34,7 @@ where
 
 import Control.Exception
 import Data.Aeson qualified as A
-import Data.Aeson.Encode.Pretty qualified as A
+-- import Data.Aeson.Encode.Pretty qualified as A
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.List qualified as List
@@ -453,7 +452,3 @@ writeMetaDataFile :: FilePath -> Meta -> IO ()
 writeMetaDataFile file meta = do
   writeFileChanged file $ decodeUtf8 $ Y.encode (fromPandocMeta meta)
 
-embedMetaMeta :: Pandoc -> Pandoc
-embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks
-  where
-    metaMeta = addMetaField "decker-meta" (decodeUtf8 $ A.encodePretty $ fromPandocMeta meta :: Text) meta
