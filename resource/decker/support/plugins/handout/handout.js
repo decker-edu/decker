@@ -189,7 +189,6 @@ function activateHandoutMode() {
   if (Reveal.hasPlugin("feedback")) {
     const feedback = Reveal.getPlugin("feedback");
     const engine = feedback.getEngine();
-    console.log(engine);
     for (const slide of allSlides) {
       engine.api
         .getComments(engine.deckId, slide.id, null)
@@ -354,10 +353,10 @@ function storeIndices(slideElementList) {
 function updateCurrentSlide(event) {
   if (!handoutSlideMode) return;
 
-  const containerRect = handoutContainer.getBoundingClientRect();
+  const containerRect = document.body.getBoundingClientRect();
   const containerCenter = (containerRect.bottom + containerRect.top) / 2;
 
-  let minDist = 9999;
+  let minDist = Number.MAX_VALUE;
   let minSlide = undefined;
   for (const slide of visibleSlides) {
     const slideRect = slide.getBoundingClientRect();
@@ -370,12 +369,16 @@ function updateCurrentSlide(event) {
   }
 
   // If the current slide changed
-  if (centralSlide !== minSlide) {
+  if (minSlide && centralSlide !== minSlide) {
     // DEBUG: visualize central slide
     // if (centralSlide) centralSlide.classList.remove("current");
     // minSlide.classList.add("current");
 
     centralSlide = minSlide;
+
+    // update url when scrolling
+    const url = location.href.replace(/#\/.*/g, `#/${centralSlide.id}`);
+    history.replaceState({}, "", url);
 
     // Inform menu plugin (highlight current slide)
     const menu = Reveal.getPlugin("decker-menu");
@@ -385,7 +388,7 @@ function updateCurrentSlide(event) {
 
     // Inform decker plugin (index page)
     const decker = Reveal.getPlugin("decker");
-    if (decker && centralSlide.dataset.hIndex) {
+    if (decker && centralSlide && centralSlide.dataset.hIndex) {
       decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
       decker.updatePercentage(Number(centralSlide.dataset.hIndex));
     }
@@ -414,8 +417,8 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
 
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
-    root: handoutContainer,
-    threshold: [0],
+    root: document.body,
+    threshold: [0, 0.5],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
@@ -515,8 +518,9 @@ function updateScaling() {
     handoutSlides.style.left = null;
     handoutSlides.style.translate = null;
   }
-  if (centralSlide)
+  if (centralSlide) {
     centralSlide.scrollIntoView({ behavior: "instant", block: "center" });
+  }
 }
 
 /* return slide scaling factor */
@@ -612,10 +616,10 @@ function makeWhiteboardVisible(svg) {
 function toggleHandoutMode() {
   if (!handoutSlideMode) {
     activateHandoutMode();
-    Decker.flash.message(localization.handout_mode_off);
+    Decker.flash.message(localization.handout_mode_on);
   } else {
     disassembleHandoutMode();
-    Decker.flash.message(localization.handout_mode_on);
+    Decker.flash.message(localization.handout_mode_off);
   }
 }
 
