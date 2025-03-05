@@ -27,16 +27,25 @@ const Plugin = () => {
     searchElement.style.background = "white";
     searchElement.style.fontSize = "var(--icon-size)";
     searchElement.style.color = "var(--icon-active-color)";
+    searchElement.style.display = "flex";
+    searchElement.style.flexDirection = "column";
 
     // MARIO: adjust border color and search icon (requires font-awesome)
-    searchElement.innerHTML =
-      '<span style="display:flex; align-items:center;"><i class="fa-button fas fa-search" style="padding-right: 10px;"></i><input type="search" id="searchinput" placeholder="Search..."></span>';
+    searchElement.innerHTML = `<div id="searchrow" style="display:flex; align-items:center;">
+  <i class="fa-button fas fa-search" style="padding-right: 10px;"></i>
+  <input type="search" id="searchinput" placeholder="Search...">
+  <span id="searchamount" aria-live="polite">0 / 0</span>
+  </div>
+  <div id="resultrow">
+    <span id="resulttext"></span>
+  </div>`;
 
     // MARIO: override some styling
     searchInput = searchElement.querySelector("#searchinput");
     searchInput.style.fontSize = "1.2rem";
     searchInput.style.width = "10em";
     searchInput.style.padding = "4px 6px";
+    searchInput.style.marginRight = "12px";
     searchInput.style.color = "#000";
     searchInput.style.background = "#fff";
     searchInput.style.borderRadius = "2px";
@@ -78,7 +87,7 @@ const Plugin = () => {
   function openSearch() {
     if (!searchElement) render();
 
-    searchElement.style.display = "inline";
+    searchElement.style.display = "flex";
     searchInput.focus();
     searchInput.select();
   }
@@ -93,7 +102,7 @@ const Plugin = () => {
   function toggleSearch() {
     if (!searchElement) render();
 
-    if (searchElement.style.display !== "inline") {
+    if (searchElement.style.display !== "flex") {
       openSearch();
     } else {
       closeSearch();
@@ -110,7 +119,7 @@ const Plugin = () => {
         matchedSlides = null;
       } else {
         //find the keyword amongst the slides
-        hilitor = new Hilitor("slidecontent");
+        hilitor = new Hilitor(".slides");
         matchedSlides = hilitor.apply(searchstring);
         currentMatchedIndex = 0;
       }
@@ -122,20 +131,40 @@ const Plugin = () => {
         currentMatchedIndex = 0;
       }
       if (matchedSlides.length > currentMatchedIndex) {
+        console.log(matchedSlides[currentMatchedIndex]);
         deck.slide(
           matchedSlides[currentMatchedIndex].h,
           matchedSlides[currentMatchedIndex].v
         );
+        const amountSpan = searchElement.querySelector("#searchamount");
+        amountSpan.innerText = `${currentMatchedIndex + 1} / ${
+          matchedSlides.length
+        }`;
         currentMatchedIndex++;
       }
+      const nextIndex =
+        currentMatchedIndex >= matchedSlides.length ? 0 : currentMatchedIndex;
+      const nextSlide = deck.getSlide(
+        matchedSlides[nextIndex].h,
+        matchedSlides[nextIndex].v
+      );
+      const nextHeader = nextSlide.querySelector("h1");
+      if (nextHeader) {
+        const resultSpan = searchElement.querySelector("#resulttext");
+        resultSpan.innerText = `Next: ${nextHeader.textContent}`;
+      }
+    } else {
+      const amountSpan = searchElement.querySelector("#searchamount");
+      amountSpan.innerText = `0 / 0`;
     }
   }
 
   // Original JavaScript code by Chirp Internet: www.chirp.com.au
   // Please acknowledge use of this code by including this header.
   // 2/2013 jon: modified regex to display any match, not restricted to word boundaries.
-  function Hilitor(id, tag) {
-    var targetNode = document.getElementById(id) || document.body;
+  function Hilitor(selector, tag) {
+    var targetNode = document.querySelector(selector) || document.body;
+    console.log(targetNode);
     var hiliteTag = tag || "EM";
     var skipTags = new RegExp("^(?:" + hiliteTag + "|SCRIPT|FORM)$");
     var colors = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
@@ -170,6 +199,7 @@ const Plugin = () => {
         // NODE_TEXT
         var nv, regs;
         if ((nv = node.nodeValue) && (regs = matchRegex.exec(nv))) {
+          console.log(node);
           //find the slide's section element and save it in our list of matching slides
           var secnode = node;
           while (secnode != null && secnode.nodeName != "SECTION") {
