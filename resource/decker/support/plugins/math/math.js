@@ -71,12 +71,18 @@ function adjustLinksItem(item, doc) {
           if (eqn) {
             const s = eqn.closest("section");
             if (s) {
+              anchor.setAttribute("target", "_self");
               anchor.href.baseVal =
                 location.origin +
                 location.pathname +
                 location.search +
                 "#" +
                 s.id;
+              // Workaround because clicking the link is not doing anything
+              anchor.addEventListener("click", (event) => {
+                const indices = Reveal.getIndices(s);
+                Reveal.slide(indices.h, indices.v);
+              });
             }
           }
         }
@@ -242,12 +248,18 @@ const Plugin = {
 
     /* Return a promise to reveal to make it wait until startup.promise resolves. */
     return new Promise((resolve) => {
+      performance.mark("startPromise");
       loadScript(url, () => {
         window.MathJax.startup.promise.then(() => {
+          performance.mark("endPromise");
+          console.log(
+            "MJX PERF: ",
+            performance.measure("mjx performance", "startPromise", "endPromise")
+              .duration
+          );
           Reveal.layout();
           resolve();
         });
-        window.MathJax.startup.defaultReady();
       });
     });
   },
