@@ -103,7 +103,7 @@ function incrementalItem(item, mdoc) {
         mrow.classList.add("visible");
       }
     }
-    for (let mrow of document.querySelectorAll(
+    for (let mrow of root.querySelectorAll(
       'g[data-mml-node="mtable"]:first-of-type g[data-mml-node="mlabeledtr"]'
     )) {
       mrow.classList.add("fragment");
@@ -184,21 +184,6 @@ const Plugin = {
 
     /* MathJax configuration object */
     window.MathJax = {
-      startup: {
-        ready: () => {
-          /* Workaround to allow loading of a11y features past initial load
-           * Necessary due do a bug in 3.2.2 throwing a Mathjax.retry error. */
-          const { mathjax } = window.MathJax._.mathjax;
-          const { STATE } = window.MathJax._.core.MathItem;
-          const { Menu } = window.MathJax._.ui.menu.Menu;
-          const rerender = Menu.prototype.rerender;
-          Menu.prototype.rerender = function (start = STATE.TYPESET) {
-            mathjax.handleRetriesFor(() => {
-              rerender.call(this, start);
-            });
-          };
-        },
-      },
       svg: {
         scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
@@ -237,10 +222,10 @@ const Plugin = {
         sre: {
           locale: language === "de" ? "de" : "en",
         },
-        enableMenu: a11y,
+        enableMenu: true,
         menuOptions: {
           settings: {
-            explorer: a11y, //if in a11y page mode: active by default
+            explorer: true, //if in a11y page mode: active by default
             inTabOrder: true,
           },
         },
