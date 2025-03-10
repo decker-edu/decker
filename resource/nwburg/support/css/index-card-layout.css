@@ -29,26 +29,25 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #ffffff;
 } */
 
+
 .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Dynamic column layout */
-    /* gap: 20px; Space between cards */
-    padding: 20px; /* Padding around the grid */
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    padding: 20px;
     justify-content: center;
     align-items: start;
-    width: 100%; /* Ensure grid spans full width */
-    /* max-width: 1200px; Optional: Limit grid width on larger screens */
-    margin: 0 auto; /* Center align the grid */
-    background-color: #f4f7f7;
+    width: 100%;
+    margin: 0 auto;
+    /* background-color: #f4f7f7; */
 }
-
 
 .card-grid .grid-item {
     width: 100%;
-    height: auto;
+    height: auto; 
     /* border: 1px solid #ddd; */
-    overflow: hidden;
-    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    /* overflow: hidden; */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
    /*  transition: transform 0.1s ease, box-shadow 0.1s ease;*/
 }
 
@@ -67,11 +66,10 @@ h1, h2, h3, h4, h5, h6 {
    cursor: pointer;
 }
 
-.card .description-container .card-title {
+a.card-title {
     color: #004a8f;
     font-weight: 700;
     margin-bottom: 5px;
-    margin:10px;
 }
 
 
@@ -178,13 +176,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .chapter-separator {
-    grid-column: 1 / -1; /* Span the entire width of the grid */
-   /* background-color: #f0f0f0;*/
+    grid-column: 1 / -1; /*Span the entire width of the grid */
     padding: 0 20px;
-    margin: 10px 0 0 0;
-   /*text-align: center;*/
-   /* border: 1px solid #ddd;*/
-   /* border-radius: 8px;*/
+    margin: 30px 0px 15px;
     font-size: 1.2em;
     font-weight: bold;
     color: #333;
@@ -205,6 +199,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.9em;
     color: #555;
 }
+
 
 
 .file-links {

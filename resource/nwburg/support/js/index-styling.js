@@ -103,6 +103,13 @@ async function populateCards(chaptersPromise) {
         cardGrid.appendChild(separator);
 
         // Render cards for the materials in the chapter sequentially
+
+        const cardsContainer = document.createElement('div');
+        cardsContainer.classList.add('cards-container'); 
+
+        const cardsParentContainer = document.createElement('div');
+        cardsParentContainer.classList.add('cards-parent-container'); 
+
         for (let materialIndex = 0; materialIndex < chapter.materials.length; materialIndex++) {
             const material = chapter.materials[materialIndex];
 
@@ -137,20 +144,18 @@ async function populateCards(chaptersPromise) {
 
                 card.innerHTML = `
                         <div class="card">
-                        <div class="image-container">
+                            <div class="image-container">
                                 <img src="${material.teaserImage || 'preview-image.webp'}">
                             </div>
                             <div class="description-container">
                                 <a class="card-title">${material.title}</a>
                                 <p>${material.description || 'No description available'}</p>
-                                <div class="keywords">${keywordsHTML}</div>
                             </div>
                             <div class="card-footer-container">
                                 <p class="card-date">${chapter.date}</p>
                                 <p class="card-more-btn"> ${'More'}</p>
                             </div>
-                        </div>`
-                        ;
+                        </div>`;
 
                 // Add identifier based on the URLs of the material files to be used for filtering
                 if (material.files) {
@@ -160,12 +165,16 @@ async function populateCards(chaptersPromise) {
 
                 }
 
-                cardGrid.appendChild(card);
+                cardsContainer.appendChild(card);
+                // cardsParentContainer.appendChild(cardsContainer);
+                
 
             } catch (error) {
                 console.error("Error fetching metadata:", error);
             }
         }
+
+        cardGrid.appendChild(cardsContainer);
     }
 
     // Update separator visibility based on card visibility
