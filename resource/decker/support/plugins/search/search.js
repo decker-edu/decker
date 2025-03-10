@@ -250,7 +250,11 @@ const Plugin = () => {
         hilitor = new Hilitor(".slides");
         matchedSlides = hilitor.apply(searchstring);
         currentMatchedIndex = -1;
+        console.log(searchstring, hilitor.getRegex(), matchedSlides);
       }
+    }
+    if (matchedSlides && matchedSlides.length === 0) {
+      console.log(hilitor);
     }
     nextResult();
   }
@@ -338,7 +342,9 @@ const Plugin = () => {
       var arr = document.getElementsByTagName(hiliteTag);
       var el;
       while (arr.length && (el = arr[0])) {
-        el.parentNode.replaceChild(el.firstChild, el);
+        const parent = el.parentNode;
+        parent.replaceChild(el.firstChild, el);
+        parent.normalize();
       }
     };
 
