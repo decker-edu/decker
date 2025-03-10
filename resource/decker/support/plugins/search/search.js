@@ -87,11 +87,10 @@ const Plugin = () => {
     searchPrev.style.marginLeft = "1rem";
     searchPrev.style.marginRight = "0.5rem";
     searchPrev.addEventListener("click", () => {
-      if (this.hasAttribute("aria-disabled")) {
+      if (searchPrev.hasAttribute("aria-disabled")) {
         return;
-      } else {
-        previousResult();
       }
+      previousResult();
     });
 
     searchNext = searchElement.querySelector("#searchnext");
@@ -101,11 +100,10 @@ const Plugin = () => {
     searchNext.style.fontSize = "1.2rem";
     searchNext.style.marginLeft = "0.5rem";
     searchNext.addEventListener("click", () => {
-      if (this.hasAttribute("aria-disabled")) {
+      if (searchNext.hasAttribute("aria-disabled")) {
         return;
-      } else {
-        nextResult();
       }
+      nextResult();
     });
 
     searchLabel = searchElement.querySelector("#searchlabel");
