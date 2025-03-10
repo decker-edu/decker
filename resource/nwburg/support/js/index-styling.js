@@ -64,7 +64,7 @@ async function fetchMetadata(url) {
 
     const meta = {};
     meta.description = doc.querySelector('meta[name="description"]')?.content || "";
-    meta.teaserImage = doc.querySelector('meta[name="teaser-image"]')?.content || "default-teaser.png";
+    meta.teaserImage = doc.querySelector('meta[name="teaser-image"]')?.content ;
     meta.author = doc.querySelector('meta[name="author"]')?.content || "Unknown Author";
     meta.date = doc.querySelector('meta[name="dcterms.date"]')?.content || "Unknown Date";
     meta.keywords = (doc.querySelector('meta[name="keywords"]')?.content || "")
