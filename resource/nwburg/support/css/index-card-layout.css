@@ -405,13 +405,13 @@ ul.bannerSlider{
 .lecture-cards-wrapper {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; 
 }
 
 .lecture-card {
     flex: 1 1 calc(33.33% - 20px); /* 3 items per row */
     max-width: calc(33.33% - 20px);
     border-top: 2px solid #004a8f;
+    margin: 0 20px 10px 0;
 }
 
 .lecture-card-box {
@@ -436,14 +436,14 @@ ul.bannerSlider{
     margin-top: 10px;
 }
 .lecture-title {
-    font-size: 1.2rem;
+    font-size: 13px;
     font-weight: bold;
     color: #004a8f;
     text-decoration: none;
     display: block;
 }
 .lecture-description p {
-    font-size: 0.9rem;
+    font-size: 13px;
     color: #555;
 }
 
