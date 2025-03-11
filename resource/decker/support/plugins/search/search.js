@@ -7,6 +7,7 @@
 
 const lang_de = {
   search: "Suche ...",
+  searchinslides: "In den Folien suchen",
   prevResult: "Vorherige Übereinstimmung",
   nextResult: "Nächste Übereinstimmung",
   searchinputfield:
@@ -18,6 +19,7 @@ const lang_de = {
 
 const lang_en = {
   search: "Search ...",
+  searchinslides: "Search in slides",
   prevResult: "Previous Match",
   nextResult: "Next Match",
   searchinputfield: "Search in slides",
@@ -34,6 +36,7 @@ const Plugin = () => {
 
   let searchElement;
   let searchInput;
+  let inputLabel;
   let searchPrev;
   let searchNext;
   let searchLabel;
@@ -57,14 +60,19 @@ const Plugin = () => {
     searchElement.style.flexDirection = "column";
 
     // MARIO: adjust border color and search icon (requires font-awesome)
-    searchElement.innerHTML = `<div id="searchrow" style="display:flex; align-items:center;">
-  <i class="fa-button fas fa-search" style="padding-right: 10px;"></i>
-  <input type="search" id="searchinput" aria-label="${l10n.searchinputfield}" placeholder="${l10n.search}">
-  <span id="searchamount">0 / 0</span>
-  <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
-  <button id="searchprev" class="fas fa-chevron-up" title="${l10n.prevResult}" aria-label="${l10n.prevResult}"></button>
-  <button id="searchnext" class="fas fa-chevron-down" title="${l10n.nextResult}" aria-label="${l10n.nextResult}"></button>
-  </div>`;
+    searchElement.innerHTML = `<div>
+  <div id="labelrow" style="margin-top: none; margin-bottom: 0.5rem; line-height: 0.8rem;">
+    <label id="searchinputlabel" for="searchinput" style="font-size: 1rem;">${l10n.searchinslides}</label>
+  </div>
+  <div role="search" id="searchrow" style="display:flex; align-items:center;">
+    <i class="fa-button fas fa-search" style="padding-right: 10px;"></i>
+    <input type="search" id="searchinput"></input>
+    <span id="searchamount">0 / 0</span>
+    <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
+    <button id="searchprev" class="fas fa-chevron-up" title="${l10n.prevResult}" aria-label="${l10n.prevResult}"></button>
+    <button id="searchnext" class="fas fa-chevron-down" title="${l10n.nextResult}" aria-label="${l10n.nextResult}"></button>
+  </div>
+</div>`;
 
     // MARIO: override some styling
     searchInput = searchElement.querySelector("#searchinput");
@@ -78,6 +86,8 @@ const Plugin = () => {
     searchInput.style.border = "2px solid var(--icon-active-color)";
     searchInput.style.outline = "0";
     searchInput.style["-webkit-appearance"] = "none";
+
+    inputLabel = searchElement.querySelector("#searchinputlabel");
 
     searchPrev = searchElement.querySelector("#searchprev");
     searchPrev.style.border = "none";
@@ -275,13 +285,16 @@ const Plugin = () => {
     this.setRegex = function (input) {
       input = input.replace(/^[^\w]+|[^\w]+$/g, "").replace(/[^\w'-]+/g, "|");
       matchRegex = new RegExp("(" + input + ")", "i");
+      console.log(matchRegex);
     };
 
     this.getRegex = function () {
-      return matchRegex
+      const regex = matchRegex
         .toString()
         .replace(/^\/\\b\(|\)\\b\/i$/g, "")
         .replace(/\|/g, " ");
+      console.log(regex);
+      return regex;
     };
 
     // recursively apply word highlighting
@@ -341,6 +354,7 @@ const Plugin = () => {
     this.remove = function () {
       var arr = document.getElementsByTagName(hiliteTag);
       var el;
+      // destroy hiliteTag span elements and re-merge the text nodes
       while (arr.length && (el = arr[0])) {
         const parent = el.parentNode;
         parent.replaceChild(el.firstChild, el);
