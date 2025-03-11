@@ -84,8 +84,7 @@ a.card-title {
     border-top: 2px solid #004a8f;
     background: #fff;
     padding: 10px;
-    display: flex
-;
+    display: flex;
     flex-direction: column;
 }
 
@@ -395,3 +394,89 @@ ul.bannerSlider{
   .bannerSlider i:hover{
       cursor: pointer;
   } */
+
+  /* Parent container for each lecture */
+.lecture-container {
+    background-color: #f4f7f7;  /* Grey background */
+    padding: 20px;
+    margin-bottom: 20px; /* Spacing between lectures */
+}
+
+.lecture-cards-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; 
+}
+
+.lecture-card {
+    flex: 1 1 calc(33.33% - 20px); /* 3 items per row */
+    max-width: calc(33.33% - 20px);
+    border-top: 2px solid #004a8f;
+}
+
+.lecture-card-box {
+    background: white;
+    padding: 10px;
+}
+
+.lecture-img-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    background-color: #f0f0f0;
+    overflow: hidden;
+}
+
+.lecture-img-container img {
+    width: 100%;
+    height: auto;
+}
+
+.lecture-description {
+    margin-top: 10px;
+}
+.lecture-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #004a8f;
+    text-decoration: none;
+    display: block;
+}
+.lecture-description p {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.lecture-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+.lecture-date {
+    font-size: 0.8rem;
+    color: #666;
+}
+.lecture-more-btn {
+    font-size: 0.9rem;
+    color: #004a8f;
+    cursor: pointer;
+}
+
+.lecture-header {
+    padding: 0 20px;
+    margin: 30px 0px 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    border-left: 15px solid #004a8f;
+}
+
+.lecture-header h2 {
+    color: #004a8f;
+    font-weight: bold;
+    font-size: 2rem;
+    line-height: 2rem;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+ 

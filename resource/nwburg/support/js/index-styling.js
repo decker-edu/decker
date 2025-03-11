@@ -87,99 +87,84 @@ async function populateCards(chaptersPromise) {
     const cardGrid = document.getElementById('tileContainer');
     if (!cardGrid) return;
 
-    cardGrid.innerHTML = ''; // Clear any existing content
+    cardGrid.innerHTML = ''; // Clear existing content
 
     for (let chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
         const chapter = chapters[chapterIndex];
 
         // Create a separator for each chapter
-        const separator = document.createElement('div');
-        separator.classList.add('chapter-separator');
-        separator.dataset.chapterIndex = chapterIndex; // Tag the separator with a chapter index
-        separator.innerHTML = `
-            <h2>${chapter.title}</h2>
-          
-        `;
-        cardGrid.appendChild(separator);
+        const chapterHeader = document.createElement('div');
+        chapterHeader.classList.add('lecture-header');
+        chapterHeader.dataset.chapterIndex = chapterIndex;
+        chapterHeader.innerHTML = `<h2>${chapter.title}</h2>`;
+        cardGrid.appendChild(chapterHeader);
 
-        // Render cards for the materials in the chapter sequentially
+        // Create the parent container for the cards (with grey background)
+        const lectureContainer = document.createElement('div');
+        lectureContainer.classList.add('lecture-container');
 
-        const cardsContainer = document.createElement('div');
-        cardsContainer.classList.add('cards-container'); 
-
-        const cardsParentContainer = document.createElement('div');
-        cardsParentContainer.classList.add('cards-parent-container'); 
+        // Create the container for the cards (to align in rows)
+        const lectureCardsWrapper = document.createElement('div');
+        lectureCardsWrapper.classList.add('lecture-cards-wrapper');
 
         for (let materialIndex = 0; materialIndex < chapter.materials.length; materialIndex++) {
             const material = chapter.materials[materialIndex];
 
-            const card = document.createElement('div');
-            card.classList.add('grid-item');
-            card.dataset.chapterIndex = chapterIndex; // Tag the card with the chapter index
-            card.dataset.materialIndex = materialIndex; // Optional for debugging or additional functionality
-
-            // Create keyword boxes
-            const keywordsHTML = material.keywords.map(keyword => `
-                <span class="keyword-box">${keyword}</span>
-            `).join('');
-
-            // Create file links for the back side of the card
-            const filesHTML = material.files ? material.files.map(file => `
-                <a href="${file.Path}" target="_blank" class="file-link">
-                    <img src="${file.Icon}" alt="${file.Name}" title="${file.Name}" style="width: 24px; height: 24px;">
-                    <span>${file.Name}</span>
-                </a>
-            `).join('') : '';
+            const lectureCard = document.createElement('div');
+            lectureCard.classList.add('lecture-card');
+            lectureCard.dataset.chapterIndex = chapterIndex;
+            lectureCard.dataset.materialIndex = materialIndex;
 
             try {
-                // Fetch the metadata for the first file
+                // Fetch metadata for the first file
                 const meta = await fetchMetadata(material.files[0].Path);
 
-                // Update material object with fetched metadata
+                // Update material object with metadata
                 if (!material.description) material.description = meta.description;
                 if (!material.teaserImage) material.teaserImage = meta.teaserImage;
                 if (!material.author) material.author = meta.author;
                 if (!material.date) material.date = meta.date;
                 if (material.keywords.length === 0) material.keywords = meta.keywords;
 
-                card.innerHTML = `
-                        <div class="card">
-                            <div class="image-container">
-                                <img src="${material.teaserImage || 'preview-image.webp'}">
-                            </div>
-                            <div class="description-container">
-                                <a class="card-title">${material.title}</a>
-                                <p>${material.description || 'No description available'}</p>
-                            </div>
-                            <div class="card-footer-container">
-                                <p class="card-date">${chapter.date}</p>
-                                <p class="card-more-btn"> ${'More'}</p>
-                            </div>
-                        </div>`;
+                // Card HTML structure
+                lectureCard.innerHTML = `
+                    <div class="lecture-card-box">
+                        <div class="lecture-img-container">
+                            <img src="${material.teaserImage || 'preview-image.webp'}">
+                        </div>
+                        <div class="lecture-description">
+                            <a class="lecture-title">${material.title}</a>
+                            <p>${material.description || 'No description available'}</p>
+                        </div>
+                        <div class="lecture-footer">
+                            <p class="lecture-date">${chapter.date}</p>
+                            <p class="lecture-more-btn">More</p>
+                        </div>
+                    </div>`;
 
-                // Add identifier based on the URLs of the material files to be used for filtering
+                // Add identifiers for filtering
                 if (material.files) {
-                    card.dataset.urls = material.files.map(file => file.Path).join(',');
+                    lectureCard.dataset.urls = material.files.map(file => file.Path).join(',');
                 } else {
-                    card.dataset.url = material.file;
-
+                    lectureCard.dataset.url = material.file;
                 }
 
-                cardsContainer.appendChild(card);
-                // cardsParentContainer.appendChild(cardsContainer);
-                
+                lectureCardsWrapper.appendChild(lectureCard);
 
             } catch (error) {
                 console.error("Error fetching metadata:", error);
             }
         }
 
-        cardGrid.appendChild(cardsContainer);
+        // Append containers in correct order
+        lectureContainer.appendChild(lectureCardsWrapper);
+        cardGrid.appendChild(lectureContainer);
     }
 
-    // Update separator visibility based on card visibility
     updateSeparators();
 }
+
+
 
 /**
  * Updates the visibility of chapter separators based on the visibility of their associated cards.
