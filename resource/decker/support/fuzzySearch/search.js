@@ -4,7 +4,9 @@ import FuzzySet from "./fuzzyset.js";
 
 const l10n_de = {
   details_summary: "In den Folien suchen",
-  searchbar_label: "Suchbegriff eingeben",
+  searchbar_label:
+    "Suchbegriff eingeben &mdash; Ergebnisse erscheinen beim Tippen",
+  searchbar_placeholder: "Suchbegriff",
   searchresults: "Suchergebnisse",
   noentry: "Keine Eingabe",
   noresults: "Keine Resultate",
@@ -19,7 +21,8 @@ const l10n_de = {
 
 const l10n_en = {
   details_summary: "Search in slides",
-  searchbar_label: "Enter search term",
+  searchbar_label: "Enter search term - results update while typing",
+  searchbar_placeholder: "Search",
   searchresults: "Search results",
   noentry: "No entry",
   noresults: "No results",
@@ -60,11 +63,12 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
   if (anchor.innerHTML.trim() === "") {
     anchor.innerHTML = `<details role="search">
   <summary>${l10n.details_summary}</summary>
-  <p><input class="search" placeholder="${l10n.searchbar_label}" type="search"></p>
+  <label for="fuzzysearchbar">${l10n.searchbar_label}</label>
+  <p><input id="fuzzysearchbar" class="search" placeholder="${l10n.searchbar_placeholder}" type="search"></p>
   <h2 id="searchresultheader">
     ${l10n.searchresults}: ${l10n.noentry}
   </h2>
-  <table class="search">
+  <table summary="${l10n.searchresults}" class="search">
     <thead><tr><th>${l10n.thword}</th><th>${l10n.thdeck}</th><th>${l10n.thslide}</th><th>${l10n.thcount}</th></tr></thead>
     <tbody></tbody>
   </table>
@@ -76,84 +80,6 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
   const results = anchor.querySelector("table.search tbody");
   const keys = Object.keys(index.index).map((k) => k.toString());
   const fuzzy = FuzzySet(keys);
-
-  let selectedRow = null;
-
-  table.addEventListener("focusin", (event) => {
-    const target = event.target;
-    if (target.tagName === "TR") {
-      selectedRow = target;
-    }
-  });
-
-  /* Remove tabindex attribute of all links in row */
-  function enableLinks(row) {
-    const links = row.querySelectorAll("a");
-    for (const link of links) {
-      link.removeAttribute("tabindex");
-    }
-    if (links.length > 0) {
-      links[0].focus();
-    }
-    row.setAttribute("tabindex", -1);
-  }
-
-  /* Set tabindex to -1 to all links in row */
-  function disableLinks(row) {
-    const links = row.querySelectorAll("a");
-    for (const link of links) {
-      link.setAttribute("tabindex", -1);
-    }
-    row.setAttribute("tabindex", 0);
-  }
-
-  /* Keyboard navigation through the result list */
-  table.addEventListener("keydown", (event) => {
-    if (!selectedRow) {
-      return;
-    }
-    if (event.key === "ArrowDown") {
-      if (selectedRow) {
-        const next = selectedRow.nextElementSibling;
-        if (next) {
-          disableLinks(selectedRow);
-          selectedRow.setAttribute("tabindex", -1);
-          selectedRow = next;
-          next.focus();
-          event.preventDefault();
-        }
-      }
-    }
-    if (event.key === "ArrowUp") {
-      if (selectedRow) {
-        const prev = selectedRow.previousElementSibling;
-        if (prev) {
-          disableLinks(selectedRow);
-          selectedRow.setAttribute("tabindex", -1);
-          selectedRow = prev;
-          prev.focus();
-          event.preventDefault();
-        }
-      }
-    }
-    if (event.key === "Enter") {
-      if (document.activeElement === selectedRow) {
-        enableLinks(selectedRow);
-        selectedRow.setAttribute("tabindex", -1);
-        event.preventDefault();
-      }
-    }
-  });
-
-  /* When the focus moves out of the table, disable current row */
-  table.addEventListener("focusout", (event) => {
-    if (table.contains(event.relatedTarget)) {
-      return;
-    }
-    if (selectedRow) {
-      disableLinks(selectedRow);
-    }
-  });
 
   /* When enter is pressed on searchbar, move focus to results header */
   search.addEventListener("keydown", (event) => {
@@ -173,16 +99,12 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
     // delete all rows in table body
     while (results.firstChild) {
       results.removeChild(results.firstChild);
-      selectedRow = null;
     }
 
     // get matches from fuzzy set
     const matches = fuzzy.get(search.value, [], minScore);
     anchor.setAttribute("data-results", matches.length);
-    if (matches.length) {
-      anchor.classList.add("results");
-      header.innerText = `${l10n.searchresults}: ${matches.length} ${l10n.results}`;
-    } else {
+    if (!matches.length) {
       if (search.value === "") {
         header.innerText = `${l10n.searchresults}: ${l10n.noentry}`;
       } else {
@@ -191,6 +113,7 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
       anchor.classList.remove("results");
     }
 
+    let rows = 0;
     // create one table row per slide per match
     for (let match of matches) {
       const word = match[1];
@@ -211,6 +134,7 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
       onSlides.sort((slide1, slide2) => slide2.count - slide1.count);
 
       for (let slide of onSlides) {
+        rows++;
         const url = slide.slide;
         const count = slide.count;
         const sInfo = index.slides[url];
@@ -232,15 +156,13 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
           sInfo.slideTitle !== "" ? sInfo.slideTitle : l10n.unknownSlide
         }, ${l10n.thcount}: ${count}`;
         item.innerHTML = `<td>${found}</td> 
-        <td><a target="_blank" tabindex="-1" href="./${dInfo.deckUrl}">${
+        <td><a target="_blank" href="./${dInfo.deckUrl}">${
           deck !== "" ? deck : l10n.unknownDeck
         }</a></td>
-        <td><a target="_blank" tabindex="-1" href="./${url}">${
+        <td><a target="_blank" href="./${url}">${
           sInfo.slideTitle !== "" ? sInfo.slideTitle : l10n.unknownSlide
         }</a></td>
         <td>${count}</td>`;
-
-        item.setAttribute("tabindex", -1);
 
         const indexMode = Decker.meta.index?.mode || "insert";
         if (indexMode === "modal") {
@@ -252,8 +174,9 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
 
         results.appendChild(item);
       }
-      if (results.firstElementChild) {
-        results.firstElementChild.setAttribute("tabindex", 0);
+      if (rows > 0) {
+        anchor.classList.add("results");
+        header.innerText = `${l10n.searchresults}: ${rows} ${l10n.results}`;
       }
     }
   });
