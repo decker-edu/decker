@@ -128,23 +128,47 @@ async function populateCards(chaptersPromise) {
 
                 // Card HTML structure
                 lectureCard.innerHTML = `
-                    <div class="lecture-card-box">
-                        <div class="lecture-img-container">
-                            <img src="${material.teaserImage || 'preview-image.webp'}">
-                        </div>
-                        <div class="lecture-description">
-                            <a class="lecture-title">${material.title}</a>
-                            <p>${material.description || 'No description available'}</p>
-                        </div>
-                        <div class="lecture-footer">
-                            <p class="lecture-date">${chapter.date}</p>
-                            <p class="lecture-more-btn"><?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-                                <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div class="lecture-card-box">
+                    <div class="lecture-img-container">
+                        <img src="${material.teaserImage || 'preview-image.webp'}">
+                    </div>
+                    <div class="lecture-description">
+                        <a class="lecture-title">${material.title}</a>
+                        <p>${material.description || 'No description available'}</p>
+                        <span class="tooltip">${material.description}</span>
+                    </div>
+                    <div class="lecture-footer">
+                        <p class="lecture-date">${chapter.date}</p>
+                        <p class="lecture-more-btn">
+                            <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>More</p>
-                        </div>
-                    </div>`;
-
+                            </svg> More
+                        </p>
+                    </div>
+                </div>`;
+            
+                document.querySelectorAll('.lecture-description').forEach(desc => {
+                    const textElement = desc.querySelector('p');
+                    const tooltip = desc.querySelector('.tooltip');
+                
+                    // Check if text is overflowing
+                    if (textElement.scrollWidth > textElement.clientWidth) {
+                        desc.addEventListener('mouseenter', () => {
+                            tooltip.style.visibility = 'visible';
+                            tooltip.style.opacity = '1';
+                        });
+                
+                        desc.addEventListener('mouseleave', () => {
+                            tooltip.style.visibility = 'hidden';
+                            tooltip.style.opacity = '0';
+                        });
+                    } else {
+                        // Hide tooltip if text fits in one line
+                        tooltip.style.display = 'none';
+                    }
+                });
+                
+            
                 // Add identifiers for filtering
                 if (material.files) {
                     lectureCard.dataset.urls = material.files.map(file => file.Path).join(',');

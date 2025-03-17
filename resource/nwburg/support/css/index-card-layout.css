@@ -304,7 +304,7 @@ a.card-title {
     width: 100%; /* Ensure it adapts to the card width */
     aspect-ratio: 21 / 9; /* Maintain 21:9 aspect ratio */
     background-color: #f0f0f0; /* Fallback background color */
-    overflow: hidden;
+     overflow: hidden;
    /* border-radius: 5px; /* Optional: Rounded corners */
 }
 
@@ -431,20 +431,12 @@ ul.bannerSlider{
     width: 100%;
     height: auto;
 }
-
-.lecture-description {
-    margin-top: 10px;
-}
 .lecture-title {
     font-size: 13px;
     font-weight: bold;
     color: #004a8f;
     text-decoration: none;
     display: block;
-}
-.lecture-description p {
-    font-size: 13px;
-    color: #555;
 }
 
 .lecture-footer {
@@ -479,4 +471,44 @@ ul.bannerSlider{
     text-transform: uppercase;
     text-decoration: none;
 }
- 
+.lecture-description {
+    position: relative;
+    margin-top: 10px;
+    max-height: 3.6em; /* Limit to 2 lines */
+    /* overflow: hidden; */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lecture-description p {
+    font-size: 13px;
+    color: #555;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tooltip styling */
+.tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: 110%;
+    transform: translateX(-50%);
+    width: -webkit-fit-content;
+    padding: 10px;
+    background: slategrey;
+    color: white;
+    font-size: 12px;
+    border-radius: 5px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    z-index: 10;
+    /* margin-bottom: -100px; */
+}
+
+/* Show tooltip on hover */
+.lecture-description:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
