@@ -467,7 +467,7 @@ class Feedback {
     let template = document.createElement("template");
     template.innerHTML = String.raw`<li class="feedback-item" role="menuitem">
   <div class="feedback-content">
-    ${comment.html}
+    <span class="sr-only">${text.question}: </span>${comment.html}
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
@@ -570,9 +570,9 @@ class Feedback {
     let html = answer.html ? answer.html : "";
     let template = document.createElement("template");
     template.innerHTML = String.raw`
-      <li class="feedback-item answer">
+      <li class="feedback-item answer" role="menu-item">
         <div class="feedback-content">
-          ${html}
+          <span class="sr-only">${text.answer}: </span>${html}
         </div>
         <div class="feedback-controls">
           ${
@@ -792,8 +792,8 @@ class Feedback {
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
     );
-    this.menu.feedback_send_button.addEventListener("click", (e) =>
-      this.sendComment()
+    this.menu.feedback_send_button.addEventListener("click", (event) =>
+      this.sendComment(event)
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
@@ -1036,9 +1036,11 @@ let plugin = () => {
           answered: "Question has been answered",
           notanswered: "Question has not been answered",
           votes: "Up-Votes",
+          question: "Question",
         },
         answer_container: {
           delete: "Delete answer",
+          answer: "Answer",
         },
       };
 
@@ -1072,9 +1074,11 @@ let plugin = () => {
             answered: "Frage wurde beantwortet",
             notanswered: "Frage wurde noch nicht beantwortet",
             votes: "Stimmen",
+            question: "Frage",
           },
           answer_container: {
             delete: "Antwort löschen",
+            answer: "Antwort",
           },
         };
       }
