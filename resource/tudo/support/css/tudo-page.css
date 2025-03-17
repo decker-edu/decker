@@ -1133,3 +1133,22 @@ html.dark
     border-radius: 0.5rem;
   }
 }
+
+#page-color-button {
+  font-size: 2rem;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 400;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+html.dark #page-color-button::before {
+  content: "\f185";
+}
+
+html.light #page-color-button::before {
+  content: "\f186";
+}

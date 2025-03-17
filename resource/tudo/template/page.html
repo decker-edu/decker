@@ -91,6 +91,7 @@ $endif$
       <h2>$subtitle$</h2>
       $endif$
     $endif$
+    <button id="page-color-button"></button>
     </header>
 
     <!-- main content -->
@@ -127,7 +128,14 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/page.js"></script>
-  <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
+  <!--script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script-->
+  <script type="module">
+    import * as colorScheme from "./$decker-support-dir$/js/color-scheme.js";
+    const colorButton = document.getElementById("page-color-button");
+    colorButton.addEventListener("click", colorScheme.toggleColor);
+    colorButton.title = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+    colorButton.ariaLabel = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+  </script>
 
   <script type="module">
     import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';

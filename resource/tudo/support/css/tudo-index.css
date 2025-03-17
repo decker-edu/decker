@@ -284,3 +284,42 @@ p {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
+
+a,
+button,
+input,
+select,
+h2,
+tr,
+summary,
+textarea {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--orangeish) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
+}
+
+#index-color-button {
+  font-size: 2rem;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 400;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  cursor: pointer;
+}
+
+html.dark #index-color-button::before {
+  content: "\f185";
+}
+
+html.light #index-color-button::before {
+  content: "\f186";
+}
