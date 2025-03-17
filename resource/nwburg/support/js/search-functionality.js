@@ -6,9 +6,6 @@ import FuzzySet from "../fuzzySearch/fuzzyset.js";
 document.addEventListener("DOMContentLoaded", () => {
   const anchor = document.getElementById("search-anchor");
 
-  //debug statement
-  console.log("search-anchor: ", anchor);
-
   // Add search input to the anchor
   anchor.innerHTML = `
     <p>

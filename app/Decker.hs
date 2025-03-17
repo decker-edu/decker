@@ -88,6 +88,8 @@ generatedIndex = publicDir </> "index-generated.html"
 
 indexFile = publicDir </> "index.html"
 
+aboutFile = publicDir </> "about.html"
+
 run :: IO ()
 run = do
   runDecker deckerRules
@@ -112,6 +114,8 @@ deckerRules = do
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
+  addHelpSuffix "  - search-index - Compile global search index."
+  addHelpSuffix "  - build-index - Post process the generated index.html file."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -245,6 +249,9 @@ deckerRules = do
     phony "moodle-xml" $ do
       need ["private/quest-catalog.xml"]
     --
+    phony "build-index" $ do
+      need [aboutFile, "html", "handouts", "search-index"]
+    --
     indexFile %> \out -> do
       meta <- getGlobalMeta
       exists <- liftIO $ Dir.doesFileExist indexSource
@@ -255,6 +262,11 @@ deckerRules = do
         else do
           need [generated]
           markdownToHtml htmlIndex meta getTemplate generated out
+    --
+    aboutFile %> \out -> do
+      meta <- getGlobalMeta
+      need [generated]
+      markdownToHtml htmlAbout meta getTemplate generated out
     --
     generated %> \out -> do
       deps <- getDeps

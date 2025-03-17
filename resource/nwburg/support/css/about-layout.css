@@ -1,0 +1,38 @@
+.course-header  {
+    padding: 0 20px;
+    margin: 30px 0px 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    border-left: 15px solid #004a8f;
+}
+
+.course-header h2 {
+    color: #004a8f;
+    font-weight: bold;
+    font-size: 2rem;
+    line-height: 2rem;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.contact h3, 
+.course-info h3 {
+    font-weight: bold;
+    font-size: 1.3rem;
+    line-height: 2rem;
+    text-decoration: none;
+    margin-right: 1rem;
+    margin-bottom: 0;
+}
+.course-info h3 {
+    color: #004a8f;
+}
+.contacts {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+.contact {
+    display: flex;
+    flex-direction: column;
+}
