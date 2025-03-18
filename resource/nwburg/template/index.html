@@ -136,34 +136,39 @@
     <!--  BANNER SLIDER  https://codepen.io/ekrz/pen/EgJJYo  -->
 
     <nav id="menu-bar" class="menu-bar">
-        <ul>
-        <div class="menu-item-container">
-            $for(index.menu_bar.items)$
-            <li class="$index.menu_bar.items.style$">
-                $if(index.menu_bar.items.action)$
-                <a href="$index.menu_bar.items.action$">$index.menu_bar.items.label$</a>
-                $else$
-                <span>$index.menu_bar.items.label$</span>
-                $endif$
-    
-                $if(index.menu_bar.items.submenu)$
-                <ul>
-                    $for(index.menu_bar.items.submenu)$
-                    <li class="$index.menu_bar.items.submenu.style$">
-                        $if(index.menu_bar.items.submenu.action)$
-                        <a href="$index.menu_bar.items.submenu.action$">$index.menu_bar.items.submenu.label$</a>
+        <div class="menu-container">
+            <ul>
+                <div class="menu-item-container">
+                    $for(index.menu_bar.items)$
+                    <li class="$index.menu_bar.items.style$">
+                        $if(index.menu_bar.items.action)$
+                        <a href="$index.menu_bar.items.action$">$index.menu_bar.items.label$</a>
                         $else$
-                        <span>$index.menu_bar.items.submenu.label$</span>
+                        <span>$index.menu_bar.items.label$</span>
                         $endif$
-    
-                        $if(index.menu_bar.items.submenu.submenu)$
+            
+                        $if(index.menu_bar.items.submenu)$
                         <ul>
-                            $for(index.menu_bar.items.submenu.submenu)$
-                            <li class="$index.menu_bar.items.submenu.submenu.style$">
-                                $if(index.menu_bar.items.submenu.submenu.action)$
-                                <a href="$index.menu_bar.items.submenu.submenu.action$">$index.menu_bar.items.submenu.submenu.label$</a>
+                            $for(index.menu_bar.items.submenu)$
+                            <li class="$index.menu_bar.items.submenu.style$">
+                                $if(index.menu_bar.items.submenu.action)$
+                                <a href="$index.menu_bar.items.submenu.action$">$index.menu_bar.items.submenu.label$</a>
                                 $else$
-                                <span>$index.menu_bar.items.submenu.submenu.label$</span>
+                                <span>$index.menu_bar.items.submenu.label$</span>
+                                $endif$
+            
+                                $if(index.menu_bar.items.submenu.submenu)$
+                                <ul>
+                                    $for(index.menu_bar.items.submenu.submenu)$
+                                    <li class="$index.menu_bar.items.submenu.submenu.style$">
+                                        $if(index.menu_bar.items.submenu.submenu.action)$
+                                        <a href="$index.menu_bar.items.submenu.submenu.action$">$index.menu_bar.items.submenu.submenu.label$</a>
+                                        $else$
+                                        <span>$index.menu_bar.items.submenu.submenu.label$</span>
+                                        $endif$
+                                    </li>
+                                    $endfor$
+                                </ul>
                                 $endif$
                             </li>
                             $endfor$
@@ -171,24 +176,18 @@
                         $endif$
                     </li>
                     $endfor$
-                </ul>
-                $endif$
-            </li>
-            $endfor$
+                </div>
+            </ul>
+             <!-- Search Section -->
+            <div class="search-container">
+                <div class="search" id="search-anchor" style="align-content: center;">
+                    <!-- <div id="search-anchor"></div>
+                    <a href="#search-anchor">Search</a> -->
+                </div>
+            </div>
         </div>
-        <div class="search-container">
-            <li class="search" id= "search-anchor" style="align-content: center;" >
-                <!-- <div id="search-anchor"></div>
-                <a href="#search-anchor">Search</a> -->
-            </li>
-        </div>
-        </ul>
-
-        <!-- add the search anchor as element -->
-        <!-- <a href="#search-anchor" class="search-anchor"></a> -->
-        
-
     </nav>
+    
 
 	<div class="banner page-header">
 		<div class="row fullwidth">

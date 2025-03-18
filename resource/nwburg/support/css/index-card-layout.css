@@ -493,7 +493,7 @@ ul.bannerSlider{
     left: 50%;
     bottom: 110%;
     transform: translateX(-50%);
-    width: -webkit-fit-content;
+    width: fit-content;
     padding: 10px;
     background: slategrey;
     color: white;
