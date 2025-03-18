@@ -61,7 +61,6 @@ $endif$
     $else$
     <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
     $endif$
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
     $for(template.index.css)$
     <link rel="stylesheet" href="$template.index.css$">
     $endfor$
@@ -119,10 +118,14 @@ $endif$
       <h2>$subtitle$</h2>
       $endif$
     $endif$
+    <button id="index-color-button"></button>
     </header>
-
     <!-- main content -->
     <main class="content">
+      $if(index.manual)$
+      $manual.html()$
+      $endif$
+
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
@@ -155,13 +158,14 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/index.js"></script>
-  <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
-
+  <!--script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script-->
   <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
+    import * as colorScheme from "./$decker-support-dir$/js/color-scheme.js";
+    const colorButton = document.getElementById("index-color-button");
+    colorButton.addEventListener("click", colorScheme.toggleColor);
+    colorButton.title = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+    colorButton.ariaLabel = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
   </script>
-
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
   $endfor$
