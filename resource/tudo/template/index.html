@@ -120,9 +120,12 @@ $endif$
     $endif$
     <button id="index-color-button"></button>
     </header>
-
     <!-- main content -->
     <main class="content">
+      $if(index.manual)$
+      $manual.html()$
+      $endif$
+
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
