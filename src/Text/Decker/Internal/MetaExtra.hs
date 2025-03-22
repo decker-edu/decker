@@ -133,7 +133,7 @@ adjustMetaVariables action keys meta = foldM func meta keys
 
 -- | Merges global meta data into the document. Document meta values have
 -- preference.
-mergeDocumentMeta :: Meta -> Pandoc -> Action Pandoc
+mergeDocumentMeta :: Monad m => Meta -> Pandoc -> m Pandoc
 mergeDocumentMeta globalMeta (Pandoc docMeta content) = do
   let combinedMeta = mergePandocMeta docMeta globalMeta
   return (Pandoc combinedMeta content)
