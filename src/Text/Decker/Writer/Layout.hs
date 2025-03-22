@@ -92,7 +92,7 @@ markdownToHtml disp meta getTemplate markdownFile out = do
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
 writePandocFile :: WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile options out pandoc@(Pandoc meta blocks) = do
-  let metaFile = hash9String (traceShowId out) <.> ".json"
+  let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile
   let meta' = addMetaKeyValue "decker-meta-url" (toText metaFile) meta
   let metaJson = encodePretty $ fromPandocMeta meta'

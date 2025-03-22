@@ -1,10 +1,11 @@
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DuplicateRecordFields #-}
+
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# OPTIONS_GHC -Wno-ambiguous-fields #-}
 
 module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex) where
 
@@ -267,7 +268,7 @@ addTargetInfo targets meta = do
           $ setMetaValue "decks.by-url" (toListSortedBy deckUrl decksInfo)
           $ setMetaValue "decks.by-author" (toListSortedBy deckAuthor decksInfo)
           $ setMetaValue "decks.by-id" (toListSortedBy deckId decksInfo) meta
-  let withPagesAndDecks = 
+  let withPagesAndDecks =
         setMetaValue "pages.by-title" (toListSortedBy deckTitle pagesInfo)
           $ setMetaValue "pages.by-date" (toListSortedBy deckDate pagesInfo)
           $ setMetaValue "pages.by-url" (toListSortedBy deckUrl pagesInfo)
@@ -276,7 +277,6 @@ addTargetInfo targets meta = do
   return withPagesAndDecks
   where
     toListSortedBy by info = MetaList $ map toMeta $ sortInfo by info
-    sortInfo by info = sortBy (\a b -> compare (by a) (by b)) info
     getSorted field = sort $ Map.toList (targets ^. field)
     toMeta :: DeckInfo -> MetaValue
     toMeta info =
@@ -288,3 +288,4 @@ addTargetInfo targets meta = do
             ("title", maybe (MetaBool False) (MetaString . toText) info.deckTitle),
             ("subtitle", maybe (MetaBool False) (MetaString . toText) info.deckSubtitle)
           ]
+    sortInfo by = sortBy (\a b -> compare (by a) (by b))

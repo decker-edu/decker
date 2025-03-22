@@ -36,7 +36,6 @@ import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
-import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Groom
 
