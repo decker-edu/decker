@@ -37,13 +37,13 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    list-style-type: none;
     line-height: 30px;
     font-weight: 700;
     text-transform: uppercase;
     cursor: pointer;
 }
 
+/* Links Styling */
 .menu-bar a,
 .menu-bar span {
     padding: 0 15px;
@@ -70,13 +70,11 @@
     left: 0;
     background-color: white;
     padding: 0;
-    list-style-type: none;
     z-index: 1000;
 }
 
 .menu-bar ul ul li {
     width: 200px;
-    list-style-type: none;
     text-transform: capitalize;
 }
 
@@ -97,31 +95,46 @@
     display: block;
 }
 
+/* Hamburger Menu Styling */
+.hamburger {
+    display: none; 
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #063D79;
+}
+
 /* Responsive Styles for Mobile */
 @media (max-width: 768px) {
+
     .menu-bar {
+      display: contents;
+    }
+
+    .hamburger {
+        display: block; 
+        z-index: 1;
+        font-size: 37px;
+    }
+
+    .menu-container {
+        display: none; 
         flex-direction: column;
+        width: 90%;
+        background: hsla(0, 0%, 100%, .9);
+        top: 50px;
+        left: 0;
+        right: 0;
+        z-index: 10;
     }
 
-    .menu-bar > ul {
+    .menu-container.active {
+        display: flex; 
+    }
+
+    .menu-item-container {
         flex-direction: column;
-    }
-
-    .menu-bar ul ul {
-        position: static;
-        display: none;
-    }
-
-    .menu-bar li > ul {
-        display: none;
-    }
-
-    .menu-bar li.open > ul {
-        display: block;
-    }
-
-    .menu-bar a,
-    .menu-bar span {
-        padding: 10px;
     }
 }

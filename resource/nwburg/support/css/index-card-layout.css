@@ -31,7 +31,7 @@ h1, h2, h3, h4, h5, h6 {
 
 
 .card-grid {
-    display: flex;
+    /* display: flex; */
     flex-direction: column;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding: 20px;
@@ -403,13 +403,17 @@ ul.bannerSlider{
 }
 
 .lecture-cards-wrapper {
+    width: fit-content;
     display: flex;
     flex-wrap: wrap;
 }
 
 .lecture-card {
-    flex: 1 1 calc(33.33% - 20px); /* 3 items per row */
+    flex: 1 1 calc(33.33% - 20px); 
     max-width: calc(33.33% - 20px);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     border-top: 2px solid #004a8f;
     margin: 0 20px 10px 0;
 }
@@ -504,11 +508,44 @@ ul.bannerSlider{
     transition: opacity 0.3s ease;
     text-align: center;
     z-index: 10;
-    /* margin-bottom: -100px; */
 }
 
 /* Show tooltip on hover */
 .lecture-description:hover .tooltip {
     visibility: visible;
     opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .lecture-card{
+        margin: 20px 0;
+        max-width:max-content
+     }
+    .lecture-cards-wrapper{
+        display: block;
+    }
+
+}
+
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+    .lecture-card {
+        flex: 1 1 calc(50% - 20px); 
+        max-width: calc(50% - 20px);
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1179px) {
+    .lecture-card {
+        flex: 1 1 calc(50% - 20px); 
+        max-width: calc(50% - 20px);
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1093px)  { 
+    
+    .menu-container {
+        width: 100% !important;
+  }
 }

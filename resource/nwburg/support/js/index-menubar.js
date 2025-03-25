@@ -1,16 +1,23 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const menuItems = document.querySelectorAll('.menu-bar li span');
+    const hamburger = document.querySelector('.hamburger');
+    const navMenu = document.getElementById('nav-menu');
+    const submenuToggles = document.querySelectorAll('.submenu-toggle');
 
-    menuItems.forEach(item => {
-        item.addEventListener('click', function (e) {
+    // Toggle mobile menu
+    hamburger.addEventListener('click', function () {
+        navMenu.classList.toggle('active');
+    });
+
+    // Toggle submenu items
+    submenuToggles.forEach(toggle => {
+        toggle.addEventListener('click', function () {
             const parent = this.parentElement;
-
-            // Toggle "open" class
             parent.classList.toggle('open');
 
-            // Prevent the default action if it's a span
-            if (e.target.tagName === 'SPAN') {
-                e.preventDefault();
+            // Toggle submenu visibility
+            const submenu = parent.querySelector('.submenu');
+            if (submenu) {
+                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
             }
         });
     });
