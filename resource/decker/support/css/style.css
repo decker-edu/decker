@@ -73,7 +73,6 @@ p {
 
 li {
   margin-top: 0;
-  margin-bottom: var(--vertical-margin);
 }
 
 ul {
