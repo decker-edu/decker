@@ -54,7 +54,7 @@ readDeckerMeta file = do
 
 readMetaDataIO :: Meta -> FilePath -> IO Meta
 readMetaDataIO globalMeta path = do
-  putStrLn $ "# --> readMetaDataIO: " <> path
+  -- putStrLn $ "# --> readMetaDataIO: " <> path
   let base = takeDirectory path
   meta <- liftIO $ fromRight nullMeta <$> readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMetaIO globalMeta base
@@ -62,7 +62,7 @@ readMetaDataIO globalMeta path = do
 readAdditionalMetaIO :: Meta -> FilePath -> Meta -> IO Meta
 readAdditionalMetaIO globalMeta base meta = do
   let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [String]
-  putStrLn $ "# --> readAdditionalMeta: " <> show metaFiles
+  -- putStrLn $ "# --> readAdditionalMeta: " <> show metaFiles
   moreMeta <- traverse (readMetaDataIO globalMeta) metaFiles
   return $ foldr mergePandocMeta meta (reverse moreMeta)
 

@@ -27,7 +27,7 @@ write-notebook: True
 
 ##  {#section .right}
 
-## Jupyter metadata
+## Jupyter metadata {#jupyter-metadata}
 
 ``` yaml
 jupyter:
@@ -47,11 +47,11 @@ jupyter:
 
 # In the notebook {#in-the-notebook .notebook}
 
-## Selected content
+## Selected content {#selected-content}
 
 -   Only slides marked with `{.notebook}`
 
-## Code block as cells
+## Code block as cells {#code-block-as-cells}
 
 -   Code blocks marked with `{.code}`
 
