@@ -1,10 +1,9 @@
 {-# LANGUAGE DeriveGeneric #-}
-
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# OPTIONS_GHC -Wno-ambiguous-fields #-}
 
 module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex) where
@@ -31,6 +30,7 @@ import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
 import Text.Decker.Project.Project qualified as Project
 import Text.Decker.Project.Shake (relativeSupportDir)
 import Text.Decker.Reader.Markdown
+import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.DocLayout (render)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
@@ -247,14 +247,17 @@ renderIndex template meta targets out = do
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile
-  let metaJson = encodePretty $ fromPandocMeta meta
-  liftIO $ BS.writeFile metaPath metaJson
   targetMeta <-
     addTargetInfo targets
       $ setMetaValue "decker-meta-url" (toText metaFile)
-      $ setMetaValue "decker-support-dir" (toText relSupportDir) meta
-  let text :: Text = render Nothing $ renderTemplate template (fromPandocMeta targetMeta)
+      $ setMetaValue "decker-support-dir" (toText relSupportDir)
+      $ computeCssColorVariables
+      $ computeCssVariables meta
+  let aesonMeta = fromPandocMeta targetMeta
+  let text :: Text = render Nothing $ renderTemplate template aesonMeta
   liftIO $ Text.writeFile out text
+  let jsonMeta = encodePretty aesonMeta
+  liftIO $ BS.writeFile metaPath jsonMeta
 
 addTargetInfo :: Project.Targets -> Meta -> Action Meta
 addTargetInfo targets meta = do
