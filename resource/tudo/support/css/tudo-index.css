@@ -284,3 +284,15 @@ p {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
+
+.german {
+  display: none;
+}
+
+html[lang="de"] .german {
+  display: unset;
+}
+
+html[lang="de"] .english {
+  display: none;
+}
