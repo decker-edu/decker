@@ -136,15 +136,23 @@
 
   <h2>Decks ($decks.by-title/length$)</h2>
   <ul>
-    $for(decks.by-title)$
-    <li><a href="$it.url$">$it.title$</a>$if(it.subtitle)$($it.subtitle$)$endif$</li>
+    $for(decks.by-url)$
+    $if(it.title)$
+    <li><a href="$it.url$">$it.title$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
+    $else$
+    <li><a href="$it.url$">$it.url$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
+    $endif$
     $endfor$
   </ul>
 
   <h2>Pages ($pages.by-title/length$)</h2>
   <ul>
-    $for(pages.by-id)$
-    <li><a href="$it.url$">$it.title$</a>$if(it.subtitle)$($it.subtitle$)$endif$</li>
+    $for(pages.by-url)$
+    $if(it.title)$
+    <li><a href="$it.url$">$it.title$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
+    $else$
+    <li><a href="$it.url$">$it.url$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
+    $endif$
     $endfor$
   </ul>
 
