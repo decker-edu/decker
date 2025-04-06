@@ -96,31 +96,28 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path
-    -- >>= (\(Pandoc meta blocks) ->
-    --         do  putStrLn $ path <> "\n" <> show meta
-    --             return (Pandoc meta blocks))
+    >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
     >>= checkVersion
-    >>= addDocumentPath globalMeta path
     >>= includeMarkdownFiles globalMeta base
     >>= addPathInfo base
 
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
 addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) =
   return
-    $ if lookupMetaOrElse False "experiments.add-document-path" globalMeta
-      then Pandoc meta (foldr addToHeader1 [] blocks)
+    $ if not (lookupMetaOrElse False "lecture.publish" globalMeta)
+      && lookupMetaOrElse False "experiments.add-document-path" globalMeta
+      then walk addToHeader1 pandoc
       else pandoc
   where
-    -- return $ Pandoc meta (foldr addToHeader1 [] blocks)
-
-    addToHeader1 (Header 1 (id, cls, kvs) content) blocks =
-      Header 1 (id, cls, addPath kvs) content
-        : Div ("", ["document-path"], []) [Plain [Str $ toText documentPath]]
-        : blocks
-    addToHeader1 block blocks = block : blocks
+    addToHeader1 (Header 1 (id, cls, kvs) content) =
+      Header
+        1
+        (id, cls, addPath kvs)
+        (content <> [Span ("", ["document-path"], []) [Space, Str $ toText documentPath]])
+    addToHeader1 block = block
     addPath kvs = ("data-source-path", toText documentPath) : kvs
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
