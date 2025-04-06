@@ -655,3 +655,11 @@ span:is(.red, .green, .blue, .black) {
   margin-left: -0.2em;
   margin-right: -0.2em;
 }
+
+div.document-path {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  font-size: 50%;
+  color: var(--shade2);
+}
