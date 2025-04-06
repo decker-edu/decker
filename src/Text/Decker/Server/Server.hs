@@ -39,6 +39,7 @@ import Text.Decker.Server.Video
 import Text.Printf
 import Web.Scotty.Trans as Scotty
 import Text.Decker.Internal.Helper (uniqueTransientFileName)
+import Network.Wai (modifyResponse, mapResponseHeaders)
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =
@@ -115,7 +116,7 @@ runHttpServer context = do
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
-
+    middleware $ modifyResponse (mapResponseHeaders (("Cache-Control", "no-cache") :))
 useState state x = runReaderT x state
 
 --       route

@@ -103,7 +103,7 @@ function incrementalItem(item, mdoc) {
         mrow.classList.add("visible");
       }
     }
-    for (let mrow of document.querySelectorAll(
+    for (let mrow of root.querySelectorAll(
       'g[data-mml-node="mtable"]:first-of-type g[data-mml-node="mlabeledtr"]'
     )) {
       mrow.classList.add("fragment");
