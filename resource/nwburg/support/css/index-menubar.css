@@ -10,10 +10,9 @@
 
 /* Container to align menu with other sections */
 .menu-container {
-    max-width: 1000px;
+    max-width: 900px;
     width: 70%;
     margin: 6px auto;
-    padding: 0 40px;
     display: flex;
     justify-content: space-between;
     background: hsla(0, 0%, 100%, .9);
@@ -45,7 +44,6 @@
 
 /* Links Styling */
 .menu-bar ul {
-    padding: 0 15px;
     text-decoration: none;
     color: #063D79;
     display: block;
@@ -82,20 +80,17 @@
 .menu-bar a:hover,
 .menu-bar span:hover {
     text-decoration: underline;
+    background-color: white;
 }
 
 /* Submenu Styles */
     .menu-bar ul ul {
         display: none;
         position: absolute;
-        /* top: 100%; */
-        /* left: 0; */
         background: white;
         padding: 0;
-        /* z-index: 1000; */
-        /* min-width: 100px; */
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-bottom: 2px solid #004a8f;
+        min-width: 230px;
     }
 
 
@@ -128,23 +123,37 @@
 .menu-bar ul ul li ul li {
     font-size: 14px;  /* Smaller font */
     font-weight: 400;  /* Lighter font */
-    color: #333; /* Darker shade */
+    color: #063D79; /* Darker shade */
     padding-left: 10px; /* More indentation */
 }
 
 .menu-bar ul ul li ul li a {
     font-size: 14px;
-    font-weight: 400;
-    color: #333;
+    font-weight: lighter;
+    color: #063D79 ;
     display: block;
 }
-.menu-bar ul ul li:hover {
-    background: #f1f1f1;
+
+li.submenu-item {
+  padding-left: 0px !important;
 }
 
+.submenu-toggle {
+color:#063D79;
+padding: 0 15px;
+}
 
-.menu-bar ul ul a {
-    padding: 10px 15px;
+.submenu-toggle a{
+padding: 0;
+    }
+
+.submenu-toggle:hover {
+    text-decoration: underline;
+    
+}
+
+.menu-bar ul ul a div{
+    padding: 5px 10px;
 }
 
 /* Show submenu on hover */
@@ -161,6 +170,10 @@
     background: none;
     border: none;
     color: #063D79;
+}
+
+li.menu-item {
+    margin-bottom: 0px;
 }
 
 /* Responsive Styles for Mobile */
