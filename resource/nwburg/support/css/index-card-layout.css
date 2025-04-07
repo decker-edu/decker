@@ -465,6 +465,13 @@ ul.bannerSlider{
     font-weight: bold;
     color: #333;
     border-left: 15px solid #004a8f;
+    transition: #f5f5f5 0.3s ease;
+}
+
+.lecture-header:hover {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: #004a8f;
 }
 
 .lecture-header h2 {
@@ -474,6 +481,7 @@ ul.bannerSlider{
     line-height: 2rem;
     text-transform: uppercase;
     text-decoration: none;
+
 }
 .lecture-description {
     position: relative;

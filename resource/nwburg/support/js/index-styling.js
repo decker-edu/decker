@@ -1,5 +1,6 @@
 "use strict";
 
+// Fetching and parsing chapters
 async function parseChapters() {
     const chapters = [];
     const chapterElements = document.querySelectorAll('#chapters > .chapter');
@@ -11,29 +12,25 @@ async function parseChapters() {
 
         const materials = [];
         if (materialsEl) {
-            const materialElements = materialsEl.querySelectorAll('.material'); // Each material is now represented as a list item
+            const materialElements = materialsEl.querySelectorAll('.material');
             for (const materialEl of materialElements) {
                 const materialTitle = materialEl.querySelector('.material-title')?.textContent.trim() || 'Untitled';
 
-                // Handle the new `files` array format
-                const fileLinks = materialEl.querySelectorAll('a.file-link'); // Detect individual files
+                const fileLinks = materialEl.querySelectorAll('a.file-link');
                 const files = Array.from(fileLinks).map(fileLink => ({
                     Name: fileLink.textContent.trim() || materialTitle,
                     Path: fileLink.getAttribute('href') || '',
-                    // if no icon is provided use an html5 default icon for assets <i class="fa-solid fa-paperclip"></i>
                     Icon: fileLink.dataset.icon || '/support/vendor/images/theme/general/hci-logo-red.png',
-                    IsReady: true, // Default assumption, update if dynamic readiness info is added
+                    IsReady: true,
                 }));
 
-                // Extract keywords
                 const keywordElements = materialEl.querySelectorAll('.keywords .keyword-box');
                 const keywords = Array.from(keywordElements).map(kwEl => kwEl.textContent.replace('#', '').trim());
 
-                // Add material
                 materials.push({
                     title: materialTitle,
                     files: files.length > 0 ? files : undefined,
-                    visible: true,  // Default visibility
+                    visible: true,
                     keywords: keywords,
                 });
             }
@@ -49,11 +46,7 @@ async function parseChapters() {
     return chapters;
 }
 
-/**
- * Fetch and extract metadata from an HTML file.
- * @param {string} url - The URL of the HTML file.
- * @returns {Promise<object>} Metadata extracted from the <head> section.
- */
+// Fetch metadata from a file
 async function fetchMetadata(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
@@ -64,14 +57,13 @@ async function fetchMetadata(url) {
 
     const meta = {};
     meta.description = doc.querySelector('meta[name="description"]')?.content || "";
-    meta.teaserImage = doc.querySelector('meta[name="teaser-image"]')?.content ;
+    meta.teaserImage = doc.querySelector('meta[name="teaser-image"]')?.content;
     meta.author = doc.querySelector('meta[name="author"]')?.content || "Unknown Author";
     meta.date = doc.querySelector('meta[name="dcterms.date"]')?.content || "Unknown Date";
     meta.keywords = (doc.querySelector('meta[name="keywords"]')?.content || "")
         .split(",")
         .map(keyword => keyword.trim());
 
-    // Add metadata for multi-file handling
     meta.files = Array.from(doc.querySelectorAll('meta[name="file"]')).map(tag => ({
         Name: tag.getAttribute('content') || "Unnamed File",
         Path: tag.getAttribute('data-path') || "",
@@ -82,6 +74,7 @@ async function fetchMetadata(url) {
     return meta;
 }
 
+// Populate the cards (lecture materials)
 async function populateCards(chaptersPromise) {
     const chapters = await chaptersPromise;
     const cardGrid = document.getElementById('tileContainer');
@@ -92,18 +85,15 @@ async function populateCards(chaptersPromise) {
     for (let chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
         const chapter = chapters[chapterIndex];
 
-        // Create a separator for each chapter
         const chapterHeader = document.createElement('div');
         chapterHeader.classList.add('lecture-header');
         chapterHeader.dataset.chapterIndex = chapterIndex;
         chapterHeader.innerHTML = `<h2>${chapter.title}</h2>`;
         cardGrid.appendChild(chapterHeader);
 
-        // Create the parent container for the cards (with grey background)
         const lectureContainer = document.createElement('div');
         lectureContainer.classList.add('lecture-container');
 
-        // Create the container for the cards (to align in rows)
         const lectureCardsWrapper = document.createElement('div');
         lectureCardsWrapper.classList.add('lecture-cards-wrapper');
 
@@ -116,17 +106,14 @@ async function populateCards(chaptersPromise) {
             lectureCard.dataset.materialIndex = materialIndex;
 
             try {
-                // Fetch metadata for the first file
                 const meta = await fetchMetadata(material.files[0].Path);
 
-                // Update material object with metadata
                 if (!material.description) material.description = meta.description;
                 if (!material.teaserImage) material.teaserImage = meta.teaserImage;
                 if (!material.author) material.author = meta.author;
                 if (!material.date) material.date = meta.date;
                 if (material.keywords.length === 0) material.keywords = meta.keywords;
 
-                // Card HTML structure
                 lectureCard.innerHTML = `
                 <div class="lecture-card-box">
                     <div class="lecture-img-container">
@@ -146,44 +133,13 @@ async function populateCards(chaptersPromise) {
                         </p>
                     </div>
                 </div>`;
-            
-                document.querySelectorAll('.lecture-description').forEach(desc => {
-                    const textElement = desc.querySelector('p');
-                    const tooltip = desc.querySelector('.tooltip');
-                
-                    // Check if text is overflowing
-                    if (textElement.scrollWidth > textElement.clientWidth) {
-                        desc.addEventListener('mouseenter', () => {
-                            tooltip.style.visibility = 'visible';
-                            tooltip.style.opacity = '1';
-                        });
-                
-                        desc.addEventListener('mouseleave', () => {
-                            tooltip.style.visibility = 'hidden';
-                            tooltip.style.opacity = '0';
-                        });
-                    } else {
-                        // Hide tooltip if text fits in one line
-                        tooltip.style.display = 'none';
-                    }
-                });
-                
-            
-                // Add identifiers for filtering
-                if (material.files) {
-                    lectureCard.dataset.urls = material.files.map(file => file.Path).join(',');
-                } else {
-                    lectureCard.dataset.url = material.file;
-                }
 
                 lectureCardsWrapper.appendChild(lectureCard);
-
             } catch (error) {
                 console.error("Error fetching metadata:", error);
             }
         }
 
-        // Append containers in correct order
         lectureContainer.appendChild(lectureCardsWrapper);
         cardGrid.appendChild(lectureContainer);
     }
@@ -191,25 +147,41 @@ async function populateCards(chaptersPromise) {
     updateSeparators();
 }
 
-
-
-/**
- * Updates the visibility of chapter separators based on the visibility of their associated cards.
- */
+// Update the visibility of chapter separators based on content visibility
 function updateSeparators() {
     const separators = document.querySelectorAll('.chapter-separator');
     separators.forEach(separator => {
         const chapterIndex = separator.dataset.chapterIndex;
         const cards = document.querySelectorAll(`.grid-item[data-chapter-index="${chapterIndex}"]`);
-        const hasVisibleCards = Array.from(cards).some(card => card.offsetParent !== null); // Check visibility
+        const hasVisibleCards = Array.from(cards).some(card => card.offsetParent !== null);
         separator.style.display = hasVisibleCards ? 'block' : 'none';
     });
 }
 
+// Toggle lecture content visibility on title click
 document.addEventListener("DOMContentLoaded", async function () {
     try {
         const chapters = await parseChapters();
         await populateCards(chapters);
+
+        // Add event listeners for toggling lecture content visibility
+        const lectureHeaders = document.querySelectorAll(".lecture-header");
+
+        lectureHeaders.forEach(header => {
+            header.addEventListener("click", function () {
+                const lectureContainer = this.nextElementSibling; // The lecture content section
+                
+                if (lectureContainer) {
+                    // Toggle visibility of content
+                    lectureContainer.style.display = (lectureContainer.style.display === "none" || lectureContainer.style.display === "") ? "block" : "none";
+                }
+            });
+        });
+
+        // Initially hide all lecture content sections
+        document.querySelectorAll(".lecture-container").forEach(container => {
+            container.style.display = "block";
+        });
     } catch (error) {
         console.error("Error in main execution:", error);
     }
