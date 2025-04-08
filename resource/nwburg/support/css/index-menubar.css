@@ -176,9 +176,14 @@ li.menu-item {
     margin-bottom: 0px;
 }
 
+.search-container {
+    margin-right: 1em;
+    margin-top: 0.25em;
+}
+
+
 /* Responsive Styles for Mobile */
 @media (max-width: 768px) {
-
     .menu-bar {
       display: contents;
     }
@@ -207,4 +212,34 @@ li.menu-item {
     .menu-item-container {
         flex-direction: column;
     }
+
+    .search-container {
+        margin-right: 1em;
+    }
 }
+
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .menu-container {
+        max-width: 56em;
+        margin: auto;
+        position: absolute;
+        top: 0.5em;
+    }
+    .search-container {
+        margin-right: 2.2em;
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1179px) {
+    .search-container {
+        margin-right: 1em;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1093px)  { 
+    .search-container {
+        margin-right: 1em;
+    }
+}
+

@@ -220,9 +220,6 @@
 		</div>
 	</div>
 
-
-
-
     <div class="header-title">
         <a href="/">
             $if(title-prefix)$
@@ -238,14 +235,12 @@
             <!-- Chapter Loop -->
             <article class="chapter">
                 <header class="$index.chapters.separator.style$">
-                    <h2>$index.chapters.title$</h2>
+                    <h2>$index.chapters.topic$</h2>
                     $if(index.chapters.separator)$
                     <div class="$index.chapters.separator.style$">$index.chapters.separator.content$</div>
                     $endif$
-                    $if(index.chapters.date)$
-                    <p class="date">Date: $index.chapters.date$</p>
-                    $endif$
                 </header>
+
 
                 <!-- Materials -->
                 $if(index.chapters.materials)$
@@ -256,24 +251,28 @@
                     $else$
                     <li class="material ">
                         <span class="material-title">$index.chapters.materials.title$</span>
+                        $if(index.chapters.materials.date)$
+                        <p class="date">$index.chapters.materials.date$</p>
+                        $endif$
                         <!-- Check for files array -->
                         $if(index.chapters.materials.files)$
                         <ul class="material-files">
                             $for(index.chapters.materials.files)$
                             <!-- Files Loop -->
                             <li>
-                                <a href="$index.chapters.materials.files.Path$" class="file-link">
-                                    <img src="$index.chapters.materials.files.Icon$" alt="$index.chapters.materials.files.Name$" title="$index.chapters.materials.files.Name$">
-                                    $index.chapters.materials.files.Name$
-                                </a>
+                                <a href="$index.chapters.materials.files.link$" class="file-link">
+                                    $index.chapters.materials.files.name$</a>
                             </li>
                             $endfor$
                         </ul>
-                        $else$
-                        <!-- Fallback to single file field -->
-                        <a href="$index.chapters.materials.file$" class="file-link">$index.chapters.materials.title$</a>
                         $endif$
-                        <!-- Render keywords -->
+                        $if(index.chapters.materials.description)$
+                        <p class="description">$index.chapters.materials.description$</p>
+                        $endif$
+                        <a class="slides-link" href=${index.chapters.materials.slides}></a>
+                        $if(index.chapters.materials.img)$
+                        <img src="$index.chapters.materials.img$" />
+                        $endif$
                         $if(index.chapters.materials.keywords)$
                         <span class="keywords">
                             $for(index.chapters.materials.keywords)$
@@ -287,12 +286,9 @@
                     $endfor$
                 </ul>
                 $endif$
-                <!-- Sections -->
-                <div class="sections">
+                <!-- <div class="sections">
                     $for(index.chapters.sections)$
-                    <!-- Section Loop -->
                     <div class="section">
-                        <!-- Header -->
                         <h3>$index.chapters.sections.title$</h3>
                         $if(index.chapters.sections.separator)$
                         <div class="$index.chapters.sections.separator.style$">
@@ -302,11 +298,9 @@
                         <p class="date">Date: $index.chapters.sections.date$</p>
                         $endif$
 
-                        <!-- Materials -->
                         $if(index.chapters.sections.materials)$
                         <ul>
                             $for(index.chapters.sections.materials)$
-                            <!-- Section Material -->
                             $if(index.chapters.sections.hidden)$
                             $else$
                             <li>
@@ -317,15 +311,12 @@
                         </ul>
                         $endif$
 
-                        <!-- Subsubsection -->
                         $if(index.chapters.sections.subsections)$
                         <div class="subsections">
                             $for(index.chapters.sections.subsections.subsections)$
-                            <!-- Subsection Loop -->
                             $if(index.chapters.sections.subsections.hidden)$
                             $else$
                             <div class="subsubsections">
-                                <!-- Header -->
                                 <h4>$index.chapters.sections.subsections.title$</h4>
                                 $if(index.chapters.sections.subsections.separator)$
                                 <div class="$index.chapters.sections.subsections.separator.style$">
@@ -335,7 +326,6 @@
                                 <p class="date">Date: $index.chapters.sections.subsections.date$</p>
                                 $endif$
 
-                                <!-- Materials -->
                                 $if(index.chapters.sections.subsections.materials)$
                                 <div class="subsubsection">
                                     $for(index.chapters.sections.subsections.materials)$
@@ -356,14 +346,13 @@
                         $endif$
                     </div>
                     $endfor$
-                </div>
+                </div> -->
             </article>
             $endfor$
         </section>
 
 
         <div class="card-grid" id="tileContainer">
-            <!-- More grid items as needed -->
         </div>
     </main>
 
@@ -424,6 +413,7 @@
             <a href="https://www.hci.uni-wuerzburg.de/legal/" class="u-color-disabled">Legal Information</a>
         </div>
     </div>
+    
     <script>
         var socket = new WebSocket("ws://" + location.host + "/reload");
         socket.onmessage = function (event) {

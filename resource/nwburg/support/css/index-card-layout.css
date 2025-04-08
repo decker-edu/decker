@@ -35,6 +35,7 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding: 20px;
+    padding-top: 0px;
     justify-content: center;
     align-items: start;
     width: 100%;
@@ -412,15 +413,12 @@ ul.bannerSlider{
 
 .lecture-card {
     flex: 1 1 calc(33.33% - 20px); 
-    max-width: calc(33.33% - 20px);
+    max-width: calc(33.33% - 20px);  
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     border-top: 2px solid #004a8f;
     margin: 0 20px 10px 0;
-}
-
-.lecture-card-box {
     background: white;
     padding: 10px;
 }
@@ -428,6 +426,7 @@ ul.bannerSlider{
 .lecture-img-container {
     position: relative;
     width: 100%;
+    min-width: 24em;
     aspect-ratio: 21 / 9;
     background-color: #f0f0f0;
     overflow: hidden;
@@ -438,24 +437,51 @@ ul.bannerSlider{
     height: auto;
 }
 .lecture-title {
-    font-size: 13px;
+    font-size: 1.1em;
     font-weight: bold;
-    color: #004a8f;
-    text-decoration: none;
-    display: block;
+    margin-bottom: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: auto; 
+    max-height: 3em;  
+    flex-basis: fit-content;
 }
-
+.lecture-title-header {
+    display: flex;
+    justify-content: space-between;
+}
 .lecture-footer {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
+    width: 100%;
 }
-.lecture-date {
-    font-size: 0.8rem;
-    color: #666;
+.lecture-date {    
+    color: rgba(0,0,0,.38);
+    margin-bottom: 0;
+    font-size: 13px;
+    font-family: "Roboto",sans-serif;
+}
+.icon-right-open::before {
+    content: "";
+    font-family: "fontello";
+    font-style: normal;
+    font-weight: normal;
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1em;
+    margin-left: .2em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 .lecture-more-btn {
-    font-size: 0.9rem;
+    display: flex;
+}
+.lecture-more-btn p {
     color: #004a8f;
     cursor: pointer;
 }
@@ -485,29 +511,43 @@ ul.bannerSlider{
     text-decoration: none;
 
 }
-.lecture-description {
-    position: relative;
+.lecture-title-container {
     margin-top: 10px;
-    max-height: 3.6em; /* Limit to 2 lines */
-    /* overflow: hidden; */
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-height: 5em;
 }
-
-.lecture-description p {
-    font-size: 13px;
+.lecture-description {
+    font-size: 0.9rem;
     color: #555;
     overflow: hidden;
+    text-wrap: wrap;
     text-overflow: ellipsis;
+    white-space: collapse;
+    height: 3em;
+    width: 25em;
+    margin-bottom: 0;
+}
+
+.resource-links {
+    display: flex;
+    justify-content: space-between;
+}
+
+.lecture-resource {
+    font-size: 0.9rem;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: auto;
+    margin-left: 1em;
 }
 
 /* Tooltip styling */
 .tooltip {
-    position: absolute;
-    left: 50%;
-    bottom: 110%;
+    position: relative;
+    left: 13em;
+    bottom: 11em;
     transform: translateX(-50%);
-    width: fit-content;
+    width: 100%;
     padding: 10px;
     background: slategrey;
     color: white;
@@ -516,7 +556,8 @@ ul.bannerSlider{
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.3s ease;
-    text-align: center;
+    text-align: left;
+    text-wrap: wrap;
     z-index: 10;
 }
 
@@ -542,14 +583,14 @@ ul.bannerSlider{
 
     .lecture-card {
         flex: 1 1 calc(50% - 20px); 
-        max-width: calc(50% - 20px);
+        max-width: fit-content;
     }
 }
 
 @media (min-width: 1025px) and (max-width: 1179px) {
     .lecture-card {
         flex: 1 1 calc(50% - 20px); 
-        max-width: calc(50% - 20px);
+        max-width: fit-content;
     }
 }
 

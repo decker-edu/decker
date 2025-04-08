@@ -15,13 +15,15 @@ async function parseChapters() {
             const materialElements = materialsEl.querySelectorAll('.material');
             for (const materialEl of materialElements) {
                 const materialTitle = materialEl.querySelector('.material-title')?.textContent.trim() || 'Untitled';
+                const materialDate = materialEl.querySelector('.date')?.textContent.replace('Date: ', '').trim() || 'Unknown Date';
+                const materialImg = materialEl.querySelector('img')?.src || '/support/vendor/images/theme/general/hci-logo-red.png';
+                const materialDescription = materialEl.querySelector('.description')?.textContent.trim() || 'No description available';
+                const slides = materialEl.querySelector('a.slides-link')?.getAttribute('href') || '';
 
                 const fileLinks = materialEl.querySelectorAll('a.file-link');
                 const files = Array.from(fileLinks).map(fileLink => ({
-                    Name: fileLink.textContent.trim() || materialTitle,
-                    Path: fileLink.getAttribute('href') || '',
-                    Icon: fileLink.dataset.icon || '/support/vendor/images/theme/general/hci-logo-red.png',
-                    IsReady: true,
+                    name: fileLink.textContent.trim() || 'Resource',
+                    link: fileLink.getAttribute('href') || '',
                 }));
 
                 const keywordElements = materialEl.querySelectorAll('.keywords .keyword-box');
@@ -29,6 +31,10 @@ async function parseChapters() {
 
                 materials.push({
                     title: materialTitle,
+                    description: materialDescription,
+                    slides: slides,
+                    date: materialDate,
+                    teaserImage: materialImg,
                     files: files.length > 0 ? files : undefined,
                     visible: true,
                     keywords: keywords,
@@ -65,10 +71,9 @@ async function fetchMetadata(url) {
         .map(keyword => keyword.trim());
 
     meta.files = Array.from(doc.querySelectorAll('meta[name="file"]')).map(tag => ({
-        Name: tag.getAttribute('content') || "Unnamed File",
-        Path: tag.getAttribute('data-path') || "",
-        Icon: tag.getAttribute('data-icon') || "default-icon.png",
-        IsReady: tag.getAttribute('data-is-ready') === "true",
+        name: tag.getAttribute('content') || "Unnamed File",
+        link: tag.getAttribute('data-path') || "",
+        img: tag.getAttribute('data-icon') || "default-icon.png",
     }));
 
     return meta;
@@ -84,7 +89,6 @@ async function populateCards(chaptersPromise) {
 
     for (let chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
         const chapter = chapters[chapterIndex];
-
         const chapterHeader = document.createElement('div');
         chapterHeader.classList.add('lecture-header');
         chapterHeader.dataset.chapterIndex = chapterIndex;
@@ -99,14 +103,20 @@ async function populateCards(chaptersPromise) {
 
         for (let materialIndex = 0; materialIndex < chapter.materials.length; materialIndex++) {
             const material = chapter.materials[materialIndex];
-
+            var links = "";
+            if (material.files) {
+                material.files.forEach((file, index) => {
+                    links += (`<a href="${file.link}" class="lecture-resource">${file.name}</a>`);
+                });
+            }
+        
             const lectureCard = document.createElement('div');
             lectureCard.classList.add('lecture-card');
             lectureCard.dataset.chapterIndex = chapterIndex;
             lectureCard.dataset.materialIndex = materialIndex;
 
             try {
-                const meta = await fetchMetadata(material.files[0].Path);
+                const meta = await fetchMetadata(material.slides);
 
                 if (!material.description) material.description = meta.description;
                 if (!material.teaserImage) material.teaserImage = meta.teaserImage;
@@ -115,24 +125,30 @@ async function populateCards(chaptersPromise) {
                 if (material.keywords.length === 0) material.keywords = meta.keywords;
 
                 lectureCard.innerHTML = `
-                <div class="lecture-card-box">
                     <div class="lecture-img-container">
-                        <img src="${material.teaserImage || 'preview-image.webp'}">
+                        <a class="lecture-more-btn" href=${material.slides}>
+                            <img src="${material.teaserImage || 'preview-image.webp'}" alt="${material.title}" />
+                        </a>
                     </div>
-                    <div class="lecture-description">
-                        <a class="lecture-title">${material.title}</a>
-                        <p>${material.description || 'No description available'}</p>
+                    <div class="lecture-title-container">
+                        <div class="lecture-title-header">
+                            <p class="lecture-title">${material.title}</p>
+                            <div class="resource-links">
+                                ${links}
+                            </div>
+                        </div>
+                        <div class="lecture-description">${material.description || 'No description available'}</div>
                         <span class="tooltip">${material.description}</span>
                     </div>
                     <div class="lecture-footer">
-                        <p class="lecture-date">${chapter.date}</p>
-                        <p class="lecture-more-btn">
+                        <p class="lecture-date">${material.date}</p>
+                        <a class="lecture-more-btn" href=${material.slides}>
                             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg> More
-                        </p>
-                    </div>
-                </div>`;
+                                <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p>More</p>
+                        </a>
+                    </div>`;
 
                 lectureCardsWrapper.appendChild(lectureCard);
             } catch (error) {
@@ -166,17 +182,34 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Add event listeners for toggling lecture content visibility
         const lectureHeaders = document.querySelectorAll(".lecture-header");
+        const titleHeaders = document.querySelectorAll(".lecture-title-container"); 
 
-        lectureHeaders.forEach(header => {
-            header.addEventListener("click", function () {
-                const lectureContainer = this.nextElementSibling; // The lecture content section
+        lectureHeaders.forEach(lh => {
+            lh.addEventListener("click", function () {
+                const lectureContainer = this.nextElementSibling; 
                 
                 if (lectureContainer) {
-                    // Toggle visibility of content
                     lectureContainer.style.display = (lectureContainer.style.display === "none" || lectureContainer.style.display === "") ? "block" : "none";
                 }
             });
         });
+        titleHeaders.forEach(th => {
+            th.addEventListener("mouseenter", function () {
+                const tooltip = th.querySelector(".tooltip");
+                if(tooltip) {
+                    tooltip.style.visibility = "visible";
+                    tooltip.style.opacity = "1";
+                }
+            });
+            th.addEventListener("mouseleave", function () {
+                const tooltip = th.querySelector(".tooltip");
+                if(tooltip) {
+                    tooltip.style.visibility = "hidden";
+                    tooltip.style.opacity = "";
+                }
+            });
+        });
+
 
         // Initially hide all lecture content sections
         document.querySelectorAll(".lecture-container").forEach(container => {

@@ -15,6 +15,13 @@
     text-transform: uppercase;
     text-decoration: none;
 }
+.course-description {
+    margin-bottom: 1em;
+}
+
+.course-info {
+    margin-bottom: 0.8em;
+}
 
 .contact h3, 
 .course-info h3 {
@@ -22,10 +29,8 @@
     font-size: 1.3rem;
     line-height: 2rem;
     text-decoration: none;
-    margin-right: 1rem;
+    margin-right: 3rem;
     margin-bottom: 0;
-}
-.course-info h3 {
     color: #004a8f;
 }
 .contacts {
@@ -34,5 +39,10 @@
 }
 .contact {
     display: flex;
-    flex-direction: column;
+}
+.contact span {
+    margin-top: 0.5em;
+}
+.contact-reason {
+    margin-bottom: 1em;
 }

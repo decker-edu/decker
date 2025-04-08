@@ -59,7 +59,6 @@
     </style>
 
     <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
-    <link rel="stylesheet" href="$decker-support-dir$/css/about-layout.css">
     $for(template.css)$
     <link rel="stylesheet" href="$template.css$" />
     $endfor$
@@ -78,12 +77,16 @@
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     <!-- in place css that is to be developed. this contains definitions for the grid layout as well as both sides of the flip cards and cards  -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">  
+    <link rel="stylesheet" href="$decker-support-dir$/css/index-card-layout.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/index-menubar.css">
+    <link rel="stylesheet" href="$decker-support-dir$/css/index-filter.css">
+    <link rel="stylesheet" href="$decker-support-dir$/css/about-layout.css">  
 </head>
 
 
 <body>
+    <!-- Page Header -->
     <header role="banner" class="page-header">
         <div class="page-header__logo">
             <a class="page-header__logo-link" title="Zur Startseite" href="http://www.uni-wuerzburg.de/startseite/">
@@ -91,13 +94,16 @@
             </a>
             <img src="/support/vendor/images/theme/uni-wuerzburg-header-background.png"
                 class="page-header__logo-background">
+
+                        <!-- Hamburger Menu Icon -->
+        <div class="hamburger">&#9776;</div>
         </div>
     
     </header>
     <!--  BANNER SLIDER  https://codepen.io/ekrz/pen/EgJJYo  -->
-
     <nav id="menu-bar" class="menu-bar">
-        <div class="menu-container">
+    
+        <div class="menu-container" id="nav-menu">
             <ul>
                 <div class="menu-item-container">
                     $for(index.menu_bar.items)$
@@ -105,27 +111,36 @@
                         $if(index.menu_bar.items.action)$
                         <a href="$index.menu_bar.items.action$">$index.menu_bar.items.label$</a>
                         $else$
-                        <span>$index.menu_bar.items.label$</span>
+                        <span class="submenu-toggle">$index.menu_bar.items.label$</span>
                         $endif$
-            
                         $if(index.menu_bar.items.submenu)$
-                        <ul>
+                        <ul class="submenu">
                             $for(index.menu_bar.items.submenu)$
+                          
                             <li class="$index.menu_bar.items.submenu.style$">
                                 $if(index.menu_bar.items.submenu.action)$
-                                <a href="$index.menu_bar.items.submenu.action$">$index.menu_bar.items.submenu.label$</a>
+                                <a href="$index.menu_bar.items.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg> $index.menu_bar.items.submenu.label$</a>
                                 $else$
-                                <span>$index.menu_bar.items.submenu.label$</span>
+                                
+                                <div class="submenu-toggle"><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg> 2$index.menu_bar.items.submenu.label$</div>
                                 $endif$
-            
+    
                                 $if(index.menu_bar.items.submenu.submenu)$
-                                <ul>
+                                <ul class="submenu">
                                     $for(index.menu_bar.items.submenu.submenu)$
                                     <li class="$index.menu_bar.items.submenu.submenu.style$">
                                         $if(index.menu_bar.items.submenu.submenu.action)$
-                                        <a href="$index.menu_bar.items.submenu.submenu.action$">$index.menu_bar.items.submenu.submenu.label$</a>
+                                        <a href="$index.menu_bar.items.submenu.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg> $index.menu_bar.items.submenu.submenu.label$</a>
                                         $else$
-                                        <span>$index.menu_bar.items.submenu.submenu.label$</span>
+                                        <span class="submenu-toggle"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg> $index.menu_bar.items.submenu.submenu.label$</span>
                                         $endif$
                                     </li>
                                     $endfor$
@@ -139,16 +154,13 @@
                     $endfor$
                 </div>
             </ul>
-             <!-- Search Section -->
+    
+            <!-- Search Section -->
             <div class="search-container">
-                <div class="search" id="search-anchor" style="align-content: center;">
-                    <!-- <div id="search-anchor"></div>
-                    <a href="#search-anchor">Search</a> -->
-                </div>
+                <div class="search" id="search-anchor" style="align-content: center;"></div>
             </div>
         </div>
-    </nav>
-    
+    </nav>   
 
 	<div class="banner page-header">
 		<div class="row fullwidth">
@@ -171,7 +183,6 @@
 		</div>
 	</div>
 
-
     <div class="header-title">
         <a href="/">
             $if(title-prefix)$
@@ -186,7 +197,7 @@
             <div class="course-header">
                 <h2>Course Description</h2>
             </div>
-            <span class="course-description">$index.about.course-description$</span>
+            <div class="course-description">$index.about.course-description$</div>
             <div class="course-info">
                 <h3>Pre-Requisites</h3>
                 <span>$index.about.pre-requisites$</span>
@@ -211,8 +222,8 @@
                 <div class="contact">
                     <h3>$index.about.contacts.name$</h3>
                     <span>$index.about.contacts.email$</span>
-                    <span>Contact for $index.about.contacts.reason$</span>
                 </div>
+                <div class="contact-reason">Contact for $index.about.contacts.reason$</div>
                 $endfor$
             </div>
         </section>
@@ -285,6 +296,7 @@
 
     <!-- <script src="$decker-support-dir$/js/index-bootstap-inject.js"></script> -->
      <script src="$decker-support-dir$/js/index-styling.js"></script>
+     <script src="$decker-support-dir$/js/about-styling.js"></script>
     <script type="module" src="$decker-support-dir$/js/search-functionality.js"></script>
     <script src="$decker-support-dir$/js/image-carousel.js"></script>
     <script src="$decker-support-dir$/js/index-menubar.js"></script>
