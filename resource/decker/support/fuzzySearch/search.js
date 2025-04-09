@@ -43,9 +43,11 @@ function setupSearch(
   showDeckTitles = true,
   showDeckSubtitles = false
 ) {
-  let indexPath = Decker.meta.projectPath;
-  if (!indexPath.endsWith("/")) indexPath += "/";
-  indexPath += "index.json";
+  // let indexPath = Decker.meta.projectPath;
+  // if (!indexPath.endsWith("/")) indexPath += "/";
+  // indexPath += "index.json";
+  // TODO assumes this is called from index.html 
+  let indexPath = "./index.json"
   console.log("read search index from " + indexPath);
 
   fetch(indexPath)

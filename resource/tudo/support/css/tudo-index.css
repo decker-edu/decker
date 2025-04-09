@@ -323,3 +323,15 @@ html.dark #index-color-button::before {
 html.light #index-color-button::before {
   content: "\f186";
 }
+
+.german {
+  display: none;
+}
+
+html[lang="de"] .german {
+  display: unset;
+}
+
+html[lang="de"] .english {
+  display: none;
+}

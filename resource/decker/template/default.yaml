@@ -68,7 +68,7 @@ reveal:
 
 # Title Config
 
-title: "<Undefined Title>"
+title: false
 
 # Whisper Config
 
@@ -177,7 +177,6 @@ external-tools:
       command: "chrome"
       arguments:
         - "--headless"
-        - "--virtual-time-budget=5555"
         - "--no-pdf-header-footer"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
@@ -186,7 +185,6 @@ external-tools:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       arguments:
         - "--headless"
-        - "--virtual-time-budget=5555"
         - "--no-pdf-header-footer"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"

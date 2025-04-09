@@ -19,6 +19,7 @@ import System.AtomicWrite.Writer.ByteString
 import System.Directory qualified as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
+import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
@@ -28,18 +29,18 @@ import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Select (filterSelectedSlides)
 import Text.Decker.Filter.ShortLink
-import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Template (expandTemplateMacros)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.MetaExtra (expandMeta, mergeDocumentMeta, needMetaTargets)
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
-import Text.Decker.Internal.MetaExtra (mergeDocumentMeta, expandMeta, needMetaTargets)
+import Text.Pandoc.Walk (walk)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -55,10 +56,10 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docPath
-    >>= runNewFilter disp expandTemplateMacros docPath
-    >>= runNewFilter disp expandFragmentTemplates docPath
     >>= deckerMediaFilter disp docPath
     >>= processPandoc (deckerPipeline disp) docBase disp
+    >>= runNewFilter disp expandTemplateMacros docPath
+    >>= runNewFilter disp expandFragmentTemplates docPath
     >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do
@@ -95,15 +96,29 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path
-    -- >>= (\(Pandoc meta blocks) ->
-    --         do  putStrLn $ path <> "\n" <> show meta
-    --             return (Pandoc meta blocks))
+    >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
     >>= checkVersion
     >>= includeMarkdownFiles globalMeta base
     >>= addPathInfo base
+
+addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
+addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) =
+  return
+    $ if not (lookupMetaOrElse False "lecture.publish" globalMeta)
+      && lookupMetaOrElse False "experiments.add-document-path" globalMeta
+      then walk addToHeader1 pandoc
+      else pandoc
+  where
+    addToHeader1 (Header 1 (id, cls, kvs) content) =
+      Header
+        1
+        (id, cls, addPath kvs)
+        (content <> [Span ("", ["document-path"], []) [Space, Str $ toText documentPath]])
+    addToHeader1 block = block
+    addPath kvs = ("data-source-path", toText documentPath) : kvs
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
 addPathInfo documentPath (Pandoc meta blocks) = do
