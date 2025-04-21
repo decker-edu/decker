@@ -39,7 +39,6 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Layout
 import Text.Groom
 import System.Directory (makeRelativeToCurrentDirectory)
-import System.Directory (makeRelativeToCurrentDirectory)
 
 main :: IO ()
 main = do
@@ -56,14 +55,10 @@ needTargets' sels targets = do
 
 needPublicIfExists :: FilePath -> Action ()
 needPublicIfExists source = do
-  -- liftIO $ print source
   let target = publicDir </> source
-  exists <- doesFileExist source
   exists <- doesFileExist source
   if exists
     then do
-      -- liftIO $ print target
-      -- liftIO $ print target
       need [target]
     else do
       removeFileA target
@@ -75,11 +70,6 @@ needPublicIfExistsGlob :: FilePath -> Action ()
 needPublicIfExistsGlob source = do
   files <- liftIO $ Glob.glob source
   relative <- liftIO $ mapM makeRelativeToCurrentDirectory files
-  -- putWarn $ "projectDir: " <> projectDir 
-  -- putWarn $ "GLOB: " <> source <> " " <> show files
-  -- putWarn $ "GLOB: " <> source <> " " <> show relative
-  forM_ relative needPublicIfExists
-  -- putWarn $ "GLOB: " <> source <> " " <> show relative
   forM_ relative needPublicIfExists
 
 -- | Remove a file, but don't worry if it fails
