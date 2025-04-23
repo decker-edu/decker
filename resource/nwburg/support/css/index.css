@@ -4,6 +4,8 @@
 @import url("./structure.css");
 @import url("./style.css");
 @import url("./media.css");
+@import url("grid.css");
+@import url("maxcdn.bootstrapcdn.com_bootstrap_4.5.2_css_bootstrap.min.css");
 
 html {
   color: var(--foreground-color);
@@ -11,16 +13,17 @@ html {
 }
 
 body {
-   padding-top: 20px;
-   padding-left: 20px;
-   padding-right: 20px;
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 body.index {
   margin-top: 0;
   box-sizing: border-box;
   font-size: 16px;
-  max-width: 52em;
+  width: 100%;
+  /* max-width: 52em; */
   color: var(--foreground-color);
   background-color: var(--background-color);
 }
@@ -29,7 +32,7 @@ code {
   font-size: 100%;
 }
 
-pre > code {
+pre>code {
   font-size: 90%;
 }
 
@@ -49,7 +52,7 @@ progress {
 body.index table {
   margin-left: auto;
   margin-right: auto;
-  display: table; 
+  display: table;
   width: 90%;
 }
 
@@ -66,29 +69,29 @@ body.index div.search.results table.search {
 }
 
 header .index-page-banner img {
-   margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
-header  {
-   margin-bottom: 1rem;
+header {
+  margin-bottom: 1rem;
 }
 
 
 header h1 {
-   font-weight: 500;
-   color: #063D79;
+  font-weight: 500;
+  color: #063D79;
 }
 
 header h2 {
-   font-weight: normal;
-   color: #063D79;
+  font-weight: normal;
+  color: #063D79;
 }
 
 summary {
-   font-size: 1em;
-   font-weight: normal;
-   color: #063D79;
-   text-align:center;
+  font-size: 1em;
+  font-weight: normal;
+  color: #063D79;
+  text-align: center;
 }
 
 .link-additions {
@@ -137,5 +140,502 @@ a.handout-link:hover::after {
 
 
 footer {
-   margin-top: 1rem;
+  margin-top: 1rem;
 }
+
+.supplemental-icon {
+  /* max width 10% of the container it is in, or 50 pixel, whatever is smaller */
+  max-width: max(10%, 50px);
+}
+
+.googlebutton {
+  -webkit-text-size-adjust: 100%;
+  --background-color: #fff;
+  --error-code-color: var(--google-gray-700);
+  --google-blue-100: rgb(210, 227, 252);
+  --google-blue-300: rgb(138, 180, 248);
+  --google-blue-600: rgb(26, 115, 232);
+  --google-blue-700: rgb(25, 103, 210);
+  --google-gray-100: rgb(241, 243, 244);
+  --google-gray-300: rgb(218, 220, 224);
+  --google-gray-500: rgb(154, 160, 166);
+  --google-gray-50: rgb(248, 249, 250);
+  --google-gray-600: rgb(128, 134, 139);
+  --google-gray-700: rgb(95, 99, 104);
+  --google-gray-800: rgb(60, 64, 67);
+  --google-gray-900: rgb(32, 33, 36);
+  --heading-color: var(--google-gray-900);
+  --link-color: rgb(88, 88, 88);
+  --popup-container-background-color: rgba(0, 0, 0, .65);
+  --primary-button-fill-color-active: var(--google-blue-700);
+  --primary-button-fill-color: var(--google-blue-600);
+  --primary-button-text-color: #fff;
+  --quiet-background-color: rgb(247, 247, 247);
+  --secondary-button-border-color: var(--google-gray-500);
+  --secondary-button-fill-color: #fff;
+  --secondary-button-hover-border-color: var(--google-gray-600);
+  --secondary-button-hover-fill-color: var(--google-gray-50);
+  --secondary-button-text-color: var(--google-gray-700);
+  --small-link-color: var(--google-gray-700);
+  --text-color: var(--google-gray-700);
+  word-wrap: break-word;
+  border: 0;
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: var(--primary-button-text-color);
+  cursor: pointer;
+  float: right;
+  font-size: .875em;
+  margin: 0;
+  padding: 8px 16px;
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  background: var(--primary-button-fill-color);
+  width: fit-content;
+}
+
+
+/* Add your custom CSS here */
+.grid-container {
+  display: grid;
+  grid-template-areas:
+    'header header header header header header'
+    'menu main main main right right'
+    'menu footer footer footer footer footer';
+  gap: 10px;
+  background-color: #2196F3;
+  padding: 1em;
+}
+
+.grid-container>div {
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 1em;
+  font-size: 30px;
+}
+
+/* add card css. the card contains of a vertical flex layout on the front and back
+    for the desktop view, the card contains the following elements in the following order:
+    1. preview image
+    2. title
+    3. summary
+    4. tags (horizontal flex layout)
+    for the mobile view, the card contains the following  elements in the following order:  
+    1. preview image
+    2. title
+    3. horizontal flex layout containing 3 icons with hyperlinks to presentation, exercise and handout
+    4. tags (horizontal flex layout)
+    for the desktop view, the card back contains the following elements in the following order:
+    1. title
+    2. summary
+    3. horizontal flex layout containing 3 icons with hyperlinks to presentation, exercise and handout
+    4. Date and Author
+    the cards width is fixed to 365 px and height to 420 px
+    the preview 345 px and height to 210 px 
+    the title area is 345 x 25
+    the summary area is 345 x 100
+    the tags area is 345 x 30
+    the cards have a flip animation when hovered over. the flip animation is a 3d rotation of 180 degrees
+    */
+.card {
+  width: 365px;
+  height: 420px;
+  perspective: 1000px;
+}
+
+.front,
+.back {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  backface-visibility: hidden;
+}
+
+/* .front { 
+          background-color: #bbb;
+        color: black; 
+      } */
+/* summary text on card */
+.card text {
+  width: 100%;
+  height: auto;
+  margin: 10px;
+}
+
+.back {
+  /* background-color: #2980b9;
+        color: white; */
+  transform: rotateY(180deg);
+}
+
+.card:hover .front {
+  transform: rotateY(180deg);
+  transition: .6s;
+}
+
+.card:hover .back {
+  transform: rotateY(0deg);
+  transition: .6s;
+}
+
+.icons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  overflow: hidden;
+}
+
+.cards-container {
+background-color: #f4f7f7;
+display: flex;
+}
+
+.grid-item {
+  width: 365px;
+  height: 420px;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+ .grid-item img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+}
+
+.grid-item h2 {
+  margin: 10px;
+}
+
+.grid-item ul {
+  display: flex;
+  justify-content: center;
+  list-style-type: none;
+  padding: 0;
+}
+
+.grid-item li {
+  margin: 5px;
+  padding: 1em 1em;
+  background-color: #2980b9;
+  color: white;
+  border-radius: 5px;
+}
+
+.grid-item .icons {
+  display: flex;
+  justify-content: space-around;
+  margin: 10px;
+}
+
+.grid-item .icons a {
+  color: white;
+}
+
+.grid-item .icons img {
+  width: 30px;
+  height: 30px;
+}
+
+.grid-item .icons a:hover {
+  color: #2980b9;
+}
+
+footer {
+  text-align: center;
+  padding: 1 em;
+  background-color: #333;
+  color: white;
+}
+
+footer p {
+  margin: 10px;
+}
+
+@media screen and (max-width: 768px) {
+  .grid-item {
+    width: calc(50% - 20px);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .grid-item {
+    width: calc(100% - 20px);
+  }
+}
+
+/* .card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 365px);
+  gap: 20px;
+  justify-content: center;
+  padding: .3em;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+} */
+
+.grid-item {
+    /* flex-basis: 30%; /* Each item takes about 30% width
+    max-width: 30%; */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.card {
+  /* width: 365px;
+        height: 420px; */
+  /* set width  */
+  /* width: 365px;
+        height: 420px;
+        perspective: 1000px; */
+  aspect-ratio: 1 / 1.2;
+  /* Adjust the aspect ratio as required */
+  perspective: 1000px;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.front,
+.back {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.front {
+  /* background-color: #bbb;
+        color: black; */
+}
+
+.back {
+  /* background-color: #2980b9;
+        color: white; */
+  transform: rotateY(180deg);
+  justify-content: space-between;
+}
+
+.card:hover .front {
+  transform: rotateY(180deg);
+  transition: .6s;
+}
+
+.card:hover .back {
+  transform: rotateY(0deg);
+  transition: .6s;
+}
+
+.icons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 10px;
+}
+
+.grid-item img {
+  width: 100%;
+  height: 50%;
+  object-fit: cover;
+}
+
+.grid-item h2 {
+  margin: 10px;
+}
+
+
+.grid-item .icons img {
+  width: 30px;
+  height: 30px;
+}
+
+@media screen and (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+.filter-buttons {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  background-color: #2980b9;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.filter-btn.active {
+  opacity: 1;
+  background-color: #1f5d7b;
+}
+
+.filter-buttons button:hover {
+  opacity: 1;
+}
+
+.section-header {
+  grid-column: 1 / -1;
+  /* background-color: #444;
+        color: white;
+        padding: 15px; */
+  text-align: center;
+  /* font-size: 1.25em;
+        border-radius: 5px; */
+}
+
+.mySlides {
+  display: none;
+}
+
+.your-slider img {
+  max-height: 10em;
+  ;
+  object-fit: cover;
+}
+
+.mySlides {
+  max-height: 15%;
+  max-width: 100%;
+}
+
+html,
+body,
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: none;
+  color: rgba(0, 0, 0, .65);
+  font-size: 13px;
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.filter-container {
+  padding: 10px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.filter-btn,
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background-color: #f0f0f0;
+  /* border: 1px solid #ccc; */
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.filter-checkbox {
+  background-color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.filter-checkbox label {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  /* Prevent text wrapping */
+  overflow: hidden;
+  /* Hide overflow */
+  text-overflow: ellipsis;
+  /* Add ellipsis if text overflows */
+}
+
+.filter-checkbox input {
+  margin-right: 10px;
+}
+
+.select-all-filter {
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.filter-container {
+  padding: 10px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.filter-btn,
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.filter-checkbox {
+  background-color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.filter-checkbox label {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  /* Prevent text wrapping */
+  overflow: hidden;
+  /* Hide overflow */
+  text-overflow: ellipsis;
+  /* Add ellipsis if text overflows */
+}
+
+.filter-checkbox input {
+  margin-right: 10px;
+}
+
+.select-all-filter {
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: underline;
+}
+
+
+
+/* badge badge-pill badge-secondary keyword  do not have a style definition. The badge pils are missing them of course. Maybe because css is taken from web?!*/

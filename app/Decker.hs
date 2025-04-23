@@ -36,6 +36,7 @@ import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
+import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Groom
 
@@ -81,9 +82,13 @@ serverPort = 8888
 
 serverUrl = "http://localhost:" ++ show serverPort
 
+generatedIndexSource = (</> "index.md.generated") <$> transientDir
+
 generatedIndex = publicDir </> "index-generated.html"
 
 indexFile = publicDir </> "index.html"
+
+aboutFile = publicDir </> "about.html"
 
 run :: IO ()
 run = do
@@ -95,6 +100,7 @@ runArgs args = do
 
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
+  generated <- liftIO generatedIndexSource
   transient <- liftIO transientDir
   want ["html"]
   addHelpSuffix "Commands:"
@@ -108,6 +114,8 @@ deckerRules = do
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
+  addHelpSuffix "  - search-index - Compile global search index."
+  addHelpSuffix "  - build-index - Post process the generated index.html file."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -241,19 +249,36 @@ deckerRules = do
     phony "moodle-xml" $ do
       need ["private/quest-catalog.xml"]
     --
+    phony "build-index" $ do
+      need [aboutFile, "html", "handouts", "search-index"]
+    --
     indexFile %> \out -> do
       meta <- getGlobalMeta
-      deps <- getDeps
-      exists <- doesFileExist indexSource
+      exists <- liftIO $ Dir.doesFileExist indexSource
       if exists
         then do
-          need [indexSource]
+          need [indexSource, generatedIndex]
           markdownToHtml htmlIndex meta getTemplate indexSource out
-          template <- getTemplate "template/index-generated.html"
-          renderIndex template meta deps generatedIndex
         else do
-          template <- getTemplate "template/index-generated.html"
-          renderIndex template meta deps out
+          need [generated]
+          markdownToHtml htmlIndex meta getTemplate generated out
+    --
+    aboutFile %> \out -> do
+      meta <- getGlobalMeta
+      need [generated]
+      markdownToHtml htmlAbout meta getTemplate generated out
+    --
+    generated %> \out -> do
+      deps <- getDeps
+      meta <- getGlobalMeta
+      targets <- liftIO targetsFile
+      need [targets]
+      writeIndexLists meta deps out
+    --
+    generatedIndex %> \out -> do
+      need [generated]
+      meta <- getGlobalMeta
+      markdownToHtml htmlIndex meta getTemplate generated out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do
@@ -354,7 +379,7 @@ deckerRules = do
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
       deps <- getDeps
-      need [indexFile, "static-files"]
+      need [indexFile, generatedIndex, "static-files"]
       -- Resources and their locations are now recorded in deps
       need $ Map.keys (deps ^. resources)
   withTargetDocs "Publish the public dir to the configured destination using rsync." $

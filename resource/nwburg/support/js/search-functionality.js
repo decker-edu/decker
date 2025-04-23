@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const searchInput = anchor.querySelector("input.search");
 
+  // Fetch index.json
   fetch("./index.json")
     .then((response) => response.json())
     .then((indexData) => {
@@ -61,23 +62,19 @@ function filterCards(slideUrls) {
   const resources = document.querySelectorAll(".lecture-resource");
 
   cards.forEach((card) => {
+    // Assume cards have a `data-url or data-urls` attribute
     const cardUrl = card.querySelector(".lecture-more-btn").href; 
     const cardUrlFirst = /[^/]*$/.exec(cardUrl)[0];
     slideUrls = slideUrls.map((url) => {
       return /[^/]*$/.exec(url)[0];
     });
-
-    // resources.forEach((resource) => {
-    //   const plain = resource.href.split('/').pop();
-    //   if (plain.startsWith(cardUrlFirst)) return plain;
-    //   else return null;
-    // });
-
+    slideUrls.forEach((url) => {
+      console.log("urla: " + url + ", urlb: " + cardUrlFirst);
+      if (url.startsWith(cardUrlFirst)) console.log("urlb: ", url);
+    });
     // if the slideUrls array has an element with the prefix of the cardUrl, then display the card
-    // if (slideUrls.some((url) => url.startsWith(cardUrlFirst)) || resources.forEach((resource) => resource.href === cardUrlFirst)) {
-
     if (slideUrls.some((url) => url.startsWith(cardUrlFirst))) {
-        card.parentElement.style.display = "block";
+      card.parentElement.style.display = "block";
     } else {
       card.parentElement.style.display = "none";
     }

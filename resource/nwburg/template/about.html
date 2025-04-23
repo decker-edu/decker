@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$" $if(dir)$ dir="$dir$" $endif$ class="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="pandoc" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+    <title>$if(title)$ $title$ $endif$</title>
+
+    $for(author-meta)$
+    <meta name="author" content="$author-meta$" />
+    $endfor$
+    $if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$" />
+    $endif$
+    $if(description-meta)$
+    <meta name="description" content="$description-meta$" />
+    $endif$
+    $if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+    $endif$
+    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <!-- Default Pandoc CSS for HTML documents -->
+    <style>
+        $styles.html()$
+    </style>
+
+    <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+    <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+    <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+    <style class="css-declarations">
+        @media (prefers-color-scheme: light) {
+            :root {
+                $for(css-light-color-declarations)$ $css-light-color-declarations$ $endfor$
+            }
+
+            :root.dark {
+                $for(css-dark-color-declarations)$ $css-dark-color-declarations$ $endfor$
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                $for(css-dark-color-declarations)$ $css-dark-color-declarations$ $endfor$
+            }
+
+            :root.light {
+                $for(css-light-color-declarations)$ $css-light-color-declarations$ $endfor$
+            }
+        }
+
+        :root {
+            $for(css-declarations)$ $css-declarations$ $endfor$
+        }
+    </style>
+
+    <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
+    $for(template.css)$
+    <link rel="stylesheet" href="$template.css$" />
+    $endfor$
+    <link rel="stylesheet" href="$decker-support-dir$/css/main.css">
+
+    $for(header-includes)$
+    $header-includes$
+    $endfor$
+
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <!-- Include jQuery to request html content of each presentation -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Slick Carousel JS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <!-- in place css that is to be developed. this contains definitions for the grid layout as well as both sides of the flip cards and cards  -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">  
+    <link rel="stylesheet" href="$decker-support-dir$/css/index-card-layout.css">
+    <link rel="stylesheet" href="$decker-support-dir$/css/index-menubar.css">
+    <link rel="stylesheet" href="$decker-support-dir$/css/index-filter.css">
+    <link rel="stylesheet" href="$decker-support-dir$/css/about-layout.css">  
+</head>
+
+
+<body>
+    <!-- Page Header -->
+    <header role="banner" class="page-header">
+        <div class="page-header__logo">
+            <a class="page-header__logo-link" title="Zur Startseite" href="http://www.uni-wuerzburg.de/startseite/">
+                <img src="/support/vendor/images/theme/uni-wuerzburg-logo.svg" class="page-header__logo-full">
+            </a>
+            <img src="/support/vendor/images/theme/uni-wuerzburg-header-background.png"
+                class="page-header__logo-background">
+
+                        <!-- Hamburger Menu Icon -->
+        <div class="hamburger">&#9776;</div>
+        </div>
+    
+    </header>
+    <!--  BANNER SLIDER  https://codepen.io/ekrz/pen/EgJJYo  -->
+    <nav id="menu-bar" class="menu-bar">
+    
+        <div class="menu-container" id="nav-menu">
+            <ul>
+                <div class="menu-item-container">
+                    $for(index.menu_bar.items)$
+                    <li class="$index.menu_bar.items.style$">
+                        $if(index.menu_bar.items.action)$
+                        <a href="$index.menu_bar.items.action$">$index.menu_bar.items.label$</a>
+                        $else$
+                        <span class="submenu-toggle">$index.menu_bar.items.label$</span>
+                        $endif$
+                        $if(index.menu_bar.items.submenu)$
+                        <ul class="submenu">
+                            $for(index.menu_bar.items.submenu)$
+                          
+                            <li class="$index.menu_bar.items.submenu.style$">
+                                $if(index.menu_bar.items.submenu.action)$
+                                <a href="$index.menu_bar.items.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg> $index.menu_bar.items.submenu.label$</a>
+                                $else$
+                                
+                                <div class="submenu-toggle"><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg> 2$index.menu_bar.items.submenu.label$</div>
+                                $endif$
+    
+                                $if(index.menu_bar.items.submenu.submenu)$
+                                <ul class="submenu">
+                                    $for(index.menu_bar.items.submenu.submenu)$
+                                    <li class="$index.menu_bar.items.submenu.submenu.style$">
+                                        $if(index.menu_bar.items.submenu.submenu.action)$
+                                        <a href="$index.menu_bar.items.submenu.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg> $index.menu_bar.items.submenu.submenu.label$</a>
+                                        $else$
+                                        <span class="submenu-toggle"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg> $index.menu_bar.items.submenu.submenu.label$</span>
+                                        $endif$
+                                    </li>
+                                    $endfor$
+                                </ul>
+                                $endif$
+                            </li>
+                            $endfor$
+                        </ul>
+                        $endif$
+                    </li>
+                    $endfor$
+                </div>
+            </ul>
+    
+            <!-- Search Section -->
+            <div class="search-container">
+                <div class="search" id="search-anchor" style="align-content: center;"></div>
+            </div>
+        </div>
+    </nav>   
+
+	<div class="banner page-header">
+		<div class="row fullwidth">
+			<div class="col-md-12">
+				<ul class="bannerSlider">
+                    $for(index.image_carousel.items)$
+					<li class="slide">
+						<a href="#">
+							<div class="slide__text">
+								<h2>$index.image_carousel.items.caption$</h2>
+							</div>
+							<div class="slide__image">
+								<img src="$index.image_carousel.items.image$" alt="" />
+							</div>
+						</a>
+					</li>
+                    $endfor$
+				</ul>
+			</div>
+		</div>
+	</div>
+
+    <div class="header-title">
+        <a href="/">
+            $if(title-prefix)$
+            <h1>$title-prefix$</h1>
+            $endif$
+        </a>
+    </div>
+
+    <!-- Content Section -->
+    <main class="page-body">
+        <section id="about">
+            <div class="course-header">
+                <h2>Course Description</h2>
+            </div>
+            <div class="course-description">$index.about.course-description$</div>
+            <div class="course-info">
+                <h3>Pre-Requisites</h3>
+                <span>$index.about.pre-requisites$</span>
+            </div>
+            <div class="course-info">
+                <h3>Target Audience</h3>
+                <span>$index.about.target-audience$</span>
+            </div>
+            <div class="course-info">
+                <h3>Learning Objectives</h3>
+                <ul>
+                    $for(index.about.learning-objectives)$
+                    <li>$index.about.learning-objectives.objective$</li>
+                    $endfor$
+                </ul>
+            </div>
+            <div class="course-header">
+                <h2>Course Contacts</h2>
+            </div>
+            <div class="contacts">
+                $for(index.about.contacts)$
+                <div class="contact">
+                    <h3>$index.about.contacts.name$</h3>
+                    <span>$index.about.contacts.email$</span>
+                </div>
+                <div class="contact-reason">Contact for $index.about.contacts.reason$</div>
+                $endfor$
+            </div>
+        </section>
+    </main>
+
+    <!-- Page Footer -->
+    <div class="page-footer">
+        <div class="page-footer-top">
+            <div class="column-layout">
+                <div>
+                    <div class="title">
+                        Follow our Social Media Channels
+                    </div>
+                    <div style="
+                  display: flex;
+                  align-items: center;
+                  justify-content:  flex-start;
+              ">
+                        <a href="https://www.youtube.com/user/hciwuerzburg" style="padding-right:20px;"><img
+                                src="/support/vendor/images/theme/youtube.svg"
+                                style="max-width: 61px; margin: 7px 7px 0 1px; opacity: 0.8;"></a>
+                        <a href="https://www.facebook.com/hciwuerzburg" style="padding-right:20px;"><img
+                                src="/support/vendor/images/theme/facebook.png"
+                                style="max-width:97px; margin: 7px 7px 0 1px; opacity: 0.8;"></a>
+                        <a href="https://twitter.com/hci_wurzburg" style="padding-right:20px;"><img
+                                src="/support/vendor/images/theme/twitter.png"
+                                style="max-width: 54px; margin: 7px 60px 0 -8px; opacity: 0.8;"></a>
+                    </div>
+                </div>
+                <div>
+                    <div class="title">
+                        <a href="/contact/">Contact</a>
+                    </div>
+                    Lehrstuhl für<br>
+                    Mensch-Computer-Interaktion<br>
+                    Universität Würzburg<br>
+                    Emil-Fischer-Straße 50<br>
+                    97074 Würzburg<br>
+                </div>
+                <div>
+                    <div class="title">How to Find Us</div>
+                    <a href="https://wueaddress.uni-wuerzburg.de/building/9050">
+                        <div class="image wide " style="">
+                            <div>
+                                <img src="/support/vendor/images/theme/map-new.png" alt="" style="width: 100%;">
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="page-footer-bottom">
+            <div class="column-layout">
+                <div><a href="https://www.uni-wuerzburg.de">University Main Page</a></div>
+                <div><a href="http://www.uni-wuerzburg.de/startseite/">About the University</a></div>
+                <div><a href="https://www.uni-wuerzburg.de/sonstiges/kontakt/">University Contact</a></div>
+            </div>
+        </div>
+        <div class="u-centerContent u-margin-bottom-10 u-color-disabled">
+            <a href="https://www.hci.uni-wuerzburg.de/legal/" class="u-color-disabled">Legal Information</a>
+        </div>
+    </div>
+    <script>
+        var socket = new WebSocket("ws://" + location.host + "/reload");
+        socket.onmessage = function (event) {
+            if (event.data.startsWith("reload!"))
+                window.location.reload(true);
+        };
+    </script>
+
+    <!-- <script src="$decker-support-dir$/js/index-bootstap-inject.js"></script> -->
+     <script src="$decker-support-dir$/js/index-styling.js"></script>
+     <script src="$decker-support-dir$/js/about-styling.js"></script>
+    <script type="module" src="$decker-support-dir$/js/search-functionality.js"></script>
+    <script src="$decker-support-dir$/js/image-carousel.js"></script>
+    <script src="$decker-support-dir$/js/index-menubar.js"></script>
+
+</body>
+<!-- <footer>
+    $for(author)$
+    <p class="author">$author$</p>
+    $endfor$
+    $if(date)$
+    <p class="date">$date$</p>
+    $endif$
+</footer> -->
+
+</html>

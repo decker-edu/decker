@@ -1,445 +1,490 @@
-// Henrik's server API
-import { pollSession } from "../examiner/poll.js";
-
 // reference to Reveal deck
 let Reveal;
 
-// poll info on current slide
-let numAnswers = 0;
-let numCorrectAnswers;
-let solution;
+function quizMC() {
+  for (let question of document.querySelectorAll("div.qmc,div.quiz-mc,div.quiz-multiple-choice")) {
+    for (let answer of question.getElementsByTagName("li")) {
+      // remove tooltip if empty to avoid grey dot
+      const tip = answer.querySelector(".quiz-tooltip");
 
-// polling
-let session;
-let qrcode, qrcodeCanvas, qrcodeLink;
-let finalVotes;
-let pollState;
-let myChart;
-
-// GUI elements
-let votes_div, chart_div, chart;
-
-// config
-const serverUrl =
-  Decker.meta.polling?.server ||
-  Decker.meta["poll-server"] ||
-  "wss://dach.decker.informatik.uni-wuerzburg.de/quizzer/quiz";
-const winnerSelection = Decker.meta.polling?.selection || "Random";
-console.log("Polling URL: ", serverUrl);
-console.log("Polling Selection: ", winnerSelection);
-
-// get path of script -> used for loading audio files
-const url = new URL(import.meta.url);
-const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
-const href = url.href.substring(0, url.href.lastIndexOf("/"));
-
-// load WWM jingles
-let jingleQuestion = new Audio(path + "/wwm-question.mp3");
-let jingleAnswer = new Audio(path + "/wwm-answer.mp3");
-
-// GUI helper (uses named parameters)
-function createElement({ type, id, classes, tooltip, parent, onclick = null }) {
-  let e = document.createElement(type);
-  if (id) e.id = id;
-  if (classes) e.className = classes;
-  if (tooltip) e.title = tooltip;
-  if (parent) parent.appendChild(e);
-  if (onclick) e.addEventListener("click", onclick);
-  return e;
-}
-
-function setupGUI() {
-  if (!Reveal.hasPlugin("ui-anchors")) console.error("need ui-anchors");
-
-  const revealElement = Reveal.getRevealElement();
-  const anchors = Reveal.getPlugin("ui-anchors");
-
-  const qrButton = createElement({
-    type: "button",
-    classes: "fa-button fas fa-qrcode poll-only presenter-only",
-    tooltip: "Show QR code",
-    onclick: toggleQR,
-  });
-  anchors.addBottomCenterButton(qrButton);
-
-  const pollButton = createElement({
-    type: "button",
-    classes: "fa-button fas fa-poll poll-only presenter-only",
-    tooltip: "Start/stop poll",
-    onclick: switchPollState,
-  });
-  anchors.addBottomCenterButton(pollButton);
-
-  votes_div = createElement({
-    type: "div",
-    id: "poll-votes",
-    classes: "poll-only presenter-only",
-  });
-  anchors.addBottomCenterButton(votes_div);
-
-  chart_div = createElement({
-    type: "div",
-    id: "poll-chart",
-    classes: "overlay visible",
-    parent: revealElement,
-  });
-  chart_div.setAttribute("data-prevent-swipe", "");
-
-  chart = createElement({
-    type: "canvas",
-    parent: chart_div,
-  });
-  chart.width = "400";
-  chart.height = "300";
-
-  qrcode = createElement({
-    type: "div",
-    id: "qrcode-container",
-    parent: document.body,
-  });
-  qrcode.addEventListener("click", () => {
-    qrcode.classList.remove("show");
-  });
-
-  qrcodeCanvas = createElement({
-    type: "canvas",
-    id: "qrcode-canvas",
-    parent: qrcode,
-  });
-  qrcodeCanvas.addEventListener("click", (evt) => {
-    qrcodeCanvas.classList.toggle("smaller");
-    evt.stopPropagation();
-  });
-
-  qrcodeLink = createElement({
-    type: "a",
-    id: "qrcode-link",
-    parent: qrcode,
-  });
-
-  const closeButton = createElement({
-    type: "button",
-    id: "close-qr-button",
-    classes: "fa-button fas fa-close",
-    tooltip: "Close QR code",
-    parent: qrcode,
-    onclick: () => {
-      qrcode.classList.toggle("show");
-    },
-  });
-}
-
-// what to do on slide change
-function slideChanged() {
-  // if not presenter display slide preview
-  if (!Reveal.isSpeakerNotes()) {
-    // stop sounds
-    jingleQuestion.pause();
-    jingleAnswer.pause();
-
-    // hide stuff
-    if (pollState === "open") abortPoll();
-    hideVotes();
-    hideChart();
-
-    // reset state
-    pollState = "not_init";
-    numAnswers = 0;
-    numCorrectAnswers = 0;
-    solution = [];
-
-    // is this a quiz slide? -> find answers
-    const slide = Reveal.getCurrentSlide();
-    const inputElements = slide.querySelectorAll(
-      '.reveal .quiz ul>li>input[type="checkbox"]'
-    );
-    numAnswers = inputElements.length;
-    const choices = ["A", "B", "C", "D", "E", "F", "G", "H"];
-    for (let i = 0; i < numAnswers; i++) {
-      const input = inputElements[i];
-      input.parentElement.classList.remove("show-answer");
-      if (input.checked) {
-        ++numCorrectAnswers;
-        solution.push(choices[i]);
+      if (tip !== null) {
+        if (tip.childElementCount === 0) {
+          tip.remove();
+        }
       }
+      answer.addEventListener('mousedown', function() {
+        var correct = false;
+        if (this.classList.contains("correct")) {
+          correct = this;
+        };
+        // toggle answer on click
+        this.classList.forEach(c => {
+          c.match(/show-/g)
+            ? this.classList.remove(c)
+            : this.classList.add(correct ? "show-right" : "show-wrong");
+        });
+      });
     }
-
-    // set poll class in reveal element
-    Reveal.getViewportElement().classList.toggle("poll", numAnswers > 0);
   }
 }
 
-async function startPoll() {
-  // initialize on first start
-  if (!session) await startPollingSession();
+function quizFT() {
+  for (let question of document.querySelectorAll("div.qft,div.quiz-ft,div.quiz-free-text")) {
+    const solutions = question.querySelector(".qft-solutions");
+    const input = question.querySelector(".quiz-ftinput");
 
-  // get labels as subset of this array
-  let choices = ["A", "B", "C", "D", "E", "F", "G", "H"].slice(0, numAnswers);
+    // Listen for enter, delete, backspace in input field
+    var buffer = [];
+  
 
-  session.poll(
-    choices,
-    solution,
-    numCorrectAnswers,
-    {
-      onActive: (participants, votes, complete) => {
-        votes_div.textContent = `${complete} / ${participants}`;
-      },
-      onFinished: (participants, votes, complete) => {
-        finalVotes = votes;
-        createChart();
-        showChart();
-      },
-    },
-    winnerSelection
-  );
-
-  // play jingle
-  jingleQuestion.currentTime = 0;
-  jingleQuestion.play();
-}
-
-function stopPoll() {
-  if (session) session.stop();
-  jingleAnswer.currentTime = 0;
-  jingleAnswer.play();
-}
-
-function abortPoll() {
-  if (session) session.reset();
-}
-
-function showVotes() {
-  votes_div.style.display = "inline";
-}
-
-function hideVotes() {
-  votes_div.style.display = "none";
-}
-
-async function toggleQR() {
-  if (!session) await startPollingSession();
-  qrcode.classList.toggle("show");
-}
-
-function showChart() {
-  chart_div.style.visibility = "visible";
-}
-
-function hideChart() {
-  chart_div.style.visibility = "hidden";
-}
-
-function createChart() {
-  let votes = Object.entries(finalVotes);
-  votes.sort((a, b) => a[0].localeCompare(b[0]));
-
-  // destroy chart if it was created before (strictly required!)
-  if (myChart) {
-    myChart.destroy();
-  }
-
-  // let labels = ["A", "B", "C", "D"];
-  // let result = [1, 2, 0, 8];
-  let labels = [];
-  let result = [];
-  for (let [label, count] of votes) {
-    labels.push(label);
-    result.push(count);
-  }
-  const sum = Math.max(
-    1,
-    result.reduce((a, b) => a + b, 0)
-  );
-  const data = result.map((c) => c / sum);
-  // console.log(labels, result, data);
-
-  // (re)create chart
-  let ctx = chart.getContext("2d");
-  myChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          data: data,
-          backgroundColor: "#2a9ddf",
-        },
-      ],
-    },
-    options: {
-      animation: {
-        duration: 3000,
-      },
-      plugins: {
-        title: { display: false },
-        legend: { display: false },
-      },
-      scales: {
-        y: {
-          min: 0,
-          max: 1,
-          ticks: { format: { style: "percent" } },
-        },
-      },
-    },
-  });
-}
-
-// ballot states
-function switchPollState() {
-  // console.log("old poll state: " + pollState);
-  switch (pollState) {
-    case "not_init":
-      if (numAnswers) {
-        startPoll();
-        showVotes();
-        pollState = "open";
-      }
-      break;
-
-    case "open":
-      hideVotes();
-      stopPoll();
-      pollState = "chart";
-      break;
-
-    case "chart":
-      hideChart();
-      pollState = "done";
-      break;
-
-    case "done":
-      showChart();
-      pollState = "chart";
-      break;
-
-    default:
-      console.error("this should not happen");
-      hideChart();
-      hideVotes();
-      pollState = "not_init";
-      break;
-  }
-  // console.log("new poll state: " + pollState);
-}
-
-function prepareQuizzes() {
-  document
-    .querySelectorAll('.reveal .quiz ul>li>input[type="checkbox"]')
-    .forEach((input) => {
-      let li = input.parentElement;
-
-      // active quizzes
-      if (!Decker.meta["disable-quizzes"]) {
-        li.setAttribute("role", "button");
-        li.setAttribute("tabindex", 0);
-        li.classList.add(input.checked ? "right" : "wrong");
-
-        li.onclick = function (e) {
-          this.classList.add("show-answer");
-        };
-
-        li.onkeydown = function (e) {
-          if (e.code == "Space" || e.code == "Enter") {
-            this.classList.add("show-answer");
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        };
-      }
-      // do not activate; instead hide correct/incorrect
-      else {
-        input.removeAttribute("checked");
-        li.classList.remove("task-yes", "task-no");
-      }
+    input.addEventListener("keyup", e => {
+      buffer.push(e.key.toLowerCase());
+      if (buffer[buffer.length - 1] === buffer[buffer.length - 2]) { return; }
+      if (e.code === "Enter") { checkInput(); }
+      if (e.code === "Backspace" || e.code === "Delete") { resetQuestion(); }
     });
+
+    // Check value of input field against solutions
+    function checkInput() {
+      const checked = checkAnswer(solutions, input.value.toLowerCase().trim());
+      input.classList.remove("show-right", "show-wrong");
+      input.classList.add(checked.correct ? "show-right" : "show-wrong");
+      resetButton.classList.remove('quiz-disabled');
+
+      // Display the tooltip/solution box for any expected answer, correct or incorrect
+      input.addEventListener("mouseover", () => {
+        if (checked.predef) { solutions.classList.add("solved"); }
+      });
+      input.addEventListener("mouseout", () => { solutions.classList.remove("solved"); });
+    }
+
+    // Add click listeners to solution, reset buttons
+    const plain = question.classList.contains("plain") ? true : false;
+    const solutionButton = question.querySelector(".solutionButton");
+    solutionButton.addEventListener("mousedown", showSolution);
+
+    const resetButton = question.querySelector(".resetButton");
+    if (resetButton) {
+      resetButton.addEventListener("mousedown", resetQuestion);
+      resetButton.classList.add(plain ? "quiz-disabled" : "quiz-hidden");
+    }
+
+    const optList = solutions.getElementsByTagName("li");
+
+    // Handle click of solution button
+    function showSolution() {
+      resetButton.classList.remove('quiz-disabled');
+      solutions.classList.add("solved");
+      for (let c of optList) {
+        if (c.classList.contains("correct")) {
+          c.classList.add("solved");
+        }
+        // Hide tooltip box after 3 seconds
+        setTimeout(() => {
+          solutions.classList.remove("solved");
+          Array.from(solutions.getElementsByTagName("li")).map((x) => {
+            x.classList.remove("solved");
+          });
+        }, 2000);
+      }
+    }
+
+    // Return to original state
+    function resetQuestion() {
+      for (let c of optList) { c.classList.remove("solved"); }
+      input.classList.remove("show-right", "show-wrong");
+      input.value = "";
+      solutionButton.classList.remove("quiz-disabled");
+      resetButton.classList.add("quiz-disabled");
+    }
+  }
 }
 
-async function startPollingSession() {
-  console.log("starting new polling session");
+function quizIC() {
+  const icQuestions = document.querySelectorAll(
+    "div.qic,div.quiz-ic,div.quiz-insert-choices"
+  );
 
-  // connect to server
-  session = await pollSession({
-    serverUrl: serverUrl,
-    clientCss: `
-    html {
-      color: #333
-      background-color: #ccc;
+  for (let question of icQuestions) {
+    const selects = question.getElementsByTagName("select");
+    const tipDiv = question.querySelector(".tooltip-div");
+
+    for (let sel of selects) {
+      const solutionList = sel.nextElementSibling;
+
+      // Listen for selections - color appropriately
+      sel.addEventListener('change', function() {
+        tipDiv.innerHTML = "";
+        sel.classList.add("solved");
+        const ind = sel.selectedIndex;
+        const answer = sel.options[ind].innerText.toLowerCase().trim();
+        const checked = checkAnswer(solutionList, answer);
+
+        sel.classList.remove("show-right", "show-wrong");
+        sel.classList.add(checked.correct ? "show-right" : "show-wrong");
+      });
+
+      // Show tooltip box on mouseover
+      sel.addEventListener("mouseover", () => {
+        if (sel.classList.contains("solved")) {
+          const answers = solutionList.getElementsByTagName("li");
+          const tip = answers
+            .item(sel.selectedIndex - 1)
+            .querySelector(".quiz-tooltip");
+          if (tip.innerHTML.trim() !== "") {
+            const cln = tip.cloneNode(true);
+            tipDiv.appendChild(cln);
+          }
+          tipDiv.classList.add("solved");
+        }
+      });
+      sel.addEventListener("mouseleave", () => {
+        tipDiv.classList.remove("solved");
+        tipDiv.innerHTML = "";
+      });
     }
-    h1#pollid {
-      display: none;
+  }
+}
+
+function quizMI() {
+  const miQuestions = document.querySelectorAll(
+    "div.qmi,div.quiz-mi,div.quiz-match-items"
+  );
+  for (let question of miQuestions) {
+    shuffleMatchItems(question);
+    question.classList.contains("plain")
+      ? buildPlainMatch(question)
+      : buildDragDrop(question);
+  }
+}
+
+/********************
+ * Helper Functions
+ ********************/
+
+/**
+ * @param {string} answer - The input answer
+ * @param {Element} solutionList
+ *
+ * Iterate over solutionList, check if answer is equivalent to at least one correct solution.
+ * Returns two booleans -
+ *   correct: whether the given answer is correct
+ *   predef: whether the given answer is equivalent to one of the predefined possible answers
+ * Predefined answers can be correct or wrong.
+ * Tooltip will also show for expected wrong answers!
+ */
+function checkAnswer(solutionList, answer) {
+  const solutions = solutionList.getElementsByTagName("li");
+
+  for (let s of solutions) {
+    const is_right = s.classList.contains("correct");
+    // Get only the solution text and not the tooltip div
+    const solution = s.children[0].innerText.toLowerCase().trim();
+    if (answer == solution) {
+      s.classList.add("solved");
+      return { correct: is_right ? true : false, predef: true };
     }
-    p#nvotes {
-      display: none;
+  }
+  return { correct: false, predef: false };
+}
+
+/**
+ * Shuffle matchItems so the correct pairings aren't always directly below each other
+ * @param {Element} question
+ */
+function shuffleMatchItems(question) {
+  // Fisher-Yates Shuffle
+  const shuffleArray = (array) => {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
-    body {
-      justify-content: center;
-      align-items: center;
-    }
-    body.polling p#status {
-      display: none;
-    }
-    button.checked {
-      color: white;
-      background-color: #2a9ddf !important;
-    }
-    #buttons { 
-      width: 100%;
-    }
-    body.winner #buttons { 
-      display: none 
-    }
-    body.winner p#status::before { 
-      content: "${
-        document.documentElement.lang === "de" ? "GEWONNEN!" : "YOU WON!"
-      }"; 
-    }
-    body.winner #status {
-      font-size: 14vmin;
-      color: gold;
-      font-weight: bold;
-      -webkit-text-stroke: 0.03em black;
-      text-shadow:
-        0.03em 0.03em 0 #000,
-        -0.01em -0.01em 0 #000,  
-        0.01em -1px 0 #000,
-        -0.01em 1px 0 #000,
-        0.01em 1px 0 #000;
-      animation: wiggle 1s infinite;
-    }
-    @keyframes wiggle {
-      0%,40%,100% {
-        transform: rotate(-10deg);
-      }
-      20% {
-        transform: rotate(10deg);
-      }
-    }
-    `,
-    onclose: () => {
-      console.log("polling session was closed");
-      session = undefined;
-      Reveal.off("slidechanged", abortPoll);
-    },
+    return array;
+  };
+
+  // BUG This fails, if there is no matchItems element
+  const matchItems = question.querySelector(".matchItems");
+  const elementsArray = Array.prototype.slice.call(
+    matchItems.getElementsByClassName("matchItem")
+  );
+
+  elementsArray.map((element) => {
+    matchItems.removeChild(element);
   });
+  shuffleArray(elementsArray);
+  elementsArray.map((element) => {
+    matchItems.appendChild(element);
+  });
+}
 
-  // create QR code
-  let { id, url } = session.sessionId();
-  qrcodeLink.innerHTML = String.raw`${url}`;
-  qrcodeLink.href = url;
-  qrcodeLink.target = "_blank";
-  session.fillQRCode("qrcode-canvas");
+/**
+ * Construct drag and drop listeners for Matching questions
+ * @param {Element} question
+ */
+function buildDragDrop(question) {
+  const dropzones = question.getElementsByClassName("bucket");
+  const draggables = question.getElementsByClassName("matchItem");
+  const matchItems = question.querySelector(".matchItems");
+
+  matchItems.addEventListener("drop", drop);
+  matchItems.addEventListener("dragover", (e) => e.preventDefault());
+
+  for (var i = 0; i < dropzones.length; i++) {
+    dropzones[i].addEventListener("drop", drop);
+    dropzones[i].addEventListener("dragover", (e) => e.preventDefault());
+
+    for (let child of dropzones[i].children) {
+      if (!child.classList.contains("matchItem")) {
+        child.classList.add("draggableChild");
+      }
+    }
+  }
+
+  for (var i = 0; i < draggables.length; i++) {
+    draggables[i].addEventListener("dragstart", drag);
+
+    // disable children (e.g. images) from being dragged themselves
+    for (let child of draggables[i].children) {
+      child.setAttribute("draggable", "false");
+      child.classList.add("draggableChild");
+    }
+  }
+  const answerButton = question.querySelector(".solutionButton");
+  matchingAnswerButton(question, answerButton);
+}
+
+/**
+ * Correct matching questions on button click
+ * @param {Element} question
+ */
+function matchingAnswerButton(question, button) {
+  button.addEventListener("mousedown", () => {
+    const buckets = question.getElementsByClassName("bucket");
+    const remainingItems = question.querySelector(".matchItems").children;
+    const bucketsDiv = question.querySelector(".buckets");
+    const assignedItems = bucketsDiv.getElementsByClassName("matchItem");
+
+    if (assignedItems.length == 0) {
+      alert("You haven't assigned any items!");
+      return;
+    }
+
+    // color remaining items that have not been dragged
+    for (let rem of remainingItems) {
+      const matchId = rem.getAttribute("data-bucketid");
+      rem.classList.remove("show-right", "show-wrong");
+      rem.classList.add(matchId == null ? "show-right" : "show-wrong");
+    }
+
+    // color remaining items that have been dragged
+    for (let bucket of buckets) {
+      const droppedItems = bucket.getElementsByClassName("matchItem");
+      const bucketId = bucket.getAttribute("data-bucketid");
+      for (let matchItem of droppedItems) {
+        matchItem.classList.remove("show-right", "show-wrong");
+
+        const matchId = matchItem.getAttribute("data-bucketid");
+        matchItem.classList.add(
+          matchId == bucketId ? "show-right" : "show-wrong"
+        );
+      }
+    }
+  });
+}
+
+/**
+ * Construct Matching questions with drop-down lists for answers
+ * @param {Element} question
+ */
+function buildPlainMatch(question) {
+  const matchItems = question.querySelector(".matchItems");
+  const buckets = question.querySelector(".buckets");
+  const solutionButton = question.querySelector(".solutionButton");
+
+  const matchDiv = document.createElement("div");
+  matchDiv.classList.add("matchDiv");
+  [matchItems, buckets].forEach((el) => matchDiv.appendChild(el));
+  question.insertBefore(matchDiv, solutionButton);
+
+  const choices = buildSelect(buckets, matchItems.querySelectorAll(".matchItem"));
+
+  let allBuckets = buckets.querySelectorAll(".bucket");
+  for (let i = 0; i < allBuckets.length; i++) {
+    allBuckets[i].removeAttribute("draggable");
+    const matchQuestion = document.createElement("div");
+    matchQuestion.classList.add("matchQuestion");
+    matchItems.appendChild(matchQuestion);
+
+    const lab = document.createElement("label");
+    
+    lab.setAttribute("data-bucketid",
+      allBuckets[i].classList.contains("distractor") ? "" : allBuckets[i].getAttribute("data-bucketid"));
+    lab.innerHTML = allBuckets[i].innerHTML;
+
+    const blank = document.createElement("p");
+    blank.innerText = "...";
+    blank.classList.add("selected", "blank", "option");
+    blank.setAttribute("data-bucketid", lab.getAttribute("data-bucketid"));
+    blank.addEventListener("mousedown", function () {
+      showList(this.parentElement.nextElementSibling);
+    });
+
+    const optList = document.createElement("div");
+    optList.classList.add("quiz-optList");
+    optList.addEventListener("mousedown", function () {
+      showList(this.nextElementSibling);
+    });
+    optList.appendChild(blank);
+
+    const chClone = choices.cloneNode(true); // exclude first blank option
+    for (let i = 1; i < chClone.children.length; i++) {
+      chClone.children[i].addEventListener("mousedown", makeSelection);
+    }
+
+    buckets.removeChild(allBuckets[i]);
+    [lab, optList, chClone].forEach((ele) => {
+      matchQuestion.appendChild(ele);
+    });
+  }
+  function showList(opt) {
+    // hide any other open lists
+    for (let sh of document.getElementsByClassName("shown")) {
+      sh.classList.remove("shown");
+    }
+    opt.classList.add("shown");
+    document.addEventListener("mousedown", hideList);
+  }
+  function makeSelection() {
+    this.classList.remove("correct", "incorrect", "correct-notSelected"); // allow multiple attempts to solve
+    let ol = this.parentElement.previousElementSibling;
+    ol.classList.remove("correct","incorrect");
+    this.classList.toggle("selected");
+    if (this.classList.contains("selected")) {
+      let cl = this.cloneNode(true);
+      ol.appendChild(cl);
+      cl.addEventListener("mousedown", function () {
+        showList(this.parentElement.nextElementSibling);
+      });
+    } else {
+      for (let child of ol.children) {
+        if (child.innerText === this.innerText) {
+          ol.removeChild(child);
+        }
+      }
+    }
+  }
+  function hideList(event) {
+    let parentCL = event.target.parentElement.classList;
+    if (
+      !parentCL.contains("quiz-optList") &&
+      !parentCL.contains("shown") &&
+      !event.target.classList.contains("shown")
+    ) {
+      question.getElementsByClassName("shown")[0].classList.remove("shown");
+      document.removeEventListener("mousedown", hideList);
+    }
+  }
+  solutionButton.addEventListener("mousedown", () => {
+    const matches = matchItems.querySelectorAll(".matchQuestion");
+    for (let mq of matches) {
+      let list = mq.querySelector(".quiz-optList");
+      let correct = list.previousElementSibling.getAttribute("data-bucketid");
+      let allCorrect = [];
+      let allSelected = [];
+
+      for (let l of list.children) {
+        allSelected.push(l.textContent);
+        l.classList.add(
+          l.getAttribute("data-bucketid") === correct ? "correct" : "incorrect"
+        );
+      }
+      allSelected.shift(); // remove blank response
+
+      let opts = list.nextElementSibling;
+      for (let o of opts.children) {
+        // o.removeEventListener('mousedown', makeSelection);
+        if (o.getAttribute("data-bucketid") === correct) {
+          allCorrect.push(o.textContent);
+          o.classList.add(
+            o.classList.contains("selected") ? "correct" : "correct-notSelected"
+          );
+        } else if (o.classList.contains("selected")) {
+          o.classList.add("incorrect");
+        }
+      }
+
+      allSelected.length !== allCorrect.length
+        ? list.classList.add("incorrect")
+        : list.classList.add(
+            JSON.stringify(allSelected.sort()) === JSON.stringify(allCorrect)
+              ? "correct"
+              : "incorrect"
+          );
+    }
+  });
+}
+
+/**
+ * Build drop-down lists for plain matching questions
+ * @param {Element} buckets
+ * @param {NodeList} answers
+ */
+function buildSelect(buckets, answers) {
+  const optList = document.createElement("div");
+  optList.classList.add("quiz-options");
+  const blank = document.createElement("p");
+  blank.classList.add("option");
+  blank.innerText = "...";
+  optList.appendChild(blank);
+  for (let i = 0; i < answers.length; i++) {
+    const opt = document.createElement("p");
+    opt.classList.add("option");
+    opt.innerHTML = String.fromCharCode(i + 65) + ".";
+    opt.setAttribute("data-bucketid",answers[i].getAttribute("data-bucketid") || "0");
+    optList.appendChild(opt);
+    buckets.appendChild(answers[i]);
+  }
+  return optList;
+}
+
+var elements = [];
+function drag(event) {
+  var index = elements.indexOf(event.target);
+  if (index == -1) {
+    // not already existing in the array, add it now
+    elements.push(event.target);
+    index = elements.length - 1;
+  }
+
+  event.dataTransfer.setData("index", index);
+  event.dataTransfer.setDragImage(
+    event.target,
+    event.target.clientWidth / 2,
+    event.target.clientHeight / 2
+  );
+}
+function drop(event) {
+  event.preventDefault();
+  const element = elements[event.dataTransfer.getData("index")];
+  if (event.target.classList.contains("matchItem")) {
+    event.target.parentNode.appendChild(element);
+    return;
+  }
+
+  event.target.appendChild(element);
 }
 
 const Plugin = {
-  id: "quizPlugin",
+  id: "quiz-wue",
   init: (deck) => {
     Reveal = deck;
-    Reveal.addEventListener("slidechanged", slideChanged);
-    setupGUI();
-    if (!Decker.meta["disable-quizzes"]) {
-      prepareQuizzes();
-    }
+    return new Promise((resolve) => {
+      quizMI();
+      quizMC();
+      quizIC();
+      quizFT();
+      resolve();
+    });
   },
 };
 
