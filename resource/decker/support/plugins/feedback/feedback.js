@@ -756,7 +756,7 @@ class Feedback {
       e.stopPropagation()
     );
     this.menu.feedback_send_button.addEventListener("click", (e) =>
-      this.sendComment()
+      this.sendComment(e)
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu()
