@@ -63,9 +63,6 @@ needPublicIfExists source = do
     else do
       removeFileA target
 
---   putError $ "IF: " <> source <> ": " <> show exists <> " target: " <> target
---   putWarn $ "IF: " <> source <> ": " <> show exists <> " target: " <> target
-
 needPublicIfExistsGlob :: FilePath -> Action ()
 needPublicIfExistsGlob source = do
   files <- liftIO $ Glob.glob source
@@ -406,13 +403,6 @@ createPublicManifest = do
       size <- liftIO $ getFileSize file
       return (stripPublic file, (formatShow iso8601Format modTime, size))
     stripPublic path = fromMaybe path $ stripPrefix "public/" path
-
--- needIfExists :: String -> String -> String -> Action ()
--- needIfExists suffix also out = do
---   let annotDst = replaceSuffix suffix also out
---   annotSrc <- calcSource' annotDst
---   exists <- liftIO $ Dir.doesFileExist annotSrc
---   when exists $ need [annotDst]
 
 waitForYes :: IO ()
 waitForYes = do
