@@ -6,7 +6,7 @@ module Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates) where
 import Control.Concurrent.STM (modifyTVar)
 import Control.Exception (throw)
 import Control.Exception.Base (handle)
-import Data.Aeson (toJSON)
+import Data.Aeson qualified as A
 import Data.List qualified as List
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as Text
@@ -18,7 +18,7 @@ import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common (projectDir, supportDir)
 import Text.Decker.Internal.Exception (DeckerException (..))
-import Text.Decker.Internal.Meta (lookupMetaOrElse, fromPandocMeta)
+import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse)
 import Text.Decker.Internal.URI (makeProjectPath)
 import Text.DocLayout (render)
 import Text.DocTemplates (Context, compileTemplateFile, toContext)
@@ -65,10 +65,12 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let allKvAttribs = [("attribs", unwords $ map (\(k, v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
           rndId <- liftIO randomId
           let idArg = [("id", if Text.null id then rndId else id)]
+          let arguments = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs
           let metaData = fromPandocMeta meta
-          let arguments :: [(Text, Text)] = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs
+          let json = map (second A.String) arguments
+          let all = json <> [("meta", metaData)]
           template <- getTemplate (toString name)
-          let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
+          let context :: Context Text = toContext $ Map.fromList all
           let text :: Text = render Nothing $ renderTemplate template context
           return $ RawInline "html" text
         Nothing ->
@@ -91,8 +93,11 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let idArg = [("id", if Text.null id then rndId else id)]
           let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]
           let arguments :: [(Text, Text)] = codeArg <> codeEscArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> rndIdArg <> idArg <> captionArg
+          let metaData = fromPandocMeta meta
+          let json = map (second A.String) arguments
+          let all = json <> [("meta", metaData)]
           template <- getTemplate (toString name)
-          let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
+          let context :: Context Text = toContext $ Map.fromList all
           let text :: Text = render Nothing $ renderTemplate template context
           return $ RawBlock "html" text
         Nothing ->
