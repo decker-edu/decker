@@ -1,6 +1,6 @@
 ---
 author: henrik@tramberend.de
-subtitle: (Check the video)
+subtitle: Check the video
 title: Interactive Block Manipulation
 ---
 

@@ -24,8 +24,10 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
-import Text.Decker.Internal.Common (transientDir)
+import Text.Decker.Internal.Common (transientDir, pandocWriterOpts)
 import Text.Decker.Filter.Util (randomId)
+import Development.Shake (Action)
+import qualified Data.Text.IO as T
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -130,7 +132,7 @@ isDevelopmentRun = do
   progName <- getProgName
   cwd <- Dir.getCurrentDirectory
   exePath <- getExecutablePath
-  return $ progName == "<interactive>" || (".stack-work") `List.isInfixOf` exePath
+  return $ progName == "<interactive>" || ".stack-work" `List.isInfixOf` exePath
 
 warnVersion :: IO ()
 warnVersion = do
@@ -252,3 +254,10 @@ uniqueTransientFileName base = do
       <> "-"
       <> id
       <.> takeExtension base
+-- 
+-- | Write Pandoc in native format right next to the output file
+writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
+writeNativeWhileDebugging out mod doc =
+  liftIO $
+    runIO (writeNative pandocWriterOpts doc) >>= handleError
+      >>= T.writeFile (out -<.> mod <.> ".hs")

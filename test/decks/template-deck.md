@@ -1,20 +1,24 @@
 ---
 lork: true
+meta-data:
+- /test/decks/macro-templates.yaml
 templates:
   block-test: |
     :(1) :(2) :(3) :(param1) :(param2) :(code)
   test: ":(1) :(2) :(3) [:(title)](:(url)) :(args)"
   test2: |
-    <a href=":(url)">Pony</a> :(args) <a href=":(url)">Unicorn</a>
+    `<a href=":(url)">`{=html}Pony`</a>`{=html} :(args)
+    `<a href=":(url)">`{=html}Unicorn`</a>`{=html} [:fas](ghost)
   video: |
+    ```{=html}
     <video controls style="width: var(--slide-width); height: var(--slide-height);">
     <source src=":(url)" type="video/mp4" />
     <track kind="subtitles" label="Deutsch" srclang="de" src=":(title)" default />
     </video>
+    ```
 title: Template Macros
-meta-data:
-  - /test/decks/macro-templates.yaml
 ---
+
 
 # Template
 
@@ -33,8 +37,8 @@ templates:
 
 ## Result
 
-Hallo [@test arg1 arg2 arg3](the%20url "Title") Was denn [@test2 There is
-no](the%20url "Title")
+-   Hallo [@test arg1 arg2 arg3](the%20url "Title")
+-   Was denn [@test2 There is no](the%20url "Title")
 
 --------------------------------------------------------------------------------
 

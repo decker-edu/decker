@@ -18,7 +18,7 @@ import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common (projectDir, supportDir)
 import Text.Decker.Internal.Exception (DeckerException (..))
-import Text.Decker.Internal.Meta (lookupMetaOrElse)
+import Text.Decker.Internal.Meta (lookupMetaOrElse, fromPandocMeta)
 import Text.Decker.Internal.URI (makeProjectPath)
 import Text.DocLayout (render)
 import Text.DocTemplates (Context, compileTemplateFile, toContext)
@@ -65,6 +65,7 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let allKvAttribs = [("attribs", unwords $ map (\(k, v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
           rndId <- liftIO randomId
           let idArg = [("id", if Text.null id then rndId else id)]
+          let metaData = fromPandocMeta meta
           let arguments :: [(Text, Text)] = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs
           template <- getTemplate (toString name)
           let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
