@@ -453,9 +453,9 @@ export default {
     parent.appendChild(container);
   },
 
-  renderFreeTextInput(choices) {
+  renderFreeTextInput(choices, number) {
     const input = document.createElement("input");
-    input.placeholder = l10n.placeholder;
+    input.placeholder = l10n.placeholder + number;
     const wrapper = document.createElement("wrapper");
     wrapper.classList.add("input-wrapper");
     wrapper.appendChild(input);

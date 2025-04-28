@@ -277,14 +277,18 @@ function parseQuizzes(reveal) {
           list.replaceWith(container);
         }
       } else if (quizObject.type === "freetext") {
+        /* In the old quizzer, all paragraphs were replaced with text nodes because
+         * input elements interrupted paragraph nodes. This replicates the behavior. */
         const paragraphs = quizzer.querySelectorAll("p");
         for (const paragraph of paragraphs) {
           const textNode = document.createTextNode(paragraph.innerText);
           paragraph.replaceWith(textNode);
         }
+        let number = 1;
         for (const list of lists) {
-          const container = Renderer.renderFreeTextInput(list.choices);
+          const container = Renderer.renderFreeTextInput(list.choices, number);
           list.replaceWith(container);
+          number++;
         }
       } else if (quizObject.type === "selection") {
         const paragraphs = quizzer.querySelectorAll("p");
