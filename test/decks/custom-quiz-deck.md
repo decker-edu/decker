@@ -42,9 +42,9 @@ What is your semester?
 
 :::
 
-# Choice Quiz as a poll
+# Choice Quiz as a poll with smaller size
 
-::: { .quizzer .choice }
+::: { .quizzer .choice}
 
 What is your semester?
 
@@ -54,6 +54,33 @@ What is your semester?
 - [ ] `3 - 4`
 - [ ] `5 - 6`
 - [ ] `>6`
+
+:::
+
+:::
+
+# Choice Quiz with columns
+
+::: { .quizzer .choice}
+
+::: columns-1-1
+
+::: col
+
+What is your semester?
+
+- [ ] `1 - 2`
+- [ ] `3 - 4`
+- [ ] `5 - 6`
+- [ ] `>6`
+
+:::
+
+::: col
+
+![](./@f{u}nn%20y.png)
+
+:::
 
 :::
 
@@ -71,7 +98,9 @@ What is $A \times B$?
 
 :::
 
-# Select Quiz
+# Selection Quiz - Placeholder Syntax
+
+This syntax is currently unused in favour of directly copying the way the old syntax worked.
 
 ::: {.quizzer .selection}
 
@@ -97,7 +126,9 @@ The [#1] brown fox [#2] the lazy dog.
 
 :::
 
-# Select Quiz
+# Selection Quiz - Placeholder Syntax without Placeholders
+
+This syntax is currently unused in favour of directly copying the way the old syntax worked.
 
 ::: {.quizzer .selection}
 
@@ -121,7 +152,19 @@ What attribute does the fox have and what does he do to the dog?
 
 :::
 
-# Freetext Quiz
+# Selection Quiz - Old Syntax
+
+::: {.quizzer .selection}
+
+I ate 
+
+- [x] Mensa
+
+for dinner today.
+
+:::
+
+# Freetext Quiz - Old Syntax
 
 ::: {.quizzer .freetext}
 
@@ -134,6 +177,8 @@ for dinner today.
 :::
 
 # Freetext Quiz Multiple Fields
+
+Multiple answer lines need to be separated with a horizontal rule.
 
 ::: {.quizzer .freetext}
 
@@ -148,6 +193,8 @@ What did you eat for dinner today?
 :::
 
 # Graceful Fail: Not enough Answers
+
+As the placeholder syntax is currently not in use this has no impact right now.
 
 ::: {.quizzer .freetext}
 
@@ -229,7 +276,7 @@ Developer
 
 :::
 
-# Special Case: Image as question?
+# Special Case: Image as question text
 
 ::: {.quizzer .choice}
 
@@ -240,7 +287,7 @@ Developer
 
 :::
 
-# Special Case: vspace inside question?
+# Special Case: vspace inside question text
 
 ::: {.quizzer .choice}
 
@@ -287,6 +334,8 @@ and builds upon the tool
 
 Block Content
 
+# Some special cases from the old quiz-deck.md test
+
 # H2 QIC
 
 ## Hello World {.quizzer .selection}
@@ -318,7 +367,7 @@ This is some Text.
 
 ::: test
 
-These paragraphs are inside a div, they are not removed.
+These paragraphs are inside a div, they are not removed and also not handled as quiz syntax.
 
 - [X] Pandoc
   - See previous tooltip.
