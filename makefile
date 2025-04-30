@@ -1,5 +1,8 @@
+stack-cmd ?= stack
+stack-options ?=
+stack-parallel ?= 8
 base-name := decker
-executable := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
+executable := $(shell $(stack-cmd) $(stack-options) path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 commit := $(shell git rev-parse --short HEAD)
@@ -10,18 +13,18 @@ decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 .PHONY: build clean test install list dist docs resource-zip css
 
 build: 
-	stack build -j8
+	$(stack-cmd) $(stack-options) build -j $(stack-parallel)
 
 clean-build: clean 
-	stack clean
-	stack build -j8
+	$(stack-cmd) $(stack-options) clean
+	$(stack-cmd) $(stack-options) build -j $(stack-parallel)
 
 upgrade-third-party:
 	git submodule update --init
 	make -C third-party -f makefile upgrade
  
 less:
-	stack build 2>&1 | less 
+	$(stack-cmd) $(stack-options) build 2>&1 | less
 
 resource-zip:
 	rm -f resource/decker-resources.zip
@@ -45,11 +48,11 @@ version:
 	@echo "$(decker-name)"
 
 build-profile:
-	stack build --work-dir .stack-work-profile --profile
+	$(stack-cmd) $(stack-options) build --work-dir .$(stack-cmd) $(stack-options)-work-profile --profile
 
 profile: build-profile
-	stack exec -- decker clean
-	stack exec --work-dir .stack-work-profile -- decker +RTS -p
+	$(stack-cmd) $(stack-options) exec -- decker clean
+	$(stack-cmd) $(stack-options) exec --work-dir .$(stack-cmd) $(stack-options)-work-profile -- decker +RTS -p
 
 dist: install
 	rm -rf dist
@@ -59,19 +62,19 @@ dist: install
 	rm "dist/$(decker-name)"
 
 test:
-	stack test -j1
+	$(stack-cmd) $(stack-options) test -j1
 
 documentation:
-	stack haddock
+	$(stack-cmd) $(stack-options) haddock
 
 watch:
-	stack test -j1 --file-watch
+	$(stack-cmd) $(stack-options) test -j1 --file-watch
 
 server:
-	stack run -- decker --server --port 8888 --bind localhost html
+	$(stack-cmd) $(stack-options) run -- decker --server --port 8888 --bind localhost html
 
 clean:
-	stack clean
+	$(stack-cmd) $(stack-options) clean
 	rm -rf dist public
 
 append-webm:
