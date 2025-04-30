@@ -19,7 +19,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crrrunch (needsRebuild)
 import Text.Decker.Internal.External (runExternal, runExternalArgs)
 import Text.Decker.Internal.Helper (replaceSuffix)
-import Text.Decker.Internal.Meta (lookupMetaOrElse, readMetaDataFile)
+import Text.Decker.Internal.Meta (lookupMetaOrFail, lookupMetaOrElse, readMetaDataFile)
 import Text.Decker.Project.Project
 import Text.Pandoc (Meta)
 import Text.Pandoc.Builder (nullMeta)
@@ -55,24 +55,28 @@ transcriptionRules = do
       copyFileChanged src out
     -- transcribes to EN, translation is used for non-EN languages
     "**/*-recording-en.vtt" %> \out -> do
+      let model = lookupMetaOrFail "whisper.model" meta
       let mp4 = replaceSuffix "-recording-en.vtt" "-recording.mp4" out
       need [mp4]
       let lang :: String = lookupMetaOrElse "de" "whisper.lang" meta
       -- avoid context switches on the GPU
       withResource gpu 1 $ do
-        liftIO $ transcribe meta mp4 out lang (lang /= "en")
+        liftIO $ transcribe meta mp4 out model lang (lang /= "en")
     -- transcribes to recorded language without translation.
     "**/*-recording-*.vtt" %> \out -> do
+      let model = lookupMetaOrFail "whisper.model" meta
       let lang = lookupMetaOrElse "de" "whisper.lang" meta
       let mp4 = replaceSuffix ("-recording-" <> lang <> ".vtt") "-recording.mp4" out
       need [mp4]
       -- avoid context switches on the GPU
       withResource gpu 1 $ do
-        liftIO $ transcribe meta mp4 out lang False
+        liftIO $ transcribe meta mp4 out model lang False
 
 -- Replaces the Shake dependency nightmare with straight forward modtime checking.
 transcribeAllRecordings :: Meta -> IO ()
 transcribeAllRecordings meta = do
+  -- whisper model
+  let model = lookupMetaOrFail "whisper.model" meta
   -- language of all the recordings
   let lang = lookupMetaOrElse "de" "whisper.lang" meta
   targets <- scanTargets meta
@@ -87,19 +91,19 @@ transcribeAllRecordings meta = do
     when exists $ do
       if lang == "en"
         then do
-          transcribe meta mp4 vtten lang False
+          transcribe meta mp4 vtten model lang False
         else do
-          transcribe meta mp4 vtten lang True
-          transcribe meta mp4 vtt lang False
+          transcribe meta mp4 vtten model lang True
+          transcribe meta mp4 vtt model lang False
 
-transcribe :: Meta -> FilePath -> String -> String -> Bool -> IO ()
-transcribe meta mp4 vtt lang translate = do
+transcribe :: Meta -> FilePath -> String -> String -> String -> Bool -> IO ()
+transcribe meta mp4 vtt model lang translate = do
   whenM (needsRebuild vtt [mp4]) $ do
     id9 <- toString <$> liftIO randomId
     transient <- transientDir
     let wav = transient </> takeFileName mp4 <> "-" <> id9 <.> "wav"
     putStrLn $ "# whisper (for " <> vtt <> ")"
     runExternal "mp4towav" mp4 wav meta
-    let extra = ["--translate" | translate] <> ["--language", lang]
+    let extra = ["--translate" | translate] <> ["--model", model] <> ["--language", lang]
     runExternalArgs "whisper" extra wav (dropExtension vtt) meta
     removeFile wav

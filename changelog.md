@@ -2,6 +2,10 @@
 
 ## decker 0.14.0
 
+- External tools are not configured in YAML. 
+  We should really document this...
+  Documentated changes below (e.g. `rsync`) might already be outdated.
+  
 - Palette for charts can now be defined in YAML in `chart.colors`. 
   For this to work, disable the color plugin of Chart.js.
   ``` yaml
@@ -101,13 +105,23 @@
     recorded language must be configured explicitly, default is German. By
     default, both German and English subtitles will be generated. In order to
     use this, install [whisper.cpp](https://github.com/ggerganov/whisper.cpp).
-    Those are the configuration options.
+    On MacOS, we recommend installing it via homebrew:
+
+    ``` bash
+    brew install whisper.cpp
+    ```
+
+    In addition, download the language model from 
+    [here](https://huggingface.co/ggerganov/whisper.cpp/tree/main).
+    We recommend the model `ggml-large-v3.bin`, which by default should be
+    installed in `/opt/whisper/ggml-large-v3.bin`.
+    Those are the configuration options:
 
     ``` yaml
     # whisper.cpp default transcription settings
     whisper:
-      base-dir: /usr/local/share/whisper.cpp
-      model: models/ggml-large.bin
+      # path to the (big) language model
+      model: /opt/whisper/ggml-large-v3.bin
       # the recorded language (e.g., "de" or "en")
       lang: de 
     ```
