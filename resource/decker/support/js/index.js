@@ -107,27 +107,30 @@ function setupProgressIndicator(container, url) {
     localStorage.setItem(key, 0);
   }
 
-  const progress = document.createElement("progress");
+  const progress = document.createElement("span");
+
+  progress.setValue = function (percent) {
+    this.dataset.value = percent;
+    this.style = `--percent: ${percent}%`;
+    if (navigator.language === "de") {
+      progress.title = `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`;
+    } else {
+      progress.title = `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
+    }
+  };
+
+  progress.onclick = function () {
+    const percent = this.dataset.value == 100 ? 0 : 100;
+    this.setValue(percent);
+    localStorage.setItem(this.key, percent);
+  };
+
+  progress.classList.add("progress");
   progress.max = 100;
-  progress.value = percent;
   progress.key = key;
-  if (navigator.language === "de") {
-    progress.title = `${percent}% betrachtet.\nDoppelklick zum Wechseln\nzwischen 100% und 0%.`;
-  } else {
-    progress.title = `${percent}% watched.\nDouble-click to toggle\nbetween 100% and 0%.`;
-  }
+  progress.setValue(percent);
 
   container.appendChild(progress);
-
-  progress.ondblclick = function () {
-    this.value = this.value == 100 ? 0 : 100;
-    if (navigator.language === "de") {
-      progress.title = `${this.value}% betrachtet.\nDoppelklick zum Wechseln\nzwischen 100% und 0%.`;
-    } else {
-      progress.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%.`;
-    }
-    localStorage.setItem(this.key, this.value);
-  };
 }
 
 /* Index Pages should be small enough that loading all sources at once
