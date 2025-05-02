@@ -88,35 +88,26 @@ function setupModeLinks(container, url) {
 
 function setupProgressIndicator(container, url) {
   if (!localStorage) return;
-
-  // Scrape settings from Decker meta
   if (!Decker.meta.index?.progress) return;
 
-  const key = url.pathname + "-percentage";
-  let percent = localStorage.getItem(key) || 0;
-  // Reset if percent is faulty
-  percent = Number(percent);
-  if (isNaN(percent) || percent === Infinity || percent > 100) {
-    console.log(
-      "[index.js] reset percent progress for " +
-        key +
-        " because value is " +
-        percent
-    );
-    percent = 0;
-    localStorage.setItem(key, 0);
-  }
-
   const progress = document.createElement("span");
+  progress.classList.add("progress");
+  progress.key = url.pathname + "-percentage";
 
   progress.setValue = function (percent) {
     this.dataset.value = percent;
-    this.style = `--percent: ${percent}%`;
-    if (navigator.language === "de") {
-      progress.title = `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`;
-    } else {
-      progress.title = `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
-    }
+    this.style = `--progress: ${percent}%`;
+    this.title =
+      navigator.language === "de"
+        ? `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`
+        : `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
+  };
+
+  progress.update = function () {
+    let percent = localStorage.getItem(this.key) || 0;
+    percent = Number(percent);
+    if (isNaN(percent) || percent === Infinity || percent > 100) percent = 0;
+    this.setValue(percent);
   };
 
   progress.onclick = function () {
@@ -125,13 +116,18 @@ function setupProgressIndicator(container, url) {
     localStorage.setItem(this.key, percent);
   };
 
-  progress.classList.add("progress");
-  progress.max = 100;
-  progress.key = key;
-  progress.setValue(percent);
-
+  progress.update();
   container.appendChild(progress);
 }
+
+function updateProgressIndicators() {
+  document.querySelectorAll(".progress").forEach((progress) => {
+    progress.update();
+  });
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) updateProgressIndicators();
+});
 
 /* Index Pages should be small enough that loading all sources at once
  * instead of loading with an intersection observer should be feasable.

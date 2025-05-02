@@ -101,22 +101,40 @@ a.handout-link:hover::after {
   background-color: var(--accent5);
 }
 
-/* nice circular progress bars, taken from 
+/* nice circular progress bars, adapted from 
   https://verpex.com/blog/website-tips/how-to-style-a-progress-bar-using-css) */
+@property --progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
 .index .progress {
-  --percent: 0%;
-  --color: color-mix(in srgb, var(--redish), var(--orangeish) var(--percent));
-  --background: conic-gradient(var(--color) var(--percent), lightgrey 0);
-  border: none;
-  inset: 0;
+  --progress: 0;
+  --color: color-mix(in hsl shorter hue, red, green var(--progress));
+  --background: conic-gradient(
+    in hsl shorter hue,
+    red,
+    var(--color) var(--progress),
+    var(--shade1) 0
+  );
   height: 1em;
   width: 1em;
+  inset: 0;
+  border: none;
   border-radius: 50%;
-  overflow: hidden;
   background: var(--background);
-  -webkit-mask: radial-gradient(#0000 39%, #000 40% 70%, #0000 71%);
+  -webkit-mask: radial-gradient(
+    transparent 39%,
+    white 40% 70%,
+    transparent 71%
+  );
   position: relative;
 }
+
+.index .progress[data-value="0"] {
+  background: var(--shade2);
+}
+
 .index .progress[data-value="100"] {
   -webkit-mask: none;
   --background: var(--greenish);
