@@ -14,7 +14,7 @@ button[data-uistate="PLAYING"].explain#explain-play {
 
 button.explain#explain-play {
   display: none;
-  animation: pulse-button 1s 5;
+  animation: pulse-button 1s 2;
 }
 
 /* make play button pulse a few times */
@@ -24,6 +24,9 @@ button.explain#explain-play {
   }
   50% {
     color: var(--icon-active-color);
+    background-color: var(--background-color);
+    border: solid 1px var(--icon-active-color);
+    scale: 1.1;
   }
   100% {
     color: var(--icon-inactive-color);
