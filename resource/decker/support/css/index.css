@@ -109,14 +109,9 @@ a.handout-link:hover::after {
   initial-value: 0%;
 }
 .index .progress {
-  --progress: 0;
-  --color: color-mix(in hsl shorter hue, red, green var(--progress));
-  --background: conic-gradient(
-    in hsl shorter hue,
-    red,
-    var(--color) var(--progress),
-    var(--shade1) 0
-  );
+  --progress: 0%;
+  --color: color-mix(in hsl, var(--redish), var(--greenish) var(--progress));
+  --background: conic-gradient(var(--color) var(--progress), var(--shade1) 0);
   height: 1em;
   width: 1em;
   inset: 0;
