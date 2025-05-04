@@ -31,6 +31,7 @@ codapi-output pre {
   white-space: pre-wrap;
   -webkit-nbsp-mode: space;
   padding: 0em;
+  max-height: calc(var(--slide-height) * 0.2);
 }
 
 codapi-output pre {
