@@ -191,7 +191,8 @@ function jumpToTime(index) {
 
 // Looks up the index of the current Reveal slide in the explainTimes array.
 function currentRevealSlideIndex() {
-  let slideId = Reveal.getCurrentSlide().id;
+  if (!explainTimesPlay) return -1;
+  const slideId = Reveal.getCurrentSlide().id;
   return explainTimesPlay.findIndex((i) => i.slideId === slideId);
 }
 
@@ -1794,6 +1795,14 @@ function setupCallbacks() {
       return evt.returnValue;
     }
   });
+
+  // show/hide play button, depending on slides is found in times array
+  Reveal.addEventListener("slidechanged", updatePlayButton);
+}
+
+function updatePlayButton() {
+  playButton.style.display =
+    currentRevealSlideIndex() == -1 ? "none" : "initial";
 }
 
 function enableViewButton() {

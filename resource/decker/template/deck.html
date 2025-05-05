@@ -67,6 +67,7 @@ $if(live-captions)$
 $endif$
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
 <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+<script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js"></script>
 
 $for(template.js)$
   <script src="$template.js$"></script>
@@ -80,6 +81,8 @@ $endfor$
 $for(template.deck.js-module)$
   <script type="module" src="$template.deck.js-module$"></script>
 $endfor$
-
+$if(codapi.server)$
+<codapi-settings $if(codapi.server)$url="$codapi.server$"$endif$> </codapi-settings>
+$endif$
 </body>
 </html>

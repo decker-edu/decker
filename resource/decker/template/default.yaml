@@ -71,10 +71,8 @@ reveal:
 title: false
 
 # Whisper Config
-
 whisper:
-  base-dir: "/usr/local/share/whisper.cpp"
-  model: "models/ggml-large.bin"
+  model: "/opt/whisper/ggml-large-v3.bin"
   lang: "de"
 
 # Index Page Config
@@ -258,8 +256,6 @@ external-tools:
     arguments:
       - "--file"
       - "${input}"
-      - "-m"
-      - "/opt/whisper/ggml-large-v3.bin"
       - "-bs"
       - "5"
       - "-mc"

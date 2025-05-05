@@ -118,6 +118,8 @@ $include-after$
 $endfor$
 
   <script src="$decker-support-dir$/js/index.js"></script>
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js">
+  </script>
 
   <script>
     var socket = new WebSocket("ws://" + location.host + "/reload");
@@ -126,5 +128,8 @@ $endfor$
         window.location.reload(true);
     };
   </script>
+  $if(codapi.server)$
+  <codapi-settings $if(codapi.server)$url="$codapi.server$"$endif$> </codapi-settings>
+  $endif$
 </body>
 </html>
