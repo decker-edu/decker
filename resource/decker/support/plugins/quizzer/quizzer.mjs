@@ -118,6 +118,9 @@ function parseQuizzes(reveal) {
   const slides = reveal.getSlides();
   /* For each slide of reveal ... */
   for (const slide of slides) {
+    if (slide.classList.contains("vertical")) {
+      continue;
+    }
     const quizzers = slide.querySelectorAll(":scope div.quizzer");
     /* ... check if there are more than one quiz on the slide and if so, replace the content of the slide with an error message ... */
     if (quizzers.length > 1) {
