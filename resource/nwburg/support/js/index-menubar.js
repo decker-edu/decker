@@ -1,23 +1,21 @@
 document.addEventListener('DOMContentLoaded', function () {
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.getElementById('nav-menu');
-    const submenuToggles = document.querySelectorAll('.submenu-toggle');
 
-    // Toggle mobile menu
+    // Toggle main menu
     hamburger.addEventListener('click', function () {
         navMenu.classList.toggle('active');
     });
 
     // Toggle submenu items
-    submenuToggles.forEach(toggle => {
+    document.querySelectorAll('.submenu-toggle').forEach(toggle => {
         toggle.addEventListener('click', function () {
-            const parent = this.parentElement;
-            parent.classList.toggle('open');
+            const parentLi = this.closest('li');
+            const submenu = parentLi.querySelector('.submenu');
 
-            // Toggle submenu visibility
-            const submenu = parent.querySelector('.submenu');
-            if (submenu) {
-                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+            if (parentLi && submenu) {
+                const isOpen = parentLi.classList.toggle('open');
+                submenu.style.display = isOpen ? 'block' : 'none';
             }
         });
     });

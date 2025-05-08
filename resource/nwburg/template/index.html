@@ -132,7 +132,12 @@
                 class="page-header__logo-background">
 
                         <!-- Hamburger Menu Icon -->
-        <div class="hamburger">&#9776;</div>
+        <div class="hamburger"><?xml version="1.0" encoding="utf-8"?>
+            <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 7H19" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 12L19 12" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 17L19 17" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg></div>
         </div>
     
     </header>
@@ -206,9 +211,9 @@
                     $for(index.image_carousel.items)$
 					<li class="slide">
 						<a href="#">
-							<div class="slide__text">
+							<!-- <div class="slide__text">
 								<h2>$index.image_carousel.items.caption$</h2>
-							</div>
+							</div> -->
 							<div class="slide__image">
 								<img src="$index.image_carousel.items.image$" alt="" />
 							</div>
@@ -427,6 +432,7 @@
     <script type="module" src="$decker-support-dir$/js/search-functionality.js"></script>
     <script src="$decker-support-dir$/js/image-carousel.js"></script>
     <script src="$decker-support-dir$/js/index-menubar.js"></script>
+        
 
 </body>
 <!-- <footer>
