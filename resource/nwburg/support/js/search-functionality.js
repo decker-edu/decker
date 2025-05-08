@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const searchInput = anchor.querySelector("input.search");
 
-  // Fetch index.json
   fetch("./index.json")
     .then((response) => response.json())
     .then((indexData) => {
@@ -43,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           //debug statement
-          console.log("matchingSlides: ", matchingSlides);
+          // console.log("matchingSlides: ", matchingSlides);
 
           // Filter cards based on matching slide URLs
           filterCards(matchingSlides);
@@ -58,14 +57,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Function to filter cards based on slide URLs. Sets the display property of the parent card element
 function filterCards(slideUrls) {
-  const cards = document.querySelectorAll(".card");
+  const cards = document.querySelectorAll(".lecture-card");
+  const resources = document.querySelectorAll(".lecture-resource");
 
   cards.forEach((card) => {
-    // Assume cards have a `data-url or data-urls` attribute
-    const cardUrl = card.parentElement.dataset.url || card.parentElement.dataset.urls; 
+    const cardUrl = card.querySelector(".lecture-more-btn").href; 
+    const cardUrlFirst = /[^/]*$/.exec(cardUrl)[0];
+    slideUrls = slideUrls.map((url) => {
+      return /[^/]*$/.exec(url)[0];
+    });
+
+    // resources.forEach((resource) => {
+    //   const plain = resource.href.split('/').pop();
+    //   if (plain.startsWith(cardUrlFirst)) return plain;
+    //   else return null;
+    // });
+
     // if the slideUrls array has an element with the prefix of the cardUrl, then display the card
-    if (slideUrls.some((url) => card && cardUrl && url.startsWith(cardUrl))) {
-      card.parentElement.style.display = "block";
+    // if (slideUrls.some((url) => url.startsWith(cardUrlFirst)) || resources.forEach((resource) => resource.href === cardUrlFirst)) {
+
+    if (slideUrls.some((url) => url.startsWith(cardUrlFirst))) {
+        card.parentElement.style.display = "block";
     } else {
       card.parentElement.style.display = "none";
     }
@@ -77,7 +89,7 @@ function filterCards(slideUrls) {
 
 // Function to reset filters
 function resetFilters() {
-  const cards = document.querySelectorAll(".card");
+  const cards = document.querySelectorAll(".lecture-card");
   cards.forEach((card) => {
     card.parentElement.style.display = "block";
   });

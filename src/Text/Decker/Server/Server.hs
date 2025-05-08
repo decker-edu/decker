@@ -39,6 +39,7 @@ import Text.Decker.Server.Video
 import Text.Printf
 import Web.Scotty.Trans as Scotty
 import Text.Decker.Internal.Helper (uniqueTransientFileName)
+import Network.Wai (modifyResponse, mapResponseHeaders)
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =
@@ -115,7 +116,7 @@ runHttpServer context = do
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
-
+    middleware $ modifyResponse (mapResponseHeaders (("Cache-Control", "no-cache") :))
 useState state x = runReaderT x state
 
 --       route
@@ -212,8 +213,10 @@ serveResource (Resources decker pack) path = do
   case resource of
     Nothing -> status (Status 404 "Resource not found")
     Just content -> do
-      setHeader "Cache-Control" "no-store"
       setHeader "Content-Type" $ decodeUtf8 $ defaultMimeLookup (toText path)
+      setHeader "Cache-Control" "no-store, no-cache, must-revalidate, max-age=0"
+      setHeader "Pragma:" "no-cache"
+      setHeader "Expires:" "0"
       raw $ toLazy content
 
 -- Accepts a request and adds the connection to the client list. Then reads the
