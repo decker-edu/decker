@@ -1,4 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude, MultiWayIf #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 -- TODO: Background movies do not work (unclear tags compile correctly)
 -- TODO: CSS for decks containing examiner questions
@@ -9,8 +10,10 @@ module Text.Decker.Filter.Media where
 import Conduit (runConduit, withSourceFile, (.|))
 import Control.Concurrent (withMVar)
 import Control.Monad.Catch
+import Data.Char (isSpace)
 import Data.Conduit.ImageSize (Size (Size), sinkImageSize)
 import Data.List (lookup)
+import Data.List.Extra (minimum)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Text qualified as Text
@@ -35,8 +38,6 @@ import Text.Pandoc
 import Text.Printf
 import Text.URI (URI, unRText, uriFragment)
 import Text.URI qualified as URI
-import Data.List.Extra (minimum)
-import Data.Char (isSpace)
 
 fragmentRelated =
   [ "fragment",
@@ -297,36 +298,37 @@ includeCodeBlock uri title caption = do
 
 dedent :: Text -> Text
 dedent snippet =
-    -- ---8<|--- dedent-test
-    let lines = Text.lines snippet
-        indent = minimum $ map (Text.length . Text.takeWhile isSpace) (filter (not . Text.null) lines)
-    in  Text.unlines $ map (Text.drop indent) lines
-    
+  -- ---8<|--- dedent-test
+  let lines = Text.lines snippet
+      indent = minimum $ map (Text.length . Text.takeWhile isSpace) (filter (not . Text.null) lines)
+   in Text.unlines $ map (Text.drop indent) lines
+
 data Extract = Waiting | CollectingSnip [Text] | CollectingPara [Text] | Done [Text] deriving (Show)
 
 -- ---8<|--- include-even-shorter
 extractSnippetFrom :: Text -> Text -> Text
 extractSnippetFrom code tag =
-    case foldl' assemble Waiting lines of
-        Waiting -> ""
-        CollectingSnip lines -> Text.unlines lines
-        CollectingPara lines -> Text.unlines lines
-        Done lines -> Text.unlines lines
-    where
-        lines = Text.lines code
-        assemble Waiting line =
-            if | Text.isInfixOf ("---8<--- " <> tag) line -> (CollectingSnip [])
-               | Text.isInfixOf ("---8<|--- " <> tag) line -> (CollectingPara [])
-               | otherwise ->  Waiting
-        assemble (CollectingSnip lines) line =
-            if Text.isInfixOf "--->8---" line
-                then Done lines
-                else CollectingSnip (lines <> [line])
-        assemble (CollectingPara lines) line =
-            if Text.null $ Text.strip line
-                then Done lines
-                else CollectingPara (lines <> [line])
-        assemble extract line = extract
+  case foldl' assemble Waiting lines of
+    Waiting -> ""
+    CollectingSnip lines -> Text.unlines lines
+    CollectingPara lines -> Text.unlines lines
+    Done lines -> Text.unlines lines
+  where
+    lines = Text.lines code
+    assemble Waiting line =
+      if
+        | Text.isInfixOf ("---8<--- " <> tag) line -> (CollectingSnip [])
+        | Text.isInfixOf ("---8<|--- " <> tag) line -> (CollectingPara [])
+        | otherwise -> Waiting
+    assemble (CollectingSnip lines) line =
+      if Text.isInfixOf "--->8---" line || Text.isInfixOf "---8<---" line
+        then Done lines
+        else CollectingSnip (lines <> [line])
+    assemble (CollectingPara lines) line =
+      if Text.null $ Text.strip line
+        then Done lines
+        else CollectingPara (lines <> [line])
+    assemble extract line = extract
 
 -- |  Converts the contents of a code block to a standard pre tag.
 codeBlock :: (Container c) => Text -> [Inline] -> Attrib c
