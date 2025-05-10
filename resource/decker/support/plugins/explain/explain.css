@@ -299,26 +299,6 @@ span.capture-size {
   font-size: 1em;
 }
 
-.video-js .vjs-current-time {
-  display: block !important;
-}
-
-/* fix wrong :before of video.js */
-.vjs-icon-cancel:before,
-.vjs-icon-previous-item:before,
-.vjs-icon-next-item:before {
-  content: none !important;
-}
-.video-js .vjs-icon-cancel .vjs-icon-placeholder:before {
-  content: "\f119";
-}
-.video-js .vjs-icon-previous-item .vjs-icon-placeholder:before {
-  content: "\f124";
-}
-.video-js .vjs-icon-next-item .vjs-icon-placeholder:before {
-  content: "\f123";
-}
-
 .camera-panel {
   display: none;
 }
@@ -358,4 +338,82 @@ span.capture-size {
 #camera-canvas[data-has-background="false"] {
   border: none;
   border-radius: 0px;
+}
+
+/* force showing current time */
+.video-js .vjs-current-time {
+  display: block !important;
+}
+
+/* fix wrong :before of video.js */
+.vjs-icon-cancel:before,
+.vjs-icon-previous-item:before,
+.vjs-icon-next-item:before {
+  content: none !important;
+}
+.video-js .vjs-icon-cancel .vjs-icon-placeholder:before {
+  content: "\f119";
+}
+.video-js .vjs-icon-previous-item .vjs-icon-placeholder:before {
+  content: "\f124";
+}
+.video-js .vjs-icon-next-item .vjs-icon-placeholder:before {
+  content: "\f123";
+}
+
+@media only screen and (max-width: 750px) {
+  /* make controlbar wrap on small displays */
+  .vjs-has-started .vjs-control-bar {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    height: auto;
+  }
+  .video-js .vjs-control {
+    height: 3em;
+  }
+
+  /* current time, progress bar, and remaining time in first row */
+  .video-js .vjs-progress-control,
+  .video-js .vjs-current-time,
+  .video-js .vjs-remaining-time {
+    order: 1;
+  }
+  .video-js .vjs-progress-control .vjs-play-progress {
+    background-color: var(--primary-color);
+  }
+
+  /* full-width item as line break */
+  .video-js .vjs-custom-control-spacer {
+    display: block;
+    order: 2;
+    width: 100%;
+    height: 1px;
+  }
+
+  /* group next four icons */
+  .video-js .vjs-icon-cancel,
+  .video-js .vjs-icon-previous-item,
+  .video-js .vjs-play-control,
+  .video-js .vjs-icon-next-item {
+    order: 3;
+  }
+
+  /* group next four icons */
+  .video-js .vjs-volume-panel,
+  .video-js .vjs-playback-rate,
+  .video-js .vjs-subs-caps-button,
+  .video-js .vjs-fullscreen-control {
+    order: 5;
+  }
+}
+
+@media only screen and (max-width: 520px) {
+  /* full-width item as line break between icons */
+  .video-js .vjs-audio-button {
+    display: block !important;
+    visibility: hidden;
+    order: 4;
+    width: 100%;
+    height: 1px;
+  }
 }
