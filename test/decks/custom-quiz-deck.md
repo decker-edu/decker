@@ -328,6 +328,26 @@ and builds upon the tool
 
 :::
 
+# Questions in sub slides
+
+::: {.quizzer .choice}
+
+- [x] Yes
+- [ ] No
+
+:::
+
+# Sub Slide {.sub}
+
+::: {.quizzer .choice}
+
+![](./@f{u}nn%20y.png)
+
+- [x] Yes
+- [ ] No
+
+:::
+
 # Block Behavior
 
 ## Test {.test}
