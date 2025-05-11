@@ -923,7 +923,7 @@ function createPlayerGUI() {
     preload: "metadata",
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3],
     playsinline: true,
-    children: ["bigPlayButton", "controlBar"],
+    html5: { nativeTextTracks: true },
     controlBar: {
       playToggle: true,
       volumePanel: { inline: false },
@@ -1739,6 +1739,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
+            default: false,
           },
           false
         );
@@ -1748,7 +1749,7 @@ async function setupPlayer() {
       vtt = deckUrlBase() + "-recording-en.vtt";
       if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt },
+          { kind: "captions", srclang: "en", src: vtt, default: false },
           false
         );
       }
@@ -1759,7 +1760,7 @@ async function setupPlayer() {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
           player.addRemoteTextTrack(
-            { kind: "captions", srclang: lang, src: vtt },
+            { kind: "captions", srclang: lang, src: vtt, default: false },
             false
           );
         }
