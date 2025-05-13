@@ -16,7 +16,6 @@ where
 import Control.Monad
 import Data.List.Extra as List
 import Data.Maybe
-import Data.Text qualified as Text
 import Data.Version (showVersion, versionBranch)
 import Development.Shake
 import Paths_decker (version)
@@ -41,7 +40,7 @@ putDeckerVersion = do
       ++ ", build date: "
       ++ deckerBuildDate
       ++ ")"
-  putStrLn $ "pandoc version " ++ Text.unpack pandocVersion
+  putStrLn $ "pandoc version " ++ showVersion pandocVersion
   putStrLn $ "pandoc-types version " ++ showVersion pandocTypesVersion
 
 --

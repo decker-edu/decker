@@ -31,7 +31,6 @@ module Text.Pandoc.Lens
     _Header,
     _HorizontalRule,
     _Div,
-    _Null,
 
     -- * Inlines
 
@@ -176,13 +175,6 @@ _Div :: Prism' Block [Block]
 _Div = prism' (Div nullAttr) f
   where
     f (Div _ a) = Just a
-    f _ = Nothing
-
--- | A prism on a 'Null' 'Block'
-_Null :: Prism' Block ()
-_Null = prism' (const Null) f
-  where
-    f Null = Just ()
     f _ = Nothing
 
 -- | A prism on a 'Str' 'Inline'
