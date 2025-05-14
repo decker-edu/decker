@@ -40,25 +40,21 @@ import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Scripting (noEngine)
+import Text.Pandoc.Lua (applyFilter)
+import Control.Monad (foldM)
 
 data FilterPosition = Before | After deriving (Show, Eq)
 
 runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
 runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
-  let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
-  if not $ null filters
-    then liftIO $ runIOorExplode $ applyFilters engine env filters ["html"] pandoc
-    else return pandoc
+  let filters = map (makeProjectPath baseDir . toString) paths
+  liftIO $ foldM (\doc path -> runIOorExplode $ applyFilter env ["html"] path doc) pandoc filters
   where
     engine = noEngine
     env = Environment pandocReaderOpts pandocWriterOpts
     key Before = "pandoc.filters.before"
     key After = "pandoc.filters.after"
-    mkFilter path =
-      if takeExtension path == ".lua"
-        then LuaFilter path
-        else JSONFilter path
 
 processPandoc ::
   (Pandoc -> Decker Pandoc) ->
