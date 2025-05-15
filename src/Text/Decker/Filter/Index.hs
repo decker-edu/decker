@@ -286,7 +286,7 @@ addTargetInfo targets meta = do
       MetaMap
         $ fromList
           [ ("src", MetaString (toText info.deckSrc)),
-            ("url", MetaString (toText $ makeRelativeTo "public" (toString info.deckUrl))),
+            ("url", MetaString info.deckUrl),
             ("id", maybe (MetaBool False) (MetaString . toText) info.deckId),
             ("title", maybe (MetaBool False) (MetaString . toText) info.deckTitle),
             ("subtitle", maybe (MetaBool False) (MetaString . toText) info.deckSubtitle)
