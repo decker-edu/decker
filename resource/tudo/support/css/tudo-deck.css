@@ -1639,7 +1639,7 @@ html.dark
   .media
   :is(figure, .figure)
   :not(.MathJax)
-  > :is(svg, img, canvas[data-chart], iframe) {
+  > :is(svg, img, canvas[data-chart]) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
   border-radius: 0;
