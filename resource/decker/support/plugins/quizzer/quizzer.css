@@ -122,8 +122,17 @@
   background-color: var(--shade1);
 }
 
+:root.dark .quizzer .answer-container button.answer {
+  background-color: var(--shade6);
+}
+
 .quizzer .answer-container button.answer:hover {
   background-color: var(--shade2);
+  cursor: pointer;
+}
+
+:root.dark .quizzer .answer-container button.answer:hover {
+  background-color: var(--shade5);
 }
 
 /* .quizzer .answer-container button.answer:active {
