@@ -376,7 +376,10 @@ export default {
     const options = choices.options;
     for (const option of options) {
       const item = document.createElement("option");
-      item.innerText = option.label;
+      const textHelper = document.createElement("span");
+      textHelper.innerHTML = option.label;
+      const text = textHelper.textContent || textHelper.innerText;
+      item.innerText = text;
       item.reason = option.reason;
       item.correct = option.correct;
       select.appendChild(item);
