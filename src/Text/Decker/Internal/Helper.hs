@@ -32,10 +32,6 @@ import qualified Data.Text.IO as T
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
 
--- | Monadic version of list concatenation.
-(<++>) :: (Monad m) => m [a] -> m [a] -> m [a]
-(<++>) = liftM2 (++)
-
 repeatIfTrue :: (Monad m) => m Bool -> m ()
 repeatIfTrue action = do
   again <- action
@@ -254,7 +250,7 @@ uniqueTransientFileName base = do
       <> "-"
       <> id
       <.> takeExtension base
--- 
+--
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
 writeNativeWhileDebugging out mod doc =
