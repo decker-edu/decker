@@ -179,14 +179,14 @@ function parseQuizzes(reveal) {
           }
           /* ... cleanup ... */
           const checkbox = item.querySelector(":scope input[type='checkbox']");
+          /* ... and set its correctness based on if it was cheked or not. */
           if (checkbox) {
+            answerObject.correct = !!checkbox.checked;
             checkbox.remove();
           }
           /* ... add the the html of the item as its label (without the checkbox) ... */
           const label = item.innerHTML;
           answerObject.label = label;
-          /* ... and set its correctness based on if it was cheked or not. */
-          answerObject.correct = item.classList.contains("task-yes");
           choiceObject.options.push(answerObject);
         }
         /* ... if there is more than one correct choice the amount of votes is equal to the amount of possible answers. */
@@ -804,7 +804,11 @@ function renderResult(result) {
    * is extremely fiddly with d3sankey.
    */
   if (awaitingQuiz && awaitingQuiz.type === "assignment") {
+    const choice = awaitingQuiz.choices[0];
+    const options = choice.options;
+    const categories = choice.categories;
     const entry = document.createElement("div");
+
     entry.classList.add("quizzer-result");
     resultContainer.appendChild(entry);
     let total = 0;
@@ -837,9 +841,6 @@ function renderResult(result) {
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     const nodes = [];
     const links = [];
-    const choice = awaitingQuiz.choices[0];
-    const options = choice.options;
-    const categories = choice.categories;
     for (const option of options) {
       const node = {
         node: nodes.length,
