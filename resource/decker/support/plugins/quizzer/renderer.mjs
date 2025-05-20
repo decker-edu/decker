@@ -480,7 +480,6 @@ export default {
         textHelper.innerHTML = option.label;
         const text = textHelper.textContent || textHelper.innerText;
         if (text === input.value) {
-          console.log(option);
           if (option.correct === true) {
             wrapper.classList.remove("wrong");
             wrapper.classList.add("correct");
