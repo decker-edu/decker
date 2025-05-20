@@ -376,10 +376,7 @@ export default {
     const options = choices.options;
     for (const option of options) {
       const item = document.createElement("option");
-      const textHelper = document.createElement("span");
-      textHelper.innerHTML = option.label;
-      const text = textHelper.textContent || textHelper.innerText;
-      item.innerText = text;
+      item.innerText = option.label;
       item.reason = option.reason;
       item.correct = option.correct;
       select.appendChild(item);
@@ -476,10 +473,7 @@ export default {
       checkmark.classList.add("fa-times");
       input.setAttribute("aria-description", l10n.wrong);
       for (const option of choices.options) {
-        const textHelper = document.createElement("span");
-        textHelper.innerHTML = option.label;
-        const text = textHelper.textContent || textHelper.innerText;
-        if (text === input.value) {
+        if (option.label === input.value) {
           if (option.correct === true) {
             wrapper.classList.remove("wrong");
             wrapper.classList.add("correct");
