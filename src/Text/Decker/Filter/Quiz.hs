@@ -31,7 +31,7 @@ data Match
   deriving (Show)
 
 -- | A Choice consists of a Boolean (correct), the answer text and a tooltip comment
-data Choice = Choice
+data Choice = Choice 
   { correct :: Bool
   , text :: [Inline]
   , comment :: [Block]
@@ -238,8 +238,8 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
-quizButton :: T.Text -> T.Text -> Meta -> Inline
-quizButton cls dict meta =
+quizButton :: T.Text -> T.Text -> Meta -> Inline 
+quizButton cls dict meta = 
   tag "button" $ Span ("", [cls, "quiz-button"], []) [Str $ lookupInDictionary dict meta]
 
 renderMultipleChoice :: Meta -> Quiz -> Block
@@ -261,9 +261,9 @@ choiceList :: T.Text -> [Choice] -> Block
 choiceList t choices = tag "ul" $ Div ("", [t], []) $ map handleChoices choices
   where
     handleChoices :: Choice -> Block
-    handleChoices (Choice c text comment) =
-      tag "li" $
-      Div ("", [cls c], []) $
+    handleChoices (Choice c text comment) = 
+      tag "li" $ 
+      Div ("", [cls c], []) $ 
       Div ("", ["choice_ltr"], []) [Plain text] : [Div ("", ["quiz-tooltip"], []) (reduceTooltip comment)]
     cls cor = if cor then "correct" else "wrong"
     reduceTooltip :: [Block] -> [Block]
@@ -295,7 +295,7 @@ renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
     select choices =
       tag "select" $ Span ("", [], []) (defaultOpt : map options choices)
     defaultOpt = tag "option" $ Span ("", ["wrong"], [("hidden", ""), ("disabled", ""), ("selected", "")]) [Str placeholder]
-
+    
     options :: Choice -> Inline
     options (Choice correct text comment) =
       tag "option" $ Span ("", [ocls], [("value",stringify text)]) text
@@ -320,7 +320,7 @@ renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
     newMeta = setMetaValue "lang" (view lang qm) meta
     (buckets, items) = unzip $ map pairs matches
     pairs :: Match -> (Block, [Block])
-    pairs (Distractor bs) = (Plain [], map distractor bs)
+    pairs (Distractor bs) = (Null, map distractor bs)
     pairs (Pair i is bs) =
       case bs of
         [[Plain []]] -> (Div ("",["bucket", "distractor"],[("data-bucketId", T.pack $ show i)]) [Plain is], [])
@@ -347,7 +347,7 @@ renderFreeText meta quiz@(FreeText title tgs qm q ch) =
     input = tag "input" $ Div ("", ["quiz-ftinput"], [("placeholder", placeholderText)]) [choiceList "qft-solutions" ch]
     placeholderText :: T.Text
     placeholderText = lookupInDictionary "quiz.input-placeholder" newMeta
-    sButton = quizButton "solutionButton" "quiz.solution" newMeta
+    sButton = quizButton "solutionButton" "quiz.solution" newMeta 
     rButton = quizButton "resetButton" "quiz.reset-button" newMeta
     newMeta = setMetaValue "lang" (view lang qm) meta
     -- sol = tag "ul" $ Span ("", ["solutionDiv"], []) [Str ""]

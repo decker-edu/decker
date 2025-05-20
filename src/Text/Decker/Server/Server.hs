@@ -155,7 +155,7 @@ startUpdater state = do
 -- already exists. Do this atomically.
 uploadResource :: [String] -> AppActionM ()
 uploadResource suffixes = do
-  destination <- pathParam "1"
+  destination <- param "1"
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
     then do
@@ -170,7 +170,7 @@ uploadResource suffixes = do
 
 headDirectory :: FilePath -> AppActionM ()
 headDirectory directory = do
-  path <- pathParam "1"
+  path <- param "1"
   exists <- liftIO $ doesFileExist (directory </> path)
   if exists
     then status status200
