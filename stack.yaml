@@ -10,7 +10,13 @@ packages:
 # TODO: As of lts-19.13 this is still needed on M1 macOS. Should not hurt
 # elsewhere. Also on macOS 12.6 LLVM 14 needs to be installed with `brew install
 # llvm@14` (`opt` is needed by GHC).
-# extra-include-dirs:
-#   - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
+extra-include-dirs:
+  - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
-resolver: lts-23.21
+resolver: lts-20.26
+  
+# TODO: Maybe we still need this on Windows. But maybe not.
+# ghc-options:
+#   "$locals": -fhide-source-paths -Wno-missing-home-modules
+#   "$everything": -haddock
+

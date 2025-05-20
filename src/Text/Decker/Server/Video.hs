@@ -23,7 +23,7 @@ import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 -- | Returns a JSON list of all existing WEBM video fragments for a recording
 listRecordings :: AppActionM ()
 listRecordings = do
-  webm <- pathParam "1"
+  webm <- param "1"
   webms <- liftIO $ existingVideos webm
   json webms
 
@@ -31,7 +31,7 @@ listRecordings = do
 -- recordings or replaces them.
 uploadRecording :: Bool -> AppActionM ()
 uploadRecording append = do
-  destination <- pathParam "1"
+  destination <- param "1"
   chan <- reader channel
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && "-recording.webm" `List.isSuffixOf` destination

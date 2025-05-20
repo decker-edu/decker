@@ -11,7 +11,7 @@ import System.Directory qualified as Dir
 import System.FilePath (takeDirectory, (</>))
 import Text.Decker.Internal.Common (metaArgsFile, publicDir)
 import Text.Decker.Internal.Helper (makeRelativeTo)
-import Text.Decker.Internal.Meta (adjustMetaStringsBelowM, fromPandocMeta, lookupMetaOrElse, mergePandocMeta, readMetaDataFile, addMetaValue)
+import Text.Decker.Internal.Meta (addMetaKeyValue, adjustMetaStringsBelowM, fromPandocMeta, lookupMetaOrElse, mergePandocMeta, readMetaDataFile, addMetaValue)
 import Text.Decker.Internal.URI (makeProjectPath)
 import Text.Decker.Resource.Template (readTemplateMeta, readTemplateMetaIO)
 import Text.Pandoc (Pandoc (..))

@@ -188,7 +188,7 @@ data SlideInfo = SlideInfo
   { slideUrl :: SlideUrl,
     slideId :: Text,
     slideTitle :: Text,
-    slideDeckUrl :: DeckUrl
+    deckUrl :: DeckUrl
   }
   deriving (Generic, Show)
 
@@ -232,7 +232,7 @@ invertIndex =
                                 { slideUrl,
                                   slideId,
                                   slideTitle,
-                                  slideDeckUrl = deckUrl
+                                  deckUrl
                                 }
                               slideMap
                           )
