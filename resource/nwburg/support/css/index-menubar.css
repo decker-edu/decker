@@ -1,0 +1,245 @@
+/* General Styles for Menu */
+.menu-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+}
+
+/* Container to align menu with other sections */
+.menu-container {
+    max-width: 900px;
+    width: 70%;
+    margin: 6px auto;
+    display: flex;
+    justify-content: space-between;
+    background: hsla(0, 0%, 100%, .9);
+}
+
+/* Ensure menu items align properly */
+.menu-item-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.menu-bar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.menu-bar > ul {
+    width: inherit;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    line-height: 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+/* Links Styling */
+.menu-bar ul {
+    text-decoration: none;
+    color: #063D79;
+    display: block;
+    line-height: 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: "Roboto", sans-serif;
+}
+
+.menu-bar span {
+    padding: 0 15px;
+    text-decoration: none;
+    color: #063D79;
+    display: block;
+    line-height: 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: "Roboto", sans-serif;
+}
+
+.menu-bar a {
+    padding: 0 15px;
+    text-decoration: none;
+    color: #063D79;
+    display: block;
+    line-height: 30px;
+    cursor: pointer;
+    font-family: "Roboto", sans-serif;
+    font-size: 13px;
+}
+
+.menu-bar a:hover,
+.menu-bar span:hover {
+    text-decoration: underline;
+    background-color: white;
+}
+
+/* Submenu Styles */
+    .menu-bar ul ul {
+        display: none;
+        position: absolute;
+        background: white;
+        padding: 0;
+        border-bottom: 2px solid #004a8f;
+        min-width: 230px;
+    }
+
+
+.menu-bar ul ul li:hover > ul {
+    display: block;
+    left: 50%;  /* Centers submenu */
+    transform: translateX(-50%); /* Corrects alignment */
+}
+
+.menu-bar ul ul li {
+    width: 100%;
+    text-transform: capitalize;
+    list-style-type: none;
+    background: white;
+}
+.menu-bar ul ul li:hover {
+    color: #063D79;
+}
+.menu-bar ul ul li ul {
+    display: block;  /* Always visible */
+    position: relative;
+    width: 100%;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding-left: 15px; /* Indent for hierarchy */
+    margin-top: 5px;
+}
+
+.menu-bar ul ul li ul li {
+    font-size: 14px;  /* Smaller font */
+    font-weight: 400;  /* Lighter font */
+    color: #063D79; /* Darker shade */
+    padding-left: 10px; /* More indentation */
+}
+
+.menu-bar ul ul li ul li a {
+    font-size: 14px;
+    font-weight: lighter;
+    color: #063D79 ;
+    display: block;
+}
+
+li.submenu-item {
+  padding-left: 0px !important;
+}
+
+.submenu-toggle {
+color:#063D79;
+padding: 0 15px;
+}
+
+.submenu-toggle a{
+padding: 0;
+    }
+
+.submenu-toggle:hover {
+    text-decoration: underline;
+    
+}
+
+.menu-bar ul ul a div{
+    padding: 5px 10px;
+}
+
+/* Show submenu on hover */
+.menu-bar li:hover > ul {
+    display: block;
+}
+
+/* Hamburger Menu Styling */
+.hamburger {
+    display: none; 
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #063D79;
+}
+
+li.menu-item {
+    margin-bottom: 0px;
+}
+
+.search-container {
+    margin-right: 1em;
+    margin-top: 0.25em;
+}
+
+
+/* Responsive Styles for Mobile */
+@media (max-width: 768px) {
+    .menu-bar {
+      display: contents;
+    }
+
+    .hamburger {
+        display: block; 
+        z-index: 1;
+        font-size: 37px;
+    }
+
+    .menu-container {
+        display: none; 
+        flex-direction: column;
+        width: 90%;
+        background: hsla(0, 0%, 100%, .9);
+        top: 50px;
+        left: 0;
+        right: 0;
+        z-index: 10;
+    }
+
+    .menu-container.active {
+        display: flex; 
+    }
+
+    .menu-item-container {
+        flex-direction: column;
+    }
+
+    .search-container {
+        margin-right: 1em;
+    }
+}
+
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .menu-container {
+        max-width: 56em;
+        margin: auto;
+        position: absolute;
+        top: 0.5em;
+    }
+    .search-container {
+        margin-right: 2.2em;
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1179px) {
+    .search-container {
+        margin-right: 1em;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1093px)  { 
+    .search-container {
+        margin-right: 1em;
+    }
+}
+

@@ -10,8 +10,8 @@ $endfor$
 $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$">
 $endif$
-$if(keywords)$
-  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+$if(index.keywords)$
+  <meta name="keywords" content="$for(index.keywords)$$index.keywords$$sep$, $endfor$">
 $endif$
 $if(title)$
 $if(subtitle)$
@@ -19,6 +19,80 @@ $if(subtitle)$
 $else$
   <title>$title$</title>
 $endif$
+
+<!-- add the meta-json from pandoc as meta info to access the compile time data with the js below. The meta json does contain quote symbols and it needs to be escaped -->
+
+<!-- $if(meta-json)$
+  <script type="application/json" id="pandoc-meta">
+    $meta-json$
+$endif$ -->
+
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="$decker-support-dir$/support/vendor/images/favicon/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="$decker-support-dir$/support/vendor/images/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="$decker-support-dir$/support/vendor/images/favicon/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="$decker-support-dir$/support/vendor/images/favicon/favicon-16x16.png">
+<link rel="manifest" href="$decker-support-dir$/support/vendor/images/favicon/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="$decker-support-dir$/support/vendor/images/favicon//ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- Start of Index Information -->
+$if(index.chapter)$
+<meta name="chapter" content="$index.chapter$" />
+$endif$
+$if(index.section)$
+<meta name="section" content="$index.section$" />
+$endif$
+$if(index.subsection)$
+<meta name="subsection" content="$index.subsection$" />
+$endif$
+$if(index.subsubsection)$
+<meta name="subsubsection" content="$index.subsubsection$" />
+$endif$
+$if(index.description)$
+  <meta name="description" content="$index.description$" />
+$endif$
+$if(template.teaser-image)$
+  <meta name="teaser-image" content="$template.teaser-image$">
+$else$
+  $if(template.title-page.teaser-img)$
+    <meta name="teaser-image" content="$template.title-page.teaser-img$">
+  $else$
+    <meta name="teaser-image" content="https://hci.uni-wuerzburg.de/assets/images/640/general/hci-logo-red.png">
+  $endif$
+$endif$
+$if(index.visible)$
+  <meta name="visible" content="$index.visible$">
+  <!-- index visibility was set to true -->
+$else$
+  $if(template.index-page.default-visibility)$
+    <meta name="visible" content="$template.index-page.default-visibility$">
+    <!-- default visibility was set to true -->
+  $else$
+    <meta name="visible" content="false">
+    <!-- no visibility specified or explicitly set to false -->
+  $endif$
+$endif$
+
+$if(index.supplimentals)$
+  $for(index.supplimentals)$
+    <meta name="supplimental" content="title: $index.supplimentals.title$, link: $index.supplimentals.link$, icon: $index.supplimentals.icon$">
+  $endfor$
+$endif$
+
+<!-- End of Index Information -->
+
 $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,6 +105,7 @@ $endif$
   <!-- Default values for CSS variables can live here. They can be overridden by
   meta data values. -->
   <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+  <link rel="stylesheet" href="support/css/wburg.css">
 
   <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">

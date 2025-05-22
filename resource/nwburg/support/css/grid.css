@@ -1,0 +1,124 @@
+// Google font
+@import url('https://fonts.googleapis.com/css?family=Raleway:300,400i,900');
+
+// 0b2027-40798c-70a9a1-cfd7c7-f6f1d1
+// variables
+$dark-blue: #0b2027;
+$blue: #40798c;
+$accent: #70a9a1;
+$light-accent: #70a9a1;
+$yellow: #f6f1d1;
+$white: #f8f8f8;
+
+$ff: "Raleway", sans-serif;
+$fw-l: 300;
+$fw-n: 400;
+$fw-b: 900;
+
+
+// Styles
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: $ff;
+  font-weight: $fw-l;
+  line-height: 1.6;
+}
+
+.grid-container {
+  width: 95%;
+  margin: 0 auto;
+  display: grid;
+  /* grid-template-columns: repeat(2, 1fr); */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 10px;
+  
+  /* @media (min-width: 52em) {
+    grid-template-columns: repeat(auto-fit, minmax(15em, 30em));
+  } */
+}
+
+.grid {
+  display: flex;
+  flex-direction: initial;
+  flex-wrap: wrap;
+  gap: 3px;
+  grid-gap: 10 px;
+}
+
+
+
+.section {
+  background: $dark-blue;
+  padding: 5em 0;
+  color: rgba($white, .6);
+}
+
+.section-description {
+  grid-column: 1 / -1;
+  /* grid-column: span 2; */
+  
+  /* @media (min-width: 52em) {
+    grid-column: auto;
+    grid-row: span 2;
+    align-self: center;
+  } */
+}
+
+.section-title {
+  text-transform: uppercase;
+  font-weight: $fw-l;
+  /* font-size: 5rem; */
+  color: $white;
+  margin-top: 0;
+  line-height: 1;
+
+}
+
+.chapter-title{
+  text-transform: uppercase;
+  grid-column: 1 / -1;
+}
+
+/* .chapter{
+  margin: 0;
+  padding: 0;
+  position: relative;
+  
+  img {
+    width: 100%;
+    display: block;
+  }
+  
+  figcaption {
+    position: absolute;
+    top: 1em;
+    bottom: 1em;
+    right: 1em;
+    left: 1em;
+    background: rgba($accent, .8);
+    color: $dark-blue;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity ease-in-out 300ms;
+  }
+  
+  &:hover figcaption { 
+    opacity: 1;
+  }
+  
+  .name {
+    text-transform: uppercase;
+    line-height: 1;
+    text-align: center;
+  }
+  
+  
+} */
+
+body {
+  max-width: unset;
+}
