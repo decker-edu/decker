@@ -70,10 +70,6 @@
   display: none;
 }
 
-.dark .quizzer .solution-container button {
-  color: var(--foreground-color);
-}
-
 :is(.correct, .wrong):hover .solution-popover:not(:empty),
 :is(.correct, .wrong):focus-visible .solution-popover:not(:empty) {
   display: block;
@@ -350,12 +346,12 @@ button[type="submit"] {
   padding: 1rem;
   border: 3px solid var(--blueish);
   border-radius: 1rem;
-  background-color: var(--shade1);
+  background-color: var(--shade6);
   font-size: 1.5rem;
 }
 
 button[type="submit"]:hover {
-  background-color: var(--shade2);
+  background-color: var(--shade5);
 }
 
 button.answer:hover {
