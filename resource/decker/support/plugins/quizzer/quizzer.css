@@ -70,6 +70,10 @@
   display: none;
 }
 
+.dark .quizzer .solution-container button {
+  color: var(--foreground-color);
+}
+
 :is(.correct, .wrong):hover .solution-popover:not(:empty),
 :is(.correct, .wrong):focus-visible .solution-popover:not(:empty) {
   display: block;
@@ -133,6 +137,19 @@
 
 :root.dark .quizzer .answer-container button.answer:hover {
   background-color: var(--shade5);
+}
+
+:root.dark .quizzer .answer-container button.category {
+  background-color: var(--shade6);
+}
+
+:root.dark .quizzer .answer-container button.category:hover:has(button:hover) {
+  background-color: var(--shade6);
+}
+
+:root.dark .quizzer .answer-container button.category:hover {
+  background-color: var(--shade5);
+  cursor: pointer;
 }
 
 /* .quizzer .answer-container button.answer:active {
@@ -506,10 +523,6 @@ button[hidden] {
 
 .print-pdf dialog {
   display: none !important;
-}
-
-:root.dark .quizzer-container button {
-  color: var(--foreground-color);
 }
 
 span.fa-span {
