@@ -103,6 +103,7 @@ body.index {
   margin: auto;
   min-width: 100%;
   max-width: 100%;
+  height: unset;
   line-height: 1.3; /* It is said 1.5 improves readability */
 }
 
@@ -256,6 +257,10 @@ body.index table tbody tr:last-child td {
   border-bottom: none;
 }
 
+tr {
+  height: 2.5rem;
+}
+
 td[align="center"] {
   text-align: center;
 }
@@ -283,4 +288,48 @@ html[lang="de"] .german {
 
 html[lang="de"] .english {
   display: none;
+}
+
+.link-additions {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  margin-left: 0.25rem;
+}
+
+a.handout-link {
+  display: inline-block;
+  vertical-align: bottom;
+  position: relative;
+  width: 1em;
+  height: 1em;
+}
+
+a.handout-link::before {
+  display: block;
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--accent5-fg);
+  border-radius: 2px;
+}
+
+a.handout-link::after {
+  display: block;
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--accent5-fg);
+  border-radius: 2px;
+}
+
+a.handout-link:hover::before,
+a.handout-link:hover::after {
+  background-color: var(--accent5);
 }
