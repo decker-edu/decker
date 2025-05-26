@@ -1,7 +1,7 @@
-import {
-  setupFlyingFocus,
-  hideFlyingFocus,
-} from "../../flyingFocus/flying-focus.js";
+// import {
+//   setupFlyingFocus,
+//   hideFlyingFocus,
+// } from "../../flyingFocus/flying-focus.js";
 
 import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
 
@@ -73,12 +73,12 @@ function fixTabsByInert() {
 }
 
 /* setup flying focus and its callbacks */
-function addFlyingFocusCallbacks() {
-  setupFlyingFocus();
-  Reveal.on("slidechanged", (event) => {
-    hideFlyingFocus();
-  });
-}
+// function addFlyingFocusCallbacks() {
+//   setupFlyingFocus();
+//   Reveal.on("slidechanged", (event) => {
+//     hideFlyingFocus();
+//   });
+// }
 
 let previousKeyboardConfig;
 
@@ -171,7 +171,7 @@ const Plugin = {
   init: (reveal) => {
     Reveal = reveal;
     fixTabsByInert();
-    addFlyingFocusCallbacks();
+    // addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
     addScreenReaderSlideNumbers();
     reveal.addKeyBinding(

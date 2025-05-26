@@ -191,7 +191,8 @@ function jumpToTime(index) {
 
 // Looks up the index of the current Reveal slide in the explainTimes array.
 function currentRevealSlideIndex() {
-  let slideId = Reveal.getCurrentSlide().id;
+  if (!explainTimesPlay) return -1;
+  const slideId = Reveal.getCurrentSlide().id;
   return explainTimesPlay.findIndex((i) => i.slideId === slideId);
 }
 
@@ -921,9 +922,11 @@ function createPlayerGUI() {
     autoplay: false,
     preload: "metadata",
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3],
+    playsinline: true,
+    html5: { nativeTextTracks: true },
     controlBar: {
       playToggle: true,
-      volumePanel: true,
+      volumePanel: { inline: false },
       currentTimeDisplay: true,
       timeDivider: false,
       durationDisplay: false,
@@ -933,6 +936,8 @@ function createPlayerGUI() {
       pictureInPictureToggle: false,
     },
     userActions: {
+      // mouse click toggles play/pause
+      click: true,
       // disable going to fullscreen by double click
       doubleClick: false,
       // our keyboard shortcuts
@@ -949,10 +954,10 @@ function createPlayerGUI() {
             break;
 
           // left/right: skip slides
-          case "ArrowLeft":
+          case "PageUp":
             prev();
             break;
-          case "ArrowRight":
+          case "PageDown":
             next();
             break;
 
@@ -975,10 +980,12 @@ function createPlayerGUI() {
             }
             break;
 
-          // j/l: jump backward/forward by 10sec
+          // left/right or j/l: jump backward/forward by 10sec
+          case "ArrowLeft":
           case "KeyJ":
             player.currentTime(player.currentTime() - 10);
             break;
+          case "ArrowRight":
           case "KeyL":
             player.currentTime(player.currentTime() + 10);
             break;
@@ -1719,6 +1726,8 @@ async function setupPlayer() {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
+      updatePlayButton();
+
       let vtt;
 
       // "old" version of VTT w/o language specifier
@@ -1730,6 +1739,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
+            default: false,
           },
           false
         );
@@ -1739,7 +1749,7 @@ async function setupPlayer() {
       vtt = deckUrlBase() + "-recording-en.vtt";
       if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt },
+          { kind: "captions", srclang: "en", src: vtt, default: false },
           false
         );
       }
@@ -1750,7 +1760,7 @@ async function setupPlayer() {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
           player.addRemoteTextTrack(
-            { kind: "captions", srclang: lang, src: vtt },
+            { kind: "captions", srclang: lang, src: vtt, default: false },
             false
           );
         }
@@ -1794,6 +1804,14 @@ function setupCallbacks() {
       return evt.returnValue;
     }
   });
+
+  // show/hide play button, depending on slides is found in times array
+  Reveal.addEventListener("slidechanged", updatePlayButton);
+}
+
+function updatePlayButton() {
+  playButton.style.display =
+    currentRevealSlideIndex() == -1 ? "none" : "initial";
 }
 
 function enableViewButton() {
