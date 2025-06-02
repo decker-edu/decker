@@ -2,21 +2,23 @@
 
 module Text.Decker.Internal.MetaExtra where
 
+import Control.Monad (foldM)
 import Data.Aeson.Encode.Pretty qualified as A
-import Development.Shake (Action, putVerbose, need)
+import Data.List qualified as List
+import Development.Shake (Action, need, putVerbose)
 import Relude
 import System.Directory qualified as Dir
+import System.FilePath (takeDirectory, (</>))
+import Text.Decker.Internal.Common (metaArgsFile, publicDir)
+import Text.Decker.Internal.Helper (makeRelativeTo)
+import Text.Decker.Internal.Meta (addMetaKeyValue, adjustMetaStringsBelowM, fromPandocMeta, lookupMetaOrElse, mergePandocMeta, readMetaDataFile, addMetaValue)
+import Text.Decker.Internal.URI (makeProjectPath)
+import Text.Decker.Resource.Template (readTemplateMeta, readTemplateMetaIO)
 import Text.Pandoc (Pandoc (..))
 import Text.Pandoc.Definition (Meta, nullMeta)
 import Text.Pandoc.Shared (addMetaField)
-import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse, mergePandocMeta, readMetaDataFile, adjustMetaStringsBelowM)
-import System.FilePath (takeDirectory, (</>))
-import Text.Decker.Internal.Common (metaArgsFile, publicDir)
-import Text.Decker.Resource.Template (readTemplateMeta, readTemplateMetaIO)
-import qualified Data.List as List
-import Text.Decker.Internal.URI (makeProjectPath)
-import Text.Decker.Internal.Helper (makeRelativeTo)
-import Control.Monad (foldM)
+import Data.Time (defaultTimeLocale, formatTime)
+import Data.Time (getCurrentTime)
 
 embedMetaMeta :: Pandoc -> Pandoc
 embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks
@@ -50,7 +52,9 @@ readDeckerMeta file = do
   argsMeta <- readMetaData nullMeta args
   let baseMeta = mergePandocMeta argsMeta deckerMeta
   defaultMeta <- readTemplateMeta baseMeta
-  return $ mergePandocMeta baseMeta defaultMeta
+  let merged = mergePandocMeta baseMeta defaultMeta
+  time <- liftIO $ formatTime defaultTimeLocale "%d.%m.%Y %H:%M" <$> getCurrentTime
+  return $ addMetaValue "build-time" time merged
 
 readMetaDataIO :: Meta -> FilePath -> IO Meta
 readMetaDataIO globalMeta path = do
@@ -133,7 +137,7 @@ adjustMetaVariables action keys meta = foldM func meta keys
 
 -- | Merges global meta data into the document. Document meta values have
 -- preference.
-mergeDocumentMeta :: Monad m => Meta -> Pandoc -> m Pandoc
+mergeDocumentMeta :: (Monad m) => Meta -> Pandoc -> m Pandoc
 mergeDocumentMeta globalMeta (Pandoc docMeta content) = do
   let combinedMeta = mergePandocMeta docMeta globalMeta
   return (Pandoc combinedMeta content)

@@ -107,54 +107,103 @@
   </header>
   $endif$
 
-  <h2>Search</h2>
-  <div id="search-box" class="search">
-    <p>
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input class="search" placeholder="In Folien suchen" type="text">
-    </p>
-    <table class="search">
-      <thead>
+  <main>
+    <h2>Search</h2>
+    <div id="search-box" class="search">
+        <p>
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search" placeholder="In Folien suchen" type="text">
+        </p>
+        <table class="search">
+        <thead>
+            <tr>
+            <th>Wort</th>
+            <th>Foliensatz</th>
+            <th>Folie</th>
+            <th>Treffer</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
+        window.addEventListener("load", () => {
+        let searchBox = document.getElementById("search-box");
+        setupSearch(searchBox, 0.5);
+        });
+    </script>
+
+    <h2>Decks ($decks.by-title/length$)</h2>
+    <table>
+        <thead>
         <tr>
-          <th>Wort</th>
-          <th>Foliensatz</th>
-          <th>Folie</th>
-          <th>Treffer</th>
+            <th></th>
+            <th>Deck</th>
         </tr>
-      </thead>
-      <tbody></tbody>
+        </thead>
+        <tbody>
+        $for(decks.by-title/pairs)$
+        <tr>
+            <td>$it.key$</td>
+            <td>
+                <a href="$it.value.url$">$if(it.value.title)$$it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a><br>
+                <small><code>$it.value.url$</code></small>
+            </td>
+        </tr>
+        $endfor$
+        </tbody>
     </table>
-  </div>
 
-  <script type="module">
-    import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
-    window.addEventListener("load", () => {
-      let searchBox = document.getElementById("search-box");
-      setupSearch(searchBox, 0.5);
-    });
-  </script>
-
-  <h2>Decks ($decks.by-title/length$)</h2>
-  <ul>
-    $for(decks.by-url)$
-    $if(it.title)$
-    <li><a href="$it.url$">$it.title$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
-    $else$
-    <li><a href="$it.url$">$it.url$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
+    $if(pages.by-title)$
+    <h2>Pages ($pages.by-title/length$)</h2>
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th>Page</th>
+        </tr>
+        </thead>
+        <tbody>
+        $for(pages.by-title/pairs)$
+        <tr>
+            <td>$it.key$</td>
+            <td>
+                <a href="$it.value.url$">$if(it.value.title)$$it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a><br>
+                <small><code>$it.value.url$</code></small>
+            </td>
+        </tr>
+        $endfor$
+        </tbody>
+    </table>
     $endif$
-    $endfor$
-  </ul>
 
-  <h2>Pages ($pages.by-title/length$)</h2>
-  <ul>
-    $for(pages.by-url)$
-    $if(it.title)$
-    <li><a href="$it.url$">$it.title$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
-    $else$
-    <li><a href="$it.url$">$it.url$</a>$if(it.subtitle)$ ($it.subtitle$)$endif$</li>
+    $if(quests.by-title)$
+    <h2>Questions ($quests.by-title/length$)</h2>
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th>Question</th>
+        </tr>
+        </thead>
+        <tbody>
+        $for(quests.by-title/pairs)$
+        <tr>
+            <td>$it.key$</td>
+            <td>
+                <a href="$it.value.url$">$if(it.value.title)$$it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a>
+                <small>($it.value.lecture-id$.$it.value.topic-id$)</small>
+                <br>
+                <small><code>$it.value.url$</code></small>
+            </td>
+        </tr>
+        $endfor$
+        </tbody>
+    </table>
     $endif$
-    $endfor$
-  </ul>
+  </main>
 
   $for(include-after)$
   $include-after$

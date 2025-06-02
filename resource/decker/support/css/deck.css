@@ -288,6 +288,24 @@ html.dark img {
   background-color: var(--shade7);
 }
 
+/* Focus Ping */
+a,
+button,
+input,
+select,
+li,
+textarea {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--orangeish) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
+}
+
 /*
  * Fixed Position so the watermark is displayed on every slide in print mode
  */

@@ -2,6 +2,50 @@
 
 ## decker 0.14.0
 
+- Add a new "quizzer" plugin:
+    - Handles divs that have the following classes akin to the quiz-wue plugin:
+        -  `.quizzer`, `.quizzer.choice`, `.quizzer-choice`, `.quizzer-mc`, `.quizzer-multiple-choice`,
+        - `.quizzer.selection`, `.quizzer-selection`, `.quizzer-ic`, `.quizzer-item-choice`,
+        - `.quizzer.assignment`, `.quizzer-assignment`, `.quizzer-match-items`, `.quizzer-mi`,
+        - `.quizzer.freetext`, `.quizzer-freetext`, `.quizzer-free-text`, `.quizzer-ft`,
+    - These correspond to the quiz types:
+        - Multiple-Choice (Buttons)
+        - Selection (Drop-Down-Menu)
+        - Assignment (Drag & Drop or Click & Assign)
+        - Freetext (Text Input)
+    - Renders interactive elements similar to the old quiz-wue plugin to the page:
+        - The plugin tries to imitate the old behavior as best as possible, though the old plugin has some unexpected behavior that causes especially nested markdown code to not be handled at all by the old filters.
+    - Interacts with a new quizzer backend, hosted on [quiz.jetzt](quiz.jetzt).
+    - Presenter Mode allows for polling the audience with all 4 quiz types:
+        - Has a connection indicator that tells the host if the connection is established.
+        - Broken connections can be reestablished thanks to `socket.io` sockets.
+        - Starting a poll displays two QR-Codes to the side:
+            - Hover to enlarge and display quiz ID
+            - Click to display very large QR-Code in the center of the screen
+        - Poll results are available for all quiz types:
+            - Multiple-Choice: Single Bar-Chart
+            - Selection: One Bar-Chart per Select-Box
+            - Assignemnt: Sankey-Diagram
+            - Freetext: Word-Cloud
+        - Sound cues can be configured with the quizzer.audio.start, .loop and .end configurations:
+            - The string `'default'` selects the built-in audio files.
+            - Expects a path to the audio file to be played at the beginning, loop or end of a poll.
+            - `volume` can be configured to change the volume of the sound cues.
+    - Configuration of plugin is available thus:
+``` yaml
+quizzer:
+  url: 'https://quiz.jetzt'
+  audio:
+    start: 'default'
+    loop: 'default'
+    end: 'default'
+    volume: 0.75
+```
+
+- External tools are not configured in YAML. 
+  We should really document this...
+  Documentated changes below (e.g. `rsync`) might already be outdated.
+  
 - Palette for charts can now be defined in YAML in `chart.colors`. 
   For this to work, disable the color plugin of Chart.js.
   ``` yaml
@@ -101,13 +145,23 @@
     recorded language must be configured explicitly, default is German. By
     default, both German and English subtitles will be generated. In order to
     use this, install [whisper.cpp](https://github.com/ggerganov/whisper.cpp).
-    Those are the configuration options.
+    On MacOS, we recommend installing it via homebrew:
+
+    ``` bash
+    brew install whisper.cpp
+    ```
+
+    In addition, download the language model from 
+    [here](https://huggingface.co/ggerganov/whisper.cpp/tree/main).
+    We recommend the model `ggml-large-v3.bin`, which by default should be
+    installed in `/opt/whisper/ggml-large-v3.bin`.
+    Those are the configuration options:
 
     ``` yaml
     # whisper.cpp default transcription settings
     whisper:
-      base-dir: /usr/local/share/whisper.cpp
-      model: models/ggml-large.bin
+      # path to the (big) language model
+      model: /opt/whisper/ggml-large-v3.bin
       # the recorded language (e.g., "de" or "en")
       lang: de 
     ```

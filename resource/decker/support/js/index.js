@@ -98,46 +98,36 @@ function insertAdditionalLinks() {
 
 function setupProgressIndicator(container, url) {
   if (!localStorage) return;
-
-  // Scrape settings from Decker meta
   if (!Decker.meta.index?.progress) return;
 
-  const key = url.pathname + "-percentage";
-  let percent = localStorage.getItem(key) || 0;
-  // Reset if percent is faulty
-  percent = Number(percent);
-  if (isNaN(percent) || percent === Infinity || percent > 100) {
-    console.log(
-      "[index.js] reset percent progress for " +
-        key +
-        " because value is " +
-        percent
-    );
-    percent = 0;
-    localStorage.setItem(key, 0);
-  }
+  const progress = document.createElement("span");
+  progress.classList.add("progress");
+  progress.key = url.pathname + "-percentage";
 
-  const progress = document.createElement("progress");
-  progress.max = 100;
-  progress.value = percent;
-  progress.key = key;
-  if (navigator.language === "de") {
-    progress.title = `${percent}% betrachtet.\nDoppelklick zum Wechseln\nzwischen 100% und 0%.`;
-  } else {
-    progress.title = `${percent}% watched.\nDouble-click to toggle\nbetween 100% and 0%.`;
-  }
-
-  container.appendChild(progress);
-
-  progress.ondblclick = function () {
-    this.value = this.value == 100 ? 0 : 100;
-    if (navigator.language === "de") {
-      progress.title = `${this.value}% betrachtet.\nDoppelklick zum Wechseln\nzwischen 100% und 0%.`;
-    } else {
-      progress.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%.`;
-    }
-    localStorage.setItem(this.key, this.value);
+  progress.setValue = function (percent) {
+    this.dataset.value = percent;
+    this.style = `--progress: ${percent}%`;
+    this.title =
+      navigator.language === "de"
+        ? `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`
+        : `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
   };
+
+  progress.update = function () {
+    let percent = localStorage.getItem(this.key) || 0;
+    percent = Number(percent);
+    if (isNaN(percent) || percent === Infinity || percent > 100) percent = 0;
+    this.setValue(percent);
+  };
+
+  progress.onclick = function () {
+    const percent = this.dataset.value == 100 ? 0 : 100;
+    this.setValue(percent);
+    localStorage.setItem(this.key, percent);
+  };
+
+  progress.update();
+  container.appendChild(progress);
 }
 
 let modalDialog = undefined;
@@ -289,6 +279,14 @@ function addModalToLink(link) {
     modalDialog.showModal();
   });
 }
+function updateProgressIndicators() {
+  document.querySelectorAll(".progress").forEach((progress) => {
+    progress.update();
+  });
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) updateProgressIndicators();
+});
 
 /* Index Pages should be small enough that loading all sources at once
  * instead of loading with an intersection observer should be feasable.

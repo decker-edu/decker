@@ -38,6 +38,7 @@ import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Layout
 import Text.Groom
+import System.Directory (makeRelativeToCurrentDirectory)
 
 main :: IO ()
 main = do
@@ -54,22 +55,19 @@ needTargets' sels targets = do
 
 needPublicIfExists :: FilePath -> Action ()
 needPublicIfExists source = do
-  exists <- doesFileExist source
   let target = publicDir </> source
+  exists <- doesFileExist source
   if exists
     then do
       need [target]
     else do
       removeFileA target
 
---   putError $ "IF: " <> source <> ": " <> show exists <> " target: " <> target
---   putWarn $ "IF: " <> source <> ": " <> show exists <> " target: " <> target
-
 needPublicIfExistsGlob :: FilePath -> Action ()
 needPublicIfExistsGlob source = do
   files <- liftIO $ Glob.glob source
-  -- putWarn $ "GLOB: " <> source <> " " <> show files
-  forM_ files needPublicIfExists
+  relative <- liftIO $ mapM makeRelativeToCurrentDirectory files
+  forM_ relative needPublicIfExists
 
 -- | Remove a file, but don't worry if it fails
 removeFileA :: FilePath -> Action ()
@@ -405,13 +403,6 @@ createPublicManifest = do
       size <- liftIO $ getFileSize file
       return (stripPublic file, (formatShow iso8601Format modTime, size))
     stripPublic path = fromMaybe path $ stripPrefix "public/" path
-
--- needIfExists :: String -> String -> String -> Action ()
--- needIfExists suffix also out = do
---   let annotDst = replaceSuffix suffix also out
---   annotSrc <- calcSource' annotDst
---   exists <- liftIO $ Dir.doesFileExist annotSrc
---   when exists $ need [annotDst]
 
 waitForYes :: IO ()
 waitForYes = do

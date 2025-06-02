@@ -179,7 +179,6 @@ const Plugin = {
   init: (reveal) => {
     Reveal = reveal;
     fixTabsByInert();
-    //    addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
     addScreenReaderSlideNumbers();
     reveal.addKeyBinding(

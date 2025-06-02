@@ -213,8 +213,10 @@ serveResource (Resources decker pack) path = do
   case resource of
     Nothing -> status (Status 404 "Resource not found")
     Just content -> do
-      setHeader "Cache-Control" "no-store"
       setHeader "Content-Type" $ decodeUtf8 $ defaultMimeLookup (toText path)
+      setHeader "Cache-Control" "no-store, no-cache, must-revalidate, max-age=0"
+      setHeader "Pragma:" "no-cache"
+      setHeader "Expires:" "0"
       raw $ toLazy content
 
 -- Accepts a request and adds the connection to the client list. Then reads the
