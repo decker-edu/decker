@@ -16,6 +16,9 @@
   import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
   import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
   import quizzerPlugin from './$decker-support-dir$/plugins/quizzer/quizzer.mjs';
+$for(reveal-plugins)$
+  import $it.name$ from './$it.url$';
+$endfor$
 
   let revealConfig = { 
     // reveal configuration (see https://revealjs.com/config/)
@@ -42,6 +45,9 @@
        menuPlugin,
        a11yPlugin,
        handoutPlugin,
+  $for(reveal-plugins)$
+       $it.name$,
+  $endfor$
        quizzerPlugin
     ]
   };

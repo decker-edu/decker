@@ -21,6 +21,9 @@
   $if(live-captions)$
   import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
   $endif$
+  $for(reveal-plugins)$
+    import $it.name$ from './$it.url$';
+  $endfor$
   import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
   import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
 
@@ -59,6 +62,9 @@
       $if(live-captions)$
       captionPlugin,
       $endif$
+  $for(reveal-plugins)$
+      $it.name$,
+  $endfor$
       a11yPlugin,
       handoutPlugin
     ]
