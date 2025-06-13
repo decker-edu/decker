@@ -212,6 +212,7 @@ function parseQuizzes(reveal) {
         question: undefined,
         choices: [],
       };
+      let customPlaceholder = quizzer.getAttribute("placeholder");
       if (isAssignmentQuiz(quizzer)) {
         quizzer.classList.remove(...quizzerClasses);
         quizzer.classList.add("quizzer");
@@ -296,7 +297,7 @@ function parseQuizzes(reveal) {
           while (defList.firstElementChild) {
             const child = defList.firstElementChild;
             if (child.tagName === "DT") {
-              currentCategory = child.textContent;
+              currentCategory = child.innerHTML;
             }
             if (child.tagName === "DD") {
               const answerObject = {
@@ -304,7 +305,7 @@ function parseQuizzes(reveal) {
                 reason: undefined,
                 correct: false,
               };
-              answerObject.label = child.textContent;
+              answerObject.label = child.innerHTML;
               answerObject.reason = currentCategory;
               choiceObject.options.push(answerObject);
             }
@@ -374,7 +375,11 @@ function parseQuizzes(reveal) {
         }
         let number = 1;
         for (const list of lists) {
-          const container = Renderer.renderFreeTextInput(list.choices, number);
+          const container = Renderer.renderFreeTextInput(
+            list.choices,
+            number,
+            customPlaceholder
+          );
           list.replaceWith(container);
           number++;
         }
