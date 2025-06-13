@@ -326,6 +326,7 @@ German is a crazy language
 :::
 
 :::
+
 # Assignment Quiz: Lots of options
 
 ::: quiz-mi
