@@ -306,7 +306,8 @@ function parseQuizzes(reveal) {
                 correct: false,
               };
               answerObject.label = child.innerHTML;
-              answerObject.reason = currentCategory;
+              answerObject.reason =
+                currentCategory !== "!" ? currentCategory : undefined;
               choiceObject.options.push(answerObject);
             }
             child.remove();
