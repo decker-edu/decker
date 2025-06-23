@@ -47,7 +47,7 @@ print(msg)
 ## Markdown {.right}
 
 ```` markdown
-``` {.live-code- language="python"}
+``` {.live-code- language="Python"}
 msg = "Hello, World!"
 print(msg)
 ```
@@ -71,4 +71,4 @@ print msg
 ```
 ````
 
-[live-code-server-](https://codapi.tramberend.de/v1)
+[§live-code-server](https://codapi.tramberend.de/v1)

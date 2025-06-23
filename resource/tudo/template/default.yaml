@@ -50,7 +50,7 @@ chart:
     - "#eab700"
     - "#8959a8"
   defaults:
-    font: {family: "Lato", size: 20 }
+    font: { family: "Lato", size: 20 }
     plugins:
       title:
         font: { weight: "normal", size: 30 }
@@ -73,7 +73,7 @@ index:
   links:
     - a11y
     - handout
-    - pdf
+#    - pdf
 #    - presenter
 
 palette:

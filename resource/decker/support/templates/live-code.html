@@ -1,5 +1,5 @@
 <div class="media">
-  <figure class="live-code">
+  <figure class="live-code $classes$">
     <div
       class="live-code"
       $if(height)$
@@ -9,12 +9,12 @@
       <pre
         class="live-code language-$language/lowercase$ $classes$"
       ><code id="$rnd-id$" class="live-code language-$language/lowercase$">$codeEsc$</code></pre>
-      <div class="label">$if(sandbox)$$sandbox$-$endif$$language$</div>
+      <div class="label">$if(sandbox)$$sandbox$$else$$language$$endif$</div>
     </div>
     <codapi-snippet
       id="$id$"
-	  sandbox="$if(sandbox)$$sandbox$$else$$if(meta.codapi.sandbox)$$meta.codapi.sandbox$$else$$language$$endif$$endif$"
-	  command="$if(command)$$command$$else$$if(meta.codapi.command)$$meta.codapi.command$$else$run$endif$$endif$"
+      engine="$if(engine)$$engine$$else$codapi$endif$"
+      sandbox="$if(sandbox)$$sandbox/lowercase$$else$$language/lowercase$$endif$"
       editor="external"
       selector="#$rnd-id$"
       class="$classes$"
