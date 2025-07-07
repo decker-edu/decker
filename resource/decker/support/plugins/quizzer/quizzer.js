@@ -1,8 +1,8 @@
-import Client from "./client.mjs";
-import Renderer, { resetAssignmentState } from "./renderer.mjs";
+import Client from "./client.js";
+import Renderer, { resetAssignmentState } from "./renderer.js";
 import bwip from "../examiner/bwip.js";
 import "../../vendor/d3.v6.min.js";
-import localization from "./localization.mjs";
+import localization from "./localization.js";
 const l10n = localization();
 
 /* Module Variables */

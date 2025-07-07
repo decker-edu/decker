@@ -1,13 +1,13 @@
-import Client from "./client.mjs";
+import Client from "./client.js";
 
 import {
   solveAssignmentQuiz,
   solveFreeTextQuiz,
   solveSelection,
   solveSelectionQuiz,
-} from "./solver.mjs";
+} from "./solver.js";
 
-import localization from "./localization.mjs";
+import localization from "./localization.js";
 
 const l10n = localization();
 
