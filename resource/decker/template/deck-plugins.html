@@ -44,6 +44,9 @@ $endif$
     feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
     jingles: Decker.meta.jingles,
     whiteboard: Decker.meta.whiteboard,
+    $for(reveal-plugins)$
+      $it.name$: Decker.meta.$it.name$,
+    $endfor$
     
     // list of plugins
     plugins: [

@@ -30,7 +30,10 @@ $endfor$
     menu: Decker.meta.menu,
     explain: Decker.meta.explain,
     whiteboard: Decker.meta.whiteboard,
-    
+    $for(reveal-plugins)$
+      $it.name$: Decker.meta.$it.name$,
+    $endfor$
+
     // list of plugins
     plugins: [
        deckerPlugin,
