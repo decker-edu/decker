@@ -136,14 +136,16 @@ setupSearch(searchBox, 0.5);
         <thead>
           <tr>
             <th>Nummer</th>
-            <th>Foliensatz</th>
+            <th>Titel</th>
+            <th>Material</th>
           </tr>
         </thead>
         <tbody>
           $for(decks.by-title/pairs)$
           <tr>
             <td>$it.key$</td>
-            <td><a href="$it.value.url$">$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
+            <td>$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
+            <td><span class="icons"><a title="Foliensatz zu $it.value.title$ öffnen" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
           </tr>
           $endfor$
         </tbody>
@@ -195,11 +197,6 @@ setupSearch(searchBox, 0.5);
 
   <script src="$decker-support-dir$/js/index.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
-
-  <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
-  </script>
 
   $for(template.page.js)$
   <script src="$template.page.js$"></script>

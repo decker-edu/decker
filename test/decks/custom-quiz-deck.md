@@ -405,6 +405,80 @@ Developer
 
 :::
 
+# Assignment Quiz with math
+
+::: {.quizzer-assignment .small}
+
+$\int ||\vec{d}_{uuu}||^2 + \ldots + ||\vec{d}_{www}||^2$
+: $\phi(r)=r^3$
+: $\Delta^3\vec{d}=\vec{0}$
+
+$\int ||\vec{d}_{uu}||^2 + \ldots + ||\vec{d}_{ww}||^2$
+: $\phi(r)=r$
+: $\Delta^2\vec{d}=\vec{0}$
+
+$\int ||\vec{d}_{u}||^2 + \ldots + ||\vec{d}_{w}||^2$
+: $\phi(r)=\frac{1}{r}$
+: $\Delta\vec{d}=\vec{0}$
+
+:::
+
+# Assignment Quiz with multiple objects per category - List
+
+::: quizzer-assignment
+
+- Item A1
+  - Category A
+- Item A2
+  - Category A
+- Item B1
+  - Category B
+- Item B2
+  - Category B
+
+:::
+
+# Assignment Quiz with multiple objects per category - Definition List
+
+::: quizzer-assignment
+
+Category A
+: Item A1
+: Item A2
+
+Category B
+: Item B1
+: Item B2
+
+:::
+
+# Assignment Quiz with fake answers - List
+
+::: quizzer-assignment
+
+- Fake
+- Item A
+  - Category A
+- Item B
+  - Category B
+
+:::
+
+# Assignment Quiz with fake answers - Definition List
+
+::: quizzer-assignment
+
+!
+: Fake
+
+Category A
+: Item A
+
+Category B
+: Item B
+
+:::
+
 # Special Case: Image as question text
 
 ::: {.quizzer .choice}

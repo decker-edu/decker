@@ -27,7 +27,6 @@ function initIndexPage() {
 
 function setupModeLinks(container, url) {
   const links = Decker.meta.index?.links || [];
-
   if (links.includes("a11y")) {
     const a11yLink = document.createElement("a");
     a11yLink.href = url.pathname + "?a11y";
@@ -83,6 +82,32 @@ function setupModeLinks(container, url) {
         : "Access in presenter mode"
     );
     container.appendChild(presenterLink);
+  }
+
+  if (links.includes("pdf")) {
+    const exists = fetch(url.pathname.replace(".html", ".pdf"), {
+      method: "OPTIONS",
+    });
+    exists.then((response) => {
+      if (response.ok) {
+        const pdfLink = document.createElement("a");
+        pdfLink.href = url.pathname.replace(".html", ".pdf");
+        pdfLink.classList.add("fas", "fa-file-pdf");
+        pdfLink.setAttribute(
+          "title",
+          navigator.language === "de"
+            ? "PDF Export des Foliensatzes herunterladen"
+            : "Download presentation PDF"
+        );
+        pdfLink.setAttribute(
+          "aria-label",
+          navigator.language === "de"
+            ? "PDF Export des Foliensatzes herunterladen"
+            : "Download presentation PDF"
+        );
+        container.appendChild(pdfLink);
+      }
+    });
   }
 }
 
