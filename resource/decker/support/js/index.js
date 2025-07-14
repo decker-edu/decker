@@ -12,25 +12,13 @@ function initIndexPage() {
 
 function setupModeLinks(container, url) {
   const links = Decker.meta.index?.links || [];
-  if (links.includes("a11y")) {
-    const a11yLink = document.createElement("a");
-    a11yLink.href = url.pathname + "?a11y";
-    a11yLink.classList.add("fas", "fa-universal-access");
-    a11yLink.setAttribute(
-      "title",
-      navigator.language === "de"
-        ? "In barrierearmer Darstellung öffnen"
-        : "Access in accessibility mode"
-    );
-    a11yLink.setAttribute(
-      "aria-label",
-      navigator.language === "de"
-        ? "In barrierearmer Darstellung öffnen"
-        : "Access in accessibility mode"
-    );
-    container.appendChild(a11yLink);
+  let title = "Unbekannter Titel";
+  const decks = Decker.meta.decks["by-title"];
+  for (const deck of decks) {
+    if (url.href.endsWith(deck.url)) {
+      title = deck.title;
+    }
   }
-
   if (links.includes("handout")) {
     const handoutLink = document.createElement("a");
     handoutLink.href = url.pathname + "?handout";
@@ -38,16 +26,35 @@ function setupModeLinks(container, url) {
     handoutLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? "In Handout-Darstellung öffnen"
-        : "Access in handout mode"
+        ? `${title} in Handout-Darstellung öffnen`
+        : `Access ${title} in handout mode`
     );
     handoutLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? "In Handout-Darstellung öffnen"
-        : "Access in handout mode"
+        ? `${title} in Handout-Darstellung öffnen`
+        : `Access ${title} in handout mode`
     );
     container.appendChild(handoutLink);
+  }
+
+  if (links.includes("a11y")) {
+    const a11yLink = document.createElement("a");
+    a11yLink.href = url.pathname + "?a11y";
+    a11yLink.classList.add("fas", "fa-universal-access");
+    a11yLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? `${title} in barrierearmer Darstellung öffnen`
+        : `Access ${title} in accessibility mode`
+    );
+    a11yLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? `${title} in barrierearmer Darstellung öffnen`
+        : `Access ${title} in accessibility mode`
+    );
+    container.appendChild(a11yLink);
   }
 
   if (links.includes("presenter")) {
@@ -57,14 +64,14 @@ function setupModeLinks(container, url) {
     presenterLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? "Im Präsentationsmodus öffnen"
-        : "Access in presenter mode"
+        ? `${title} im Präsentationsmodus öffnen`
+        : `Access ${title} in presenter mode`
     );
     presenterLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? "Im Präsentationsmodus öffnen"
-        : "Access in presenter mode"
+        ? `${title} im Präsentationsmodus öffnen`
+        : `Access ${title} in presenter mode`
     );
     container.appendChild(presenterLink);
   }
@@ -81,14 +88,14 @@ function setupModeLinks(container, url) {
         pdfLink.setAttribute(
           "title",
           navigator.language === "de"
-            ? "PDF Export des Foliensatzes herunterladen"
-            : "Download presentation PDF"
+            ? `PDF-Version von ${title} herunterladen`
+            : `Download ${title}'s PDF`
         );
         pdfLink.setAttribute(
           "aria-label",
           navigator.language === "de"
-            ? "PDF Export des Foliensatzes herunterladen"
-            : "Download presentation PDF"
+            ? `PDF-Version von ${title} herunterladen`
+            : `Download ${title}'s PDF`
         );
         container.appendChild(pdfLink);
       }
@@ -108,7 +115,19 @@ function insertAdditionalLinks() {
       continue;
     }
     const container = document.createElement("div");
-    container.classList.add("link-additions");
+    container.classList.add("icons");
+    let title =
+      navigator.language === "de" ? "Unbekannter Titel" : "Unknown Title";
+    const decks = Decker.meta.decks["by-title"];
+    for (const deck of decks) {
+      if (link.href.endsWith(deck.url)) {
+        title = deck.title;
+      }
+    }
+    container.title =
+      navigator.language === "de"
+        ? `Foliensatz ${title} betrachten: Drücke Eingabe oder Leertaste, um Betrachtungsmodus auszuwählen.`
+        : `View slide deck ${title}: Press Enter or Space to choose view mode.`;
     setupModeLinks(container, url);
     setupProgressIndicator(container, url);
     if (insert === "replace") {
@@ -118,6 +137,33 @@ function insertAdditionalLinks() {
     } else {
       link.after(container);
     }
+    container.prepend(link);
+    for (const child of container.childNodes) {
+      child.setAttribute("tabindex", -1);
+    }
+    container.setAttribute("tabindex", 0);
+    container.addEventListener("keyup", (event) => {
+      if (event.target !== container) return;
+      if (event.code === "Enter" || event.code === "Space") {
+        event.preventDefault();
+        event.stopPropagation();
+        for (const child of container.childNodes) {
+          child.setAttribute("tabindex", 0);
+        }
+        container.removeAttribute("tabindex");
+        container.childNodes[0].focus();
+      }
+    });
+    container.addEventListener("focusout", (event) => {
+      if (container.contains(event.relatedTarget)) {
+        return;
+      } else {
+        container.setAttribute("tabindex", 0);
+        for (const child of container.childNodes) {
+          child.setAttribute("tabindex", -1);
+        }
+      }
+    });
   }
 }
 
@@ -145,10 +191,21 @@ function setupProgressIndicator(container, url) {
     this.setValue(percent);
   };
 
-  progress.onclick = function () {
+  progress.toggle = function () {
     const percent = this.dataset.value == 100 ? 0 : 100;
     this.setValue(percent);
     localStorage.setItem(this.key, percent);
+  };
+
+  progress.onclick = function () {
+    this.toggle();
+  };
+  progress.onkeyup = function (event) {
+    if (event.code === "Enter" || event.code === "Space") {
+      this.toggle();
+      event.preventDefault();
+      event.stopPropagation();
+    }
   };
 
   progress.update();

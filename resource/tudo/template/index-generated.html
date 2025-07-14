@@ -145,7 +145,7 @@ setupSearch(searchBox, 0.5);
           <tr>
             <td>$it.key$</td>
             <td>$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
-            <td><span class="icons"><a title="Foliensatz zu $it.value.title$ öffnen" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
+            <td><a title="Foliensatz zu $it.value.title$ öffnen" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></td>
           </tr>
           $endfor$
         </tbody>

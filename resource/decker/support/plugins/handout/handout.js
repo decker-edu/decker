@@ -189,40 +189,42 @@ function activateHandoutMode() {
   if (Reveal.hasPlugin("feedback")) {
     const feedback = Reveal.getPlugin("feedback");
     const engine = feedback.getEngine();
-    for (const slide of allSlides) {
-      engine.api
-        .getComments(engine.deckId, slide.id, null)
-        .then((comments) => {
-          if (comments.length > 0) {
-            const container = document.createElement("div");
-            container.className = "handout-feedback-container";
-            slide.appendChild(container);
-            const heading = document.createElement("h4");
-            heading.innerText = localization.comment_header;
-            container.appendChild(heading);
-            const commentWrapper = document.createElement("div");
-            commentWrapper.className = "handout-feedback-comments";
-            container.appendChild(commentWrapper);
-            for (const comment of comments) {
-              const message = document.createElement("div");
-              message.className = "handout-feedback-comment";
-              message.innerHTML = comment.html;
-              commentWrapper.appendChild(message);
-              MathJax.typeset([message]);
-              for (const answer of comment.answers) {
+    if (engine && engine.api) {
+      for (const slide of allSlides) {
+        engine.api
+          .getComments(engine.deckId, slide.id, null)
+          .then((comments) => {
+            if (comments.length > 0) {
+              const container = document.createElement("div");
+              container.className = "handout-feedback-container";
+              slide.appendChild(container);
+              const heading = document.createElement("h4");
+              heading.innerText = localization.comment_header;
+              container.appendChild(heading);
+              const commentWrapper = document.createElement("div");
+              commentWrapper.className = "handout-feedback-comments";
+              container.appendChild(commentWrapper);
+              for (const comment of comments) {
                 const message = document.createElement("div");
-                message.className = "handout-feedback-answer";
-                message.innerHTML = answer.html;
+                message.className = "handout-feedback-comment";
+                message.innerHTML = comment.html;
                 commentWrapper.appendChild(message);
                 MathJax.typeset([message]);
+                for (const answer of comment.answers) {
+                  const message = document.createElement("div");
+                  message.className = "handout-feedback-answer";
+                  message.innerHTML = answer.html;
+                  commentWrapper.appendChild(message);
+                  MathJax.typeset([message]);
+                }
               }
             }
-          }
-        })
-        .catch((error) => {
-          console.error("[HANDOUT FEEDBACK] Error while fetching comments.");
-          console.error(error);
-        });
+          })
+          .catch((error) => {
+            console.error("[HANDOUT FEEDBACK] Error while fetching comments.");
+            console.error(error);
+          });
+      }
     }
   }
 

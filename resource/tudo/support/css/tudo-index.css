@@ -285,7 +285,9 @@ select,
 h2,
 tr,
 summary,
-textarea {
+textarea,
+span.progress,
+div.icons {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
   &:focus-visible {
@@ -329,13 +331,6 @@ html[lang="de"] .english {
   display: none;
 }
 
-.link-additions {
-  display: inline-flex;
-  flex-direction: row;
-  gap: 0.25rem;
-  margin-left: 0.25rem;
-}
-
 a.handout-link {
   display: inline-block;
   vertical-align: bottom;
@@ -373,7 +368,7 @@ a.handout-link:hover::after {
   background-color: var(--accent5);
 }
 
-span.icons {
+.icons {
   font-size: 1.25rem;
   display: flex;
   flex-wrap: nowrap;
@@ -382,9 +377,6 @@ span.icons {
   justify-content: space-between;
   align-items: center;
   gap: 0.5em;
-  & .link-additions {
-    display: contents;
-  }
   & > a {
     width: 1em;
     height: 1em;
@@ -407,8 +399,8 @@ span.icons {
   }
 }
 
-span.icons a[href$="deck.html"],
-span.icons a[href$="deck.html?handout"] {
+.icons a[href$="deck.html"],
+.icons a[href$="deck.html?handout"] {
   position: relative;
   &::after,
   &::before {
@@ -425,7 +417,7 @@ span.icons a[href$="deck.html?handout"] {
     box-shadow: var(--background-color) 0.07em 0.07em;
   }
 }
-span.icons a[href$="deck.html?handout"] {
+.icons a[href$="deck.html?handout"] {
   &::after {
     translate: -50% -110%;
   }
@@ -433,7 +425,7 @@ span.icons a[href$="deck.html?handout"] {
     translate: -50% 10%;
   }
 }
-span.icons a[href$="deck.html"] {
+.icons a[href$="deck.html"] {
   & > i.fa-html5 {
     display: none;
   }

@@ -42,6 +42,8 @@ let uiState;
 
 let localization;
 
+let pluginButton;
+
 function transition(name) {
   return (_) => uiState.transition(name);
 }
@@ -1835,7 +1837,6 @@ function updatePlayButton() {
     currentRevealSlideIndex() == -1 ? "none" : "initial";
 }
 
-<<<<<<< HEAD
 function enableViewButton() {
   if (pluginButton && Decker.isPresenterMode()) {
     pluginButton.airaDisabled = false;
@@ -1843,8 +1844,6 @@ function enableViewButton() {
   return true;
 }
 
-=======
->>>>>>> develop
 // export the plugin
 const Plugin = {
   id: "explain",
@@ -1960,7 +1959,6 @@ const Plugin = {
       };
     }
     deck.addEventListener("ready", () => {
-<<<<<<< HEAD
       Decker.addPresenterModeListener((mode) => {
         if (pluginButton) {
           if (
@@ -1975,11 +1973,9 @@ const Plugin = {
           }
         }
       });
-=======
->>>>>>> develop
       const menuPlugin = deck.getPlugin("decker-menu");
       if (menuPlugin && !!menuPlugin.addPluginButton) {
-        menuPlugin.addPluginButton(
+        pluginButton = menuPlugin.addPluginButton(
           "decker-menu-recording-button",
           "fa-video",
           localization.init_recording,
@@ -1999,10 +1995,7 @@ const Plugin = {
             }
           }
         );
-<<<<<<< HEAD
         pluginButton.ariaDisabled = true;
-=======
->>>>>>> develop
       }
     });
   },
