@@ -38,9 +38,6 @@ let recordingResumeTime;
 // playback stuff
 let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimesPlay;
 
-// view menu button
-let pluginButton;
-
 let uiState;
 
 let localization;
@@ -536,8 +533,9 @@ async function getDevices() {
 
 async function setupRecorder() {
   if (!Decker.isPresenterMode()) {
-    Decker.flash.message(localization.presenter_mode_error);
-    return false;
+    Decker.togglePresenterMode();
+    // Decker.flash.message(localization.presenter_mode_error);
+    // return false;
   }
   try {
     stream = null;
@@ -573,7 +571,6 @@ async function setupRecorder() {
 
     // disable plugin menu button
     pluginButton.ariaDisabled = true;
-
     return true;
   } catch (e) {
     console.error(e);
@@ -816,7 +813,6 @@ function stopRecording() {
     Reveal.getPlugin("whiteboard").saveAnnotations();
   }
 
-  enableViewButton();
   return true;
 }
 
@@ -1839,6 +1835,7 @@ function updatePlayButton() {
     currentRevealSlideIndex() == -1 ? "none" : "initial";
 }
 
+<<<<<<< HEAD
 function enableViewButton() {
   if (pluginButton && Decker.isPresenterMode()) {
     pluginButton.airaDisabled = false;
@@ -1846,6 +1843,8 @@ function enableViewButton() {
   return true;
 }
 
+=======
+>>>>>>> develop
 // export the plugin
 const Plugin = {
   id: "explain",
@@ -1896,7 +1895,7 @@ const Plugin = {
       RECORDER_READY: {
         name: "RECORDER_READY",
         transition: {
-          cancel: { action: enableViewButton, next: "INIT" },
+          // cancel: { action: enableViewButton, next: "INIT" },
           record: { action: startRecording, next: "RECORDING" },
         },
       },
@@ -1961,6 +1960,7 @@ const Plugin = {
       };
     }
     deck.addEventListener("ready", () => {
+<<<<<<< HEAD
       Decker.addPresenterModeListener((mode) => {
         if (pluginButton) {
           if (
@@ -1975,9 +1975,11 @@ const Plugin = {
           }
         }
       });
+=======
+>>>>>>> develop
       const menuPlugin = deck.getPlugin("decker-menu");
       if (menuPlugin && !!menuPlugin.addPluginButton) {
-        pluginButton = menuPlugin.addPluginButton(
+        menuPlugin.addPluginButton(
           "decker-menu-recording-button",
           "fa-video",
           localization.init_recording,
@@ -1997,7 +1999,10 @@ const Plugin = {
             }
           }
         );
+<<<<<<< HEAD
         pluginButton.ariaDisabled = true;
+=======
+>>>>>>> develop
       }
     });
   },

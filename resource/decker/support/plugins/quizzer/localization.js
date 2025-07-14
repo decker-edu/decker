@@ -6,7 +6,7 @@ const german = {
     "Die gespeicherten Sitzungsdaten waren ungültig.\nNavigieren Sie auf eine andere Folie, um eine neue Verbindung zu starten.",
   unknownError:
     "Es ist ein unbekannter Fehler bei der Datenübertragung aufgetreten.",
-  placeholder: "Platzhalter #",
+  placeholder: "Eingabe bestätigen mit ↵",
   checkSolution: "Lösung überprüfen",
   errorMissingQuestion: "Fehler: Dieses Quiz besitzt keinen Fragetext.",
   errorMultipleAssignments:
@@ -39,7 +39,7 @@ const english = {
   disconnected: "Connection to the quizzer server closed.",
   unableToGetSession: "Unable to acquire a quizzer session.",
   unknownError: "An unknown error has occurred during communication.",
-  placeholder: "Placeholder #",
+  placeholder: "Submit with ↵",
   checkSolution: "Check solution",
   errorMissingQuestion: "Error: The quiz is missing a question",
   errorMultipleAssignments:

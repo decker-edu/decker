@@ -1,4 +1,4 @@
-import localization from "./localization.mjs";
+import localization from "./localization.js";
 
 const l10n = localization();
 

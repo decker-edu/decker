@@ -1,8 +1,8 @@
-import Client from "./client.mjs";
-import Renderer, { resetAssignmentState } from "./renderer.mjs";
+import Client from "./client.js";
+import Renderer, { resetAssignmentState } from "./renderer.js";
 import bwip from "../examiner/bwip.js";
 import "../../vendor/d3.v6.min.js";
-import localization from "./localization.mjs";
+import localization from "./localization.js";
 const l10n = localization();
 
 /* Module Variables */
@@ -212,6 +212,7 @@ function parseQuizzes(reveal) {
         question: undefined,
         choices: [],
       };
+      let customPlaceholder = quizzer.getAttribute("placeholder");
       if (isAssignmentQuiz(quizzer)) {
         quizzer.classList.remove(...quizzerClasses);
         quizzer.classList.add("quizzer");
@@ -296,7 +297,7 @@ function parseQuizzes(reveal) {
           while (defList.firstElementChild) {
             const child = defList.firstElementChild;
             if (child.tagName === "DT") {
-              currentCategory = child.textContent;
+              currentCategory = child.innerHTML;
             }
             if (child.tagName === "DD") {
               const answerObject = {
@@ -304,8 +305,9 @@ function parseQuizzes(reveal) {
                 reason: undefined,
                 correct: false,
               };
-              answerObject.label = child.textContent;
-              answerObject.reason = currentCategory;
+              answerObject.label = child.innerHTML;
+              answerObject.reason =
+                currentCategory !== "!" ? currentCategory : undefined;
               choiceObject.options.push(answerObject);
             }
             child.remove();
@@ -374,7 +376,11 @@ function parseQuizzes(reveal) {
         }
         let number = 1;
         for (const list of lists) {
-          const container = Renderer.renderFreeTextInput(list.choices, number);
+          const container = Renderer.renderFreeTextInput(
+            list.choices,
+            number,
+            customPlaceholder
+          );
           list.replaceWith(container);
           number++;
         }

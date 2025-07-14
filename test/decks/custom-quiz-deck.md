@@ -9,8 +9,19 @@ quizzer:
     volume: 0.75
 reveal:
   center: true
-
 ---
+
+# Test
+
+Rechne aus: $\frac{1}{3}$
+
+::: quizzer-ft
+
+- [x] 0,3
+- [x] 0,33
+- [x] 0,333
+
+:::
 
 # Choice Quiz
 
@@ -166,7 +177,7 @@ for dinner today.
 
 # Freetext Quiz - Old Syntax
 
-::: {.quizzer .freetext}
+::: {.quizzer .freetext placeholder="Custom Placeholder"}
 
 I ate 
 
@@ -257,6 +268,92 @@ Assign these people to their correct group.
 
 :::
 
+# Assignment Quiz: Annoyingly long text
+
+::: {.quizzer .assignment}
+
+German is a crazy language
+
+- [ ] Zeitgeberbausteingesteuerte Unterbrechungsroutine
+  - Interrupt Handler
+- [ ] Befestigung
+  - Mountpoint
+- [ ] Windhundverfahren
+  - First-Come-First-Served
+
+:::
+
+# Assignment Quiz: Lots of options
+
+::: {.quizzer .assignment}
+
+- [ ] Zeitgeberbausteingesteuerte Unterbrechungsroutine
+  - [Interrupt Handler]{.accent3}
+- [ ] Befestigung
+  - [Mountpoint]{.accent4}
+- [ ] Windhundverfahren
+  - [First-Come-First-Served]{.accent5}
+- [ ] Adressraumbelegungsplan
+  - Address Space Layout
+- [ ] Störleitung
+  - Interrupt Line
+- [ ] Teilhaberbetrieb
+  - Transaction Mode
+- [ ] Flattern
+  - Thrasing
+:::
+
+# Assignment Quiz: Lots of options manual adjustment
+
+::: {style="font-size: 1.5rem;"}
+
+::: {.quizzer .assignment}
+
+- [ ] Zeitgeberbausteingesteuerte Unterbrechungsroutine
+  - [Interrupt Handler]{.accent3}
+- [ ] Befestigung
+  - [Mountpoint]{.accent4}
+- [ ] Windhundverfahren
+  - [First-Come-First-Served]{.accent5}
+- [ ] Adressraumbelegungsplan
+  - Address Space Layout
+- [ ] Störleitung
+  - Interrupt Line
+- [ ] Teilhaberbetrieb
+  - Transaction Mode
+- [ ] Flattern
+  - Thrasing
+:::
+
+:::
+
+# Assignment Quiz: Lots of options
+
+::: quiz-mi
+
+[Interrupt Handler]{.accent3}
+: Zeitgeberbausteingesteuerte Unterbrechungsroutine
+
+[Mountpoint]{.accent4}
+: Befestigung
+
+[First-Come-First-Served]{.accent5}
+: Windhundverfahren
+
+Address Space Layout
+: Adressraumbelegungsplan
+
+Interrupt Line
+: Störleitung
+
+Transaction Mode
+: Teilhaberbetrieb
+
+Thrasing
+: Flattern
+
+:::
+
 # Assignment Quiz via Definition List
 
 ::: {.quizzer .assignment}
@@ -273,6 +370,112 @@ Professor
 
 Developer
 : Linus
+
+:::
+
+# Assignment Quiz with images
+
+::: {.quizzer .assignment}
+
+Assign these people to their correct group.
+
+- [ ] ![](./@f{u}nn%20y.png){width="100px"}
+  - A
+- [ ] ![](./@f{u}nn%20y.png){width="100px"}
+  - B
+- [ ] ![](./@f{u}nn%20y.png){width="100px"}
+  - C
+
+:::
+
+# Assignment Quiz via Definition List with images
+
+::: {.quizzer .assignment}
+
+Assign these people to their correct group.
+
+Chancelor
+: ![](./@f{u}nn%20y.png){width="100px"}
+
+Professor
+: ![](./@f{u}nn%20y.png){width="100px"}
+
+Developer
+: ![](./@f{u}nn%20y.png){width="100px"}
+
+:::
+
+# Assignment Quiz with math
+
+::: {.quizzer-assignment .small}
+
+$\int ||\vec{d}_{uuu}||^2 + \ldots + ||\vec{d}_{www}||^2$
+: $\phi(r)=r^3$
+: $\Delta^3\vec{d}=\vec{0}$
+
+$\int ||\vec{d}_{uu}||^2 + \ldots + ||\vec{d}_{ww}||^2$
+: $\phi(r)=r$
+: $\Delta^2\vec{d}=\vec{0}$
+
+$\int ||\vec{d}_{u}||^2 + \ldots + ||\vec{d}_{w}||^2$
+: $\phi(r)=\frac{1}{r}$
+: $\Delta\vec{d}=\vec{0}$
+
+:::
+
+# Assignment Quiz with multiple objects per category - List
+
+::: quizzer-assignment
+
+- Item A1
+  - Category A
+- Item A2
+  - Category A
+- Item B1
+  - Category B
+- Item B2
+  - Category B
+
+:::
+
+# Assignment Quiz with multiple objects per category - Definition List
+
+::: quizzer-assignment
+
+Category A
+: Item A1
+: Item A2
+
+Category B
+: Item B1
+: Item B2
+
+:::
+
+# Assignment Quiz with fake answers - List
+
+::: quizzer-assignment
+
+- Fake
+- Item A
+  - Category A
+- Item B
+  - Category B
+
+:::
+
+# Assignment Quiz with fake answers - Definition List
+
+::: quizzer-assignment
+
+!
+: Fake
+
+Category A
+: Item A
+
+Category B
+: Item B
 
 :::
 

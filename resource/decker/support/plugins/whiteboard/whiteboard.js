@@ -233,14 +233,29 @@ let buttonLaser;
 let colorPicker;
 let hoverTimer;
 
+function isPanelVisible() {
+  return buttons.classList.contains("visible");
+}
+
 function hidePanel() {
-  buttons.classList.remove("visible");
-  hideColorPicker();
+  if (isPanelVisible()) {
+    buttons.classList.remove("visible");
+    hideColorPicker();
+    document.removeEventListener("pointerdown", clickHidesPanel, true);
+  }
 }
 
 function showPanel() {
   buttons.classList.add("visible");
   clearInterval(hoverTimer);
+  document.addEventListener("pointerdown", clickHidesPanel, true);
+}
+
+function clickHidesPanel(evt) {
+  if (isPanelVisible() && !buttons.contains(evt.target)) {
+    killEvent(evt);
+    hidePanel();
+  }
 }
 
 // function to generate a button
@@ -262,12 +277,13 @@ function createGUI() {
   buttons.classList.add("presenter-only");
 
   // handle hover visibility of panel
-  buttons.onmouseenter = (evt) => {
-    clearInterval(hoverTimer);
-  };
-  buttons.onmouseleave = (evt) => {
-    hoverTimer = setInterval(hidePanel, 3000);
-  };
+  // MARIO: this is not cool on Wacom
+  // buttons.onmouseenter = (evt) => {
+  //   clearInterval(hoverTimer);
+  // };
+  // buttons.onmouseleave = (evt) => {
+  //   hoverTimer = setInterval(hidePanel, 3000);
+  // };
 
   buttonDownload = createButton(
     "fas fa-download",

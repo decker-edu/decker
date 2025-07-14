@@ -372,3 +372,75 @@ a.handout-link:hover::before,
 a.handout-link:hover::after {
   background-color: var(--accent5);
 }
+
+span.icons {
+  font-size: 1.25rem;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  align-content: center;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+  & .link-additions {
+    display: contents;
+  }
+  & > a {
+    width: 1em;
+    height: 1em;
+  }
+  & a[href$="deck.html"] {
+    order: 1;
+  }
+  & a[href$="deck.html?handout"] {
+    order: 2;
+  }
+  & a[href$="deck.html?a11y"] {
+    order: 3;
+  }
+  & a[href$="deck.pdf"] {
+    order: 4;
+  }
+  & .progress {
+    order: 5;
+    margin-left: 0.4em;
+  }
+}
+
+span.icons a[href$="deck.html"],
+span.icons a[href$="deck.html?handout"] {
+  position: relative;
+  &::after,
+  &::before {
+    display: block;
+    position: absolute;
+    content: "";
+    width: 0.9em;
+    height: 0.5em;
+    left: 50%;
+    top: 50%;
+    background-color: var(--accent5-fg);
+    border-radius: 0.15em;
+    box-sizing: border-box;
+    box-shadow: var(--background-color) 0.07em 0.07em;
+  }
+}
+span.icons a[href$="deck.html?handout"] {
+  &::after {
+    translate: -50% -110%;
+  }
+  &::before {
+    translate: -50% 10%;
+  }
+}
+span.icons a[href$="deck.html"] {
+  & > i.fa-html5 {
+    display: none;
+  }
+  &::after {
+    translate: -60% -80%;
+  }
+  &::before {
+    translate: -30% -30%;
+  }
+}

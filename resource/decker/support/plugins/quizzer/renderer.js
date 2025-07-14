@@ -1,13 +1,13 @@
-import Client from "./client.mjs";
+import Client from "./client.js";
 
 import {
   solveAssignmentQuiz,
   solveFreeTextQuiz,
   solveSelection,
   solveSelectionQuiz,
-} from "./solver.mjs";
+} from "./solver.js";
 
-import localization from "./localization.mjs";
+import localization from "./localization.js";
 
 const l10n = localization();
 
@@ -453,9 +453,10 @@ export default {
     parent.appendChild(container);
   },
 
-  renderFreeTextInput(choices, number) {
+  renderFreeTextInput(choices, number, placeholder) {
     const input = document.createElement("input");
-    input.placeholder = l10n.placeholder + number;
+    input.placeholder = placeholder ? placeholder : l10n.placeholder;
+    input.placeholder = input.placeholder.replaceAll("{#}", number);
     const wrapper = document.createElement("wrapper");
     wrapper.classList.add("input-wrapper");
     wrapper.appendChild(input);

@@ -472,8 +472,8 @@ let presenterMode = false;
 let listeners = [];
 let viewportElement = undefined;
 
-function togglePresenterMode() {
-  presenterMode = !presenterMode;
+function togglePresenterMode(state) {
+  presenterMode = typeof state === "boolean" ? state : !presenterMode;
 
   if (presenterMode) {
     viewportElement.classList.add("presenter-mode");
@@ -511,6 +511,10 @@ function preparePresenterMode(deck) {
 
   Decker.isPresenterMode = () => {
     return presenterMode;
+  };
+
+  Decker.togglePresenterMode = (b) => {
+    togglePresenterMode(b);
   };
 
   /* prevent reload when in presenter mode */
