@@ -5,34 +5,33 @@
 module Text.Decker.Filter.Select (filterSelectedSlides, dropSolutionBlocks) where
 
 import Relude
-import Text.Pandoc (Pandoc (Pandoc), Block)
+import Text.Pandoc ( Pandoc(Pandoc), Block, Block(Div) )
 import Text.Decker.Filter.Monad (Filter)
 import Text.Decker.Filter.Slide (fromSlides, toSlides, Slide (Slide), header)
 import Text.Decker.Internal.Meta (lookupMeta)
 import Control.Lens ((^.))
 import Text.Pandoc.Definition (Block(Header), Meta)
-import Text.Pandoc (Block(Div))
 import Text.Decker.Internal.Common (Decker)
 
 filterSelectedSlides :: Pandoc -> Filter Pandoc
-filterSelectedSlides pandoc@(Pandoc meta blocks) = 
-    return $ if publishingUpcoming meta 
+filterSelectedSlides pandoc@(Pandoc meta blocks) =
+    return $ if publishingUpcoming meta
         then Pandoc meta (dropSolutionSlides blocks)
         else pandoc
 
-publishingUpcoming meta = 
-    (lookupMeta "lecture.publish" meta :: Maybe Text) == Just "yes" && 
+publishingUpcoming meta =
+    (lookupMeta "lecture.publish" meta :: Maybe Text) == Just "yes" &&
     (lookupMeta "lecture.status" meta :: Maybe Text) == Just "upcoming"
 
 dropSolutionSlides :: [Block] -> [Block]
 dropSolutionSlides blocks = fromSlides $ filter notSolution $ toSlides blocks
 
 dropSolutionBlocks  :: Meta -> Slide -> Decker Slide
-dropSolutionBlocks meta slide@(Slide header body dir) = 
+dropSolutionBlocks meta slide@(Slide header body dir) =
     return $ if publishingUpcoming meta
         then Slide header (filter notSolutionBlock body) dir
         else slide
-    where   
+    where
         notSolutionBlock (Div (_,cls,_) body) | "box" `elem` cls = "solution" `notElem` cls
         notSolutionBlock _ = True
 

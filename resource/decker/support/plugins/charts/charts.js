@@ -161,6 +161,7 @@ function createChart(canvas, CSV, comments) {
         switch (type) {
           // one color per dataset (solid border, solid fill)
           case "bar":
+          case "stackedBar":
           case "horizontalBar": {
             dataset.borderColor = getColorRGB(i);
             dataset.backgroundColor = getColorRGB(i);
@@ -213,6 +214,12 @@ function createChart(canvas, CSV, comments) {
     chartOptions.indexAxis = "y";
   }
 
+  // stacked bar charts?
+  if (canvas.getAttribute("data-chart") == "stackedBar") {
+    canvas.setAttribute("data-chart", "bar");
+    chartOptions.scales = { x: { stacked: true }, y: { stacked: true } };
+  }
+
   // log-scale on y-axis? (note: log-log doesn't work, since entries are always equally spaced on x-axis)
   if (canvas.hasAttribute("data-log")) {
     chartOptions.scales = {
@@ -236,6 +243,7 @@ let initializeCharts = function () {
   let types = [
     "bar",
     "horizontalBar",
+    "stackedBar",
     "line",
     "radar",
     "doughnut",

@@ -12,13 +12,13 @@ Code blocks can be rendered as SVG images
 -   Gnuplot
 -   Tikz
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Embedded PlantUML Code (SVG) {.columns}
 
 ## PlantUML {.left}
 
-```` {.markdown}
+```` markdown
 ``` {.plantuml .render}
 @startuml
 skinparam shadowing false
@@ -38,17 +38,19 @@ Alice -> Bob: test
 @enduml
 ```
 
+# \# Embedded Mermaid Code (SVG) {.columns}
+
 # Embedded Mermaid Code (SVG) {layout="columns"}
 
 ## Needs `mermaid-cli` to be installed {.top}
 
-```sh
+``` sh
 npm install -g @mermaid-js/mermaid-cli
 ```
 
 ## Mermaid {.left}
 
-```` {.markdown}
+```` markdown
 ``` {.mermaid .render}
 graph TD
 A[Client] --> B[Load Balancer]
@@ -62,19 +64,18 @@ graph TD
 A[Client] --> B[Load Balancer]
 ```
 
-
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Embedded Graphviz Code (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-```` {.markdown}
+```` markdown
 ``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
   A {fillcolor = yellow}
-  A -> B 
+  A -> B
   A -> C
   C -> D
   C -> E
@@ -90,7 +91,7 @@ digraph {
 digraph {
   node [style = filled]
   A [fillcolor = yellow]
-  A -> B 
+  A -> B
   A -> C
   C -> D
   C -> E
@@ -99,13 +100,13 @@ digraph {
 }
 ```
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Embedded Gnuplot (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-```` {.gnuplot}
+```` gnuplot
 ``` {.gnuplot .render width="80%"}
 set samples 20, 20
 set isosamples 20, 20
@@ -133,13 +134,13 @@ DEBUG_TERM_VTIC = 118
 splot 1 / (x*x + y*y + 0.5)
 ```
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # PlantUML Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-``` {.markdown}
+``` markdown
 ![](alice-bob.plantuml){.render}
 ```
 
@@ -147,13 +148,13 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](alice-bob.plantuml){.plantuml .render width="60%"}
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Dot Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-``` {.markdown}
+``` markdown
 ![](graph.dot){.dot .render}
 ```
 
@@ -161,13 +162,13 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](graph.dot){.dot .render}
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Tikz Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-``` {.markdown}
+``` markdown
 ![](tikz.tex){.render}
 ```
 
@@ -175,7 +176,7 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](tikz.tex){.tex .render}
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Tikz Embedded
 
@@ -195,7 +196,7 @@ splot 1 / (x*x + y*y + 0.5)
   \colorlet{tancolor}{orange!80!black}
   \colorlet{coscolor}{blue}
 
-  % Styles 
+  % Styles
   \tikzstyle{axes}=[]
   \tikzstyle{important line}=[very thick]
   \tikzstyle{information text}=[rounded corners,fill=red!10,inner sep=1ex]
@@ -233,7 +234,6 @@ splot 1 / (x*x + y*y + 0.5)
       $\displaystyle \tan \alpha \color{black}=
       \frac{ {\color{sincolor}\sin \alpha} }{\color{coscolor}\cos \alpha}$
     } (intersection of 0,0--30:1cm and 1,0--1,1) coordinate (t);
-
   \draw (0,0) -- (t);
 \end{tikzpicture}
 \end{document}

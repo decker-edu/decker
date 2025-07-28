@@ -149,6 +149,8 @@ $endfor$
   </script>
   <script type="text/javascript" id="MathJax-script" async src="$decker-support-dir$/vendor/mathjax/tex-svg.js">
   </script>
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js">
+  </script>
 
 $for(header-includes)$
   $header-includes$
@@ -196,5 +198,8 @@ $endfor$
   $for(template.page.js-module)$
   <script type="module" src="$template.page.js-module$"></script>
   $endfor$
+  $if(codapi.server)$
+  <codapi-settings $if(codapi.server)$url="$codapi.server$"$endif$> </codapi-settings>
+  $endif$
 </body>
 </html>

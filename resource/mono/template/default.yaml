@@ -8,6 +8,7 @@ save-polls: true
 experiments:
   # fragment templates are needed for Codapi live-code support
   fragment-templates: true
+  add-document-path: true
 
 # highlightjs: "xcode"
 

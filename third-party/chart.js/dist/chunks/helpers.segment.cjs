@@ -1,7 +1,7 @@
 /*!
- * Chart.js v4.4.0
+ * Chart.js v4.4.8
  * https://www.chartjs.org
- * (c) 2023 Chart.js Contributors
+ * (c) 2025 Chart.js Contributors
  * Released under the MIT License
  */
 'use strict';
@@ -25,7 +25,7 @@ var color$1 = require('@kurkle/color');
  * @param value - The value to test.
  * @since 2.7.0
  */ function isNullOrUndef(value) {
-    return value === null || typeof value === 'undefined';
+    return value === null || value === undefined;
 }
 /**
  * Returns true if `value` is an array (including typed arrays), else returns false.
@@ -327,8 +327,13 @@ function almostEquals(x, y, epsilon) {
     result.sort((a, b)=>a - b).pop();
     return result;
 }
+/**
+ * Verifies that attempting to coerce n to string or number won't throw a TypeError.
+ */ function isNonPrimitive(n) {
+    return typeof n === 'symbol' || typeof n === 'object' && n !== null && !(Symbol.toPrimitive in n || 'toString' in n || 'valueOf' in n);
+}
 function isNumber(n) {
-    return !isNaN(parseFloat(n)) && isFinite(n);
+    return !isNonPrimitive(n) && !isNaN(parseFloat(n)) && isFinite(n);
 }
 function almostWhole(x, epsilon) {
     const rounded = Math.round(x);
@@ -624,18 +629,29 @@ function fontString(pixelSize, fontStyle, fontFamily) {
     let start = 0;
     let count = pointCount;
     if (meta._sorted) {
-        const { iScale , _parsed  } = meta;
+        const { iScale , vScale , _parsed  } = meta;
+        const spanGaps = meta.dataset ? meta.dataset.options ? meta.dataset.options.spanGaps : null : null;
         const axis = iScale.axis;
         const { min , max , minDefined , maxDefined  } = iScale.getUserBounds();
         if (minDefined) {
-            start = _limitValue(Math.min(// @ts-expect-error Need to type _parsed
+            start = Math.min(// @ts-expect-error Need to type _parsed
             _lookupByKey(_parsed, axis, min).lo, // @ts-expect-error Need to fix types on _lookupByKey
-            animationsDisabled ? pointCount : _lookupByKey(points, axis, iScale.getPixelForValue(min)).lo), 0, pointCount - 1);
+            animationsDisabled ? pointCount : _lookupByKey(points, axis, iScale.getPixelForValue(min)).lo);
+            if (spanGaps) {
+                const distanceToDefinedLo = _parsed.slice(0, start + 1).reverse().findIndex((point)=>!isNullOrUndef(point[vScale.axis]));
+                start -= Math.max(0, distanceToDefinedLo);
+            }
+            start = _limitValue(start, 0, pointCount - 1);
         }
         if (maxDefined) {
-            count = _limitValue(Math.max(// @ts-expect-error Need to type _parsed
+            let end = Math.max(// @ts-expect-error Need to type _parsed
             _lookupByKey(_parsed, iScale.axis, max, true).hi + 1, // @ts-expect-error Need to fix types on _lookupByKey
-            animationsDisabled ? 0 : _lookupByKey(points, axis, iScale.getPixelForValue(max), true).hi + 1), start, pointCount) - start;
+            animationsDisabled ? 0 : _lookupByKey(points, axis, iScale.getPixelForValue(max), true).hi + 1);
+            if (spanGaps) {
+                const distanceToDefinedHi = _parsed.slice(end - 1).findIndex((point)=>!isNullOrUndef(point[vScale.axis]));
+                end += Math.max(0, distanceToDefinedHi);
+            }
+            count = _limitValue(end, start, pointCount) - start;
         } else {
             count = pointCount - start;
         }
@@ -1190,6 +1206,9 @@ function _longestText(ctx, font, arrayOfThings, cache) {
 /**
  * Clears the entire canvas.
  */ function clearCanvas(canvas, ctx) {
+    if (!ctx && !canvas) {
+        return;
+    }
     ctx = ctx || canvas.getContext('2d');
     ctx.save();
     // canvas.width and canvas.height do not consider the canvas transform,
@@ -1792,7 +1811,7 @@ function createContext(parentContext, context) {
 const readKey = (prefix, name)=>prefix ? prefix + _capitalize(name) : name;
 const needsSubResolver = (prop, value)=>isObject(value) && prop !== 'adapters' && (Object.getPrototypeOf(value) === null || value.constructor === Object);
 function _cached(target, prop, resolve) {
-    if (Object.prototype.hasOwnProperty.call(target, prop)) {
+    if (Object.prototype.hasOwnProperty.call(target, prop) || prop === 'constructor') {
         return target[prop];
     }
     const value = resolve();
@@ -2126,12 +2145,6 @@ function capBezierPoints(points, area) {
 }
 
 /**
- * Note: typedefs are auto-exported, so use a made-up `dom` namespace where
- * necessary to avoid duplicates with `export * from './helpers`; see
- * https://github.com/microsoft/TypeScript/issues/46011
- * @typedef { import('../core/core.controller.js').default } dom.Chart
- * @typedef { import('../../types').ChartEvent } ChartEvent
- */ /**
  * @private
  */ function _isDomSupported() {
     return typeof window !== 'undefined' && typeof document !== 'undefined';
@@ -2238,7 +2251,7 @@ const useOffsetPos = (x, y, target)=>(x > 0 || y > 0) && (!target || !target.sha
 function getContainerSize(canvas, width, height) {
     let maxWidth, maxHeight;
     if (width === undefined || height === undefined) {
-        const container = _getParentNode(canvas);
+        const container = canvas && _getParentNode(canvas);
         if (!container) {
             width = canvas.clientWidth;
             height = canvas.clientHeight;
@@ -2335,8 +2348,10 @@ function getMaximumSize(canvas, bbWidth, bbHeight, aspectRatio) {
                 return false;
             }
         };
-        window.addEventListener('test', null, options);
-        window.removeEventListener('test', null, options);
+        if (_isDomSupported()) {
+            window.addEventListener('test', null, options);
+            window.removeEventListener('test', null, options);
+        }
     } catch (e) {
     // continue regardless of error
     }

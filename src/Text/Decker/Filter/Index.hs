@@ -1,27 +1,41 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-ambiguous-fields #-}
 
-module Text.Decker.Filter.Index (buildIndex) where
+module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex) where
 
+import Control.Lens ((^.))
 import Data.Aeson
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.ByteString.Lazy qualified as BS
 import Data.Char
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Text qualified as Text
+import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Relude
 import System.FilePath
 import Text.Decker.Filter.Slide
+import Text.Decker.Filter.Util (hash9String)
+import Text.Decker.Internal.Common (publicDir, privateDir)
+import Text.Decker.Internal.Helper (makeRelativeTo)
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
+import Text.Decker.Project.Project qualified as Project
+import Text.Decker.Project.Shake (relativeSupportDir)
 import Text.Decker.Reader.Markdown
+import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
+import Text.DocLayout (render)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Decker.Exam.Question
 
 -- For lookup use: http://glench.github.io/fuzzyset.js/
 
@@ -36,7 +50,7 @@ buildIndex indexFile globalMeta decks = do
   return $ map (deckSrc . fst) index
 
 -- | Only index decks which are not marked `draft` and are not in the `no-index`
--- list 
+-- list
 shouldAddToIndex meta =
   let deckId :: Text = lookupMetaOrElse "" "feedback.deck-id" meta
       noIndex = lookupMetaOrElse [] "no-index" meta
@@ -56,6 +70,8 @@ buildDeckIndex globalMeta path = do
       let deckTitle = lookupMeta "title" meta
       let deckSubtitle = lookupMeta "subtitle" meta
       let deckId = lookupMeta "deckId" meta
+      let deckAuthor = lookupMeta "author" meta
+      let deckDate = lookupMeta "date" meta
       let deckSrc = path
       let deckUrl = toText (path -<.> "html")
       -- Take out the empty ones for now
@@ -64,10 +80,34 @@ buildDeckIndex globalMeta path = do
               $ filter (isJust . fst)
               $ mapSlides indexSlide pandoc
       putNormal $ "# indexing (" <> path <> ")"
-      return $ Just (DeckInfo {deckSrc, deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
+      return $ Just (DeckInfo {deckSrc, deckUrl, deckId, deckAuthor, deckDate, deckTitle, deckSubtitle}, deckIndex)
     else do
       putNormal $ "# skip indexing (" <> path <> ")"
       return Nothing
+
+readDeckInfo :: Meta -> (FilePath, FilePath) -> Action DeckInfo
+readDeckInfo globalMeta (target, src) = do
+  pandoc@(Pandoc meta blocks) <-
+    readMarkdownFile globalMeta src >>= mergeDocumentMeta globalMeta
+  let deckTitle = lookupMeta "title" meta
+  let deckSubtitle = lookupMeta "subtitle" meta
+  let deckId = lookupMeta "deckId" meta
+  let deckAuthor = lookupMeta "author" meta
+  let deckDate = lookupMeta "date" meta
+  let deckSrc = src
+  let deckUrl = toText $ makeRelativeTo publicDir target
+  return $ DeckInfo {deckSrc, deckUrl, deckId, deckAuthor, deckDate, deckTitle, deckSubtitle}
+
+readQuestInfo :: Meta -> (FilePath, FilePath) -> Action QuestInfo
+readQuestInfo globalMeta (target, src) = do
+  Question topicId lectureId title _ _ _ _ comment _ _ _ _ <- liftIO $ readQuestion src
+  let questSrc = src
+  let questUrl = toText $ makeRelativeTo privateDir target
+  let questLectureId = lectureId
+  let questTopicId = topicId
+  let questTitle = title
+  let questComment = comment
+  return $ QuestInfo { questSrc ,questUrl ,questLectureId ,questTopicId ,questTitle ,questComment }
 
 -- Extracts all searchable words from an inline
 extractInlineWords :: Inline -> [Text]
@@ -127,8 +167,20 @@ data DeckInfo = DeckInfo
   { deckSrc :: FilePath,
     deckUrl :: DeckUrl,
     deckId :: Maybe Text,
+    deckAuthor :: Maybe Text,
+    deckDate :: Maybe Text,
     deckTitle :: Maybe Text,
     deckSubtitle :: Maybe Text
+  }
+  deriving (Generic, Show)
+
+data QuestInfo = QuestInfo
+  { questSrc :: FilePath,
+    questUrl :: Text,
+    questLectureId :: Text,
+    questTopicId :: Text,
+    questTitle :: Text,
+    questComment :: Text
   }
   deriving (Generic, Show)
 
@@ -166,7 +218,7 @@ instance ToJSON Index
 invertIndex :: [(DeckInfo, [((Text, Text), [(Text, Int)])])] -> Index
 invertIndex =
   foldl'
-    ( \index (deckInfo@(DeckInfo deckSrc deckUrl _ _ _), slides) ->
+    ( \index (deckInfo@(DeckInfo deckSrc deckUrl _ _ _ _ _), slides) ->
         foldl'
           ( \index ((slideId, slideTitle), words) ->
               foldl'
@@ -211,3 +263,72 @@ insertWord word entry = Map.alter add word
   where
     add Nothing = Just [entry]
     add (Just list) = Just (entry : list)
+
+renderIndex :: Template Text -> Meta -> Project.Targets -> FilePath -> Action ()
+renderIndex template meta targets out = do
+  let relSupportDir = relativeSupportDir (takeDirectory out)
+  let metaFile = hash9String out <.> ".json"
+  let metaPath = takeDirectory out </> metaFile
+  targetMeta <-
+    addTargetInfo targets
+      $ setMetaValue "decker-meta-url" (toText metaFile)
+      $ setMetaValue "decker-support-dir" (toText relSupportDir)
+      $ computeCssColorVariables
+      $ computeCssVariables meta
+  let aesonMeta = fromPandocMeta targetMeta
+  let text :: Text = render Nothing $ renderTemplate template aesonMeta
+  liftIO $ Text.writeFile out text
+  let jsonMeta = encodePretty aesonMeta
+  liftIO $ BS.writeFile metaPath jsonMeta
+
+addTargetInfo :: Project.Targets -> Meta -> Action Meta
+addTargetInfo targets meta = do
+  let allDecks = getSorted Project.decks
+  let allPages = getSorted Project.pages
+  let allQuests = getSorted Project.questions
+  decksInfo <- mapM (readDeckInfo meta) allDecks
+  pagesInfo <- mapM (readDeckInfo meta) allPages
+  questInfo <- mapM (readQuestInfo meta) allQuests
+  let withDecks =
+        setMetaValue "decks.by-title" (toListSortedBy deckTitle decksInfo)
+          $ setMetaValue "decks.by-date" (toListSortedBy deckDate decksInfo)
+          $ setMetaValue "decks.by-url" (toListSortedBy deckUrl decksInfo)
+          $ setMetaValue "decks.by-author" (toListSortedBy deckAuthor decksInfo)
+          $ setMetaValue "decks.by-id" (toListSortedBy deckId decksInfo) meta
+  let withPagesAndDecks =
+        setMetaValue "pages.by-title" (toListSortedBy deckTitle pagesInfo)
+          $ setMetaValue "pages.by-date" (toListSortedBy deckDate pagesInfo)
+          $ setMetaValue "pages.by-url" (toListSortedBy deckUrl pagesInfo)
+          $ setMetaValue "pages.by-author" (toListSortedBy deckAuthor pagesInfo)
+          $ setMetaValue "pages.by-id" (toListSortedBy deckId pagesInfo) withDecks
+  let withPagesDecksAndQuests =
+        setMetaValue "quests.by-title" (toQuestListSortedBy questTitle questInfo)
+        $ setMetaValue "quests.by-url" (toQuestListSortedBy questUrl questInfo)
+        $ setMetaValue "quests.by-lecture-id" (toQuestListSortedBy questLectureId questInfo)
+        $ setMetaValue "quests.by-topic-id" (toQuestListSortedBy questTopicId questInfo) withPagesAndDecks
+  return withPagesDecksAndQuests
+  where
+    toQuestListSortedBy by info = MetaList $ map toQuestMeta $ sortInfo by info
+    toListSortedBy by info = MetaList $ map toMeta $ sortInfo by info
+    getSorted field = sort $ Map.toList (targets ^. field)
+    toMeta :: DeckInfo -> MetaValue
+    toMeta info =
+      MetaMap
+        $ fromList
+          [ ("src", MetaString (toText info.deckSrc)),
+            ("url", MetaString info.deckUrl),
+            ("id", maybe (MetaBool False) (MetaString . toText) info.deckId),
+            ("title", maybe (MetaBool False) (MetaString . toText) info.deckTitle),
+            ("subtitle", maybe (MetaBool False) (MetaString . toText) info.deckSubtitle)
+          ]
+    toQuestMeta :: QuestInfo -> MetaValue
+    toQuestMeta info =
+      MetaMap
+        $ fromList
+          [ ("src", MetaString (toText info.questSrc)),
+            ("url", MetaString info.questUrl),
+            ("title", MetaString info.questTitle),
+            ("lecture-id", MetaString info.questLectureId),
+            ("topic-id", MetaString info.questTopicId)
+          ]
+    sortInfo by = sortBy (\a b -> compare (by a) (by b))

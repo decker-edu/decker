@@ -1,9 +1,5 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -34,10 +30,12 @@ import Text.Decker.Exam.Question
 import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
-import Text.Decker.Reader.Markdown
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Decker.Writer.Layout
+import Text.Decker.Exam.Xml (renderMarkdownFields)
+import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
+import Text.Decker.Filter.Decker2 (deckerMediaFilter)
 
 -- import Text.Pretty.Simple
 
@@ -69,7 +67,7 @@ renderSnippetToHtml meta base markdown = do
     mergeDocumentMeta (setMetaValue "decker.use-data-src" False meta) pandoc
       >>= adjustResourcePathsA base
       -- >>= (\p -> print p >> return p)
-      >>= deckerMediaFilter (Disposition Page Html) base
+        >>= deckerMediaFilter (Disposition Page Html) (base </> "dummy.md")
   liftIO $ handleError $ runPure $ writeHtml45String options meta $ walk dropPara filtered
 
 -- | Drops a leading Para block wrapper for a Plain wrapper.
@@ -133,6 +131,9 @@ renderQuestionToHtml h id quest = do
             H.th "topic id"
             H.td $ toHtml (quest ^. qstTopicId)
           H.tr $ do
+            H.th "exam"
+            H.td $ toHtml (quest ^. qstExam)
+          H.tr $ do
             H.th "path"
             H.td $
               H.code $
@@ -143,7 +144,8 @@ renderQuestionToHtml h id quest = do
 
 renderQuestionDocument :: Meta -> FilePath -> Question -> Action Text
 renderQuestionDocument meta base quest = do
-  htmlQuest <- compileQuestionToHtml meta base quest
+  -- htmlQuest <- compileQuestionToHtml meta base quest
+  htmlQuest <- renderMarkdownFields quest
   let html = renderQuestionToHtml 2 "" htmlQuest
   return $
     toText $
@@ -244,9 +246,10 @@ instance ToMarkup a => ToMarkup (NonEmpty a) where
 renderQuestion :: Meta -> FilePath -> FilePath -> Action ()
 renderQuestion meta src out =
   do
-    putInfo $ "# render (for " <> out <> ")"
+    let base = takeDirectory src
+    putInfo $ "# render ('" <> src <>"' for '" <> out <> "' with base '" <> base <> "')"
     liftIO (readQuestion src)
-      >>= renderQuestionDocument meta (takeDirectory src)
+      >>= renderQuestionDocument meta base
       >>= (liftIO . Text.writeFile out)
 
 renderCatalog :: Meta -> [FilePath] -> FilePath -> Action ()

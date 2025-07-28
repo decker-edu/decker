@@ -135,14 +135,13 @@ Uses `whisper.cpp` to transcribe video recordings to the recorded language and
 English. Transcriptions are stored alongside the video files in `VTT` format and
 are automatically available during playback.
 
-[`whisper.cpp`]() needs to be installed locally and configured accordingly in
+[`whisper.cpp`]() needs to be installed locally (e.g. via homebrew) and configured accordingly in
 `decker.yaml`. Configuration meta data variables are:
 
 ``` yaml
 # whisper.cpp transcription settings
 whisper:
-  base-dir: /usr/local/share/whisper.cpp
-  model: models/ggml-large.bin
+  model: /opt/whisper/ggml-large-v3.bin
   lang: de
 ```
 
@@ -406,12 +405,6 @@ Both image paths reference the same image file.
 :   TODO
 
 `watch.exclude`
-:   TODO
-
-`whisper.base-dir`
-:   TODO
-
-`whisper.base-dir`
 :   TODO
 
 `whisper.lang`

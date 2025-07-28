@@ -5,6 +5,7 @@ subtitle: What's it with the templates?
 title: Fragment Templates
 ---
 
+
 # Fragment Templates
 
 ## WAT?
@@ -25,11 +26,11 @@ experiments:
 
 ## In order of preference
 
-1. Document base directory
-2. Project's dir `/templates` folder
-3. Resource pack's `support/templates` folder
+1.  Document base directory
+2.  Project's dir `/templates` folder
+3.  Resource pack's `support/templates` folder
 
-# {.columns}
+#  {.columns}
 
 ## Link Templates {.left}
 
@@ -59,12 +60,12 @@ attr2="attr2"}
 </ol>
 ```
 
-## {.right}
+##  {.right}
 
 [all-params- arg0 arg1 arg2](url "title"){#theid .class1 .class2 attr1="attr1"
 attr2="attr2"}
 
-# {.columns}
+#  {.columns}
 
 ## Codeblock Templates {.left}
 
@@ -75,7 +76,7 @@ Probably many lines.
 ```
 ````
 
-## {.right}
+##  {.right}
 
 ``` {#theid .all-params- .class1 .class2 attr1="attr1" attr2="attr2"}
 The Code.
@@ -133,3 +134,9 @@ out.println(42);
 ## `finegrid` {.right}
 
 [§finegrid](500px)
+
+--------------------------------------------------------------------------------
+
+# Meta Data in Fragment Template
+
+[§meta-data-in-template]()

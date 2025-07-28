@@ -80,3 +80,13 @@ Test speaker notes again.
 ::: notes
 Once more: $$\sum_i \pi^i \to \infty$$
 :::
+
+# Boldsymbol
+
+## This should be less bold
+
+$$\sum_i \pi^i \to \infty$$
+
+## This should be bolder
+
+$$\boldsymbol{\sum_i \pi^i \to \infty}$$

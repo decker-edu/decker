@@ -27,7 +27,7 @@ import Text.Printf
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: Meta -> Targets -> FilePath -> Action ()
 writeIndexLists meta targets out = do
-  let get field = sort $ Map.keys $ (targets ^. field)
+  let get field = sort $ Map.keys (targets ^. field)
   let decks' = zip (get decks) (get decksPdf)
   let handouts' = zip (get handouts) (get handoutsPdf)
   let pages' = zip (get pages) (get pagesPdf)

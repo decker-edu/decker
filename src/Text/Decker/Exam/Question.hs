@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -12,7 +11,7 @@ import Control.Lens hiding (Choice)
 import Data.Aeson.TH
 import Data.Aeson.Types
 import Data.Typeable
-import qualified Data.Yaml as Y
+import Data.Yaml qualified as Y
 import GHC.Generics hiding (Meta)
 import Relude
 import System.Directory
@@ -74,7 +73,8 @@ data Question = Question
     _qstComment :: Text,
     _qstShuffleAnswers :: Bool,
     _qstCurrentNumber :: Int,
-    _qstFilePath :: String
+    _qstFilePath :: String,
+    _qstExam :: Bool
   }
   deriving (Eq, Show, Typeable, Generic)
 
@@ -94,15 +94,19 @@ instance ToJSON Question where
 
 instance FromJSON Question where
   parseJSON (Object q) =
-    Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title"
-      <*> q .: "Points"
-      <*> q .: "Question"
-      <*> q .: "Answer"
-      <*> q .: "Difficulty"
-      <*> q .: "Comment"
-      <*> q .:? "ShuffleAnswers" .!= True
-      <*> q .:? "CurrentNumber" .!= 0
-      <*> q .:? "FilePath" .!= "."
+    Question
+      <$> (q .: "TopicId")
+      <*> (q .: "LectureId")
+      <*> (q .: "Title")
+      <*> (q .: "Points")
+      <*> (q .: "Question")
+      <*> (q .: "Answer")
+      <*> (q .: "Difficulty")
+      <*> (q .: "Comment")
+      <*> (q .:? "ShuffleAnswers" .!= True)
+      <*> (q .:? "CurrentNumber" .!= 0)
+      <*> (q .:? "FilePath" .!= ".")
+      <*> (q .:? "Exam" .!= True)
   parseJSON invalid = typeMismatch "Question" invalid
 
 readQuestion :: FilePath -> IO Question
@@ -112,6 +116,9 @@ readQuestion file = do
   case result of
     Right question -> return (set qstFilePath abs question)
     Left exception ->
-      throw $
-        YamlException $
-          "Error parsing question: " ++ file ++ ", " ++ show exception
+      throw
+        $ YamlException
+        $ "Error parsing question: "
+        ++ file
+        ++ ", "
+        ++ show exception

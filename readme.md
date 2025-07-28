@@ -43,9 +43,11 @@ To install `decker` for the entire system, simply put it into that system's dire
 
 ### Manual installation on MacOS
 
-To install `decker` on MacOS you need to download the executable and put it into your binary search path and set the downloaded file as *executable*. To do this open a terminal and navigate to the downloaded file. Rename it to `decker`, then enter `chmod +x decker` to make it *executable*. Then move it into a directory on your binary search path. TODO: What are these on MacOS?
+To install `decker` on MacOS you need to download the executable and put it into your binary search path and set the downloaded file as *executable*. To do this open a terminal and navigate to the downloaded file. Rename it to `decker`, then enter `chmod +x decker` to make it *executable*. Then move it into a directory on your binary search path, usually `/usr/local/bin`.
 
-In order to run the application you need to open it once with the `open` command: `open -a terminal decker`. The operating system will likely warn and prevent you from running the application. Find a button labeled `Really Open` to tell your system to trust it. This should only be necessary once per downloaded version.
+In order to run the application you need to open it once with the `open` command: `open -a terminal decker`. The operating system will likely warn and prevent you from running the application. Find a button labeled `Really Open` to tell your system to trust it. This should only be necessary once per downloaded file.
+
+If the operating system does not display a `Really Open` or `Open anyway ...` button, you need to go into your system settings and find the category `Security`. If you recently tried to run `decker`, the application should be in a list of recently blocked ones. You can select the application there and add it to your exceptions. This should only be necessary once per downloaded file.
 
 ## Installation from source
 
