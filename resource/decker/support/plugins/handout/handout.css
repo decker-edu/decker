@@ -2,6 +2,7 @@ html.handout #handout-container {
   margin: auto;
   overflow: auto;
   touch-action: pan-x pan-y pinch-zoom;
+  scroll-behavior: smooth;
 }
 
 /* hide standard reveal element in handout mode, since it consumes space
@@ -129,7 +130,6 @@ html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
   visibility: visible;
 }
 
-html.handout .decker-anchor #explain-play,
 html.handout .decker-anchor .open-button {
   display: none;
 }

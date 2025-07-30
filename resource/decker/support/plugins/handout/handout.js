@@ -195,9 +195,22 @@ function activateHandoutMode() {
 
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
   currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
+
+  /* patch Reveal functions for slide navigation */
+  bak_getCurrentSlide = Reveal.getCurrentSlide;
+  Reveal.getCurrentSlide = getCurrentSlide;
+  bak_getIndices = Reveal.getIndices;
+  Reveal.getIndices = getIndices;
+  bak_slide = Reveal.slide;
+  Reveal.slide = slide;
 }
 
 function disassembleHandoutMode() {
+  // restore Reveal functions
+  Reveal.getCurrentSlide = bak_getCurrentSlide;
+  Reveal.getIndices = bak_getIndices;
+  Reveal.slide = bak_slide;
+
   /* Restore old viewport meta */
   const meta = document.querySelector("meta[name=viewport]");
   if (meta) {
@@ -260,6 +273,26 @@ function disassembleHandoutMode() {
   }
 }
 
+let bak_getCurrentSlide;
+let bak_getIndices;
+let bak_slide;
+
+function getCurrentSlide() {
+  return centralSlide;
+}
+
+function getIndices(slide) {
+  let h = Array.prototype.indexOf.call(handoutSlides.children, slide);
+  let v, f;
+  return { h, v, f };
+}
+
+function slide(h, v, f) {
+  console.log(h, v, f);
+  let slide = handoutSlides.children[h];
+  slide.scrollIntoView({ block: "center" });
+}
+
 /* Remove inert, hidden and aria-hidden attributes of slides */
 function makeSlidesVisible(slideElement) {
   const slides = slideElement.querySelectorAll("section");
@@ -318,8 +351,8 @@ function updateCurrentSlide(event) {
   // If the current slide changed
   if (centralSlide !== minSlide) {
     // DEBUG: visualize central slide
-    // if (centralSlide) centralSlide.classList.remove("current");
-    // minSlide.classList.add("current");
+    if (centralSlide) centralSlide.classList.remove("current");
+    minSlide.classList.add("current");
 
     centralSlide = minSlide;
 
@@ -335,6 +368,9 @@ function updateCurrentSlide(event) {
       decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
       decker.updatePercentage(Number(centralSlide.dataset.hIndex));
     }
+
+    // update location hash
+    window.location.hash = "#/" + centralSlide.id;
   }
 }
 
@@ -485,10 +521,12 @@ function onWindowKeydown(event) {
 
   switch (event.key) {
     case "ArrowUp":
+    case "ArrowLeft":
       handoutContainer.scrollBy(0, -slideHeight);
       break;
 
     case "ArrowDown":
+    case "ArrowRight":
       handoutContainer.scrollBy(0, slideHeight);
       break;
 
@@ -632,6 +670,7 @@ const handout = /handout/gi.test(window.location.search);
 const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
+  currentSlide: () => centralSlide,
   init: (reveal) => {
     Reveal = reveal;
     createButtons();
