@@ -1722,6 +1722,11 @@ async function setupPlayer() {
 
       updatePlayButton();
 
+      // ayy1 mode?
+      const a11yPlugin = Reveal.getPlugin("a11y");
+      const a11y = !!(a11yPlugin && a11yPlugin.a11yMode());
+      console.log(a11y);
+
       let vtt;
 
       // "old" version of VTT w/o language specifier
@@ -1733,7 +1738,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
-            default: false,
+            default: a11y,
           },
           false
         );
@@ -1743,7 +1748,7 @@ async function setupPlayer() {
       vtt = deckUrlBase() + "-recording-en.vtt";
       if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt, default: false },
+          { kind: "captions", srclang: "en", src: vtt, default: a11y },
           false
         );
       }
@@ -1754,7 +1759,7 @@ async function setupPlayer() {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
           player.addRemoteTextTrack(
-            { kind: "captions", srclang: lang, src: vtt, default: false },
+            { kind: "captions", srclang: lang, src: vtt, default: a11y },
             false
           );
         }
