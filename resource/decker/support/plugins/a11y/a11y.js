@@ -176,6 +176,9 @@ const a11y = /a11y/gi.test(window.location.search);
 
 const Plugin = {
   id: "a11y",
+  a11yMode: () => {
+    return a11yMode;
+  },
   init: (reveal) => {
     Reveal = reveal;
     fixTabsByInert();

@@ -2,6 +2,7 @@ html.handout #handout-container {
   margin: auto;
   overflow: unset;
   touch-action: pan-x pan-y pinch-zoom;
+  scroll-behavior: smooth;
 }
 
 html.handout .reveal-viewport {
@@ -133,7 +134,6 @@ html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
   visibility: visible;
 }
 
-html.handout .decker-anchor #explain-play,
 html.handout .decker-anchor .open-button {
   display: none;
 }
