@@ -62,25 +62,25 @@ function adjustLinksItem(item, doc) {
   if (root) {
     const anchors = root.querySelectorAll("a");
     for (const anchor of anchors) {
-      const href = anchor.href;
-      if (href.baseVal) {
-        let label = href.baseVal;
-        if (label.includes("#mjx-eqn")) {
-          label = decodeURIComponent(label.substring(1));
-          const eqn = document.getElementById(label);
-          if (eqn) {
-            const s = eqn.closest("section");
-            if (s) {
-              anchor.href.baseVal =
-                location.origin +
-                location.pathname +
-                location.search +
-                "#" +
-                s.id;
-            }
+      let href = anchor.href;
+      if (href.includes("#mjx-eqn")) {
+        console.log(href);
+        const label = decodeURIComponent(href.split("#")[1]);
+        const eqn = document.getElementById(label);
+        console.log(label);
+        if (eqn) {
+          const s = eqn.closest("section");
+          if (s) {
+            anchor.href =
+              location.origin +
+              location.pathname +
+              location.search +
+              "#" +
+              s.id;
           }
         }
       }
+      //      }
     }
   }
 }
@@ -148,6 +148,10 @@ function injectStyle() {
             mjx-container > svg a * {
                 pointer-events: all;
             }
+
+            mjx-help-background {
+                z-index: 128;
+            }
         `;
   document.head.append(style);
 }
@@ -171,7 +175,7 @@ const Plugin = {
       );
       return;
     }
-    const url = options.mathjax + "tex-svg.js";
+    const url = options.mathjax + "tex-mml-chtml.js";
 
     // define \fragment{...} funtion
     let macros = { fragment: ["\\class{fragment}{#1}", 1] };
@@ -184,20 +188,8 @@ const Plugin = {
 
     /* MathJax configuration object */
     window.MathJax = {
-      startup: {
-        ready: () => {
-          /* Workaround to allow loading of a11y features past initial load
-           * Necessary due do a bug in 3.2.2 throwing a Mathjax.retry error. */
-          const { mathjax } = window.MathJax._.mathjax;
-          const { STATE } = window.MathJax._.core.MathItem;
-          const { Menu } = window.MathJax._.ui.menu.Menu;
-          const rerender = Menu.prototype.rerender;
-          Menu.prototype.rerender = function (start = STATE.TYPESET) {
-            mathjax.handleRetriesFor(() => {
-              rerender.call(this, start);
-            });
-          };
-        },
+      loader: {
+        load: ["ui/lazy"],
       },
       svg: {
         scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
@@ -237,17 +229,13 @@ const Plugin = {
         sre: {
           locale: language === "de" ? "de" : "en",
         },
-        enableMenu: a11y,
+        enableMenu: true,
         menuOptions: {
           settings: {
-            explorer: a11y, //if in a11y page mode: active by default
+            speech: true, //if in a11y page mode: active by default
+            braille: true,
+            help: false,
           },
-        },
-        a11y: {
-          backgroundColor: "Green",
-          backgroundOpacity: 50,
-          foregroundColor: "Black",
-          foregroundOpacity: 100,
         },
       },
     };
@@ -258,10 +246,8 @@ const Plugin = {
     return new Promise((resolve) => {
       loadScript(url, () => {
         window.MathJax.startup.promise.then(() => {
-          Reveal.layout();
           resolve();
         });
-        window.MathJax.startup.defaultReady();
       });
     });
   },
