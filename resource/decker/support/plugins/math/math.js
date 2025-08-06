@@ -62,25 +62,25 @@ function adjustLinksItem(item, doc) {
   if (root) {
     const anchors = root.querySelectorAll("a");
     for (const anchor of anchors) {
-      let href = anchor.href;
-      if (href.includes("#mjx-eqn")) {
-        console.log(href);
-        const label = decodeURIComponent(href.split("#")[1]);
-        const eqn = document.getElementById(label);
-        console.log(label);
-        if (eqn) {
-          const s = eqn.closest("section");
-          if (s) {
-            anchor.href =
-              location.origin +
-              location.pathname +
-              location.search +
-              "#" +
-              s.id;
+      const href = anchor.href;
+      if (href.baseVal) {
+        let label = href.baseVal;
+        if (label.includes("#mjx-eqn")) {
+          label = decodeURIComponent(label.substring(1));
+          const eqn = document.getElementById(label);
+          if (eqn) {
+            const s = eqn.closest("section");
+            if (s) {
+              anchor.href.baseVal =
+                location.origin +
+                location.pathname +
+                location.search +
+                "#" +
+                s.id;
+            }
           }
         }
       }
-      //      }
     }
   }
 }
@@ -175,7 +175,7 @@ const Plugin = {
       );
       return;
     }
-    const url = options.mathjax + "tex-mml-chtml.js";
+    const url = options.mathjax + "tex-svg.js";
 
     // define \fragment{...} funtion
     let macros = { fragment: ["\\class{fragment}{#1}", 1] };
@@ -188,9 +188,6 @@ const Plugin = {
 
     /* MathJax configuration object */
     window.MathJax = {
-      loader: {
-        load: ["ui/lazy"],
-      },
       svg: {
         scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
@@ -229,16 +226,24 @@ const Plugin = {
         sre: {
           locale: language === "de" ? "de" : "en",
         },
-        enableMenu: true,
+        enableMenu: a11y,
+        enableExplorer: a11y,
+        a11y: {
+          speech: a11y,
+          braille: a11y,
+          foregroundColor: "var(--foreground-color)",
+          highlight: "None",
+        },
         menuOptions: {
           settings: {
-            speech: true, //if in a11y page mode: active by default
-            braille: true,
-            help: false,
+            speech: a11y, //if in a11y page mode: active by default
+            braille: a11y,
           },
         },
       },
     };
+
+    console.log("a11y", a11y);
 
     injectStyle();
 
