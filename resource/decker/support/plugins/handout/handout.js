@@ -365,9 +365,7 @@ function updateCurrentSlide(event) {
 
     centralSlide = minSlide;
 
-    console.log("dispatch", Reveal);
     Reveal.dispatchEvent({ type: "slidechanged", data: data });
-    console.log("event");
 
     // Inform decker plugin (index page)
     const decker = Reveal.getPlugin("decker");
