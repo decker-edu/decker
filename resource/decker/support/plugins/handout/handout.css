@@ -130,9 +130,6 @@ html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
   visibility: visible;
 }
 
-html.handout .decker-anchor .open-button {
-  display: none;
-}
 html .decker-anchor #handout-plus,
 html .decker-anchor #handout-minus {
   display: none;

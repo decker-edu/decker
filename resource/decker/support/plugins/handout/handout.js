@@ -342,6 +342,7 @@ function updateCurrentSlide(event) {
     const slideRect = slide.getBoundingClientRect();
     const slideCenter = (slideRect.bottom + slideRect.top) / 2;
     const dist = Math.abs(slideCenter - containerCenter);
+    console.log(slide, dist);
     if (dist < minDist) {
       minDist = dist;
       minSlide = slide;
@@ -354,13 +355,19 @@ function updateCurrentSlide(event) {
     if (centralSlide) centralSlide.classList.remove("current");
     minSlide.classList.add("current");
 
+    const data = {
+      indexh: minSlide.dataset.hIndex ? minSlide.dataset.hIndex : 0,
+      indexv: minSlide.dataset.vIndex ? minSlide.dataset.vIndex : 0,
+      previousSlide: centralSlide,
+      currentSlide: minSlide,
+      origin: undefined,
+    };
+
     centralSlide = minSlide;
 
-    // Inform menu plugin (highlight current slide)
-    const menu = Reveal.getPlugin("decker-menu");
-    if (menu) {
-      menu.updateCurrentSlideMark(centralSlide);
-    }
+    console.log("dispatch", Reveal);
+    Reveal.dispatchEvent({ type: "slidechanged", data: data });
+    console.log("event");
 
     // Inform decker plugin (index page)
     const decker = Reveal.getPlugin("decker");
@@ -397,7 +404,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
     root: handoutContainer,
-    threshold: [0],
+    threshold: [0, 0.95],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
