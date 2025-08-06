@@ -231,8 +231,6 @@ const Plugin = {
         a11y: {
           speech: a11y,
           braille: a11y,
-          foregroundColor: "var(--foreground-color)",
-          highlight: "None",
         },
         menuOptions: {
           settings: {
