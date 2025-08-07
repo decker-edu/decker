@@ -36,9 +36,12 @@ import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
+
+import Text.Decker.Filter.Index
 import Text.Decker.Writer.Layout
 import Text.Groom
 import System.Directory (makeRelativeToCurrentDirectory)
+import Text.Decker.Filter.Index (addTargetInfo)
 
 main :: IO ()
 main = do
@@ -246,7 +249,8 @@ deckerRules = do
       if exists
         then do
           need [indexSource]
-          markdownToHtml htmlIndex meta getTemplate indexSource out
+          targetMeta <- addTargetInfo deps meta
+          markdownToHtml htmlIndex targetMeta getTemplate indexSource out
           template <- getTemplate "template/index-generated.html"
           renderIndex template meta deps generatedIndex
         else do
