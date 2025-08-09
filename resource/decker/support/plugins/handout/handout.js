@@ -288,7 +288,7 @@ function getIndices(slide) {
 }
 
 function slide(h, v, f) {
-  console.log("go to slide ", h, v, f);
+  // console.log("go to slide ", h, v, f);
   let slide = handoutSlides.children[h];
   slide.scrollIntoView({ block: "center" });
 }

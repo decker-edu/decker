@@ -788,7 +788,6 @@ class Feedback {
     );
 
     this.slideChanged = (slide) => {
-      console.log("feedback slide change");
       this.requestMenuContent(slide);
       this.requestSlideMenuUpdate();
     };
