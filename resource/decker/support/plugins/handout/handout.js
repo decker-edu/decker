@@ -288,7 +288,7 @@ function getIndices(slide) {
 }
 
 function slide(h, v, f) {
-  console.log(h, v, f);
+  console.log("go to slide ", h, v, f);
   let slide = handoutSlides.children[h];
   slide.scrollIntoView({ block: "center" });
 }
@@ -350,27 +350,26 @@ function updateCurrentSlide(event) {
 
   // If the current slide changed
   if (centralSlide !== minSlide) {
-    // DEBUG: visualize central slide
+    // visualize central slide
     if (centralSlide) centralSlide.classList.remove("current");
     minSlide.classList.add("current");
 
     centralSlide = minSlide;
 
-    // Inform menu plugin (highlight current slide)
-    const menu = Reveal.getPlugin("decker-menu");
-    if (menu) {
-      menu.updateCurrentSlideMark(centralSlide);
-    }
+    // Inform menu plugin: highlight current slide
+    const menuPlugin = Reveal.getPlugin("decker-menu");
+    if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
 
-    // Inform decker plugin (index page)
-    const decker = Reveal.getPlugin("decker");
-    if (decker && centralSlide.dataset.hIndex) {
-      decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
-      decker.updatePercentage(Number(centralSlide.dataset.hIndex));
-    }
+    // Inform decker plugin: update last visited slide and progress percentage
+    const deckerPlugin = Reveal.getPlugin("decker");
+    if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
 
-    // update location hash
-    window.location.hash = "#/" + centralSlide.id;
+    // Inform feedback plugin: update list of questions
+    const feedbackPlugin = Reveal.getPlugin("feedback");
+    if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
+
+    // update location hash (without triggering onhashchanged!)
+    history.replaceState(null, null, "#/" + centralSlide.id);
   }
 }
 
@@ -397,7 +396,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
     root: handoutContainer,
-    threshold: [0],
+    threshold: [0, 0.95],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
