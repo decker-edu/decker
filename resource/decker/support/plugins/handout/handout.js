@@ -77,6 +77,21 @@ if (navigator.language === "de") {
   localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
 }
 
+/* clicking on a slide will set it to the current slide */
+handoutSlides.addEventListener(
+  "click",
+  (evt) => {
+    const target = evt.target;
+    if (target) {
+      const slide = target.closest("section");
+      if (slide && slide != centralSlide) {
+        setCurrentSlide(slide);
+      }
+    }
+  },
+  true
+);
+
 function activateHandoutMode() {
   /* Store and modify viewport meta tag to allow mobile device zooming */
   const meta = document.querySelector("meta[name=viewport]");
@@ -350,27 +365,31 @@ function updateCurrentSlide(event) {
 
   // If the current slide changed
   if (centralSlide !== minSlide) {
-    // visualize central slide
-    if (centralSlide) centralSlide.classList.remove("current");
-    minSlide.classList.add("current");
-
-    centralSlide = minSlide;
-
-    // Inform menu plugin: highlight current slide
-    const menuPlugin = Reveal.getPlugin("decker-menu");
-    if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
-
-    // Inform decker plugin: update last visited slide and progress percentage
-    const deckerPlugin = Reveal.getPlugin("decker");
-    if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
-
-    // Inform feedback plugin: update list of questions
-    const feedbackPlugin = Reveal.getPlugin("feedback");
-    if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
-
-    // update location hash (without triggering onhashchanged!)
-    history.replaceState(null, null, "#/" + centralSlide.id);
+    setCurrentSlide(minSlide);
   }
+}
+
+function setCurrentSlide(slide) {
+  // visualize central slide
+  if (centralSlide) centralSlide.classList.remove("current");
+  slide.classList.add("current");
+
+  centralSlide = slide;
+
+  // Inform menu plugin: highlight current slide
+  const menuPlugin = Reveal.getPlugin("decker-menu");
+  if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
+
+  // Inform decker plugin: update last visited slide and progress percentage
+  const deckerPlugin = Reveal.getPlugin("decker");
+  if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
+
+  // Inform feedback plugin: update list of questions
+  const feedbackPlugin = Reveal.getPlugin("feedback");
+  if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
+
+  // update location hash (without triggering onhashchanged!)
+  history.replaceState(null, null, "#/" + centralSlide.id);
 }
 
 /**
