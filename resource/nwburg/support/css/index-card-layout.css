@@ -35,7 +35,7 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     padding: 20px;
-    padding-top: 0;
+    padding-top: 0px;
     justify-content: center;
     align-items: start;
     width: 100%;
@@ -123,7 +123,7 @@ a.card-title {
 /* Front Content */
 .card .front img {
     width: 100%;
-    height: 200px;
+    height: 336px;
     object-fit: cover;
     border-bottom: 1px solid #ddd;
 }
@@ -333,13 +333,13 @@ ul.bannerSlider{
     padding-left:0;
   }
   .bannerSlider{
-      height: 200px;
+      height: 336px;
   }
   .bannerSlider .slide__image::before{
       content: "";
       position: absolute;
       width: 100%;
-      height: 200px;
+      height: 336px;
       background: rgba(255, 255, 255, 0);
   }
   .bannerSlider .slick-slide {
@@ -347,8 +347,7 @@ ul.bannerSlider{
   }
   .bannerSlider .slide__image img {
       width: 100%;
-      height: 200px;
-      object-fit:cover;
+      height: 336px;
   }
   img.slide__image__top-position {
       object-position:center bottom;
@@ -368,6 +367,9 @@ ul.bannerSlider{
       color: #fff;
   }
 
+  ul.bannerSlider.slick-initialized.slick-slider.slick-dotted {
+    margin-left: 0px;
+  }
   /*
   .bannerSlider {
       margin: 0 auto;

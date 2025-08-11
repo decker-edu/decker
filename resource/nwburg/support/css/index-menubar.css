@@ -45,7 +45,7 @@
 /* Links Styling */
 .menu-bar ul {
     text-decoration: none;
-    color: #063D79;
+    color: #004a8f;
     display: block;
     line-height: 30px;
     font-weight: 700;
@@ -57,7 +57,7 @@
 .menu-bar span {
     padding: 0 15px;
     text-decoration: none;
-    color: #063D79;
+    color: #004a8f;
     display: block;
     line-height: 30px;
     font-weight: 700;
@@ -69,7 +69,7 @@
 .menu-bar a {
     padding: 0 15px;
     text-decoration: none;
-    color: #063D79;
+    color: #004a8f;
     display: block;
     line-height: 30px;
     cursor: pointer;
@@ -107,7 +107,7 @@
     background: white;
 }
 .menu-bar ul ul li:hover {
-    color: #063D79;
+    color: #004a8f;
 }
 .menu-bar ul ul li ul {
     display: block;  /* Always visible */
@@ -116,21 +116,20 @@
     background: none;
     border: none;
     box-shadow: none;
-    padding-left: 15px; /* Indent for hierarchy */
     margin-top: 5px;
 }
 
 .menu-bar ul ul li ul li {
     font-size: 14px;  /* Smaller font */
     font-weight: 400;  /* Lighter font */
-    color: #063D79; /* Darker shade */
+    color: #004a8f; /* Darker shade */
     padding-left: 10px; /* More indentation */
 }
 
 .menu-bar ul ul li ul li a {
     font-size: 14px;
     font-weight: lighter;
-    color: #063D79 ;
+    color: #004a8f;
     display: block;
 }
 
@@ -139,7 +138,7 @@ li.submenu-item {
 }
 
 .submenu-toggle {
-color:#063D79;
+color:#004a8f;
 padding: 0 15px;
 }
 
@@ -169,7 +168,7 @@ padding: 0;
     padding: 10px;
     background: none;
     border: none;
-    color: #063D79;
+    color: #004a8f;
 }
 
 li.menu-item {
@@ -240,6 +239,130 @@ li.menu-item {
 @media (min-width: 769px) and (max-width: 1093px)  { 
     .search-container {
         margin-right: 1em;
+        margin-top: 2rem;
     }
 }
 
+
+@media (max-width: 768px) {
+    .hamburger {
+        display: block;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    .menu-container {
+        display: none;
+        flex-direction: column;
+        background: hsla(0, 0%, 100%, .95);
+        width: 100%;
+    }
+
+    .menu-container.active {
+        display: flex;
+        margin-left: 20px;
+    }
+
+    .menu-bar a {
+        padding: 0 40px;
+       
+    }
+    .menu-bar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-direction: column;
+    }
+
+    .menu-bar ul ul {
+        border-bottom:none
+}
+
+    .menu-item-container {
+        width: 100%;
+    }
+
+    .menu-bar li {
+        /* border-bottom: 1px solid #ccc; */
+        /* padding: 12px 15px; */
+        position: relative;
+    }
+
+    .menu-bar a,
+    .submenu-toggle {
+        font-size: 13px;
+        color: #004a8f;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+
+    .submenu {
+        display: none;
+        flex-direction: column;
+        padding-left: 20px;
+        background-color: #f9f9f9;
+    }
+
+
+    .menu-bar ul ul li ul li{
+        content: none;
+    }
+
+    li.open > .submenu {
+        /* display: block; */
+        position: relative;
+    }
+
+    .submenu li {
+        font-weight: lighter;
+    }
+
+    .submenu a {
+        font-size: 13px;
+        color: #004a8f;
+        display: flex;
+        align-items: center;
+        text-transform: none;
+        font-weight: 500;
+    }
+
+    .submenu svg {
+        margin-right: 6px;
+        min-width: 20px;
+    }
+
+    .submenu-toggle::before {
+        padding: 0px 4px;
+        border-radius: 15px;
+        content: '+';
+        margin-right: 10px;
+        font-weight: bold;
+        background-color: #004a8f;
+        color: white;
+        margin-left: .2em;
+    }
+
+    li.open > .submenu-toggle::before {
+        content: '−';
+    }
+
+    li.menu-item.open ul.submenu > li.submenu-item > div.submenu-toggle::before{
+        content: '';
+    }
+
+    li.menu-item.open ul.submenu > li.submenu-item > div.submenu-toggle {
+        font-weight: normal;
+        margin-left: 5px;
+        text-transform: none;
+        margin-top: 15px;
+    }
+    .search-container{
+        margin-top: 2.25em;
+    }
+
+}

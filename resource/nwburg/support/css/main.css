@@ -1130,11 +1130,12 @@ table tr:nth-child(even) {
   content:"←"
 }
 .slick-dotted.slick-slider {
-  margin-bottom:30px
+  margin-bottom:30px;
+  height: 336px;
 }
 .slick-dots {
   position:absolute;
-  bottom:-25px;
+  bottom:0px !important;
   list-style:none;
   display:block;
   text-align:center;

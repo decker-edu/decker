@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="https://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$" $if(dir)$ dir="$dir$" $endif$ class="light">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$" $if(dir)$ dir="$dir$" $endif$ class="light">
 
 <head>
     <meta charset="utf-8" />
@@ -89,14 +89,20 @@
     <!-- Page Header -->
     <header role="banner" class="page-header">
         <div class="page-header__logo">
-            <a class="page-header__logo-link" title="Zur Startseite" href="https://www.uni-wuerzburg.de/startseite/">
+            <a class="page-header__logo-link" title="Zur Startseite" href="http://www.uni-wuerzburg.de/startseite/">
                 <img src="/support/vendor/images/theme/uni-wuerzburg-logo.svg" class="page-header__logo-full">
             </a>
             <img src="/support/vendor/images/theme/uni-wuerzburg-header-background.png"
                 class="page-header__logo-background">
 
                         <!-- Hamburger Menu Icon -->
-        <div class="hamburger">&#9776;</div>
+                        <div class="hamburger"><?xml version="1.0" encoding="utf-8"?>
+                            <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 7H19" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5 12L19 12" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5 17L19 17" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg></div>
+                        </div>
         </div>
     
     </header>
@@ -119,12 +125,12 @@
                           
                             <li class="$index.menu_bar.items.submenu.style$">
                                 $if(index.menu_bar.items.submenu.action)$
-                                <a href="$index.menu_bar.items.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                                <a href="$index.menu_bar.items.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg> $index.menu_bar.items.submenu.label$</a>
                                 $else$
                                 
-                                <div class="submenu-toggle"><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                                <div class="submenu-toggle"><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg> 2$index.menu_bar.items.submenu.label$</div>
                                 $endif$
@@ -134,11 +140,11 @@
                                     $for(index.menu_bar.items.submenu.submenu)$
                                     <li class="$index.menu_bar.items.submenu.submenu.style$">
                                         $if(index.menu_bar.items.submenu.submenu.action)$
-                                        <a href="$index.menu_bar.items.submenu.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                                        <a href="$index.menu_bar.items.submenu.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg> $index.menu_bar.items.submenu.submenu.label$</a>
                                         $else$
-                                        <span class="submenu-toggle"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                                        <span class="submenu-toggle"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg> $index.menu_bar.items.submenu.submenu.label$</span>
                                         $endif$
@@ -169,9 +175,9 @@
                     $for(index.image_carousel.items)$
 					<li class="slide">
 						<a href="#">
-							<div class="slide__text">
+							<!-- <div class="slide__text">
 								<h2>$index.image_carousel.items.caption$</h2>
-							</div>
+							</div> -->
 							<div class="slide__image">
 								<img src="$index.image_carousel.items.image$" alt="" />
 							</div>
@@ -278,7 +284,7 @@
         <div class="page-footer-bottom">
             <div class="column-layout">
                 <div><a href="https://www.uni-wuerzburg.de">University Main Page</a></div>
-                <div><a href="https://www.uni-wuerzburg.de/startseite/">About the University</a></div>
+                <div><a href="http://www.uni-wuerzburg.de/startseite/">About the University</a></div>
                 <div><a href="https://www.uni-wuerzburg.de/sonstiges/kontakt/">University Contact</a></div>
             </div>
         </div>
