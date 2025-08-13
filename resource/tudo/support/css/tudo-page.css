@@ -1133,3 +1133,19 @@ html.dark
     border-radius: 0.5rem;
   }
 }
+
+/* make focus more visible */
+a,
+button,
+input,
+select {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
+}

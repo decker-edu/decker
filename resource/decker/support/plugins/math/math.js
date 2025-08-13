@@ -101,6 +101,7 @@ function fixAssistiveMML(doc) {
  * Inject CSS rules that (i) make SVG equations automatically shrink down to
  * fit the enclosing container and (ii) remove pointer events from the
  * equation parts, such that Reveal's zoom plugin work nicely on equations, too.
+ * Also adjust colors of the math exporer's highlighting.
  */
 function injectStyle() {
   const style = document.createElement("style");
@@ -120,6 +121,27 @@ function injectStyle() {
             mjx-container > svg a, 
             mjx-container > svg a * {
                 pointer-events: all;
+            }
+
+            /* adjust color for focus highlighting */
+            mjx-container rect[sre-highlighter-added="true"] {
+              fill: rgb(from var(--focus-color) r g b / 20%) !important;
+              stroke: var(--focus-color) !important;
+              & ~ g {
+                fill: var(--foreground-color);
+              }
+            }
+
+            /* adjust color of help icon */
+            mjx-help {
+              & circle {
+                fill: rgb(from var(--focus-color) r g b / 20%) !important;
+                stroke: var(--focus-color);
+              }
+              & line {
+                fill: var(--foreground-color);
+                stroke: var(--foreground-color);
+              }
             }
 
             mjx-help-background {

@@ -422,7 +422,7 @@ summary {
   transition: outline-offset 0.2s ease !important;
   outline-offset: 30px;
   &:focus-visible {
-    outline: solid 3px var(--orangeish) !important;
+    outline: solid 3px var(--focus-color) !important;
     outline-offset: 1px !important;
   }
   &:active {
