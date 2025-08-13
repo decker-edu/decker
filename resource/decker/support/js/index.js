@@ -25,25 +25,36 @@ function initIndexPage() {
   loadSources();
 }
 
-function setupModeLinks(container, url) {
+async function resourceExists(url) {
+  return fetch(url, { method: "HEAD" })
+    .then((r) => {
+      return r.status === 200;
+    })
+    .catch((_) => {
+      return false;
+    });
+}
+
+async function setupModeLinks(container, url) {
   const links = Decker.meta.index?.links || [];
-  if (links.includes("a11y")) {
-    const a11yLink = document.createElement("a");
-    a11yLink.href = url.pathname + "?a11y";
-    a11yLink.classList.add("fas", "fa-universal-access");
-    a11yLink.setAttribute(
+
+  if (links.includes("presenter")) {
+    const presenterLink = document.createElement("a");
+    presenterLink.href = url.pathname + "?presenter";
+    presenterLink.classList.add("fas", "fa-chalkboard-teacher");
+    presenterLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? "In barrierearmer Darstellung öffnen"
-        : "Access in accessibility mode"
+        ? "Im Präsentationsmodus öffnen"
+        : "Access in presenter mode"
     );
-    a11yLink.setAttribute(
+    presenterLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? "In barrierearmer Darstellung öffnen"
-        : "Access in accessibility mode"
+        ? "Im Präsentationsmodus öffnen"
+        : "Access in presenter mode"
     );
-    container.appendChild(a11yLink);
+    container.appendChild(presenterLink);
   }
 
   if (links.includes("handout")) {
@@ -65,49 +76,45 @@ function setupModeLinks(container, url) {
     container.appendChild(handoutLink);
   }
 
-  if (links.includes("presenter")) {
-    const presenterLink = document.createElement("a");
-    presenterLink.href = url.pathname + "?presenter";
-    presenterLink.classList.add("fas", "fa-chalkboard-teacher");
-    presenterLink.setAttribute(
+  if (links.includes("a11y")) {
+    const a11yLink = document.createElement("a");
+    a11yLink.href = url.pathname + "?a11y";
+    a11yLink.classList.add("fas", "fa-universal-access");
+    a11yLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? "Im Präsentationsmodus öffnen"
-        : "Access in presenter mode"
+        ? "In barrierearmer Darstellung öffnen"
+        : "Access in accessibility mode"
     );
-    presenterLink.setAttribute(
+    a11yLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? "Im Präsentationsmodus öffnen"
-        : "Access in presenter mode"
+        ? "In barrierearmer Darstellung öffnen"
+        : "Access in accessibility mode"
     );
-    container.appendChild(presenterLink);
+    container.appendChild(a11yLink);
   }
 
   if (links.includes("pdf")) {
-    const exists = fetch(url.pathname.replace(".html", ".pdf"), {
-      method: "OPTIONS",
-    });
-    exists.then((response) => {
-      if (response.ok) {
-        const pdfLink = document.createElement("a");
-        pdfLink.href = url.pathname.replace(".html", ".pdf");
-        pdfLink.classList.add("fas", "fa-file-pdf");
-        pdfLink.setAttribute(
-          "title",
-          navigator.language === "de"
-            ? "PDF Export des Foliensatzes herunterladen"
-            : "Download presentation PDF"
-        );
-        pdfLink.setAttribute(
-          "aria-label",
-          navigator.language === "de"
-            ? "PDF Export des Foliensatzes herunterladen"
-            : "Download presentation PDF"
-        );
-        container.appendChild(pdfLink);
-      }
-    });
+    const exists = await resourceExists(url.pathname.replace(".html", ".pdf"));
+    if (exists) {
+      const pdfLink = document.createElement("a");
+      pdfLink.href = url.pathname.replace(".html", ".pdf");
+      pdfLink.classList.add("fas", "fa-file-pdf");
+      pdfLink.setAttribute(
+        "title",
+        navigator.language === "de"
+          ? "PDF Export des Foliensatzes herunterladen"
+          : "Download presentation PDF"
+      );
+      pdfLink.setAttribute(
+        "aria-label",
+        navigator.language === "de"
+          ? "PDF Export des Foliensatzes herunterladen"
+          : "Download presentation PDF"
+      );
+      container.appendChild(pdfLink);
+    }
   }
 }
 
