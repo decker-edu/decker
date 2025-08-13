@@ -1,0 +1,848 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.delimiters = void 0;
+var Direction_js_1 = require("@mathjax/src/cjs/output/common/Direction.js");
+exports.delimiters = {
+    0x28: {
+        dir: Direction_js_1.V,
+        sizes: [.991, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x239B, 0x239C, 0x239D],
+        HDW: [.775, .215, .599]
+    },
+    0x29: {
+        dir: Direction_js_1.V,
+        sizes: [.991, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x239E, 0x239F, 0x23A0],
+        HDW: [.775, .215, .599]
+    },
+    0x2D: {
+        c: 0x2212,
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2212],
+        HDW: [0.468, -0.092, .5],
+        hd: [.468, -.092]
+    },
+    0x2F: {
+        dir: Direction_js_1.V,
+        sizes: [.911, 1.31, 1.716, 2.248, 2.944, 3.857, 5.054]
+    },
+    0x3D: {
+        dir: Direction_js_1.H,
+        sizes: [.5],
+        stretch: [0, 0x3D],
+        HDW: [0.414, -0.146, .5],
+        hd: [.414, -.146]
+    },
+    0x5B: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x23A1, 0x23A2, 0x23A3],
+        HDW: [.746, .186, .521]
+    },
+    0x5C: {
+        dir: Direction_js_1.V,
+        sizes: [.911, 1.31, 1.716, 2.248, 2.944, 3.857, 5.054]
+    },
+    0x5D: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x23A4, 0x23A5, 0x23A6],
+        HDW: [.746, .186, .521]
+    },
+    0x5E: {
+        c: 0x302,
+        dir: Direction_js_1.H,
+        sizes: [0, .644, .768, .919, 1.1, 1.32, 1.581]
+    },
+    0x5F: {
+        dir: Direction_js_1.H,
+        sizes: [.52],
+        stretch: [0, 0x5F],
+        HDW: [-0.063, 0.142, .52],
+        hd: [-.063, .142]
+    },
+    0x7B: {
+        dir: Direction_js_1.V,
+        sizes: [.973, 1.319, 1.647, 1.976, 2.304, 2.631, 2.96, 3.288, 3.616, 3.945, 4.272, 4.6, 4.929, 5.257, 5.585, 5.913],
+        stretch: [0x23A7, 0x23AA, 0x23A9, 0x23A8],
+        HDW: [.766, .206, .67]
+    },
+    0x7C: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0, 0x7C],
+        stretchv: [0, 1],
+        HDW: [.746, .186, .507]
+    },
+    0x7D: {
+        dir: Direction_js_1.V,
+        sizes: [.973, 1.319, 1.647, 1.976, 2.304, 2.631, 2.96, 3.288, 3.616, 3.945, 4.272, 4.6, 4.929, 5.257, 5.585, 5.913],
+        stretch: [0x23AB, 0x23AA, 0x23AD, 0x23AC],
+        HDW: [.766, .206, .67]
+    },
+    0x7E: {
+        c: 0x303,
+        dir: Direction_js_1.H,
+        sizes: [0, .652, .778, .931, 1.115, 1.335, 1.599]
+    },
+    0xAF: {
+        dir: Direction_js_1.H,
+        sizes: [.333],
+        stretch: [0, 0xAF],
+        HDW: [0.736, -0.667, .333],
+        hd: [.736, -.667]
+    },
+    0x2C6: {
+        c: 0x302,
+        dir: Direction_js_1.H,
+        sizes: [0, .644, .768, .919, 1.1, 1.32, 1.581]
+    },
+    0x2C9: {
+        c: 0xAF,
+        dir: Direction_js_1.H,
+        sizes: [.333],
+        stretch: [0, 0xAF],
+        HDW: [0.736, -0.667, .333],
+        hd: [.736, -.667]
+    },
+    0x2DC: {
+        c: 0x303,
+        dir: Direction_js_1.H,
+        sizes: [0, .652, .778, .931, 1.115, 1.335, 1.599]
+    },
+    0x302: {
+        dir: Direction_js_1.H,
+        sizes: [0, .644, .768, .919, 1.1, 1.32, 1.581]
+    },
+    0x303: {
+        dir: Direction_js_1.H,
+        sizes: [0, .652, .778, .931, 1.115, 1.335, 1.599]
+    },
+    0x305: {
+        dir: Direction_js_1.H,
+        sizes: [0],
+        stretch: [0, 0x305],
+        HDW: [0.736, -0.667, 0],
+        hd: [.736, -.667]
+    },
+    0x2013: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2013],
+        HDW: [0.352, -0.274, .52],
+        hd: [.352, -.274]
+    },
+    0x2014: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2014],
+        HDW: [0.352, -0.274, .79],
+        hd: [.352, -.274]
+    },
+    0x2015: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2015],
+        HDW: [0.352, -0.274, .52],
+        hd: [.352, -.274]
+    },
+    0x2016: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0, 0x2016],
+        stretchv: [0, 1],
+        HDW: [.746, .186, .767]
+    },
+    0x2017: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2015],
+        HDW: [0.352, -0.274, 0],
+        hd: [.352, -.274]
+    },
+    0x203E: {
+        c: 0xAF,
+        dir: Direction_js_1.H,
+        sizes: [.333],
+        stretch: [0, 0xAF],
+        HDW: [0.736, -0.667, .333],
+        hd: [.736, -.667]
+    },
+    0x20D7: {
+        c: 0x2192,
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x2212, 0x2192],
+        stretchv: [0, 0, 3],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.468, -.092]
+    },
+    0x2190: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x2190, 0x2212],
+        stretchv: [2, 0],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.468, -.092]
+    },
+    0x2191: {
+        dir: Direction_js_1.V,
+        sizes: [.8],
+        stretch: [0x2191, 0x2191],
+        stretchv: [0, 1],
+        HDW: [.68, .12, .664]
+    },
+    0x2192: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x2212, 0x2192],
+        stretchv: [0, 0, 3],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.468, -.092]
+    },
+    0x2193: {
+        dir: Direction_js_1.V,
+        sizes: [.8],
+        stretch: [0, 0x2191, 0x2193],
+        stretchv: [0, 1, 0],
+        HDW: [.68, .12, .664]
+    },
+    0x2194: {
+        dir: Direction_js_1.H,
+        sizes: [1.12],
+        stretch: [0x2190, 0x2212, 0x2192],
+        stretchv: [2, 0, 3],
+        HDW: [0.492, -0.068, 1.12],
+        hd: [.468, -.092]
+    },
+    0x2195: {
+        dir: Direction_js_1.V,
+        sizes: [.88],
+        stretch: [0x2191, 0x2191, 0x2193],
+        stretchv: [0, 1, 0],
+        HDW: [.72, .16, .664]
+    },
+    0x219E: {
+        dir: Direction_js_1.H,
+        sizes: [1.09],
+        stretch: [0x219E, 0x2190],
+        stretchv: [2, 1],
+        HDW: [0.492, -0.068, 1.09],
+        hd: [.318, -.242]
+    },
+    0x21A0: {
+        dir: Direction_js_1.H,
+        sizes: [1.09],
+        stretch: [0, 0x2190, 0x21A0],
+        stretchv: [0, 1, 3],
+        HDW: [0.492, -0.068, 1.09],
+        hd: [.318, -.242]
+    },
+    0x21A4: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x2190, 0x21A4, 0x21A4],
+        stretchv: [2, 1, 2],
+        HDW: [0.597, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x21A6: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21A4, 0x21A4, 0x2192],
+        stretchv: [2, 1, 3],
+        HDW: [0.597, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x21BC: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21BC, 0x2190],
+        stretchv: [2, 1],
+        HDW: [0.492, -0.242, 1.04],
+        hd: [.318, -.242]
+    },
+    0x21BD: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21BD, 0x2190],
+        stretchv: [2, 1],
+        HDW: [0.318, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x21BE: {
+        dir: Direction_js_1.V,
+        sizes: [.809],
+        stretch: [0x294C, 0x2191],
+        stretchv: [2, 1],
+        HDW: [.69, .12, .664]
+    },
+    0x21BF: {
+        dir: Direction_js_1.V,
+        sizes: [.809],
+        stretch: [0x294D, 0x2191],
+        stretchv: [2, 1],
+        HDW: [.69, .12, .664]
+    },
+    0x21C0: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x2190, 0x21C0],
+        stretchv: [0, 1, 3],
+        HDW: [0.492, -0.242, 1.04],
+        hd: [.318, -.242]
+    },
+    0x21C1: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x2190, 0x21C1],
+        stretchv: [0, 1, 3],
+        HDW: [0.318, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x21C2: {
+        dir: Direction_js_1.V,
+        sizes: [.81],
+        stretch: [0, 0x2191, 0x294D],
+        stretchv: [0, 1, 3],
+        HDW: [.68, .13, .664]
+    },
+    0x21C3: {
+        dir: Direction_js_1.V,
+        sizes: [.81],
+        stretch: [0, 0x2191, 0x294C],
+        stretchv: [0, 1, 3],
+        HDW: [.68, .13, .664]
+    },
+    0x21D0: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21D0, 0x21D0],
+        stretchv: [2, 1],
+        HDW: [0.548, -0.012, 1.04],
+        hd: [.414, -.146]
+    },
+    0x21D1: {
+        dir: Direction_js_1.V,
+        sizes: [.8],
+        stretch: [0x21D1, 0x2016],
+        HDW: [.68, .12, .577]
+    },
+    0x21D2: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x21D0, 0x21D2],
+        stretchv: [0, 1, 3],
+        HDW: [0.548, -0.012, 1.04],
+        hd: [.414, -.146]
+    },
+    0x21D3: {
+        dir: Direction_js_1.V,
+        sizes: [.8],
+        stretch: [0, 0x2016, 0x21D3],
+        HDW: [.68, .12, .577]
+    },
+    0x21D4: {
+        dir: Direction_js_1.H,
+        sizes: [1.12],
+        stretch: [0x21D0, 0x21D0, 0x21D2],
+        stretchv: [2, 1, 3],
+        HDW: [0.548, -0.012, 1.12],
+        hd: [.414, -.146]
+    },
+    0x21D5: {
+        dir: Direction_js_1.V,
+        sizes: [.88],
+        stretch: [0x21D1, 0x2016, 0x21D3],
+        HDW: [.72, .16, .577]
+    },
+    0x21DA: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21DA, 0x2261],
+        stretchv: [2, 1],
+        HDW: [0.613, 0.053, 1.04],
+        hd: [.494, -.066]
+    },
+    0x21DB: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x2261, 0x21DB],
+        stretchv: [0, 1, 3],
+        HDW: [0.613, 0.053, 1.04],
+        hd: [.494, -.066]
+    },
+    0x220F: {
+        dir: Direction_js_1.V,
+        sizes: [.863, 1.528],
+        variants: [0, 2]
+    },
+    0x2210: {
+        dir: Direction_js_1.V,
+        sizes: [.863, 1.528],
+        variants: [0, 2]
+    },
+    0x2211: {
+        dir: Direction_js_1.V,
+        sizes: [.863, 1.528],
+        variants: [0, 2]
+    },
+    0x2212: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2212],
+        HDW: [0.468, -0.092, .5],
+        hd: [.468, -.092]
+    },
+    0x2215: {
+        c: 0x2F,
+        dir: Direction_js_1.V,
+        sizes: [.911, 1.31, 1.716, 2.248, 2.944, 3.857, 5.054]
+    },
+    0x221A: {
+        dir: Direction_js_1.V,
+        sizes: [1.153, 1.471, 1.788, 2.105, 2.423, 2.74, 3.057, 3.375, 3.692, 4.009, 4.327, 4.644, 4.961, 5.279, 5.596, 5.913],
+        stretch: [0x221A, 0x221A, 0x221A],
+        stretchv: [2, 1, 3],
+        HDW: [.952, .2, 1.013]
+    },
+    0x2223: {
+        dir: Direction_js_1.V,
+        sizes: [.931],
+        stretch: [0, 0x2223],
+        HDW: [.746, .186, .403]
+    },
+    0x2225: {
+        dir: Direction_js_1.V,
+        sizes: [.931],
+        stretch: [0, 0x2225],
+        HDW: [.746, .186, .617]
+    },
+    0x222B: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x222C: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x222D: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x222E: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x222F: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x2230: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x2261: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2261],
+        HDW: [0.494, -0.066, .5],
+        hd: [.494, -.066]
+    },
+    0x2263: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2263],
+        HDW: [0.558, -0.002, .5],
+        hd: [.558, -.002]
+    },
+    0x2308: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x2308, 0x2308],
+        stretchv: [2, 1],
+        HDW: [.746, .186, .521]
+    },
+    0x2309: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x2309, 0x2309],
+        stretchv: [2, 1],
+        HDW: [.746, .186, .521]
+    },
+    0x230A: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0, 0x230A, 0x230A],
+        stretchv: [0, 1, 3],
+        HDW: [.746, .186, .521]
+    },
+    0x230B: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0, 0x230B, 0x230B],
+        stretchv: [0, 1, 3],
+        HDW: [.746, .186, .521]
+    },
+    0x2312: {
+        c: 0x23DC,
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DC, 0x23DC, 0x23DC],
+        stretchv: [2, 1, 3],
+        HDW: [1.104, -0.64, .802],
+        hd: [1.104, -.984]
+    },
+    0x2322: {
+        c: 0x23DC,
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DC, 0x23DC, 0x23DC],
+        stretchv: [2, 1, 3],
+        HDW: [1.104, -0.64, .802],
+        hd: [1.104, -.984]
+    },
+    0x2323: {
+        c: 0x23DD,
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DD, 0x23DD, 0x23DD],
+        stretchv: [2, 1, 3],
+        HDW: [-0.16, 0.624, .802],
+        hd: [-.504, .624]
+    },
+    0x2329: {
+        c: 0x27E8,
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x232A: {
+        c: 0x27E9,
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x23AA: {
+        dir: Direction_js_1.V,
+        sizes: [.6],
+        stretch: [0, 0x23AA, 0],
+        HDW: [.6, 0, .67]
+    },
+    0x23AF: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2013],
+        HDW: [0.352, -0.274, 0],
+        hd: [.352, -.274]
+    },
+    0x23B0: {
+        dir: Direction_js_1.V,
+        sizes: [2.78],
+        stretch: [0x23A7, 0x23AA, 0x23AD],
+        HDW: [2.28, .5, .67]
+    },
+    0x23B1: {
+        dir: Direction_js_1.V,
+        sizes: [2.78],
+        stretch: [0x23AB, 0x23AA, 0x23A9],
+        HDW: [2.28, .5, .67]
+    },
+    0x23B4: {
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23B4, 0x23B4, 0x23B4],
+        stretchv: [2, 1, 3],
+        HDW: [0.984, -0.64, .802],
+        hd: [.984, -.882]
+    },
+    0x23B5: {
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23B5, 0x23B5, 0x23B5],
+        stretchv: [2, 1, 3],
+        HDW: [-0.16, 0.504, .802],
+        hd: [-.402, .504]
+    },
+    0x23D0: {
+        dir: Direction_js_1.V,
+        sizes: [.931],
+        stretch: [0, 0x2223],
+        HDW: [0, 0, .403]
+    },
+    0x23DC: {
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DC, 0x23DC, 0x23DC],
+        stretchv: [2, 1, 3],
+        HDW: [1.104, -0.64, .802],
+        hd: [1.104, -.984]
+    },
+    0x23DD: {
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DD, 0x23DD, 0x23DD],
+        stretchv: [2, 1, 3],
+        HDW: [-0.16, 0.624, .802],
+        hd: [-.504, .624]
+    },
+    0x23DE: {
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DE, 0x23DE, 0x23DE, 0x23DE],
+        stretchv: [2, 1, 3, 4],
+        HDW: [1.095, -0.64, .802],
+        hd: [.905, -.795]
+    },
+    0x23DF: {
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DF, 0x23DF, 0x23DF, 0x23DF],
+        stretchv: [2, 1, 3, 4],
+        HDW: [-0.16, 0.615, .802],
+        hd: [-.315, .425]
+    },
+    0x23E0: {
+        dir: Direction_js_1.H,
+        sizes: [0],
+        stretch: [0x2CA, 0x2C9, 0x2CB],
+        HDW: [0.801, -0.638, 0],
+        hd: [.736, -.667]
+    },
+    0x23E1: {
+        dir: Direction_js_1.H,
+        sizes: [0],
+        stretch: [0x2CB, 0x2C9, 0x2CA],
+        HDW: [0.801, -0.638, 0],
+        hd: [.736, -.667]
+    },
+    0x2500: {
+        dir: Direction_js_1.H,
+        stretch: [0, 0x2013],
+        HDW: [0.352, -0.274, 0],
+        hd: [.352, -.274]
+    },
+    0x2758: {
+        dir: Direction_js_1.V,
+        sizes: [.931],
+        stretch: [0, 0x2223],
+        HDW: [0, 0, .403]
+    },
+    0x27E8: {
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x27E9: {
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x27EA: {
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x27EB: {
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x27EE: {
+        dir: Direction_js_1.V,
+        sizes: [.991, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x27EE, 0x27EE, 0x27EE],
+        stretchv: [2, 1, 3],
+        HDW: [.775, .215, .563]
+    },
+    0x27EF: {
+        dir: Direction_js_1.V,
+        sizes: [.991, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0x27EF, 0x27EF, 0x27EF],
+        stretchv: [2, 1, 3],
+        HDW: [.775, .215, .563]
+    },
+    0x27F5: {
+        c: 0x2190,
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x2190, 0x2212],
+        stretchv: [2, 0],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.468, -.092]
+    },
+    0x27F6: {
+        c: 0x2192,
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x2212, 0x2192],
+        stretchv: [0, 0, 3],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.468, -.092]
+    },
+    0x27F7: {
+        c: 0x2194,
+        dir: Direction_js_1.H,
+        sizes: [1.12],
+        stretch: [0x2190, 0x2212, 0x2192],
+        stretchv: [2, 0, 3],
+        HDW: [0.492, -0.068, 1.12],
+        hd: [.468, -.092]
+    },
+    0x27F8: {
+        c: 0x21D0,
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21D0, 0x21D0],
+        stretchv: [2, 1],
+        HDW: [0.548, -0.012, 1.04],
+        hd: [.414, -.146]
+    },
+    0x27F9: {
+        c: 0x21D2,
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0, 0x21D0, 0x21D2],
+        stretchv: [0, 1, 3],
+        HDW: [0.548, -0.012, 1.04],
+        hd: [.414, -.146]
+    },
+    0x27FA: {
+        c: 0x21D4,
+        dir: Direction_js_1.H,
+        sizes: [1.12],
+        stretch: [0x21D0, 0x21D0, 0x21D2],
+        stretchv: [2, 1, 3],
+        HDW: [0.548, -0.012, 1.12],
+        hd: [.414, -.146]
+    },
+    0x27FB: {
+        dir: Direction_js_1.H,
+        sizes: [1.64],
+        stretch: [0x2190, 0x21A4, 0x21A4],
+        stretchv: [2, 1, 2],
+        HDW: [0.597, -0.068, 1.64],
+        hd: [.318, -.242]
+    },
+    0x27FC: {
+        dir: Direction_js_1.H,
+        sizes: [1.64],
+        stretch: [0x21A4, 0x21A4, 0x2192],
+        stretchv: [2, 1, 3],
+        HDW: [0.597, -0.068, 1.64],
+        hd: [.318, -.242]
+    },
+    0x27FD: {
+        dir: Direction_js_1.H,
+        sizes: [1.64],
+        stretch: [0x21D0, 0x21D0, 0x21A4],
+        stretchv: [2, 1, 2],
+        HDW: [0.597, -0.012, 1.64],
+        hd: [.414, -.146]
+    },
+    0x27FE: {
+        dir: Direction_js_1.H,
+        sizes: [1.64],
+        stretch: [0x21A4, 0x21D0, 0x21D2],
+        stretchv: [2, 1, 3],
+        HDW: [0.597, -0.012, 1.64],
+        hd: [.414, -.146]
+    },
+    0x294A: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21BC, 0x2190, 0x21C1],
+        stretchv: [2, 1, 3],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x294B: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21BD, 0x2190, 0x21C0],
+        stretchv: [2, 1, 3],
+        HDW: [0.492, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x294E: {
+        dir: Direction_js_1.H,
+        sizes: [1.12],
+        stretch: [0x21BC, 0x2190, 0x21C0],
+        stretchv: [2, 1, 3],
+        HDW: [0.492, -0.242, 1.12],
+        hd: [.318, -.242]
+    },
+    0x2950: {
+        dir: Direction_js_1.H,
+        sizes: [1.12],
+        stretch: [0x21BD, 0x2190, 0x21C1],
+        stretchv: [2, 1, 3],
+        HDW: [0.318, -0.068, 1.12],
+        hd: [.318, -.242]
+    },
+    0x295A: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21BC, 0x2190, 0x21A4],
+        stretchv: [2, 1, 2],
+        HDW: [0.597, -0.08, 1.04],
+        hd: [.318, -.242]
+    },
+    0x295B: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21A4, 0x2190, 0x21C0],
+        stretchv: [2, 1, 3],
+        HDW: [0.597, -0.08, 1.04],
+        hd: [.318, -.242]
+    },
+    0x295E: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21BD, 0x2190, 0x21A4],
+        stretchv: [2, 1, 2],
+        HDW: [0.597, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x295F: {
+        dir: Direction_js_1.H,
+        sizes: [1.04],
+        stretch: [0x21A4, 0x2190, 0x21C1],
+        stretchv: [2, 1, 3],
+        HDW: [0.597, -0.068, 1.04],
+        hd: [.318, -.242]
+    },
+    0x2980: {
+        dir: Direction_js_1.V,
+        sizes: [.933, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913],
+        stretch: [0, 0x2980],
+        stretchv: [0, 1],
+        HDW: [.746, .186, 1.027]
+    },
+    0x2A0C: {
+        dir: Direction_js_1.V,
+        sizes: [1.051, 2.075],
+        variants: [0, 2]
+    },
+    0x3008: {
+        c: 0x27E8,
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0x3009: {
+        c: 0x27E9,
+        dir: Direction_js_1.V,
+        sizes: [.961, 1.32, 1.648, 1.976, 2.304, 2.632, 2.96, 3.288, 3.616, 3.944, 4.272, 4.6, 4.928, 5.256, 5.584, 5.913]
+    },
+    0xFE37: {
+        c: 0x23DE,
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DE, 0x23DE, 0x23DE, 0x23DE],
+        stretchv: [2, 1, 3, 4],
+        HDW: [1.095, -0.64, .802],
+        hd: [.905, -.795]
+    },
+    0xFE38: {
+        c: 0x23DF,
+        dir: Direction_js_1.H,
+        sizes: [.802, 1.146, 1.491, 1.836, 2.181, 2.526, 2.871, 3.216, 3.561, 3.906, 4.251, 4.596, 4.941, 5.286, 5.631, 5.976],
+        stretch: [0x23DF, 0x23DF, 0x23DF, 0x23DF],
+        stretchv: [2, 1, 3, 4],
+        HDW: [-0.16, 0.615, .802],
+        hd: [-.315, .425]
+    }
+};
+//# sourceMappingURL=delimiters.js.map
