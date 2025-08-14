@@ -1676,7 +1676,8 @@ html.a11y .reveal a:hover {
 a,
 button,
 input,
-select {
+select,
+summary {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
   &:focus-visible {

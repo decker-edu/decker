@@ -21,6 +21,12 @@
  * - upgrade to MathJax v4
  */
 
+import {
+  injectMathJaxCSS,
+  configureMathJax,
+  loadMathJax,
+} from "../../js/mathjax.js";
+
 // This module's reference to Reveal
 let Reveal;
 
@@ -97,171 +103,36 @@ function fixAssistiveMML(doc) {
   }
 }
 
-/*
- * Inject CSS rules that (i) make SVG equations automatically shrink down to
- * fit the enclosing container and (ii) remove pointer events from the
- * equation parts, such that Reveal's zoom plugin work nicely on equations, too.
- * Also adjust colors of the math exporer's highlighting.
- */
-function injectStyle() {
-  const style = document.createElement("style");
-  style.textContent = String.raw`
-            /* fit equation into container (disable for tables) */
-            mjx-container > svg:not(table mjx-container > svg) {
-                object-fit: contain;
-                max-width: 100%;
-            }
-
-            /* don't (dbl)click/zoom SVG interiors */
-            mjx-container > svg * {
-                pointer-events: none;
-            }
-
-            /* eqn refs have to be clickable */
-            mjx-container > svg a, 
-            mjx-container > svg a * {
-                pointer-events: all;
-            }
-
-            /* adjust color for focus highlighting */
-            mjx-container rect[sre-highlighter-added="true"] {
-              fill: rgb(from var(--focus-color) r g b / 20%) !important;
-              stroke: var(--focus-color) !important;
-              & ~ g {
-                fill: var(--foreground-color);
-              }
-            }
-
-            /* adjust color of help icon */
-            mjx-help {
-              & circle {
-                fill: rgb(from var(--focus-color) r g b / 20%) !important;
-                stroke: var(--focus-color);
-              }
-              & line {
-                fill: var(--foreground-color);
-                stroke: var(--foreground-color);
-              }
-            }
-
-            mjx-help-background {
-                z-index: 128;
-            }
-        `;
-  document.head.append(style);
-}
-
-// Is initial a11y mode requested?
-const a11y = /a11y/gi.test(window.location.search);
-
 const Plugin = {
   id: "math",
 
   init: (deck) => {
     Reveal = deck;
 
-    // get configuration, built MathJax URL
-    const options = Reveal.getConfig().math || {};
-    if (!options.mathjax) {
-      console.error(
-        "No MathJax source URI has been configured. This should not happen!",
-        "The config.math.mathjax value is usually configured in your resource pack's 'deck.html'",
-        "Please contact the developers: https://github.com/decker-edu/decker"
-      );
-      return;
-    }
-    const url = options.mathjax + "tex-svg-nofont.js";
-
-    // inject some CSS rules
-    injectStyle();
-
-    // define \fragment{...} funtion
-    let macros = { fragment: ["\\class{fragment}{#1}", 1] };
-    // add user-defined Latex macros
-    if (options.macros) {
-      macros = Object.assign(macros, options.macros);
-    }
-
-    const language = Decker.meta.lang || navigator.language;
-
-    /* MathJax configuration object */
-    window.MathJax = {
-      startup: {
-        ready: () => {
-          console.log("should be redefined below");
-        },
-      },
-      tex: {
-        tags: "ams",
-        inlineMath: [
-          // start/end delimiter pairs for in-line math
-          ["$", "$"],
-          ["\\(", "\\)"],
-        ],
-        displayMath: [
-          // start/end delimiter pairs for display math
-          ["$$", "$$"],
-          ["\\[", "\\]"],
-        ],
-        macros: macros,
-      },
-      svg: {
-        scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
-        minScale: 0.5, // smallest scaling factor to use
-        mtextInheritFont: true, // true to make mtext elements use surrounding font
-        merrorInheritFont: true, // true to make merror text use surrounding font
-        mathmlSpacing: false, // true for MathML spacing rules, false for TeX rules
-        skipAttributes: {}, // RFDa and other attributes NOT to copy to the output
-        exFactor: 0.5, // default size of ex in em units
-        displayAlign: "center", // default for indentalign when set to 'auto'
-        displayIndent: "0", // default for indentshift when set to 'auto'
-        fontCache: "none", // or 'global' or 'none'
-        localID: null, // ID to use for local font cache (for single equation processing)
-      },
-      output: {
-        font: "mathjax-" + (options.font || "newcm"),
-        fontPath: options.mathjax + "/fonts/%%FONT%%-font",
-      },
-      options: {
-        renderActions: {
-          incremental: [1000, incrementalDocument, incrementalItem, false],
-          adjustLinks: [1001, adjustLinksDocument, adjustLinksItem, false],
-          fixmml: [1002, fixAssistiveMML, "", false],
-        },
-        sre: {
-          locale: language === "de" ? "de" : "en",
-        },
-        enableMenu: a11y,
-        enableExplorer: a11y,
-        a11y: {
-          speech: a11y,
-          braille: a11y,
-        },
-        menuOptions: {
-          settings: {
-            speech: a11y, //if in a11y page mode: active by default
-            braille: a11y,
-          },
-        },
-      },
-    };
-
     /* Return a promise to reveal to make it wait until startup.promise resolves. */
     return new Promise((resolve) => {
-      // first inject init promise into MathJax's startup function
+      injectMathJaxCSS();
+      configureMathJax();
+
       window.MathJax.startup.ready = () => {
+        const startTime = Date.now();
         console.log("MathJax start");
         MathJax.startup.defaultReady();
         MathJax.startup.promise.then(() => {
-          console.log("MathJax done");
+          const endTime = Date.now();
+          const timeTaken = endTime - startTime;
+          console.log(`mathjax took ${timeTaken} milliseconds`);
           resolve();
         });
       };
 
-      // now load MathJax script, which triggers its startup function
-      let script = document.createElement("script");
-      script.src = url;
-      document.querySelector("head").appendChild(script);
+      window.MathJax.options.renderActions = {
+        incremental: [1000, incrementalDocument, incrementalItem, false],
+        adjustLinks: [1001, adjustLinksDocument, adjustLinksItem, false],
+        fixmml: [1002, fixAssistiveMML, "", false],
+      };
+
+      loadMathJax();
     });
   },
 };

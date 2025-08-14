@@ -1068,13 +1068,6 @@ div.anchor summary {
 
 /****** MARIO HACK(S) ******/
 
-/* fit equation into container */
-/* mjx-container > svg  */
-mjx-container > svg:not(table mjx-container > svg) {
-  object-fit: contain;
-  max-width: 100%;
-}
-
 figure {
   margin: auto;
   border: none;
@@ -1138,7 +1131,8 @@ html.dark
 a,
 button,
 input,
-select {
+select,
+summary {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
   &:focus-visible {
