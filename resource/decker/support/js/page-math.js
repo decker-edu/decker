@@ -24,13 +24,13 @@ export function init() {
 
     window.MathJax.startup.ready = () => {
       const startTime = Date.now();
-      console.log("mathjax start");
+      console.log("mathjax: start");
       MathJax.startup.defaultReady();
       MathJax.startup.promise.then(() => {
         enableTypesetDetails();
         const endTime = Date.now();
         const timeTaken = endTime - startTime;
-        console.log(`mathjax took ${timeTaken} milliseconds`);
+        console.log(`mathjax: done (took ${timeTaken} ms)`);
       });
     };
     window.MathJax.options.skipHtmlTags = { "[+]": ["details"] };
@@ -38,3 +38,5 @@ export function init() {
     loadMathJax();
   });
 }
+
+init();

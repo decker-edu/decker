@@ -70,38 +70,6 @@ $endif$
     <link rel="stylesheet" href="$template.index.css$">
     $endfor$
 
-
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
-
   </head>
 
   <!-- main content ------------------------------------------------------->
@@ -148,6 +116,7 @@ $body$
 
   <script src="$decker-support-dir$/js/index.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
 
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
@@ -163,7 +132,5 @@ $body$
         window.location.reload(true);
     };
   </script>
-
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
 
 </html>
