@@ -6,7 +6,6 @@ import Control.Lens ((^.))
 import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
 import Data.Aeson (encodeFile)
-import Data.ByteString qualified as BS
 import Data.IORef ()
 import Data.List
 import Data.Map.Strict qualified as Map
@@ -35,10 +34,14 @@ import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, ex
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
+import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
+import Text.Decker.Resource.Zip
 import Text.Decker.Writer.Layout
 import Text.Groom
 import System.Directory (makeRelativeToCurrentDirectory)
+import Path (parseRelDir)
+import Path.IO (copyDirRecur)
 
 main :: IO ()
 main = do
@@ -156,16 +159,26 @@ deckerRules = do
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
   --
-  priority 5 $ do
-    (publicDir </> "support") <//> "*" %> \out -> do
-      deps <- getDeps
-      let path = fromJust $ stripPrefix (publicDir <> "/") out
-      let source = (deps ^. resources) Map.! out
-      putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
-      needResource source path
-      content <- fromJust <$> liftIO (readResource path source)
-      liftIO $ BS.writeFile out content
+  -- priority 5 $ do
+  --   (publicDir </> "support") <//> "*" %> \out -> do
+  --     deps <- getDeps
+  --     let path = fromJust $ stripPrefix (publicDir <> "/") out
+  --     let source = (deps ^. resources) Map.! out
+  --     putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
+  --     needResource source path
+  --     content <- fromJust <$> liftIO (readResource path source)
+  --     liftIO $ BS.writeFile out content
   --
+  --
+  priority 5 $ do
+    (supportDir </> deckerGitCommitId) %> \out -> do
+      meta <- getGlobalMeta
+      liftIO $ do
+        createDirectoryIfMissing True supportDir
+        touchFile out
+        (Resources dr pr) <- deckerResources meta
+        extractFast dr
+        extractFast pr
   priority 4 $ do
     publicDir <//> "*-deck.html" %> \out -> do
       src <- lookupSource decks out <$> getDeps
@@ -353,8 +366,12 @@ deckerRules = do
     phony "support" $ do
       deps <- getDeps
       need [indexFile, "static-files"]
-      -- Resources and their locations are now recorded in deps
-      need $ Map.keys (deps ^. resources)
+      -- Resources and their locations are now recorded in deps. Well, no more.
+      -- Now use a version file containing the commit hash.
+      -- need $ Map.keys (deps ^. resources)
+      -- putNormal $ "needing: " <> (supportDir </> deckerGitCommitId)
+      need [supportDir </> deckerGitCommitId]
+  --
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
     phony "publish" $ do
       meta <- getGlobalMeta
@@ -414,3 +431,13 @@ waitForYes = do
   hFlush stdout
   input <- getLine
   unless (input == "y") waitForYes
+
+extractFast (DeckerExecutable path) = do
+  putStrLn $ "extractFast: extracting from executable: " <> path
+  extractResourceEntries (path </> "support") supportDir  
+extractFast (LocalDir path) = do
+  putStrLn $ "extractFast: extracting from local dir: " <> path
+  from <- parseRelDir (path </> "support")
+  to <- parseRelDir supportDir
+  copyDirRecur from to  
+extractFast source = putStrLn $ "extractFast: saw: " <> show source  

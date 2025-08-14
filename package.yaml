@@ -84,6 +84,8 @@ dependencies:
   - network-uri
   - pandoc
   - pandoc-types
+  - path-io
+  - path
   - pretty-simple
   - process
   - pureMD5
