@@ -13,13 +13,14 @@ import Data.Text qualified as Text
 import Development.Shake.FilePath ((</>))
 import Relude
 import System.FilePath ((<.>))
-import Text.Decker.Filter.Local (needFile)
 import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
 import Text.Decker.Filter.Util (randomId)
+import Text.Decker.Filter.Local 
 import Text.Decker.Internal.Common (projectDir, supportDir)
 import Text.Decker.Internal.Exception (DeckerException (..))
 import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse)
 import Text.Decker.Internal.URI (makeProjectPath)
+import Text.Decker.Internal.Helper 
 import Text.DocLayout (render)
 import Text.DocTemplates (Context, compileTemplateFile, toContext)
 import Text.Pandoc
@@ -159,7 +160,8 @@ readTemplateFile filename = do
   (path, template) <- liftIO $ readTemplateFileIO base filename
   case template of
     Right template -> do
-      needFile path
+      -- isDev <- liftIO isDevelopmentRun
+      -- when isDev $ needFile path
       return template
     Left err -> do
       return $ throw (ResourceException $ "Cannot parse template file: " <> filename <> ": " <> show err)
