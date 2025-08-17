@@ -62,6 +62,7 @@ let tool = PEN;
 // variable used to block leaving HTML page
 let unsavedAnnotations = false;
 let autosave = true;
+let useTouch = false;
 
 // whether to automatically turn on whiteboard when pencil hovers
 let autoToggle = false;
@@ -155,6 +156,7 @@ let buttonWhiteboard;
 let buttonSave;
 let buttonDownload;
 let buttonGrid;
+let buttonTouch;
 let buttonAdd;
 let buttonUndo;
 let buttonPen;
@@ -237,6 +239,14 @@ function createGUI() {
     "Toggle Grid"
   );
   buttonGrid.setAttribute("role", "switch");
+
+  buttonTouch = createButton(
+    "fas fa-fingerprint checkbox",
+    toggleTouch,
+    false,
+    "Toggle Touch"
+  );
+  buttonTouch.setAttribute("role", "switch");
 
   buttonAdd = createButton(
     "fas fa-plus",
@@ -819,6 +829,20 @@ function getGridRect() {
 }
 
 /*
+ * Enable/disable touch mode
+ */
+function toggleTouch() {
+	useTouch = !useTouch;
+    buttonTouch.dataset.active = useTouch;
+   	buttonTouch.setAttribute("aria-checked", useTouch);
+	if (useTouch) {
+        slides.style.overflow = "hidden";
+	} else {
+        slides.style.overflow = "";
+	}
+}
+
+/*
  * add/remove background rectangle with grid pattern
  */
 function toggleGrid() {
@@ -1342,6 +1366,14 @@ function pointerMode(evt) {
       if (tool == PEN && evt.buttons == 1) return PEN;
       break;
     }
+	case "touch": {
+	  // Fallback: Currently, only buttons == 1 is supported
+	  if (evt.buttons != 1) return NOTHING;
+      if (tool == ERASER) return ERASER;
+      if (tool == LASER) return LASER;
+      if (tool == PEN) return PEN;
+	  break;
+	}
   }
   return NOTHING;
 }
@@ -1430,8 +1462,8 @@ function pointerup(evt) {
   if (!whiteboardActive) return;
   // event has to happen for SVG
   if (evt.target != svg) return;
-  // only pen and mouse events
-  if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
+  // only pen, mouse, and touch events
+  if (evt.pointerType != "pen" && evt.pointerType != "mouse" && evt.pointerType != "touch") return;
 
   // finish pen stroke
   if (stroke) stopStroke(evt);
@@ -1636,6 +1668,11 @@ function setupKeyBindings() {
   Reveal.addKeyBinding(
     { keyCode: 46, key: "Delete", description: "Whiteboard: Clear Slide" },
     clearSlide
+  );
+
+  Reveal.addKeyBinding(
+    { keyCode: 84, key: "T", description: "Toggle Touch Mode" },
+    toggleTouch
   );
 
   Reveal.addKeyBinding(
