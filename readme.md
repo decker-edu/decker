@@ -314,7 +314,3 @@ Server](https://github.com/haskell/haskell-language-server).
 ## License
 
 See [COPYING](./COPYING).
-
-## License
-
-See [COPYING](./COPYING).
