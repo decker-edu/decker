@@ -248,6 +248,7 @@ function disassembleHandoutMode() {
   // Reattach slides to original slides container
   for (const slide of iterate) {
     revealSlidesElement.appendChild(slide);
+    slide.inert = true;
   }
   handoutContainer.parentElement.insertBefore(
     revealContainer,
@@ -271,6 +272,8 @@ function disassembleHandoutMode() {
     const indices = Reveal.getIndices(centralSlide);
     Reveal.slide(indices.h);
   }
+  const current = Reveal.getCurrentSlide();
+  current.removeAttribute("inert");
 }
 
 let bak_getCurrentSlide;
