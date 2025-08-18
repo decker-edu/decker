@@ -53,6 +53,12 @@ function fixTabsByInert() {
     }
   });
   Reveal.on("slidechanged", (event) => {
+    if (Reveal.hasPlugin("handout")) {
+      const handoutPlugin = Reveal.getPlugin("handout");
+      if (handoutPlugin.isActive()) {
+        return;
+      }
+    }
     if (event.previousSlide) {
       // First shown slide has no previous slide and causes an error if we do not check for this
       let parent = event.previousSlide.parentElement;
