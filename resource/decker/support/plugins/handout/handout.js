@@ -392,18 +392,6 @@ function setCurrentSlide(slide) {
 
   Reveal.dispatchEvent({ type: "slidechanged", data: data });
 
-  // Inform menu plugin: highlight current slide
-  const menuPlugin = Reveal.getPlugin("decker-menu");
-  if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
-
-  // Inform decker plugin: update last visited slide and progress percentage
-  const deckerPlugin = Reveal.getPlugin("decker");
-  if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
-
-  // Inform feedback plugin: update list of questions
-  const feedbackPlugin = Reveal.getPlugin("feedback");
-  if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
-
   // update location hash (without triggering onhashchanged!)
   history.replaceState(null, null, "#/" + centralSlide.id);
 }
