@@ -32,12 +32,13 @@ extractResourceEntries :: FilePath -> FilePath -> IO ()
 extractResourceEntries prefix destinationDirectory = do
   deckerExecutable <- getExecutablePath
   withArchive deckerExecutable $ do
-    subEntries <- Map.filterWithKey (subEntry prefix) <$> getEntries
+    subEntries <- Map.filterWithKey (isSubEntry prefix) <$> getEntries
     forM_ (Map.keys subEntries) saveSubEntry
   where
-    subEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
+    isSubEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
     saveSubEntry sel = do
-      let path = destinationDirectory </> unEntrySelector sel
+      let path = destinationDirectory </> stripPrefix prefix (unEntrySelector sel)
+      -- putStrLn $ "extractResourceEntries: " <> show sel <> " -> " <> path
       let dir = takeDirectory path
       liftIO $ Dir.createDirectoryIfMissing True dir
       saveEntry sel path

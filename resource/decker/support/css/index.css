@@ -94,7 +94,7 @@ html {
   position: relative;
   accent-color: var(--accent3);
   box-sizing: border-box;
-  font-family: system-ui, 'Helvetica Neue', sans-serif
+  font-family: system-ui, "Helvetica Neue", sans-serif;
 }
 
 body.index {

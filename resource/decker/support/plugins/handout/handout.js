@@ -77,6 +77,21 @@ if (navigator.language === "de") {
   localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
 }
 
+/* clicking on a slide will set it to the current slide */
+handoutSlides.addEventListener(
+  "click",
+  (evt) => {
+    const target = evt.target;
+    if (target) {
+      const slide = target.closest("section");
+      if (slide && slide != centralSlide) {
+        setCurrentSlide(slide);
+      }
+    }
+  },
+  true
+);
+
 function activateHandoutMode() {
   /* Store and modify viewport meta tag to allow mobile device zooming */
   const meta = document.querySelector("meta[name=viewport]");
@@ -291,7 +306,7 @@ function getIndices(slide) {
 }
 
 function slide(h, v, f) {
-  console.log(h, v, f);
+  // console.log("go to slide ", h, v, f);
   let slide = handoutSlides.children[h];
   slide.scrollIntoView({ block: "center" });
 }
@@ -354,32 +369,43 @@ function updateCurrentSlide(event) {
 
   // If the current slide changed
   if (centralSlide !== minSlide) {
-    // DEBUG: visualize central slide
-    if (centralSlide) centralSlide.classList.remove("current");
-    minSlide.classList.add("current");
-
-    const data = {
-      indexh: minSlide.dataset.hIndex ? minSlide.dataset.hIndex : 0,
-      indexv: minSlide.dataset.vIndex ? minSlide.dataset.vIndex : 0,
-      previousSlide: centralSlide,
-      currentSlide: minSlide,
-      origin: undefined,
-    };
-
-    centralSlide = minSlide;
-
-    Reveal.dispatchEvent({ type: "slidechanged", data: data });
-
-    // Inform decker plugin (index page)
-    const decker = Reveal.getPlugin("decker");
-    if (decker && centralSlide.dataset.hIndex) {
-      decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
-      decker.updatePercentage(Number(centralSlide.dataset.hIndex));
-    }
-
-    // update location hash
-    window.location.hash = "#/" + centralSlide.id;
+    setCurrentSlide(minSlide);
   }
+}
+
+function setCurrentSlide(slide) {
+  // visualize central slide
+  if (centralSlide) centralSlide.classList.remove("current");
+  slide.classList.add("current");
+
+  centralSlide = slide;
+
+  const data = {
+    indexh: minSlide.dataset.hIndex ? minSlide.dataset.hIndex : 0,
+    indexv: minSlide.dataset.vIndex ? minSlide.dataset.vIndex : 0,
+    previousSlide: centralSlide,
+    currentSlide: minSlide,
+    origin: undefined,
+  };
+
+  centralSlide = minSlide;
+
+  Reveal.dispatchEvent({ type: "slidechanged", data: data });
+
+  // Inform menu plugin: highlight current slide
+  const menuPlugin = Reveal.getPlugin("decker-menu");
+  if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
+
+  // Inform decker plugin: update last visited slide and progress percentage
+  const deckerPlugin = Reveal.getPlugin("decker");
+  if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
+
+  // Inform feedback plugin: update list of questions
+  const feedbackPlugin = Reveal.getPlugin("feedback");
+  if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
+
+  // update location hash (without triggering onhashchanged!)
+  history.replaceState(null, null, "#/" + centralSlide.id);
 }
 
 /**

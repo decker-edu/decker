@@ -1068,13 +1068,6 @@ div.anchor summary {
 
 /****** MARIO HACK(S) ******/
 
-/* fit equation into container */
-/* mjx-container > svg  */
-mjx-container > svg:not(table mjx-container > svg) {
-  object-fit: contain;
-  max-width: 100%;
-}
-
 figure {
   margin: auto;
   border: none;
@@ -1131,5 +1124,22 @@ html.dark
   .dark img {
     background: var(--shade5);
     border-radius: 0.5rem;
+  }
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+summary {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
   }
 }
