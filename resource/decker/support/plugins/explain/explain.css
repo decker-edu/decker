@@ -84,7 +84,7 @@ div#record-panel .toggle-button {
   background: transparent;
   border: none;
   transform: translateX(-55%);
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-size: 2rem;
   color: var(--foreground-color);
   transition: opacity 1s linear 0, color 0.5s linear 0;
@@ -139,7 +139,7 @@ div#record-panel[data-uistate="RECORDING"].open {
   border: none;
   outline: none;
   background: none;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-weight: bold;
   color: var(--icon-inactive-color);
 }

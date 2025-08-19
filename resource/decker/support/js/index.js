@@ -10,7 +10,17 @@ function initIndexPage() {
   loadSources();
 }
 
-function setupModeLinks(container, url) {
+async function resourceExists(url) {
+  return fetch(url, { method: "HEAD" })
+    .then((r) => {
+      return r.status === 200;
+    })
+    .catch((_) => {
+      return false;
+    });
+}
+
+async function setupModeLinks(container, url) {
   const links = Decker.meta.index?.links || [];
   let title = "Unbekannter Titel";
   const decks = Decker.meta.decks["by-title"];
@@ -18,6 +28,25 @@ function setupModeLinks(container, url) {
     if (url.href.endsWith(deck.url)) {
       title = deck.title;
     }
+  }
+
+  if (links.includes("presenter")) {
+    const presenterLink = document.createElement("a");
+    presenterLink.href = url.pathname + "?presenter";
+    presenterLink.classList.add("fas", "fa-chalkboard-teacher");
+    presenterLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? "Im Präsentationsmodus öffnen"
+        : "Access in presenter mode"
+    );
+    presenterLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? "Im Präsentationsmodus öffnen"
+        : "Access in presenter mode"
+    );
+    container.appendChild(presenterLink);
   }
   if (links.includes("handout")) {
     const handoutLink = document.createElement("a");
@@ -45,61 +74,38 @@ function setupModeLinks(container, url) {
     a11yLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? `${title} in barrierearmer Darstellung öffnen`
-        : `Access ${title} in accessibility mode`
+        ? "In barrierearmer Darstellung öffnen"
+        : "Access in accessibility mode"
     );
     a11yLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? `${title} in barrierearmer Darstellung öffnen`
-        : `Access ${title} in accessibility mode`
+        ? "In barrierearmer Darstellung öffnen"
+        : "Access in accessibility mode"
     );
     container.appendChild(a11yLink);
   }
 
-  if (links.includes("presenter")) {
-    const presenterLink = document.createElement("a");
-    presenterLink.href = url.pathname + "?presenter";
-    presenterLink.classList.add("fas", "fa-chalkboard-teacher");
-    presenterLink.setAttribute(
-      "title",
-      navigator.language === "de"
-        ? `${title} im Präsentationsmodus öffnen`
-        : `Access ${title} in presenter mode`
-    );
-    presenterLink.setAttribute(
-      "aria-label",
-      navigator.language === "de"
-        ? `${title} im Präsentationsmodus öffnen`
-        : `Access ${title} in presenter mode`
-    );
-    container.appendChild(presenterLink);
-  }
-
   if (links.includes("pdf")) {
-    const exists = fetch(url.pathname.replace(".html", ".pdf"), {
-      method: "OPTIONS",
-    });
-    exists.then((response) => {
-      if (response.ok) {
-        const pdfLink = document.createElement("a");
-        pdfLink.href = url.pathname.replace(".html", ".pdf");
-        pdfLink.classList.add("fas", "fa-file-pdf");
-        pdfLink.setAttribute(
-          "title",
-          navigator.language === "de"
-            ? `PDF-Version von ${title} herunterladen`
-            : `Download ${title}'s PDF`
-        );
-        pdfLink.setAttribute(
-          "aria-label",
-          navigator.language === "de"
-            ? `PDF-Version von ${title} herunterladen`
-            : `Download ${title}'s PDF`
-        );
-        container.appendChild(pdfLink);
-      }
-    });
+    const exists = await resourceExists(url.pathname.replace(".html", ".pdf"));
+    if (exists) {
+      const pdfLink = document.createElement("a");
+      pdfLink.href = url.pathname.replace(".html", ".pdf");
+      pdfLink.classList.add("fas", "fa-file-pdf");
+      pdfLink.setAttribute(
+        "title",
+        navigator.language === "de"
+          ? "PDF Export des Foliensatzes herunterladen"
+          : "Download presentation PDF"
+      );
+      pdfLink.setAttribute(
+        "aria-label",
+        navigator.language === "de"
+          ? "PDF Export des Foliensatzes herunterladen"
+          : "Download presentation PDF"
+      );
+      container.appendChild(pdfLink);
+    }
   }
 }
 
@@ -361,11 +367,13 @@ function addModalToLink(link) {
     modalDialog.showModal();
   });
 }
+
 function updateProgressIndicators() {
   document.querySelectorAll(".progress").forEach((progress) => {
     progress.update();
   });
 }
+
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) updateProgressIndicators();
 });

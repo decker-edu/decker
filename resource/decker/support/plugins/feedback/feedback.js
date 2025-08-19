@@ -824,12 +824,11 @@ class Feedback {
       }
     );
 
-    this.reveal.addEventListener("slidechanged", () =>
-      this.requestMenuContent()
-    );
-    this.reveal.addEventListener("slidechanged", () =>
-      this.requestSlideMenuUpdate()
-    );
+    this.slideChanged = (slide) => {
+      this.requestMenuContent(slide);
+      this.requestSlideMenuUpdate();
+    };
+    this.reveal.addEventListener("slidechanged", this.slideChanged);
 
     /* Trap focus inside Menu */
 
@@ -995,8 +994,9 @@ let plugin = () => {
   return {
     id: "feedback",
 
-    getEngine: undefined,
-    requestMenuContent: undefined,
+    slideChanged: () => {
+      /* will be redefined below */
+    },
 
     init(reveal) {
       if (printMode) return;
@@ -1083,8 +1083,8 @@ let plugin = () => {
         };
       }
 
-      this.getEngine = () => instance.engine;
-      this.requestMenuContent = (slide) => instance.requestMenuContent(slide);
+      // slideChanged has to triggered from handout plugin
+      this.slideChanged = (slide) => instance.slideChanged?.(slide);
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];

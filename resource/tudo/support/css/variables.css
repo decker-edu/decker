@@ -44,6 +44,7 @@
   --secondary-color: var(--accent1);
 
   --hover-color: var(--accent3);
+  --focus-color: var(--accent1);
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent3-bg);

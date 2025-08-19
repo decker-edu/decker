@@ -597,7 +597,7 @@ details summary[icon]::marker {
   font-variant: normal;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-weight: 900;
   color: var(--primary-color);
   content: attr(icon);
@@ -1068,13 +1068,6 @@ div.anchor summary {
 
 /****** MARIO HACK(S) ******/
 
-/* fit equation into container */
-/* mjx-container > svg  */
-mjx-container > svg:not(table mjx-container > svg) {
-  object-fit: contain;
-  max-width: 100%;
-}
-
 figure {
   margin: auto;
   border: none;
@@ -1151,4 +1144,20 @@ html.dark #page-color-button::before {
 
 html.light #page-color-button::before {
   content: "\f186";
+}
+/* make focus more visible */
+a,
+button,
+input,
+select,
+summary {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
 }

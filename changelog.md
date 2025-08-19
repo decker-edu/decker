@@ -2,6 +2,17 @@
 
 ## decker 0.14.0
 
+- Upgrade MathJax to version 4.0
+    - Offers better accessibility features, which are enabled if slides are opened in a11y-mode
+    - Allows to choose between several fonts in YAML, see also
+      [here](https://docs.mathjax.org/en/latest/output/fonts.html). The font can be
+      selected in YAML, the default is `newcm`, which is also MathJax4's new default.
+      The previous font of MathJax3 is `tex`. Other options are `fira` and `asana`.
+``` yaml
+math:
+  font: newcm  # other options are "tex", "fila", and "asana"
+```
+
 - Add a new "quizzer" plugin:
     - Handles divs that have the following classes akin to the quiz-wue plugin:
         -  `.quizzer`, `.quizzer.choice`, `.quizzer-choice`, `.quizzer-mc`, `.quizzer-multiple-choice`,

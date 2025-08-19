@@ -1754,7 +1754,6 @@ async function setupPlayer() {
       // ayy1 mode?
       const a11yPlugin = Reveal.getPlugin("a11y");
       const a11y = !!(a11yPlugin && a11yPlugin.a11yMode());
-      console.log(a11y);
 
       let vtt;
 

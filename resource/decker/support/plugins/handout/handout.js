@@ -79,6 +79,21 @@ if (navigator.language === "de") {
   localization.comment_header = "Fragen und Kommentare";
 }
 
+/* clicking on a slide will set it to the current slide */
+handoutSlides.addEventListener(
+  "click",
+  (evt) => {
+    const target = evt.target;
+    if (target) {
+      const slide = target.closest("section");
+      if (slide && slide != centralSlide) {
+        setCurrentSlide(slide);
+      }
+    }
+  },
+  true
+);
+
 function activateHandoutMode() {
   /* Store and modify viewport meta tag to allow mobile device zooming */
   const meta = document.querySelector("meta[name=viewport]");
@@ -343,7 +358,7 @@ function getIndices(slide) {
 }
 
 function slide(h, v, f) {
-  console.log(h, v, f);
+  // console.log("go to slide ", h, v, f);
   let slide = handoutSlides.children[h];
   slide.scrollIntoView({ block: "center" });
 }
@@ -404,33 +419,32 @@ function updateCurrentSlide(event) {
   }
 
   // If the current slide changed
-  if (minSlide && centralSlide !== minSlide) {
-    // DEBUG: visualize central slide
-    if (centralSlide) centralSlide.classList.remove("current");
-    minSlide.classList.add("current");
-
-    centralSlide = minSlide;
-
-    // update url when scrolling
-    const url = location.href.replace(/#\/.*/g, `#/${centralSlide.id}`);
-    history.replaceState({}, "", url);
-
-    // Inform menu plugin (highlight current slide)
-    const menu = Reveal.getPlugin("decker-menu");
-    if (menu) {
-      menu.updateCurrentSlideMark(centralSlide);
-    }
-
-    // Inform decker plugin (index page)
-    const decker = Reveal.getPlugin("decker");
-    if (decker && centralSlide && centralSlide.dataset.hIndex) {
-      decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
-      decker.updatePercentage(Number(centralSlide.dataset.hIndex));
-    }
-
-    // update location hash
-    window.location.hash = "#/" + centralSlide.id;
+  if (centralSlide !== minSlide) {
+    setCurrentSlide(minSlide);
   }
+}
+
+function setCurrentSlide(slide) {
+  // visualize central slide
+  if (centralSlide) centralSlide.classList.remove("current");
+  slide.classList.add("current");
+
+  centralSlide = slide;
+
+  // Inform menu plugin: highlight current slide
+  const menuPlugin = Reveal.getPlugin("decker-menu");
+  if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
+
+  // Inform decker plugin: update last visited slide and progress percentage
+  const deckerPlugin = Reveal.getPlugin("decker");
+  if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
+
+  // Inform feedback plugin: update list of questions
+  const feedbackPlugin = Reveal.getPlugin("feedback");
+  if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
+
+  // update location hash (without triggering onhashchanged!)
+  history.replaceState(null, null, "#/" + centralSlide.id);
 }
 
 /**
@@ -455,8 +469,8 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
 
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
-    root: document.body,
-    threshold: [0, 0.5],
+    root: handoutContainer,
+    threshold: [0, 0.95],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,

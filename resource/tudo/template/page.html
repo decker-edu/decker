@@ -54,21 +54,12 @@ $endif$
     $else$
     <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
     $endif$
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
     $for(template.css)$
     <link rel="stylesheet" href="$template.css$"/>
     $endfor$
     $for(template.page.css)$
     <link rel="stylesheet" href="$template.page.css$">
     $endfor$
-
-
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      import * as math from "$decker-support-dir$/js/page-math.js";
-      Decker.meta.math = { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math };
-      math.init();
-    </script>    
 
   </head>
 
@@ -128,7 +119,6 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/page.js"></script>
-  <!--script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script-->
   <script type="module">
     import * as colorScheme from "./$decker-support-dir$/js/color-scheme.js";
     const colorButton = document.getElementById("page-color-button");
@@ -136,11 +126,7 @@ $body$
     colorButton.title = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
     colorButton.ariaLabel = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
   </script>
-
-  <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
-  </script>
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
 
   $for(template.js)$
   <script src="$template.js$"></script>
