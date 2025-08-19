@@ -332,7 +332,7 @@ html[lang="de"] .english {
   -webkit-mask: none;
   --background: var(--greenish);
   &::before {
-    font-family: "Font Awesome 6 Free";
+    font-family: "Font Awesome 7 Free";
     font-weight: 900;
     content: "\f00c";
     color: white;
