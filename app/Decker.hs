@@ -308,6 +308,13 @@ deckerRules = do
       meta <- getGlobalMeta
       liftIO $ runExternalForSVG "gnuplot" src out meta
     --
+    "**/*.d2.svg" %> \out -> do
+      let src = dropExtension out
+      need [src]
+      putInfo $ "# d2 (for " <> out <> ")"
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "d2" src out meta
+    --
     "**/*.tex.svg" %> \out -> do
       let src = dropExtension out
       let pdf = src -<.> ".pdf"
