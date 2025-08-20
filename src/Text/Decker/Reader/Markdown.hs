@@ -17,7 +17,8 @@ import Development.Shake hiding (Resource)
 import Relude
 import System.AtomicWrite.Writer.ByteString
 import System.Directory qualified as Dir
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Detail

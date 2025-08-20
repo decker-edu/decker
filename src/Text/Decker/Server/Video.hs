@@ -11,7 +11,8 @@ import Network.HTTP.Types
 import Relude
 import System.Directory
 import System.FilePath.Glob
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External (runExternal)
 import Text.Decker.Server.Types

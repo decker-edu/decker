@@ -18,7 +18,8 @@ import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
 import System.FilePath.Glob qualified as Glob
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import System.IO
 import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render

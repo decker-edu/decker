@@ -10,7 +10,8 @@ import Data.Char (toLower)
 import Data.String (IsString)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Pandoc.JSON
 import Text.Pandoc.Walk
 

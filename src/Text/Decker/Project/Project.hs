@@ -52,7 +52,8 @@ import Relude
 import System.Directory qualified as Directory
 import System.FilePath qualified as FP
 import System.FilePath.Glob
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta

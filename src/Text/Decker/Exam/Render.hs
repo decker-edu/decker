@@ -20,7 +20,8 @@ import Development.Shake hiding (Resource)
 
 import Relude
 import Relude.Extra.Group
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import qualified Text.Blaze as A
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Pretty

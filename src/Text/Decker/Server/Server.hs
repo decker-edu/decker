@@ -29,7 +29,8 @@ import Network.WebSockets
 import Relude
 import System.Directory
 import System.Directory qualified as Dir
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import System.Random
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext

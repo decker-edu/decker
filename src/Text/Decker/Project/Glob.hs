@@ -14,7 +14,8 @@ where
 import Control.Monad
 import Data.List
 import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 
 -- | Glob for files a little more efficiently. 'exclude' contains a list of
 -- directories that will be culled from the traversal. Hidden directories are

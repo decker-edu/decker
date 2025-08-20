@@ -6,7 +6,8 @@ import Control.Monad.Catch
 import qualified Data.Text as Text
 import Network.HTTP.Types (urlDecode, urlEncode)
 import Relude
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.URI (URI)

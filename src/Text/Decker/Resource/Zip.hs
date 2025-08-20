@@ -21,7 +21,8 @@ import qualified Data.Map.Strict as Map
 import Relude
 import qualified System.Directory as Dir
 import System.Environment
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Helper
 
 -- | Extracts entries from the embedded resource archive that match the prefix

@@ -20,7 +20,8 @@ import Data.Yaml
 import Development.Shake
 import Relude
 import System.Environment
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta

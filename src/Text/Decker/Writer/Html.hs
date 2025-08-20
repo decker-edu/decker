@@ -18,7 +18,8 @@ import Data.String.Interpolate (i)
 import qualified Data.Text.IO as T
 import Development.Shake
 import qualified System.Directory as Dir
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Common
 import Text.Decker.Project.Project
 import Text.Pandoc hiding (getTemplate, lookupMeta)

@@ -41,7 +41,8 @@ import System.Console.GetOpt qualified as GetOpt
 import System.Directory as Dir
 import System.FSNotify qualified as Notify
 import System.FilePath.Glob
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common

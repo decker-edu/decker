@@ -21,7 +21,8 @@ import Data.Text.IO qualified as Text
 import HTMLEntities.Text (text)
 import Relude
 import System.Directory
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.CRC32
 import Text.Decker.Filter.Local

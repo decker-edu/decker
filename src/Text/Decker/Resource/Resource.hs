@@ -38,7 +38,8 @@ import Network.URI
 import Relude
 import System.Directory (createDirectoryIfMissing)
 import System.Environment
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
