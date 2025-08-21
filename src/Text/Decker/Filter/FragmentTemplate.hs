@@ -16,13 +16,13 @@ import System.FilePath ((<.>))
 import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Filter.Local 
-import Text.Decker.Internal.Common (projectDir, supportDir)
+import Text.Decker.Internal.Common (projectDir)
 import Text.Decker.Internal.Exception (DeckerException (..))
 import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse)
 import Text.Decker.Internal.URI (makeProjectPath)
-import Text.Decker.Internal.Helper 
+import Text.Decker.Resource.Resource
 import Text.DocLayout (render)
-import Text.DocTemplates (Context, compileTemplateFile, toContext)
+import Text.DocTemplates (Context, compileTemplateFile, compileTemplate, toContext)
 import Text.Pandoc
   ( Block (CodeBlock, Para, Plain, RawBlock),
     Inline (Link, RawInline),
@@ -132,7 +132,7 @@ readTemplateFileIO :: String -> String -> IO (FilePath, Either String (Template 
 readTemplateFileIO base filename = do
   let path1 = makeProjectPath base filename
   let path2 = projectDir </> "templates" </> filename
-  let path3 = supportDir </> "templates" </> filename
+  -- let path3 = supportDir </> "templates" </> filename
 
   -- compileTemplateFile throws exceptions if the file data can not be read, and
   -- returns (Left (Template a)) if the template cannot be compiled. this code
@@ -142,16 +142,16 @@ readTemplateFileIO base filename = do
   handle
     ( \(SomeException _) ->
         handle
-          ( \(SomeException _) ->
-              handle
-                ( \(SomeException err) ->
-                    throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err)
-                )
-                $ compileTemplate path3
+          ( \(SomeException err) ->
+              -- handle
+              --   ( \(SomeException err) ->
+                    return $ (filename, Left $ "Cannot find template: " <> filename)
+                -- )
+                -- $ compileTemplate' path3
           )
-          $ compileTemplate path2
+          $ compileTemplate' path2
     )
-    $ compileTemplate path1
+    $ compileTemplate' path1
 
 readTemplateFile :: String -> Filter (Template Text)
 readTemplateFile filename = do
@@ -160,12 +160,20 @@ readTemplateFile filename = do
   (path, template) <- liftIO $ readTemplateFileIO base filename
   case template of
     Right template -> do
-      -- isDev <- liftIO isDevelopmentRun
-      -- when isDev $ needFile path
+      needFile path
       return template
     Left err -> do
-      return $ throw (ResourceException $ "Cannot parse template file: " <> filename <> ": " <> show err)
+      -- can't read file from project, try reading as resource
+      text <- fmap decodeUtf8 <$> liftIO (readResource' ("support/templates" </> filename) meta)
+      case text of
+        Just text -> do
+          template <- liftIO $ Text.DocTemplates.compileTemplate filename text
+          case template of
+            Right template -> return template
+            Left err -> return $ throw (ResourceException $ "Cannot find compile resource: " <> filename <> ": " <> err)
+        Nothing -> return $ throw (ResourceException $ "Cannot find template resource: " <> filename)
 
-compileTemplate path = do
+compileTemplate' path = do
   t <- compileTemplateFile path
   return (path, t)
+
