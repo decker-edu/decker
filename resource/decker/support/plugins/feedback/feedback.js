@@ -1085,6 +1085,7 @@ let plugin = () => {
 
       // slideChanged has to triggered from handout plugin
       this.slideChanged = (slide) => instance.slideChanged?.(slide);
+      this.getEngine = () => instance.engine;
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];
