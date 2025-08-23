@@ -23,6 +23,8 @@ jobs:
 
   build-all-platforms:
     runs-on: ${{ matrix.os }}
+    env:
+      ATTACH_RESOURCE_DIR: '1'
     strategy:
       matrix:
         os:
