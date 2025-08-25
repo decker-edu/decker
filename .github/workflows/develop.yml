@@ -38,7 +38,7 @@ jobs:
         run: 'echo "The value of ATTACH_RESOURCE_ZIP: $ATTACH_RESOURCE_ZIP"'
 
       - name: 'Test Environment Variable: Windows'
-        if: 'runner.os == "Windows"'
+        if: runner.os == 'Windows'
         run: 'echo ("The value of ATTACH_RESOURCE_ZIP:" + $env:ATTACH_RESOURCE_ZIP)'
       
       - name: Checkout
