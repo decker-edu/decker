@@ -23,8 +23,6 @@ jobs:
 
   build-all-platforms:
     runs-on: ${{ matrix.os }}
-    env:
-      ATTACH_RESOURCE_DIR: '1'
     strategy:
       matrix:
         os:
@@ -58,7 +56,12 @@ jobs:
           stack-version: latest
           stack-setup-ghc: true
 
+      - name: Test Environment Variable
+        run: 'echo "The value of ATTACH_RESOURCE_DIR: $ATTACH_RESOURCE_DIR"'
+        
       - name: Build & test
+        env:
+          ATTACH_RESOURCE_DIR: '1'
         run: |
           stack test
           stack --local-bin-path=dist install
