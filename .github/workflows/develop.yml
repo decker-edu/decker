@@ -23,6 +23,8 @@ jobs:
 
   build-all-platforms:
     runs-on: ${{ matrix.os }}
+    env:
+      ATTACH_RESOURCE_ZIP: '1'
     strategy:
       matrix:
         os:
@@ -31,6 +33,14 @@ jobs:
           - windows-latest
     name: Decker latest (${{ matrix.os }})
     steps:
+
+      - name: 'Test Environment Variable: Posix'
+        run: 'echo "The value of ATTACH_RESOURCE_ZIP: $ATTACH_RESOURCE_ZIP"'
+
+      - name: 'Test Environment Variable: Windows'
+        if: 'runner.os == "Windows"'
+        run: 'echo ("The value of ATTACH_RESOURCE_ZIP:" + $env:ATTACH_RESOURCE_ZIP)'
+      
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -56,12 +66,7 @@ jobs:
           stack-version: latest
           stack-setup-ghc: true
 
-      - name: Test Environment Variable
-        run: 'echo "The value of ATTACH_RESOURCE_DIR: $ATTACH_RESOURCE_DIR"'
-        
       - name: Build & test
-        env:
-          ATTACH_RESOURCE_DIR: '1'
         run: |
           stack test
           stack --local-bin-path=dist install
