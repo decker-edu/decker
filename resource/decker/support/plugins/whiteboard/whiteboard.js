@@ -821,10 +821,8 @@ function setWhiteboardHeight(svgHeight) {
   // update scrollbar of slides container
   if (needScrollbar) {
     slides.classList.add("needScrollbar");
-    slides.setAttribute("tabindex", 0);
   } else {
     slides.classList.remove("needScrollbar");
-    slides.removeAttribute("tabindex");
   }
 
   // adjust with of slides container to accomodate scrollbar
