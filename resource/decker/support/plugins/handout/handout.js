@@ -469,7 +469,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
 
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
-    root: handoutContainer,
+    root: document.body,
     threshold: [0, 0.95],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
@@ -496,7 +496,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
  */
 function createSRCIntersectionObserver() {
   const observerOptions = {
-    root: handoutContainer,
+    root: document.body,
     rootMargin: "50%",
     threshold: [0],
   };
