@@ -59,7 +59,7 @@ svgExt = ["svg"]
 
 yamlExt = ["yaml", "yml"]
 
-renderExt = ["dot", "gnuplot", "tex", "plantuml"]
+renderExt = ["dot", "gnuplot", "tex", "plantuml", "d2"]
 
 javascriptExt = ["js"]
 

@@ -338,9 +338,15 @@ class Feedback {
   async requestMenuContent(slide) {
     let slideId;
     if (!slide) {
-      slideId = this.reveal.getCurrentSlide().id;
+      slideId = this.reveal.getCurrentSlide()?.id;
     } else {
       slideId = slide.id;
+    }
+    if (!slideId) {
+      console.error(
+        "Can not determine slideID: No passed slide value and no current slide. Ignore this if we are in handout mode."
+      );
+      return;
     }
     this.mostRecentSlideID = slideId;
     try {
@@ -828,7 +834,9 @@ class Feedback {
       this.requestMenuContent(slide);
       this.requestSlideMenuUpdate();
     };
-    this.reveal.addEventListener("slidechanged", this.slideChanged);
+    this.reveal.addEventListener("slidechanged", (event) => {
+      this.slideChanged(event.currentSlide);
+    });
 
     /* Trap focus inside Menu */
 

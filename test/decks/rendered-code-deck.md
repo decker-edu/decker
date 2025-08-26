@@ -2,6 +2,7 @@
 title: Rendered Code Blocks
 ---
 
+
 # Rendered Code Blocks
 
 Code blocks can be rendered as SVG images
@@ -11,6 +12,7 @@ Code blocks can be rendered as SVG images
 -   Graphviz (dot)
 -   Gnuplot
 -   Tikz
+-   D2
 
 --------------------------------------------------------------------------------
 
@@ -238,3 +240,33 @@ splot 1 / (x*x + y*y + 0.5)
 \end{tikzpicture}
 \end{document}
 ```
+
+--------------------------------------------------------------------------------
+
+# D2 {.columns}
+
+##  {.left}
+
+```` markdown
+``` {.d2 .render width="50%"}
+hello -> world
+```
+````
+
+##  {.right}
+
+``` {.d2 .render width="50%"}
+hello -> world
+```
+
+--------------------------------------------------------------------------------
+
+# D2 {.columns}
+
+## Also from file {.left grow="3"}
+
+-   `./input.d2`
+
+##  {.right}
+
+![](./input.d2){.d2 .render}

@@ -18,7 +18,8 @@ import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
 import System.FilePath.Glob qualified as Glob
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import System.IO
 import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render
@@ -97,6 +98,7 @@ runArgs args = do
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   transient <- liftIO transientDir
+  devRun <- liftIO $ isDevelopmentRun
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
@@ -159,26 +161,17 @@ deckerRules = do
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
   --
-  -- priority 5 $ do
-  --   (publicDir </> "support") <//> "*" %> \out -> do
-  --     deps <- getDeps
-  --     let path = fromJust $ stripPrefix (publicDir <> "/") out
-  --     let source = (deps ^. resources) Map.! out
-  --     putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
-  --     needResource source path
-  --     content <- fromJust <$> liftIO (readResource path source)
-  --     liftIO $ BS.writeFile out content
+  when (not devRun) $ do
+    priority 5 $ do
+      (supportDir </> deckerGitCommitId) %> \out -> do
+        meta <- getGlobalMeta
+        liftIO $ do
+          createDirectoryIfMissing True supportDir
+          touchFile out
+          (Resources dr pr) <- deckerResources meta
+          extractFast dr
+          extractFast pr
   --
-  --
-  priority 5 $ do
-    (supportDir </> deckerGitCommitId) %> \out -> do
-      meta <- getGlobalMeta
-      liftIO $ do
-        createDirectoryIfMissing True supportDir
-        touchFile out
-        (Resources dr pr) <- deckerResources meta
-        extractFast dr
-        extractFast pr
   priority 4 $ do
     publicDir <//> "*-deck.html" %> \out -> do
       src <- lookupSource decks out <$> getDeps
@@ -309,6 +302,13 @@ deckerRules = do
       meta <- getGlobalMeta
       liftIO $ runExternalForSVG "gnuplot" src out meta
     --
+    "**/*.d2.svg" %> \out -> do
+      let src = dropExtension out
+      need [src]
+      putInfo $ "# d2 (for " <> out <> ")"
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "d2" src out meta
+    --
     "**/*.tex.svg" %> \out -> do
       let src = dropExtension out
       let pdf = src -<.> ".pdf"
@@ -371,7 +371,7 @@ deckerRules = do
       -- Now use a version file containing the commit hash.
       -- need $ Map.keys (deps ^. resources)
       -- putNormal $ "needing: " <> (supportDir </> deckerGitCommitId)
-      need [supportDir </> deckerGitCommitId]
+      when (not devRun) $ need [supportDir </> deckerGitCommitId]
   --
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
     phony "publish" $ do
