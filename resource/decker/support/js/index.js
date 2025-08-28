@@ -132,8 +132,8 @@ function insertAdditionalLinks() {
     }
     container.title =
       navigator.language === "de"
-        ? `Foliensatz ${title} betrachten: Drücke Eingabe oder Leertaste, um Betrachtungsmodus auszuwählen.`
-        : `View slide deck ${title}: Press Enter or Space to choose view mode.`;
+        ? `Foliensatz ${title} betrachten: Drücke Eingabe, um Betrachtungsmodus auszuwählen.`
+        : `View slide deck ${title}: Press Enter to choose view mode.`;
     setupModeLinks(container, url);
     setupProgressIndicator(container, url);
     if (insert === "replace") {
@@ -150,7 +150,7 @@ function insertAdditionalLinks() {
     container.setAttribute("tabindex", 0);
     container.addEventListener("keyup", (event) => {
       if (event.target !== container) return;
-      if (event.code === "Enter" || event.code === "Space") {
+      if (event.code === "Enter") {
         event.preventDefault();
         event.stopPropagation();
         for (const child of container.childNodes) {
@@ -207,7 +207,7 @@ function setupProgressIndicator(container, url) {
     this.toggle();
   };
   progress.onkeyup = function (event) {
-    if (event.code === "Enter" || event.code === "Space") {
+    if (event.code === "Enter") {
       this.toggle();
       event.preventDefault();
       event.stopPropagation();
