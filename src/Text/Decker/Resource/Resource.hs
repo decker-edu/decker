@@ -133,8 +133,8 @@ readResource path None = return Nothing
 readResource' :: FilePath -> Meta-> IO (Maybe ByteString)
 readResource' path meta = do
   (Resources dr pr) <- deckerResources meta
-  putStrLn $ "readResource': " <> path <> " from: " <> show pr <> ", " <> show dr
-  (listToMaybe . catMaybes) <$> mapM (readResource path) [pr, dr]
+  -- putStrLn $ "readResource': " <> path <> " from: " <> show pr <> ", " <> show dr
+  listToMaybe . catMaybes <$> mapM (readResource path) [pr, dr]
 
 localResourcePath :: FilePath -> Source -> IO (Maybe FilePath)
 localResourcePath path (LocalDir baseDir) = do
