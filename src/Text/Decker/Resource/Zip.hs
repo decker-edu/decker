@@ -41,7 +41,7 @@ extractResourceEntries prefix destinationDirectory = do
       in pl `isPrefixOf` sl
     saveSubEntry sel = do
       let path = destinationDirectory </> stripPrefix prefix (unEntrySelector sel)
-      putStrLn $ "extractResourceEntries: " <> show sel <> " -> " <> path
+      -- putStrLn $ "extractResourceEntries: " <> show sel <> " -> " <> path
       let dir = takeDirectory path
       liftIO $ Dir.createDirectoryIfMissing True dir
       saveEntry sel path
