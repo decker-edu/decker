@@ -61,12 +61,13 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let targetArgs = [("url", url), ("title", title)]
           let posArgs = zip (map (("arg" <>) . show) [1 .. (length args)]) args
           let allPosArgs = [("args", Text.unwords args)]
+          let argCount = [("argn", show $ length args)]
           let clsArgs = zip (map (("class" <>) . show) [1 .. (length cls)]) cls
           let allClsArgs = [("classes", Text.unwords cls)]
           let allKvAttribs = [("attribs", unwords $ map (\(k, v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
           rndId <- liftIO randomId
           let idArg = [("id", if Text.null id then rndId else id)]
-          let arguments = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs
+          let arguments = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> argCount
           let metaData = fromPandocMeta meta
           let json = map (second A.String) arguments
           let all = json <> [("meta", metaData)]
