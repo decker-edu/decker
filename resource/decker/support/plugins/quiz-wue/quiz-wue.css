@@ -99,7 +99,7 @@ ul.choices li::before {
 
 .plain ul.choices li::before {
   content: "\f111";
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-weight: 400;
 }
 
@@ -114,14 +114,14 @@ ul.choices li::before {
 
 .plain ul.choices li.show-right::before {
   content: "\f058";
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-weight: 400;
   color: #090;
 }
 
 .plain ul.choices li.show-wrong::before {
   content: "\f057";
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-weight: 400;
   color: #ff5e5e;
 }

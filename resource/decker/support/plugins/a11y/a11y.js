@@ -1,7 +1,7 @@
-import {
-  setupFlyingFocus,
-  hideFlyingFocus,
-} from "../../flyingFocus/flying-focus.js";
+// import {
+//   setupFlyingFocus,
+//   hideFlyingFocus,
+// } from "../../flyingFocus/flying-focus.js";
 
 import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
 
@@ -73,12 +73,12 @@ function fixTabsByInert() {
 }
 
 /* setup flying focus and its callbacks */
-function addFlyingFocusCallbacks() {
-  setupFlyingFocus();
-  Reveal.on("slidechanged", (event) => {
-    hideFlyingFocus();
-  });
-}
+// function addFlyingFocusCallbacks() {
+//   setupFlyingFocus();
+//   Reveal.on("slidechanged", (event) => {
+//     hideFlyingFocus();
+//   });
+// }
 
 let previousKeyboardConfig;
 
@@ -113,9 +113,11 @@ function toggleAccessibility() {
     Decker.flash.message(localization.accessible_colors_on);
     if (window.MathJax) {
       window.MathJax.startup.document.options.enableMenu = true;
-      window.MathJax.startup.document.menu.menu
-        .findID("Accessibility", "Activate")
-        .variable.setter(true);
+      window.MathJax.startup.document.options.enableExplorer = true;
+      window.MathJax.startup.document.options.a11y.speech = true;
+      window.MathJax.startup.document.options.a11y.braille = true;
+      window.MathJax.startup.document.options.menuOptions.settings.speech = true;
+      window.MathJax.startup.document.options.menuOptions.settings.braille = true;
       window.MathJax.startup.document.menu.loadingPromise.then(() => {
         window.MathJax.startup.document.rerender();
       });
@@ -134,11 +136,12 @@ function toggleAccessibility() {
     }
     Decker.flash.message(localization.accessible_colors_off);
     if (window.MathJax) {
-      // Does it make sense to remove this again if once activated?
       window.MathJax.startup.document.options.enableMenu = false;
-      window.MathJax.startup.document.menu.menu
-        .findID("Accessibility", "Activate")
-        .variable.setter(false);
+      window.MathJax.startup.document.options.enableExplorer = false;
+      window.MathJax.startup.document.options.a11y.speech = false;
+      window.MathJax.startup.document.options.a11y.braille = false;
+      window.MathJax.startup.document.options.menuOptions.settings.speech = false;
+      window.MathJax.startup.document.options.menuOptions.settings.braille = false;
       window.MathJax.startup.document.menu.loadingPromise.then(() => {
         window.MathJax.startup.document.rerender();
       });
@@ -168,10 +171,13 @@ const a11y = /a11y/gi.test(window.location.search);
 
 const Plugin = {
   id: "a11y",
+  a11yMode: () => {
+    return a11yMode;
+  },
   init: (reveal) => {
     Reveal = reveal;
     fixTabsByInert();
-    addFlyingFocusCallbacks();
+    // addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
     addScreenReaderSlideNumbers();
     reveal.addKeyBinding(

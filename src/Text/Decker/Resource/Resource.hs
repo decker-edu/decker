@@ -16,7 +16,10 @@ module Text.Decker.Resource.Resource
   ( writeExampleProject,
     deckerResources,
     deckerResource,
+    packResource,
     readResource,
+    readResource',
+    localResourcePath,
     publicSupportFiles,
     needResource,
     fileList,
@@ -36,7 +39,7 @@ import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Network.URI
 import Relude
-import System.Directory (createDirectoryIfMissing)
+import qualified System.Directory as Dir
 import System.Environment
 import System.FilePath.Posix
 import Text.Decker.Internal.Helper
@@ -127,6 +130,20 @@ readResource path (LocalDir baseDir) = do
   tryRead $ Just <$> BS.readFile (baseDir </> path)
 readResource path None = return Nothing
 
+readResource' :: FilePath -> Meta-> IO (Maybe ByteString)
+readResource' path meta = do
+  (Resources dr pr) <- deckerResources meta
+  -- putStrLn $ "readResource': " <> path <> " from: " <> show pr <> ", " <> show dr
+  listToMaybe . catMaybes <$> mapM (readResource path) [pr, dr]
+
+localResourcePath :: FilePath -> Source -> IO (Maybe FilePath)
+localResourcePath path (LocalDir baseDir) = do
+  exists <- Dir.doesFileExist (baseDir </> path)
+  if exists
+    then return $ Just (baseDir </> path)
+    else return Nothing
+localResourcePath path _ = return Nothing
+
 -- |  Don't let exceptions escape here.
 tryRead :: IO (Maybe ByteString) -> IO (Maybe ByteString)
 tryRead = handle $ \(SomeException e) -> do
@@ -198,6 +215,6 @@ writeExampleProject meta = do
     extract (path, source) = do
       let out = "example" </> path
       content <- fromJust <$> liftIO (readResource out source)
-      createDirectoryIfMissing True (takeDirectory out)
+      Dir.createDirectoryIfMissing True (takeDirectory out)
       liftIO $ BS.writeFile out content
       putStrLn $ "#   - " <> out

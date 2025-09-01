@@ -51,6 +51,18 @@ includeCode (Pandoc meta blocks) = do
 
 --------------------------------------------------------------------------------
 
+<!-- ---8<--- recursive -->
+
+# Include my own Markdown source
+
+## The code of this slide
+
+![](./include-code-deck.md#recursive){.haskell .code}
+
+<!-- ---8<--- -->
+
+--------------------------------------------------------------------------------
+
 # Detent all the things
 
 ![](/src/Text/Decker/Filter/Media.hs#dedent-test){.haskell .code}

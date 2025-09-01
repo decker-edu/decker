@@ -49,7 +49,7 @@ header > h2 {
   font-size: 2rem;
   margin: 0 auto;
   padding: 0;
-  font-family: monospace;
+  font-family: inherit;
   font-weight: normal;
 }
 
@@ -101,21 +101,19 @@ body.index {
   color: var(--foreground-color);
   text-align: justify;
   margin: auto;
-  width: 100%;
-  height: 100%;
+  min-width: 100%;
   max-width: 100%;
+  height: unset;
+  min-height: 100vh;
   line-height: 1.3; /* It is said 1.5 improves readability */
 }
 
-body.page {
-  max-width: 100%;
-}
-
 main {
-  flex-grow: 1;
-  padding-top: 1rem;
+  min-height: 100%;
   width: 50rem;
-  max-width: 50rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
   margin: auto;
 }
 
@@ -135,14 +133,6 @@ footer p {
   line-height: 2em;
   text-align: center;
   box-sizing: border-box;
-}
-
-@media only screen and (max-width: 600px) {
-  main {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 1rem;
-  }
 }
 
 a {
@@ -268,6 +258,10 @@ body.index table tbody tr:last-child td {
   border-bottom: none;
 }
 
+tr {
+  height: 2.5rem;
+}
+
 td[align="center"] {
   text-align: center;
 }
@@ -295,4 +289,143 @@ html[lang="de"] .german {
 
 html[lang="de"] .english {
   display: none;
+}
+
+.link-additions {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  margin-left: 0.25rem;
+}
+
+a.handout-link {
+  display: inline-block;
+  vertical-align: bottom;
+  position: relative;
+  width: 1em;
+  height: 1em;
+}
+
+a.handout-link::before {
+  display: block;
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--accent5-fg);
+  border-radius: 2px;
+}
+
+a.handout-link::after {
+  display: block;
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--accent5-fg);
+  border-radius: 2px;
+}
+
+a.handout-link:hover::before,
+a.handout-link:hover::after {
+  background-color: var(--accent5);
+}
+
+span.icons {
+  font-size: 1.25rem;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  align-content: center;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+  & .link-additions {
+    display: contents;
+  }
+  & > a {
+    width: 1em;
+    height: 1em;
+  }
+  & a[href$="deck.html"] {
+    order: 1;
+  }
+  & a[href$="deck.html?handout"] {
+    order: 2;
+  }
+  & a[href$="deck.html?a11y"] {
+    order: 3;
+  }
+  & a[href$="deck.pdf"] {
+    order: 4;
+  }
+  & .progress {
+    order: 5;
+    margin-left: 0.4em;
+  }
+}
+
+span.icons a[href$="deck.html"],
+span.icons a[href$="deck.html?handout"] {
+  position: relative;
+  &::after,
+  &::before {
+    display: block;
+    position: absolute;
+    content: "";
+    width: 0.9em;
+    height: 0.5em;
+    left: 50%;
+    top: 50%;
+    background-color: var(--accent5-fg);
+    border-radius: 0.15em;
+    box-sizing: border-box;
+    box-shadow: var(--background-color) 0.07em 0.07em;
+  }
+}
+span.icons a[href$="deck.html?handout"] {
+  &::after {
+    translate: -50% -110%;
+  }
+  &::before {
+    translate: -50% 10%;
+  }
+}
+span.icons a[href$="deck.html"] {
+  & > i.fa-html5 {
+    display: none;
+  }
+  &::after {
+    translate: -60% -80%;
+  }
+  &::before {
+    translate: -30% -30%;
+  }
+}
+
+/* hide empty lists */
+section[data-items="0"] {
+  display: none;
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+details,
+summary {
+  transition: outline-offset 0.2s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: 1px !important;
+  }
+  &:active {
+    outline-offset: -2px !important;
+  }
 }

@@ -5,17 +5,22 @@
     <meta charset="utf-8">
     <meta name="generator" content="pandoc">
 
+    <!-- prevent caching, since index page changes frequently -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <!-- PWA Kram -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#84b819" />
+    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <link rel="manifest" href="$decker-support-dir$/pwa/manifest.webmanifest" crossorigin="use-credentials" />
 
+    <!-- Store JSON encoded Pandoc meta data in a global variable -->
     <script type="module">
-      /* Store JSON encoded Pandoc meta data in a global variable. */
       import initializeDecker from "./$decker-support-dir$/js/decker.js";
       initializeDecker("$decker-meta-url$");
     </script>
@@ -61,42 +66,9 @@ $endif$
     $else$
     <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
     $endif$
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
     $for(template.index.css)$
     <link rel="stylesheet" href="$template.index.css$">
     $endfor$
-
-
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
 
   </head>
 
@@ -130,18 +102,6 @@ $body$
 
     <!-- footer with author information -->
     <footer>
-      <!-- $if(copyright)$
-        $copyright:copyright-template.html()$
-      $endif$
-      $if(author)$
-        $author:author-template.html()$;&ensp;
-      $endif$
-      $if(affiliation)$
-        $affiliation:affiliation-template.html()$;&ensp;
-      $endif$
-      $if(date)$
-        $date$
-      $endif$ -->
       <p>
         $if(copyright)$ $copyright$ $endif$ 
         $if(author)$ $author$;&ensp; $endif$
@@ -156,11 +116,7 @@ $body$
 
   <script src="$decker-support-dir$/js/index.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
-
-  <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
-  </script>
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
 
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
@@ -176,7 +132,5 @@ $body$
         window.location.reload(true);
     };
   </script>
-
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
 
 </html>

@@ -23,7 +23,7 @@ import Relude
 import System.FilePath
 import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Util (hash9String)
-import Text.Decker.Internal.Common (publicDir)
+import Text.Decker.Internal.Common (publicDir, privateDir)
 import Text.Decker.Internal.Helper (makeRelativeTo)
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
@@ -35,6 +35,7 @@ import Text.DocLayout (render)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Decker.Exam.Question
 
 -- For lookup use: http://glench.github.io/fuzzyset.js/
 
@@ -96,6 +97,17 @@ readDeckInfo globalMeta (target, src) = do
   let deckSrc = src
   let deckUrl = toText $ makeRelativeTo publicDir target
   return $ DeckInfo {deckSrc, deckUrl, deckId, deckAuthor, deckDate, deckTitle, deckSubtitle}
+
+readQuestInfo :: Meta -> (FilePath, FilePath) -> Action QuestInfo
+readQuestInfo globalMeta (target, src) = do
+  Question topicId lectureId title _ _ _ _ comment _ _ _ _ <- liftIO $ readQuestion src
+  let questSrc = src
+  let questUrl = toText $ makeRelativeTo privateDir target
+  let questLectureId = lectureId
+  let questTopicId = topicId
+  let questTitle = title
+  let questComment = comment
+  return $ QuestInfo { questSrc ,questUrl ,questLectureId ,questTopicId ,questTitle ,questComment }
 
 -- Extracts all searchable words from an inline
 extractInlineWords :: Inline -> [Text]
@@ -159,6 +171,16 @@ data DeckInfo = DeckInfo
     deckDate :: Maybe Text,
     deckTitle :: Maybe Text,
     deckSubtitle :: Maybe Text
+  }
+  deriving (Generic, Show)
+
+data QuestInfo = QuestInfo
+  { questSrc :: FilePath,
+    questUrl :: Text,
+    questLectureId :: Text,
+    questTopicId :: Text,
+    questTitle :: Text,
+    questComment :: Text
   }
   deriving (Generic, Show)
 
@@ -263,8 +285,10 @@ addTargetInfo :: Project.Targets -> Meta -> Action Meta
 addTargetInfo targets meta = do
   let allDecks = getSorted Project.decks
   let allPages = getSorted Project.pages
+  let allQuests = getSorted Project.questions
   decksInfo <- mapM (readDeckInfo meta) allDecks
   pagesInfo <- mapM (readDeckInfo meta) allPages
+  questInfo <- mapM (readQuestInfo meta) allQuests
   let withDecks =
         setMetaValue "decks.by-title" (toListSortedBy deckTitle decksInfo)
           $ setMetaValue "decks.by-date" (toListSortedBy deckDate decksInfo)
@@ -277,8 +301,14 @@ addTargetInfo targets meta = do
           $ setMetaValue "pages.by-url" (toListSortedBy deckUrl pagesInfo)
           $ setMetaValue "pages.by-author" (toListSortedBy deckAuthor pagesInfo)
           $ setMetaValue "pages.by-id" (toListSortedBy deckId pagesInfo) withDecks
-  return withPagesAndDecks
+  let withPagesDecksAndQuests =
+        setMetaValue "quests.by-title" (toQuestListSortedBy questTitle questInfo)
+        $ setMetaValue "quests.by-url" (toQuestListSortedBy questUrl questInfo)
+        $ setMetaValue "quests.by-lecture-id" (toQuestListSortedBy questLectureId questInfo)
+        $ setMetaValue "quests.by-topic-id" (toQuestListSortedBy questTopicId questInfo) withPagesAndDecks
+  return withPagesDecksAndQuests
   where
+    toQuestListSortedBy by info = MetaList $ map toQuestMeta $ sortInfo by info
     toListSortedBy by info = MetaList $ map toMeta $ sortInfo by info
     getSorted field = sort $ Map.toList (targets ^. field)
     toMeta :: DeckInfo -> MetaValue
@@ -286,9 +316,19 @@ addTargetInfo targets meta = do
       MetaMap
         $ fromList
           [ ("src", MetaString (toText info.deckSrc)),
-            ("url", MetaString (toText $ makeRelativeTo "public" (toString info.deckUrl))),
+            ("url", MetaString info.deckUrl),
             ("id", maybe (MetaBool False) (MetaString . toText) info.deckId),
             ("title", maybe (MetaBool False) (MetaString . toText) info.deckTitle),
             ("subtitle", maybe (MetaBool False) (MetaString . toText) info.deckSubtitle)
+          ]
+    toQuestMeta :: QuestInfo -> MetaValue
+    toQuestMeta info =
+      MetaMap
+        $ fromList
+          [ ("src", MetaString (toText info.questSrc)),
+            ("url", MetaString info.questUrl),
+            ("title", MetaString info.questTitle),
+            ("lecture-id", MetaString info.questLectureId),
+            ("topic-id", MetaString info.questTopicId)
           ]
     sortInfo by = sortBy (\a b -> compare (by a) (by b))
