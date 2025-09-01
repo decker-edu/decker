@@ -38,6 +38,7 @@ import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
+import Text.Decker.Writer.Html (writeIndexLists)
 import Text.Decker.Writer.Layout
 import Text.Groom
 import System.Directory (makeRelativeToCurrentDirectory)
