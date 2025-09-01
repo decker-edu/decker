@@ -477,7 +477,6 @@ Das Ergebnis von $2*2=~?$ ist?
 
 Decker is a software built using  
 
-
 - [ ] Scala
     - Unfortunately not.
     - A second tooltip.
@@ -488,7 +487,6 @@ Decker is a software built using
 - [ ] Ruby 
     - hm no
 
-
 and builds upon the tool
 
 - [X] Pandoc
@@ -496,5 +494,51 @@ and builds upon the tool
 - [ ] PowerPoint
 
 .
+
+:::
+
+# H2 QIC
+
+## Hello World {.qic}
+
+This is some Text.
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+Paragraph tags are removed from the entire question.
+
+Hello World. This is a new paragraph.
+
+![](./@f{u}nn%20y.png)
+
+This is another paragraph.
+
+# Test
+
+::: qic
+
+This is some Text.
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+::: test
+
+This paragraph is inside a div.
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+Hello World. This is a new paragraph.
+
+:::
+
+![](./@f{u}nn%20y.png)
+
+This is another paragraph.
 
 :::

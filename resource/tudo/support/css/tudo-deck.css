@@ -1000,7 +1000,6 @@ section#title-slide .decker-link:hover {
   font-size: 0.75em;
 }
 
-/* hide slide number of title slide */
 .reveal:has(.slides section:first-child.present) .slide-number {
   visibility: hidden;
 }
@@ -1265,7 +1264,9 @@ section#title-slide .decker-link:hover {
 
 /* possibility to hide quizzes */
 .hide-quizzes .reveal .quiz,
-.hide-quizzes .reveal .quiz * {
+.hide-quizzes .reveal .quiz *,
+.hide-quizzes .reveal .quizzer,
+.hide-quizzes .reveal .quizzer * {
   visibility: hidden;
 }
 
@@ -1353,7 +1354,7 @@ section#title-slide .decker-link:hover {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;
@@ -1499,7 +1500,7 @@ section#title-slide .decker-link:hover {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;
@@ -1638,7 +1639,7 @@ html.dark
   .media
   :is(figure, .figure)
   :not(.MathJax)
-  > :is(svg, img, canvas[data-chart], iframe) {
+  > :is(svg, img, canvas[data-chart]) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
   border-radius: 0;
@@ -1669,4 +1670,21 @@ html.a11y .reveal a:hover {
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);
   transform: scale(1.05);
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+summary {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
 }

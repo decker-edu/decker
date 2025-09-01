@@ -323,9 +323,8 @@ title: '<Undefined Title>' # Text
 
 # values likely to be valid on a UNIX machine:
 whisper:
-  base-dir: /usr/local/share/whisper.cpp
-  model: models/ggml-large.bin
-  lang: de 
+  model: /opt/whisper/ggml-large-v3.bin
+  lang: de
 
 # progress bar on index page
 progress: true # or define at least one of selector or insert

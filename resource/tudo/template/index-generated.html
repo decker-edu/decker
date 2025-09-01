@@ -64,42 +64,9 @@ $endif$
     $else$
     <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
     $endif$
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
     $for(template.index.css)$
     <link rel="stylesheet" href="$template.index.css$">
     $endfor$
-
-
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
 
   </head>
 
@@ -123,64 +90,61 @@ $endif$
 
     <!-- main content -->
     <main class="content">
+
       <div id="index-search"></div>
       <script type="module">
-import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
-window.addEventListener("load", () => {
-let searchBox = document.getElementById("index-search");
-setupSearch(searchBox, 0.5);
-    });
+        import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
+        window.addEventListener("load", () => {
+          let searchBox = document.getElementById("index-search");
+          setupSearch(searchBox, 0.5);
+        });
       </script>
-      <h2><span class="german">Foliensätze ($decks.by-title/length$)</span><span class="english">Decks ($decks.by-title/length$)</span></h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nummer</th>
-            <th>Foliensatz</th>
-          </tr>
-        </thead>
-        <tbody>
-          $for(decks.by-title/pairs)$
-          <tr>
-            <td>$it.key$</td>
-            <td><a href="$it.value.url$">$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
-          </tr>
-          $endfor$
-        </tbody>
-      </table>
-      <h2>Zusatzmaterial ($pages.by-title/length$)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nummer</th>
-            <th>Material</th>
-          </tr>
-        </thead>
-        <tbody>
-          $for(pages.by-title/pairs)$
-          <tr>
-            <td>$it.key$</td>
-            <td><a href="$it.value.url$">$if(it.value.title)$Material: $it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
-          </tr>
-          $endfor$
-        </tbody>
-      </table>
+
+      <section data-items="$decks.by-title/length$"">
+        <h2>
+          <span class="german">Foliensätze</span>
+          <span class="english">Slide Decks</span>
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Material</th>
+            </tr>
+          </thead>
+          <tbody>
+            $for(decks.by-title/pairs)$
+            <tr>
+              <td>$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
+              <td><span class="icons"><a title="Foliensatz zu $it.value.title$ öffnen" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
+            </tr>
+            $endfor$
+          </tbody>
+        </table>
+      </section>
+
+      <section data-items="$pages.by-title/length$"">
+        <h2>Zusatzmaterial</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Material</th>
+            </tr>
+          </thead>
+          <tbody>
+            $for(pages.by-title/pairs)$
+            <tr>
+              <td><a href="$it.value.url$">$if(it.value.title)$Material: $it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
+            </tr>
+            $endfor$
+          </tbody>
+        </table>
+      </section>
+
     </main>
 
     <!-- footer with author information -->
     <footer>
-      <!-- $if(copyright)$
-        $copyright:copyright-template.html()$
-      $endif$
-      $if(author)$
-        $author:author-template.html()$;&ensp;
-      $endif$
-      $if(affiliation)$
-        $affiliation:affiliation-template.html()$;&ensp;
-      $endif$
-      $if(date)$
-        $date$
-      $endif$ -->
       <p>
         $if(copyright)$ $copyright$ $endif$ 
         $if(author)$ $author$;&ensp; $endif$
@@ -195,11 +159,7 @@ setupSearch(searchBox, 0.5);
 
   <script src="$decker-support-dir$/js/index.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
-
-  <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
-  </script>
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
 
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
@@ -215,7 +175,5 @@ setupSearch(searchBox, 0.5);
         window.location.reload(true);
     };
   </script>
-
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
 
 </html>

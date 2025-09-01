@@ -50,7 +50,7 @@ chart:
     - "#eab700"
     - "#8959a8"
   defaults:
-    font: {family: "Lato", size: 20 }
+    font: { family: "Lato", size: 20 }
     plugins:
       title:
         font: { weight: "normal", size: 30 }
@@ -73,6 +73,7 @@ index:
   links:
     - a11y
     - handout
+    - pdf
 #    - presenter
 
 palette:
@@ -112,3 +113,10 @@ palette:
       - "#81a2be"
       - "#b294bb"
       - "#a3685a"
+
+templates:
+  deck: |
+    <span class="icons">
+    <a title="Open HTML slides" href=":(url)-deck.html"><i class="fa-brands fa-html5"></i></a>
+    <a title="Open PDF slides" href=":(url)-deck.pdf"><i class="fas fa-file-pdf"></i></a>
+    </span>

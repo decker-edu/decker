@@ -38,9 +38,6 @@ let recordingResumeTime;
 // playback stuff
 let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimesPlay;
 
-// view menu button
-let pluginButton;
-
 let uiState;
 
 let localization;
@@ -191,7 +188,8 @@ function jumpToTime(index) {
 
 // Looks up the index of the current Reveal slide in the explainTimes array.
 function currentRevealSlideIndex() {
-  let slideId = Reveal.getCurrentSlide().id;
+  if (!explainTimesPlay) return -1;
+  const slideId = Reveal.getCurrentSlide().id;
   return explainTimesPlay.findIndex((i) => i.slideId === slideId);
 }
 
@@ -535,8 +533,9 @@ async function getDevices() {
 
 async function setupRecorder() {
   if (!Decker.isPresenterMode()) {
-    Decker.flash.message(localization.presenter_mode_error);
-    return false;
+    Decker.togglePresenterMode();
+    // Decker.flash.message(localization.presenter_mode_error);
+    // return false;
   }
   try {
     stream = null;
@@ -569,9 +568,6 @@ async function setupRecorder() {
 
     // open panel to select camera and mic
     openRecordPanel();
-
-    // disable view menu button
-    pluginButton.disabled = true;
 
     return true;
   } catch (e) {
@@ -815,7 +811,6 @@ function stopRecording() {
     Reveal.getPlugin("whiteboard").saveAnnotations();
   }
 
-  enableViewButton();
   return true;
 }
 
@@ -921,9 +916,11 @@ function createPlayerGUI() {
     autoplay: false,
     preload: "metadata",
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3],
+    playsinline: true,
+    html5: { nativeTextTracks: true },
     controlBar: {
       playToggle: true,
-      volumePanel: true,
+      volumePanel: { inline: false },
       currentTimeDisplay: true,
       timeDivider: false,
       durationDisplay: false,
@@ -933,6 +930,8 @@ function createPlayerGUI() {
       pictureInPictureToggle: false,
     },
     userActions: {
+      // mouse click toggles play/pause
+      click: true,
       // disable going to fullscreen by double click
       doubleClick: false,
       // our keyboard shortcuts
@@ -949,10 +948,10 @@ function createPlayerGUI() {
             break;
 
           // left/right: skip slides
-          case "ArrowLeft":
+          case "PageUp":
             prev();
             break;
-          case "ArrowRight":
+          case "PageDown":
             next();
             break;
 
@@ -975,10 +974,12 @@ function createPlayerGUI() {
             }
             break;
 
-          // j/l: jump backward/forward by 10sec
+          // left/right or j/l: jump backward/forward by 10sec
+          case "ArrowLeft":
           case "KeyJ":
             player.currentTime(player.currentTime() - 10);
             break;
+          case "ArrowRight":
           case "KeyL":
             player.currentTime(player.currentTime() + 10);
             break;
@@ -1719,6 +1720,12 @@ async function setupPlayer() {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
+      updatePlayButton();
+
+      // ayy1 mode?
+      const a11yPlugin = Reveal.getPlugin("a11y");
+      const a11y = !!(a11yPlugin && a11yPlugin.a11yMode());
+
       let vtt;
 
       // "old" version of VTT w/o language specifier
@@ -1730,6 +1737,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
+            default: a11y,
           },
           false
         );
@@ -1739,7 +1747,7 @@ async function setupPlayer() {
       vtt = deckUrlBase() + "-recording-en.vtt";
       if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt },
+          { kind: "captions", srclang: "en", src: vtt, default: a11y },
           false
         );
       }
@@ -1750,7 +1758,7 @@ async function setupPlayer() {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
           player.addRemoteTextTrack(
-            { kind: "captions", srclang: lang, src: vtt },
+            { kind: "captions", srclang: lang, src: vtt, default: a11y },
             false
           );
         }
@@ -1794,13 +1802,14 @@ function setupCallbacks() {
       return evt.returnValue;
     }
   });
+
+  // show/hide play button, depending on slides is found in times array
+  Reveal.addEventListener("slidechanged", updatePlayButton);
 }
 
-function enableViewButton() {
-  if (pluginButton && Decker.isPresenterMode()) {
-    pluginButton.disabled = false;
-  }
-  return true;
+function updatePlayButton() {
+  playButton.style.display =
+    currentRevealSlideIndex() == -1 ? "none" : "initial";
 }
 
 // export the plugin
@@ -1853,7 +1862,7 @@ const Plugin = {
       RECORDER_READY: {
         name: "RECORDER_READY",
         transition: {
-          cancel: { action: enableViewButton, next: "INIT" },
+          // cancel: { action: enableViewButton, next: "INIT" },
           record: { action: startRecording, next: "RECORDING" },
         },
       },
@@ -1918,23 +1927,9 @@ const Plugin = {
       };
     }
     deck.addEventListener("ready", () => {
-      Decker.addPresenterModeListener((mode) => {
-        if (pluginButton) {
-          if (
-            mode &&
-            uiState.name() !== "RECORDER_READY" &&
-            uiState.name() !== "RECORDING" &&
-            uiState.name() !== "RECORDER_PAUSED"
-          ) {
-            pluginButton.disabled = false;
-          } else {
-            pluginButton.disabled = true;
-          }
-        }
-      });
       const menuPlugin = deck.getPlugin("decker-menu");
       if (menuPlugin && !!menuPlugin.addPluginButton) {
-        pluginButton = menuPlugin.addPluginButton(
+        menuPlugin.addPluginButton(
           "decker-menu-recording-button",
           "fa-video",
           localization.init_recording,
@@ -1951,7 +1946,6 @@ const Plugin = {
             }
           }
         );
-        pluginButton.disabled = true;
       }
     });
   },

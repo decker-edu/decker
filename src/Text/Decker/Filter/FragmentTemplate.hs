@@ -6,22 +6,23 @@ module Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates) where
 import Control.Concurrent.STM (modifyTVar)
 import Control.Exception (throw)
 import Control.Exception.Base (handle)
-import Data.Aeson (toJSON)
+import Data.Aeson qualified as A
 import Data.List qualified as List
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as Text
 import Development.Shake.FilePath ((</>))
 import Relude
 import System.FilePath ((<.>))
-import Text.Decker.Filter.Local (needFile)
 import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
 import Text.Decker.Filter.Util (randomId)
-import Text.Decker.Internal.Common (projectDir, supportDir)
+import Text.Decker.Filter.Local 
+import Text.Decker.Internal.Common (projectDir)
 import Text.Decker.Internal.Exception (DeckerException (..))
-import Text.Decker.Internal.Meta (lookupMetaOrElse, fromPandocMeta)
+import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse)
 import Text.Decker.Internal.URI (makeProjectPath)
+import Text.Decker.Resource.Resource
 import Text.DocLayout (render)
-import Text.DocTemplates (Context, compileTemplateFile, toContext)
+import Text.DocTemplates (Context, compileTemplateFile, compileTemplate, toContext)
 import Text.Pandoc
   ( Block (CodeBlock, Para, Plain, RawBlock),
     Inline (Link, RawInline),
@@ -60,15 +61,18 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let targetArgs = [("url", url), ("title", title)]
           let posArgs = zip (map (("arg" <>) . show) [1 .. (length args)]) args
           let allPosArgs = [("args", Text.unwords args)]
+          let argCount = [("argn", show $ length args)]
           let clsArgs = zip (map (("class" <>) . show) [1 .. (length cls)]) cls
           let allClsArgs = [("classes", Text.unwords cls)]
           let allKvAttribs = [("attribs", unwords $ map (\(k, v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
           rndId <- liftIO randomId
           let idArg = [("id", if Text.null id then rndId else id)]
+          let arguments = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> argCount
           let metaData = fromPandocMeta meta
-          let arguments :: [(Text, Text)] = allPosArgs <> posArgs <> targetArgs <> idArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs
+          let json = map (second A.String) arguments
+          let all = json <> [("meta", metaData)]
           template <- getTemplate (toString name)
-          let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
+          let context :: Context Text = toContext $ Map.fromList all
           let text :: Text = render Nothing $ renderTemplate template context
           return $ RawInline "html" text
         Nothing ->
@@ -91,8 +95,11 @@ expandFragmentTemplates document@(Pandoc meta blocks) =
           let idArg = [("id", if Text.null id then rndId else id)]
           let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]
           let arguments :: [(Text, Text)] = codeArg <> codeEscArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> rndIdArg <> idArg <> captionArg
+          let metaData = fromPandocMeta meta
+          let json = map (second A.String) arguments
+          let all = json <> [("meta", metaData)]
           template <- getTemplate (toString name)
-          let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
+          let context :: Context Text = toContext $ Map.fromList all
           let text :: Text = render Nothing $ renderTemplate template context
           return $ RawBlock "html" text
         Nothing ->
@@ -126,7 +133,7 @@ readTemplateFileIO :: String -> String -> IO (FilePath, Either String (Template 
 readTemplateFileIO base filename = do
   let path1 = makeProjectPath base filename
   let path2 = projectDir </> "templates" </> filename
-  let path3 = supportDir </> "templates" </> filename
+  -- let path3 = supportDir </> "templates" </> filename
 
   -- compileTemplateFile throws exceptions if the file data can not be read, and
   -- returns (Left (Template a)) if the template cannot be compiled. this code
@@ -136,16 +143,16 @@ readTemplateFileIO base filename = do
   handle
     ( \(SomeException _) ->
         handle
-          ( \(SomeException _) ->
-              handle
-                ( \(SomeException err) ->
-                    throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err)
-                )
-                $ compileTemplate path3
+          ( \(SomeException err) ->
+              -- handle
+              --   ( \(SomeException err) ->
+                    return $ (filename, Left $ "Cannot find template: " <> filename)
+                -- )
+                -- $ compileTemplate' path3
           )
-          $ compileTemplate path2
+          $ compileTemplate' path2
     )
-    $ compileTemplate path1
+    $ compileTemplate' path1
 
 readTemplateFile :: String -> Filter (Template Text)
 readTemplateFile filename = do
@@ -157,8 +164,17 @@ readTemplateFile filename = do
       needFile path
       return template
     Left err -> do
-      return $ throw (ResourceException $ "Cannot parse template file: " <> filename <> ": " <> show err)
+      -- can't read file from project, try reading as resource
+      text <- fmap decodeUtf8 <$> liftIO (readResource' ("support/templates" </> filename) meta)
+      case text of
+        Just text -> do
+          template <- liftIO $ Text.DocTemplates.compileTemplate filename text
+          case template of
+            Right template -> return template
+            Left err -> return $ throw (ResourceException $ "Cannot find compile resource: " <> filename <> ": " <> err)
+        Nothing -> return $ throw (ResourceException $ "Cannot find template resource: " <> filename)
 
-compileTemplate path = do
+compileTemplate' path = do
   t <- compileTemplateFile path
   return (path, t)
+
