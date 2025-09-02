@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="generator" content="pandoc" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-
+    
     <title>$if(title)$ $title$ $endif$</title>
 
     $for(author-meta)$
@@ -77,13 +77,13 @@
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     <!-- in place css that is to be developed. this contains definitions for the grid layout as well as both sides of the flip cards and cards  -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">  
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
     <link rel="stylesheet" href="$decker-support-dir$/css/index-card-layout.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/index-menubar.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/index-filter.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/about-layout.css">  
 </head>
-
 
 <body>
     <!-- Page Header -->
@@ -94,70 +94,86 @@
             </a>
             <img src="/support/vendor/images/theme/uni-wuerzburg-header-background.png"
                 class="page-header__logo-background">
-
-                        <!-- Hamburger Menu Icon -->
-                        <div class="hamburger"><?xml version="1.0" encoding="utf-8"?>
-                            <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 7H19" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M5 12L19 12" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M5 17L19 17" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg></div>
-                        </div>
+                <!-- Hamburger Menu Icon -->
+            <div class="hamburger"><?xml version="1.0" encoding="utf-8"?>
+                <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 7H19" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 12L19 12" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 17L19 17" stroke="#004a8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
         </div>
-    
     </header>
+
     <!--  BANNER SLIDER  https://codepen.io/ekrz/pen/EgJJYo  -->
     <nav id="menu-bar" class="menu-bar">
-    
         <div class="menu-container" id="nav-menu">
             <ul>
                 <div class="menu-item-container">
-                    $for(index.menu_bar.items)$
-                    <li class="$index.menu_bar.items.style$">
-                        $if(index.menu_bar.items.action)$
-                        <a href="$index.menu_bar.items.action$">$index.menu_bar.items.label$</a>
-                        $else$
-                        <span class="submenu-toggle">$index.menu_bar.items.label$</span>
-                        $endif$
-                        $if(index.menu_bar.items.submenu)$
+                    <li class="menu-item">
+                        <a href="/">Home</a>
                         <ul class="submenu">
-                            $for(index.menu_bar.items.submenu)$
-                          
-                            <li class="$index.menu_bar.items.submenu.style$">
-                                $if(index.menu_bar.items.submenu.action)$
-                                <a href="$index.menu_bar.items.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <li class="menu-item">
+                                <a href="#about"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg> $index.menu_bar.items.submenu.label$</a>
-                                $else$
-                                
-                                <div class="submenu-toggle"><svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                </svg> About Course</a>
+                            </li> 
+                            <li class="menu-item">
+                                <a href="https://hci.uni-wuerzburg.de/"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg> 2$index.menu_bar.items.submenu.label$</div>
-                                $endif$
-    
-                                $if(index.menu_bar.items.submenu.submenu)$
-                                <ul class="submenu">
-                                    $for(index.menu_bar.items.submenu.submenu)$
-                                    <li class="$index.menu_bar.items.submenu.submenu.style$">
-                                        $if(index.menu_bar.items.submenu.submenu.action)$
-                                        <a href="$index.menu_bar.items.submenu.submenu.action$"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg> $index.menu_bar.items.submenu.submenu.label$</a>
-                                        $else$
-                                        <span class="submenu-toggle"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg> $index.menu_bar.items.submenu.submenu.label$</span>
-                                        $endif$
-                                    </li>
-                                    $endfor$
-                                </ul>
-                                $endif$
-                            </li>
-                            $endfor$
+                                </svg> HCI Website</a>
+                            </li> 
                         </ul>
-                        $endif$
-                    </li>
-                    $endfor$
+                    </li> 
+                    $for(index.menu_bar.items)$
+<li class="$index.menu_bar.items.style$">
+$if(index.menu_bar.items.action)$
+    <a href="$index.menu_bar.items.action$">$index.menu_bar.items.label$</a>
+$else$
+                        <span class="submenu-toggle">$index.menu_bar.items.label$</span>
+$endif$
+$if(index.menu_bar.items.submenu)$
+                        <ul class="submenu">
+$for(index.menu_bar.items.submenu)$
+                            <li class="$index.menu_bar.items.submenu.style$">
+$if(index.menu_bar.items.submenu.action)$
+                                <a href="$index.menu_bar.items.submenu.action$"> 
+                                    <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg> $index.menu_bar.items.submenu.label$
+                                </a>
+$else$
+                            <div class="submenu-toggle">
+                                <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 7L15 12L10 17" stroke="#004a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>$index.menu_bar.items.submenu.label$
+                            </div>
+$endif$
+$if(index.menu_bar.items.submenu.submenu)$
+                            <ul class="submenu">
+$for(index.menu_bar.items.submenu.submenu)$
+                                <li class="$index.menu_bar.items.submenu.submenu.style$">
+$if(index.menu_bar.items.submenu.submenu.action)$
+                                    <a href="$index.menu_bar.items.submenu.submenu.action$"> 
+                                        <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg> $index.menu_bar.items.submenu.submenu.label$
+                                    </a>
+$else$
+                    <span class="submenu-toggle"> <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 7L15 12L10 17" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg> $index.menu_bar.items.submenu.submenu.label$</span>
+$endif$
+                                </li>
+$endfor$
+                            </ul>
+$endif$
+                            </li> 
+$endfor$
+                        </ul>
+$endif$
+                    </li> 
+$endfor$
                 </div>
             </ul>
     
@@ -166,14 +182,15 @@
                 <div class="search" id="search-anchor" style="align-content: center;"></div>
             </div>
         </div>
-    </nav>   
+    </nav>    
+    
 
 	<div class="banner page-header">
 		<div class="row fullwidth">
 			<div class="col-md-12">
 				<ul class="bannerSlider">
                     $for(index.image_carousel.items)$
-					<li class="slide">
+<li class="slide">
 						<a href="#">
 							<!-- <div class="slide__text">
 								<h2>$index.image_carousel.items.caption$</h2>
@@ -182,7 +199,7 @@
 								<img src="$index.image_carousel.items.image$" alt="" />
 							</div>
 						</a>
-					</li>
+					</li> <!-- G -->
                     $endfor$
 				</ul>
 			</div>
@@ -199,38 +216,104 @@
 
     <!-- Content Section -->
     <main class="page-body">
-        <section id="about">
-            <div class="course-header">
-                <h2>Course Description</h2>
-            </div>
-            <div class="course-description">$index.about.course-description$</div>
-            <div class="course-info">
-                <h3>Pre-Requisites</h3>
-                <span>$index.about.pre-requisites$</span>
-            </div>
-            <div class="course-info">
-                <h3>Target Audience</h3>
-                <span>$index.about.target-audience$</span>
-            </div>
-            <div class="course-info">
-                <h3>Learning Objectives</h3>
-                <ul>
-                    $for(index.about.learning-objectives)$
-                    <li>$index.about.learning-objectives.objective$</li>
+        <section id="chapters" style="display: none;">
+            $for(index.chapters)$
+            <!-- Chapter Loop -->
+            <article class="chapter">
+                <header class="$index.chapters.separator.style$">
+                    <h2>$index.chapters.topic$</h2>
+                    $if(index.chapters.separator)$
+                    <div class="$index.chapters.separator.style$">$index.chapters.separator.content$</div>
+                    $endif$
+                </header>
+
+
+                <!-- Materials -->
+                $if(index.chapters.materials)$
+                <ul class="materials">
+                    $for(index.chapters.materials)$
+                    <!-- Materials Loop -->
+                    $if(index.chapters.materials.hidden)$
+                    $else$
+                    <li class="material ">
+                        <span class="material-title">$index.chapters.materials.title$</span>
+                        $if(index.chapters.materials.date)$
+                        <p class="date">$index.chapters.materials.date$</p>
+                        $endif$
+                        <!-- Check for files array -->
+                        $if(index.chapters.materials.files)$
+                        <ul class="material-files">
+                            $for(index.chapters.materials.files)$
+                            <!-- Files Loop -->
+                            <li>
+                                <a href="$index.chapters.materials.files.link$" class="file-link">
+                                    $index.chapters.materials.files.name$</a>
+                            </li> <!-- H -->
+                            $endfor$
+                        </ul>
+                        $endif$
+                        $if(index.chapters.materials.description)$
+                        <p class="description">$index.chapters.materials.description$</p>
+                        $endif$
+                        <a class="slides-link" href=${index.chapters.materials.slides}></a>
+                        $if(index.chapters.materials.img)$
+                        <img src="$index.chapters.materials.img$" />
+                        $endif$
+                        $if(index.chapters.materials.keywords)$
+                        <span class="keywords">
+                            $for(index.chapters.materials.keywords)$
+                            <!-- Keyword Loop -->
+                            <span class="keyword-box">#$index.chapters.materials.keywords$</span>
+                            $endfor$
+                        </span>
+                        $endif$
+                    </li> <!-- I -->
+                    $endif$
                     $endfor$
                 </ul>
+                $endif$
+            </article>
+            $endfor$
+        </section>
+        <div id="tileContainer" class="card-grid">
+        </div>
+        <section id="about" class="card-grid" >
+            <div class="lecture-header">
+                <h2>Course Description</h2>
             </div>
-            <div class="course-header">
+            <div class="lecture-container">
+                <div class="course-description">$index.about.course-description$</div>
+                <div class="course-info">
+                    <h3>Pre-Requisites</h3>
+                    <span>$index.about.pre-requisites$</span>
+                </div>
+                <div class="course-info">
+                    <h3>Target Audience</h3>
+                    <span>$index.about.target-audience$</span>
+                </div>
+                <div class="course-info">
+                    <h3>Learning Objectives</h3>
+                    <ul>
+                        $for(index.about.learning-objectives)$
+                        <li>$index.about.learning-objectives.objective$</li>
+                        $endfor$
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="lecture-header">
                 <h2>Course Contacts</h2>
             </div>
-            <div class="contacts">
-                $for(index.about.contacts)$
-                <div class="contact">
-                    <h3>$index.about.contacts.name$</h3>
-                    <span>$index.about.contacts.email$</span>
+            <div class="lecture-container">
+                <div class="contacts">
+                    $for(index.about.contacts)$
+                    <div class="contact">
+                        <h3>$index.about.contacts.name$</h3>
+                        <span>$index.about.contacts.email$</span>
+                    </div>
+                    <div class="contact-reason">Contact for $index.about.contacts.reason$</div>
+                    $endfor$
                 </div>
-                <div class="contact-reason">Contact for $index.about.contacts.reason$</div>
-                $endfor$
             </div>
         </section>
     </main>
@@ -292,6 +375,7 @@
             <a href="https://www.hci.uni-wuerzburg.de/legal/" class="u-color-disabled">Legal Information</a>
         </div>
     </div>
+    
     <script>
         var socket = new WebSocket("ws://" + location.host + "/reload");
         socket.onmessage = function (event) {
@@ -300,21 +384,12 @@
         };
     </script>
 
-    <!-- <script src="$decker-support-dir$/js/index-bootstap-inject.js"></script> -->
      <script src="$decker-support-dir$/js/index-styling.js"></script>
-     <script src="$decker-support-dir$/js/about-styling.js"></script>
     <script type="module" src="$decker-support-dir$/js/search-functionality.js"></script>
     <script src="$decker-support-dir$/js/image-carousel.js"></script>
     <script src="$decker-support-dir$/js/index-menubar.js"></script>
+        
 
 </body>
-<!-- <footer>
-    $for(author)$
-    <p class="author">$author$</p>
-    $endfor$
-    $if(date)$
-    <p class="date">$date$</p>
-    $endif$
-</footer> -->
 
 </html>

@@ -195,23 +195,7 @@ deckerPipeline (Disposition Page Html) =
       processDetailDiv,
       processDetailHeader
     ]
-deckerPipeline (Disposition About Html) =
-  concatM
-    [ evaluateShortLinks,
-      -- expandTemplateMacros,
-      expandDeckerMacros,
-      processDetailDiv,
-      processDetailHeader
-    ]
 deckerPipeline (Disposition Index Html) =
-  concatM
-    [ evaluateShortLinks,
-      -- expandTemplateMacros,
-      expandDeckerMacros,
-      processDetailDiv,
-      processDetailHeader
-    ]
-deckerPipeline (Disposition About Html) =
   concatM
     [ evaluateShortLinks,
       -- expandTemplateMacros,

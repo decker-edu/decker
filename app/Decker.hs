@@ -38,7 +38,6 @@ import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
-import Text.Decker.Writer.Html (writeIndexLists)
 import Text.Decker.Writer.Layout
 import Text.Groom
 import System.Directory (makeRelativeToCurrentDirectory)
@@ -84,13 +83,9 @@ serverPort = 8888
 
 serverUrl = "http://localhost:" ++ show serverPort
 
-generatedIndexSource = (</> "index.md.generated") <$> transientDir
-
 generatedIndex = publicDir </> "index-generated.html"
 
 indexFile = publicDir </> "index.html"
-
-aboutFile = publicDir </> "about.html"
 
 run :: IO ()
 run = do
@@ -102,7 +97,6 @@ runArgs args = do
 
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
-  generated <- liftIO generatedIndexSource
   transient <- liftIO transientDir
   devRun <- liftIO $ isDevelopmentRun
   want ["html"]
@@ -111,14 +105,13 @@ deckerRules = do
   addHelpSuffix "  - purge - Your sins will be forgiven."
   addHelpSuffix "  - example - Create an example project."
   addHelpSuffix "  - serve - Start just the server."
+  addHelpSuffix "  - build-index - Compile search terms and build the index."
   addHelpSuffix "  - crunch - Compress all recordings to smaller size. Takes a while and will drain your battery."
   addHelpSuffix "  - transcribe - Transcribe recorded videos. Takes a while and will drain your battery."
   addHelpSuffix "  - pdf - Build PDF versions of all decks (*-deck.md)."
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
-  addHelpSuffix "  - search-index - Compile global search index."
-  addHelpSuffix "  - build-index - Post process the generated index.html file."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -254,35 +247,21 @@ deckerRules = do
       need ["private/quest-catalog.xml"]
     --
     phony "build-index" $ do
-      need [aboutFile, "html", "handouts", "search-index"]
+      need ["html", "handouts", "search-index"]
     --
     indexFile %> \out -> do
       meta <- getGlobalMeta
-      exists <- liftIO $ Dir.doesFileExist indexSource
+      deps <- getDeps
+      exists <- doesFileExist indexSource
       if exists
         then do
-          need [indexSource, generatedIndex]
+          need [indexSource]
           markdownToHtml htmlIndex meta getTemplate indexSource out
+          template <- getTemplate "template/index-generated.html"
+          renderIndex template meta deps generatedIndex
         else do
-          need [generated]
-          markdownToHtml htmlIndex meta getTemplate generated out
-    --
-    aboutFile %> \out -> do
-      meta <- getGlobalMeta
-      need [generated]
-      markdownToHtml htmlAbout meta getTemplate generated out
-    --
-    generated %> \out -> do
-      deps <- getDeps
-      meta <- getGlobalMeta
-      targets <- liftIO targetsFile
-      need [targets]
-      writeIndexLists meta deps out
-    --
-    generatedIndex %> \out -> do
-      need [generated]
-      meta <- getGlobalMeta
-      markdownToHtml htmlIndex meta getTemplate generated out
+          template <- getTemplate "template/index-generated.html"
+          renderIndex template meta deps out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do

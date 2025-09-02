@@ -460,6 +460,40 @@ footer p {
   height: 30px;
 }
 
+
+.course-description {
+    margin-bottom: 1em;
+}
+
+.course-info {
+    margin-bottom: 0.8em;
+}
+.contact h3, 
+.course-info h3 {
+    font-weight: bold;
+    font-size: 1.3rem;
+    line-height: 2rem;
+    text-decoration: none;
+    margin-right: 1rem;
+    margin-bottom: 0;
+    color: #004a8f;
+}
+.contacts {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+.contact {
+    display: flex;
+}
+.contact span {
+    margin-top: 0.5em;
+    font-weight: bold;
+}
+.contact-reason {
+    margin-bottom: 1em;
+}
+
+
 @media screen and (max-width: 768px) {
   .card-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -635,7 +669,3 @@ body,
   color: #007bff;
   text-decoration: underline;
 }
-
-
-
-/* badge badge-pill badge-secondary keyword  do not have a style definition. The badge pils are missing them of course. Maybe because css is taken from web?!*/

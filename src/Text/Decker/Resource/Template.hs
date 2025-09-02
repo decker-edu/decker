@@ -40,9 +40,7 @@ templateFiles =
       (Disposition Handout Html, "template/handout.html"),
       (Disposition Handout Latex, "template/handout.tex"),
       (Disposition Index Html, "template/index.html"),
-      (Disposition Index Latex, "template/index.tex"),
-      (Disposition About Html, "template/about.html"),
-      (Disposition About Latex, "template/about.tex")
+      (Disposition Index Latex, "template/index.tex")
     ]
 
 templateFile :: Disposition -> FilePath
