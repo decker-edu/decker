@@ -73,18 +73,18 @@ processCites pandoc@(Pandoc meta blocks) = liftIO $ do
     | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
         runIOorExplode $ processCitations pandoc
     | isMetaSet "bibliography" meta -> do
-        defaultCSL <- installDefaultCSL
+        defaultCSL <- installDefaultCSL meta
         let cslMeta = setMetaValue "csl" defaultCSL meta
         runIOorExplode $ processCitations (Pandoc cslMeta blocks)
     | otherwise -> return pandoc
 
-installDefaultCSL :: IO FilePath
-installDefaultCSL = do
+installDefaultCSL :: Meta -> IO FilePath
+installDefaultCSL meta = do
   transient <- transientDir
   let path = transient </> "default.csl"
   exists <- Dir.doesFileExist path
   unless exists $ do
-    csl <- readResource "default.csl" (DeckerExecutable "decker")
+    csl <- readResource' "default.csl" meta
     atomicWriteFile path (fromJust csl)
   return path
 
