@@ -1,8 +1,3 @@
-// import {
-//   setupFlyingFocus,
-//   hideFlyingFocus,
-// } from "../../flyingFocus/flying-focus.js";
-
 import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
 
 let Reveal;
