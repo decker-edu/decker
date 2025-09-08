@@ -123,11 +123,12 @@ function insertAdditionalLinks() {
     container.classList.add("icons");
     let title =
       navigator.language === "de" ? "Unbekannter Titel" : "Unknown Title";
-
+    let subtitle = undefined;
     const decks = Decker.meta.decks["by-title"];
     for (const deck of decks) {
       if (link.href.endsWith(deck.url)) {
         title = deck.title;
+        subtitle = deck.subtitle;
       }
     }
     container.title =
