@@ -105,7 +105,6 @@ deckerRules = do
   addHelpSuffix "  - purge - Your sins will be forgiven."
   addHelpSuffix "  - example - Create an example project."
   addHelpSuffix "  - serve - Start just the server."
-  addHelpSuffix "  - build-index - Compile search terms and build the index."
   addHelpSuffix "  - crunch - Compress all recordings to smaller size. Takes a while and will drain your battery."
   addHelpSuffix "  - transcribe - Transcribe recorded videos. Takes a while and will drain your battery."
   addHelpSuffix "  - pdf - Build PDF versions of all decks (*-deck.md)."
@@ -245,9 +244,6 @@ deckerRules = do
     --
     phony "moodle-xml" $ do
       need ["private/quest-catalog.xml"]
-    --
-    phony "build-index" $ do
-      need ["html", "handouts", "search-index"]
     --
     indexFile %> \out -> do
       meta <- getGlobalMeta
