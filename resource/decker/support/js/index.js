@@ -1,12 +1,5 @@
 function initIndexPage() {
-  const mode = Decker.meta.index?.mode || "insert";
-
-  if (mode === "insert") {
-    insertAdditionalLinks();
-  }
-  if (mode === "modal") {
-    modalLinks();
-  }
+  insertAdditionalLinks();
   loadSources();
 }
 
@@ -23,10 +16,12 @@ async function resourceExists(url) {
 async function setupModeLinks(container, url) {
   const links = Decker.meta.index?.links || [];
   let title = "Unbekannter Titel";
+  let subtitle = undefined;
   const decks = Decker.meta.decks["by-title"];
   for (const deck of decks) {
     if (url.href.endsWith(deck.url)) {
       title = deck.title;
+      subtitle = deck.subtitle;
     }
   }
 
@@ -55,14 +50,18 @@ async function setupModeLinks(container, url) {
     handoutLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? `${title} in Handout-Darstellung öffnen`
-        : `Access ${title} in handout mode`
+        ? `${title}${
+            subtitle ? " - " + subtitle : ""
+          } in Handout-Darstellung öffnen`
+        : `Access ${title}${subtitle ? " - " + subtitle : ""} in handout mode`
     );
     handoutLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? `${title} in Handout-Darstellung öffnen`
-        : `Access ${title} in handout mode`
+        ? `${title}${
+            subtitle ? " - " + subtitle : ""
+          } in Handout-Darstellung öffnen`
+        : `Access ${title}${subtitle ? " - " + subtitle : ""} in handout mode`
     );
     container.appendChild(handoutLink);
   }
@@ -124,6 +123,7 @@ function insertAdditionalLinks() {
     container.classList.add("icons");
     let title =
       navigator.language === "de" ? "Unbekannter Titel" : "Unknown Title";
+
     const decks = Decker.meta.decks["by-title"];
     for (const deck of decks) {
       if (link.href.endsWith(deck.url)) {
@@ -132,8 +132,12 @@ function insertAdditionalLinks() {
     }
     container.title =
       navigator.language === "de"
-        ? `Foliensatz ${title} betrachten: Drücke Eingabe, um Betrachtungsmodus auszuwählen.`
-        : `View slide deck ${title}: Press Enter to choose view mode.`;
+        ? `Foliensatz ${title}${
+            subtitle ? " - " + subtitle : ""
+          } betrachten: Drücke Eingabe, um Betrachtungsmodus auszuwählen.`
+        : `View slide deck ${title}${
+            subtitle ? " - " + subtitle : ""
+          }: Press Enter to choose view mode.`;
     setupModeLinks(container, url);
     setupProgressIndicator(container, url);
     if (insert === "replace") {
@@ -216,156 +220,6 @@ function setupProgressIndicator(container, url) {
 
   progress.update();
   container.appendChild(progress);
-}
-
-let modalDialog = undefined;
-let modalLinkGroup = undefined;
-let modalMessage = undefined;
-let modalCloseButton = undefined;
-
-function modalLinks() {
-  const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
-  const links = document.querySelectorAll(selector);
-
-  modalDialog = document.createElement("dialog");
-  document.body.appendChild(modalDialog);
-
-  modalMessage = document.createElement("h2");
-  modalDialog.appendChild(modalMessage);
-
-  modalLinkGroup = document.createElement("div");
-  modalLinkGroup.className = "group";
-
-  modalDialog.appendChild(modalLinkGroup);
-
-  modalCloseButton = document.createElement("button");
-  modalCloseButton.addEventListener("click", (event) => {
-    modalDialog.close();
-  });
-  modalCloseButton.className = "fas fa-times";
-  modalCloseButton.ariaLabel =
-    navigator.language === "de" ? "Dialog Schließen" : "Close Dialog";
-  modalCloseButton.title =
-    navigator.language === "de" ? "Dialog Schließen" : "Close Dialog";
-  modalDialog.appendChild(modalCloseButton);
-
-  for (const link of links) {
-    addModalToLink(link);
-  }
-}
-
-function addModalToLink(link) {
-  const modes = Decker.meta.index?.links || [];
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    modalMessage.innerText =
-      navigator.language === "de"
-        ? `Präsentation ${link.textContent} aufrufen?`
-        : `Visit Slide Deck ${link.textContent}?`;
-    // remove previous elements in the link group
-    while (modalLinkGroup.firstElementChild) {
-      modalLinkGroup.firstElementChild.remove();
-    }
-    const normalLink = document.createElement("a");
-    normalLink.href = link.href;
-    modalLinkGroup.appendChild(normalLink);
-    const normalIcon = document.createElement("i");
-    normalIcon.className = "fas fa-chalkboard";
-    normalLink.appendChild(normalIcon);
-    const normalLabel = document.createElement("span");
-    normalLink.appendChild(normalLabel);
-    normalLabel.innerText = "Präsentation";
-    normalLink.setAttribute(
-      "title",
-      navigator.language === "de"
-        ? "Präsentation aufrufen"
-        : "Access presentation"
-    );
-    normalLink.setAttribute(
-      "aria-label",
-      navigator.language === "de"
-        ? "Präsentation aufrufen"
-        : "Access presentation"
-    );
-    if (modes.includes("a11y")) {
-      const a11yLink = document.createElement("a");
-      const a11yIcon = document.createElement("i");
-      const a11yLabel = document.createElement("span");
-      a11yLink.appendChild(a11yIcon);
-      a11yLink.appendChild(a11yLabel);
-      a11yLink.href = link.href + "?a11y";
-      a11yIcon.className = "fas fa-universal-access";
-      a11yLink.setAttribute(
-        "title",
-        navigator.language === "de"
-          ? "In barrierearmer Darstellung öffnen"
-          : "Access in accessibility mode"
-      );
-      a11yLink.setAttribute(
-        "aria-label",
-        navigator.language === "de"
-          ? "In barrierearmer Darstellung öffnen"
-          : "Access in accessibility mode"
-      );
-      a11yLabel.innerText =
-        navigator.language === "de" ? "Barrierearm" : "Accessible";
-      modalLinkGroup.appendChild(a11yLink);
-    }
-
-    if (modes.includes("handout")) {
-      const handoutLink = document.createElement("a");
-      const handoutIcon = document.createElement("i");
-      const handoutLabel = document.createElement("span");
-      handoutLink.appendChild(handoutIcon);
-      handoutLink.appendChild(handoutLabel);
-      handoutIcon.className = "handout-link";
-      handoutLink.href = link.href + "?handout";
-      handoutLink.setAttribute(
-        "title",
-        navigator.language === "de"
-          ? "In Handout-Darstellung öffnen"
-          : "Access in handout mode"
-      );
-      handoutLink.setAttribute(
-        "aria-label",
-        navigator.language === "de"
-          ? "In Handout-Darstellung öffnen"
-          : "Access in handout mode"
-      );
-      handoutLabel.innerText =
-        navigator.language === "de" ? "Handout" : "Handout";
-      modalLinkGroup.appendChild(handoutLink);
-    }
-
-    if (modes.includes("presenter")) {
-      const presenterLink = document.createElement("a");
-      const presenterIcon = document.createElement("i");
-      const presenterLabel = document.createElement("span");
-      presenterLink.appendChild(presenterIcon);
-      presenterLink.appendChild(presenterLabel);
-      presenterLink.href = link.href + "?a11y";
-      presenterIcon.className = "fas fa-chalkboard-teacher";
-      presenterLink.setAttribute(
-        "title",
-        navigator.language === "de"
-          ? "Im Präsentationsmodus öffnen"
-          : "Access in presenter mode"
-      );
-      presenterLink.setAttribute(
-        "aria-label",
-        navigator.language === "de"
-          ? "Im Präsentationsmodus öffnen"
-          : "Access in presenter mode"
-      );
-      presenterLabel.innerText =
-        navigator.language === "de"
-          ? "Präsentationsdarstellung"
-          : "Presenter Display";
-      modalLinkGroup.appendChild(presenterLink);
-    }
-    modalDialog.showModal();
-  });
 }
 
 function updateProgressIndicators() {
