@@ -35,8 +35,6 @@ const l10n_en = {
   unknownSlide: "Unknown slide title",
 };
 
-const l10n = navigator.language === "de" ? l10n_de : l10n_en;
-
 function setupSearch(
   anchor,
   minScore = 0.5,
@@ -46,9 +44,34 @@ function setupSearch(
   // let indexPath = Decker.meta.projectPath;
   // if (!indexPath.endsWith("/")) indexPath += "/";
   // indexPath += "index.json";
-  // TODO assumes this is called from index.html 
-  let indexPath = "./index.json"
+  // TODO assumes this is called from index.html
+  let indexPath = "./index.json";
   console.log("read search index from " + indexPath);
+
+  const config = { attributes: true };
+  const callback = (list, observer) => {
+    for (const mutation of list) {
+      if (
+        mutation.type === "attributes" &&
+        mutation.target === document.documentElement
+      ) {
+        while (anchor.firstElementChild) {
+          anchor.firstElementChild.remove();
+        }
+        fetch(indexPath)
+          .then((res) => {
+            if (res.ok) return res.json();
+            else throw new Error("Cannot download index file.");
+          })
+          .then((index) => {
+            setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
+          })
+          .catch((err) => console.log(err));
+      }
+    }
+  };
+  const rerenderer = new MutationObserver(callback);
+  rerenderer.observe(document.documentElement, config);
 
   fetch(indexPath)
     .then((res) => {
@@ -62,6 +85,9 @@ function setupSearch(
 }
 
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
+  const lang =
+    document.documentElement.lang || Decker.meta.lang || navigator.language;
+  const l10n = lang === "de" ? l10n_de : l10n_en;
   if (anchor.innerHTML.trim() === "") {
     anchor.innerHTML = `<details role="search">
   <summary>${l10n.details_summary}</summary>

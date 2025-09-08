@@ -92,6 +92,8 @@ $endif$
     <!-- main content -->
     <main class="content">
 
+      $manual.html()$
+
       <div id="index-search"></div>
       <script type="module">
         import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
@@ -101,47 +103,88 @@ $endif$
         });
       </script>
 
-      <section data-items="$decks.by-title/length$"">
-        <h2>
-          <span class="german">Foliensätze</span>
-          <span class="english">Slide Decks</span>
-        </h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Material</th>
-            </tr>
-          </thead>
-          <tbody>
-            $for(decks.by-title/pairs)$
-            <tr>
-              <td>$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
-              <td><span class="icons"><a title="Foliensatz zu $it.value.title$ öffnen" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
-            </tr>
-            $endfor$
-          </tbody>
-        </table>
-      </section>
+      <div class="english">
+        <section data-items="$decks.by-title/length$"">
+          <h2>
+            Slide Decks
+          </h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Material</th>
+              </tr>
+            </thead>
+            <tbody>
+              $for(decks.by-title/pairs)$
+              <tr>
+                <td>$if(it.value.title)$$it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
+                <td><span class="icons"><a title="Access slide $it.value.title$" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
+              </tr>
+              $endfor$
+            </tbody>
+          </table>
+        </section>
 
-      <section data-items="$pages.by-title/length$"">
-        <h2>Zusatzmaterial</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Material</th>
-            </tr>
-          </thead>
-          <tbody>
-            $for(pages.by-title/pairs)$
-            <tr>
-              <td><a href="$it.value.url$">$if(it.value.title)$Material: $it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
-            </tr>
-            $endfor$
-          </tbody>
-        </table>
-      </section>
+        <section data-items="$pages.by-title/length$"">
+          <h2>Additional Material</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+              </tr>
+            </thead>
+            <tbody>
+              $for(pages.by-title/pairs)$
+              <tr>
+                <td><a href="$it.value.url$">$if(it.value.title)$Material: $it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
+              </tr>
+              $endfor$
+            </tbody>
+          </table>
+        </section>
+      </div>
+      <div class="german">
+        <section data-items="$decks.by-title/length$"">
+          <h2>
+            Foliensätze
+          </h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Titel</th>
+                <th>Material</th>
+              </tr>
+            </thead>
+            <tbody>
+              $for(decks.by-title/pairs)$
+              <tr>
+                <td>$if(it.value.title)$$it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
+                <td><span class="icons"><a title="Foliensatz zu $it.value.title$ öffnen" href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
+              </tr>
+              $endfor$
+            </tbody>
+          </table>
+        </section>
 
+        <section data-items="$pages.by-title/length$"">
+          <h2>Zusatzmaterial</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+              </tr>
+            </thead>
+            <tbody>
+              $for(pages.by-title/pairs)$
+              <tr>
+                <td><a href="$it.value.url$">$if(it.value.title)$Material: $it.value.title$$else$Unbekannter Titel$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</a></td>
+              </tr>
+              $endfor$
+            </tbody>
+          </table>
+        </section>
+      </div>
     </main>
 
     <!-- footer with author information -->
