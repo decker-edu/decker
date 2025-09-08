@@ -53,17 +53,18 @@ function setupSearch(
     for (const mutation of list) {
       if (
         mutation.type === "attributes" &&
-        mutation.target === document.documentElement
+        mutation.target === document.documentElement &&
+        mutation.attributeName === "lang"
       ) {
-        while (anchor.firstElementChild) {
-          anchor.firstElementChild.remove();
-        }
         fetch(indexPath)
           .then((res) => {
             if (res.ok) return res.json();
             else throw new Error("Cannot download index file.");
           })
           .then((index) => {
+            while (anchor.firstElementChild) {
+              anchor.firstElementChild.remove();
+            }
             setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
           })
           .catch((err) => console.log(err));
