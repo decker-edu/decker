@@ -209,7 +209,7 @@ function prepareFullscreenIframes() {
         : "Display embedding in fullscreen";
     btn.classList.add("fs-button");
     btn.innerHTML =
-      '<i class="fas fa-expand-arrows-alt" style="font-size:20px"></i>';
+      '<i class="fas fa-up-right-and-down-left-from-center" style="font-size:20px"></i>';
     div.btn = btn;
     div.prepend(btn);
 
@@ -228,7 +228,8 @@ function prepareFullscreenIframes() {
     div.onfullscreenchange = function () {
       var doc = window.document;
       if (doc.fullscreenElement === this) {
-        this.btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
+        this.btn.innerHTML =
+          '<i class="fas fa-down-left-and-up-right-to-center"></i>';
         this.btn.title =
           navigator.language === "de"
             ? "Vollbild verlassen"
@@ -238,7 +239,8 @@ function prepareFullscreenIframes() {
             ? "Vollbild verlassen"
             : "Leave fullscreen";
       } else {
-        this.btn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+        this.btn.innerHTML =
+          '<i class="fas fa-up-right-and-down-left-from-center"></i>';
         this.btn.title =
           navigator.language === "de"
             ? "Einbettung in Vollbild anzeigen"
