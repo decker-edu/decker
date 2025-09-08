@@ -950,15 +950,7 @@ function createPlayerGUI() {
             else this.pause();
             break;
 
-          // left/right: skip slides
-          case "ArrowLeft":
-            event.stopPropagation();
-            event.preventDefault();
-            prev();
-            break;
-          case "ArrowRight":
-            event.stopPropagation();
-            event.preventDefault();
+          // Page Up/Page Down: skip slides
           case "PageUp":
             event.stopPropagation();
             event.preventDefault();
