@@ -123,8 +123,7 @@ export function configureMathJax() {
 
 export function loadMathJax() {
   const mathjax = Decker.meta.supportPath + "/vendor/mathjax/";
-  const output = Decker?.meta?.math?.mathjax?.output || "svg";
-  const url = mathjax + `tex-${output}-nofont.js`;
+  const url = mathjax + `tex-svg-nofont.js`;
   const script = document.createElement("script");
   script.src = url;
   document.head.appendChild(script);
