@@ -2,7 +2,7 @@
   <summary>
     <span class="english">How to use Decker</span>
     <span class="german">Anleitung für Decker</span>
-    <select class="howto-lang-select" onchange='document.documentElement.setAttribute("lang", this.selectedOptions[0].value); blur();'>
+    <select class="howto-lang-select" onchange='this.parentElement.parentElement.setAttribute("lang", this.selectedOptions[0].value); blur();'>
       <option value="en">🇺🇸</option>
       <option value="de">🇩🇪</option>
   </select>
