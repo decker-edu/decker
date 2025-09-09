@@ -96,6 +96,7 @@ export function configureMathJax() {
       tags: "ams",
       packages: { "[+]": ["action", "color"] },
       macros: macros,
+      inlineMath: { "[+]": [["$", "$"]] },
     },
     options: {
       // skipHtmlTags: { "[+]": ["details"] },

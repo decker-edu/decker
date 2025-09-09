@@ -204,9 +204,13 @@ html.handout .decker-anchor #handout-minus {
   text-align: center;
   background-color: var(--menu-background-color);
   border-top: 1px solid var(--shade3);
+  border-left: 1px solid var(--shade3);
+  border-right: 1px solid var(--shade3);
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 0.5rem;
+  --tail-size: 0.5rem;
 }
 
 .handout-feedback-comments {
@@ -214,20 +218,48 @@ html.handout .decker-anchor #handout-minus {
 }
 
 .handout-feedback-comment {
+  position: relative;
   margin: 0.5rem;
   padding: 0.25rem;
-  border-radius: 0.5rem;
+  border-radius: 0 0.5rem 0.5rem 0.5rem;
   background-color: var(--background-color);
   text-align: left;
   box-sizing: border-box;
+  font-size: 1.5rem;
+  font-weight: normal;
+}
+
+.handout-feedback-comment::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: calc(-1 * var(--tail-size));
+  width: 0;
+  height: 0;
+  border-top: var(--tail-size) solid var(--background-color);
+  border-left: var(--tail-size) solid transparent;
 }
 
 .handout-feedback-answer {
+  position: relative;
   margin: 0.5rem;
   margin-left: 4ex;
   padding: 0.25rem;
-  border-radius: 0.5rem;
-  background-color: var(--background-color);
-  text-align: left;
+  border-radius: 0.5rem 0 0.5rem 0.5rem;
+  background-color: var(--accent3-bg);
+  text-align: right;
   box-sizing: border-box;
+  font-size: 1.5rem;
+  font-weight: normal;
+}
+
+.handout-feedback-answer::after {
+  position: absolute;
+  content: "";
+  top: 0;
+  right: calc(-1 * var(--tail-size));
+  width: 0;
+  height: 0;
+  border-top: var(--tail-size) solid var(--accent3-bg);
+  border-right: var(--tail-size) solid transparent;
 }

@@ -224,13 +224,13 @@ function activateHandoutMode() {
                 message.className = "handout-feedback-comment";
                 message.innerHTML = comment.html;
                 commentWrapper.appendChild(message);
-                MathJax.typeset([message]);
+                window.MathJax.typeset([message]);
                 for (const answer of comment.answers) {
                   const message = document.createElement("div");
                   message.className = "handout-feedback-answer";
                   message.innerHTML = answer.html;
                   commentWrapper.appendChild(message);
-                  MathJax.typeset([message]);
+                  window.MathJax.typeset([message]);
                 }
               }
             }
