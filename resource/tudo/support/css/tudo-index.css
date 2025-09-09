@@ -69,8 +69,8 @@ h1 {
 
 h2 {
   font-size: 1.25rem;
-  margin-top: 0.5em;
-  font-family: monospace;
+  margin-top: 2em;
+  font-family: inherit;
 }
 
 hr {
@@ -292,47 +292,12 @@ div.icons {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
   &:focus-visible {
-    outline: solid 3px var(--orangeish) !important;
+    outline: solid 3px var(--focus-color) !important;
     outline-offset: -1px !important;
   }
   &:active {
     outline-offset: -3px !important;
   }
-}
-
-#index-color-button {
-  font-size: 2rem;
-  font-family: "Font Awesome 7 Free";
-  font-weight: 900;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 3rem;
-  height: 3rem;
-  border: none;
-  background-color: transparent;
-  color: var(--foreground-color);
-}
-
-.light #index-color-button {
-  color: var(--background-color);
-}
-
-#index-color-button:hover {
-  border-radius: 100%;
-  background-color: var(--background-color);
-}
-
-.light #index-color-button:hover {
-  background-color: var(--foreground-color);
-}
-
-html.dark #index-color-button::before {
-  content: "\f185";
-}
-
-html.light #index-color-button::before {
-  content: "\f186";
 }
 
 .german {
@@ -344,6 +309,22 @@ html[lang="de"] .german {
 }
 
 html[lang="de"] .english {
+  display: none;
+}
+
+.howto[lang="en"] .english {
+  display: unset;
+}
+
+.howto[lang="de"] .english {
+  display: none;
+}
+
+.howto[lang="de"] .german {
+  display: unset;
+}
+
+.howto[lang="en"] .german {
   display: none;
 }
 
@@ -456,24 +437,6 @@ a.handout-link:hover::after {
 /* hide empty lists */
 section[data-items="0"] {
   display: none;
-}
-
-/* make focus more visible */
-a,
-button,
-input,
-select,
-details,
-summary {
-  transition: outline-offset 0.2s ease !important;
-  outline-offset: 30px;
-  &:focus-visible {
-    outline: solid 3px var(--focus-color) !important;
-    outline-offset: 1px !important;
-  }
-  &:active {
-    outline-offset: -2px !important;
-  }
 }
 
 .index details {

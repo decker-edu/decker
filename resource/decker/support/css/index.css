@@ -107,7 +107,6 @@ body.index {
   margin: auto;
   width: 100%;
   height: 100%;
-  max-width: 800px;
   line-height: 1.3; /* It is said 1.5 improves readability */
 }
 
@@ -341,5 +340,58 @@ html[lang="de"] .english {
     top: 50%;
     font-size: 0.7em;
     transform: translate(-50%, -50%);
+  }
+}
+
+#index-color-button {
+  font-size: 2rem;
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  background-color: transparent;
+  color: var(--foreground-color);
+}
+
+.light #index-color-button {
+  color: var(--background-color);
+}
+
+#index-color-button:hover {
+  border-radius: 100%;
+  background-color: var(--background-color);
+}
+
+.light #index-color-button:hover {
+  background-color: var(--foreground-color);
+}
+
+html.dark #index-color-button::before {
+  content: "\f185";
+}
+
+html.light #index-color-button::before {
+  content: "\f186";
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+details,
+summary {
+  transition: outline-offset 0.2s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: 1px !important;
+  }
+  &:active {
+    outline-offset: -2px !important;
   }
 }
