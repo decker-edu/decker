@@ -34,7 +34,8 @@
 }
 
 .open-button .icon-combo .fa-question {
-  font-size: 80%;
+  font-size: 60%;
+  line-height: 1.5;
   color: var(--background-color);
 }
 
