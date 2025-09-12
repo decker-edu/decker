@@ -260,11 +260,7 @@ const Plugin = () => {
         hilitor = new Hilitor(".slides");
         matchedSlides = hilitor.apply(searchstring);
         currentMatchedIndex = -1;
-        console.log(searchstring, hilitor.getRegex(), matchedSlides);
       }
-    }
-    if (matchedSlides && matchedSlides.length === 0) {
-      console.log(hilitor);
     }
     nextResult();
   }
@@ -285,7 +281,6 @@ const Plugin = () => {
     this.setRegex = function (input) {
       input = input.replace(/^[^\w]+|[^\w]+$/g, "").replace(/[^\w'-]+/g, "|");
       matchRegex = new RegExp("(" + input + ")", "i");
-      console.log(matchRegex);
     };
 
     this.getRegex = function () {
@@ -293,7 +288,6 @@ const Plugin = () => {
         .toString()
         .replace(/^\/\\b\(|\)\\b\/i$/g, "")
         .replace(/\|/g, " ");
-      console.log(regex);
       return regex;
     };
 
