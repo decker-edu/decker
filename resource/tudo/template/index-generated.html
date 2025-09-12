@@ -94,16 +94,19 @@ $endif$
     <!-- main content -->
     <main class="content">
 
+      $if(index.manual)$
       $manual.html()$
-
-      <div id="index-search"></div>
-      <script type="module">
-        import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
-        window.addEventListener("load", () => {
-          let searchBox = document.getElementById("index-search");
-          setupSearch(searchBox, 0.5);
-        });
-      </script>
+      $endif$
+      $if(index.search)$
+        <div id="index-search"></div>
+        <script type="module">
+          import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
+          window.addEventListener("load", () => {
+            let searchBox = document.getElementById("index-search");
+            setupSearch(searchBox, 0.5);
+          });
+        </script>
+      $endif$
 
       <div class="english">
         <section data-items="$decks.by-title/length$"">

@@ -27,7 +27,7 @@ header {
   justify-content: center;
   text-align: center;
   background: var(--primary-color);
-  padding: 2rem 0 3rem;
+  padding: 2rem 0 2rem;
   width: 100%;
 }
 
@@ -240,7 +240,7 @@ body.index table th {
 body.index table th,
 body.index table td {
   text-align: left;
-  padding: 0.2em 1em 0.2em 1em;
+  padding: 0.2em;
 }
 
 body.index table th[align="center"],
@@ -256,6 +256,11 @@ body.index table td[align="right"] {
 body.index table tbody tr:last-child th,
 body.index table tbody tr:last-child td {
   border-bottom: none;
+}
+
+body.index table :is(p, span) {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
 }
 
 tr {
@@ -287,8 +292,8 @@ h2,
 tr,
 summary,
 textarea,
-span.progress,
-div.icons {
+.progress,
+.icons {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
   &:focus-visible {
@@ -312,20 +317,20 @@ html[lang="de"] .english {
   display: none;
 }
 
-.howto[lang="en"] .english {
-  display: unset;
+details.howto[lang="en"] .english {
+  display: unset !important;
 }
 
-.howto[lang="de"] .english {
-  display: none;
+details.howto[lang="de"] .english {
+  display: none !important;
 }
 
-.howto[lang="de"] .german {
-  display: unset;
+details.howto[lang="de"] .german {
+  display: unset !important;
 }
 
-.howto[lang="en"] .german {
-  display: none;
+details.howto[lang="en"] .german {
+  display: none !important;
 }
 
 a.handout-link {
@@ -392,7 +397,6 @@ a.handout-link:hover::after {
   }
   & .progress {
     order: 5;
-    margin-left: 0.4em;
   }
 }
 

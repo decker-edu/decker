@@ -2,11 +2,11 @@
   <summary>
     <span class="english">How to use Decker</span>
     <span class="german">Anleitung für Decker</span>
-    <select class="howto-lang-select" onchange='this.parentElement.parentElement.setAttribute("lang", this.selectedOptions[0].value); blur();'>
+  </summary>
+  <select class="howto-lang-select" onchange='this.parentElement.setAttribute("lang", this.selectedOptions[0].value); blur();'>
       <option value="en">🇺🇸</option>
       <option value="de">🇩🇪</option>
   </select>
-  </summary>
   <script>
 const scripts = document.querySelectorAll("script");
 const thisScript = scripts[scripts.length - 1]; // The currently executed script is always the one loaded most recently (unless deferred)

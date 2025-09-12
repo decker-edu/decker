@@ -119,8 +119,18 @@ function insertAdditionalLinks() {
     } catch {
       continue;
     }
-    const container = document.createElement("div");
-    container.classList.add("icons");
+    let container = link.closest(".icons");
+    if(!container) {
+      const container = document.createElement("div");
+      container.classList.add("icons");
+      if (insert === "replace") {
+        link.replaceWith(container);
+      } else if (insert == "before") {
+        link.before(container);
+      } else {
+        link.after(container);
+      }
+    }
     let title =
       navigator.language === "de" ? "Unbekannter Titel" : "Unknown Title";
     let subtitle = undefined;
@@ -141,15 +151,8 @@ function insertAdditionalLinks() {
           }: Press Enter to choose view mode.`;
     setupModeLinks(container, url);
     setupProgressIndicator(container, url);
-    if (insert === "replace") {
-      link.replaceWith(container);
-    } else if (insert == "before") {
-      link.before(container);
-    } else {
-      link.after(container);
-    }
     container.prepend(link);
-    for (const child of container.childNodes) {
+    for (const child of container.children) {
       child.setAttribute("tabindex", -1);
     }
     container.setAttribute("tabindex", 0);
@@ -158,11 +161,11 @@ function insertAdditionalLinks() {
       if (event.code === "Enter") {
         event.preventDefault();
         event.stopPropagation();
-        for (const child of container.childNodes) {
+        for (const child of container.children) {
           child.setAttribute("tabindex", 0);
         }
         container.removeAttribute("tabindex");
-        container.childNodes[0].focus();
+        container.children[0].focus();
       }
     });
     container.addEventListener("focusout", (event) => {
@@ -170,7 +173,7 @@ function insertAdditionalLinks() {
         return;
       } else {
         container.setAttribute("tabindex", 0);
-        for (const child of container.childNodes) {
+        for (const child of container.children) {
           child.setAttribute("tabindex", -1);
         }
       }
