@@ -156,6 +156,51 @@ function insertAdditionalLinks() {
       child.setAttribute("tabindex", -1);
     }
     container.setAttribute("tabindex", 0);
+    /* Internal Navigation */
+    container.addEventListener("keydown", (event) => {
+      if(container.contains(document.activeElement)) {
+        if(event.code === "ArrowRight") {
+          const next = document.activeElement.nextElementSibling;
+          if(next) {
+            event.preventDefault();
+            event.stopPropagation();
+            next.focus();
+          }
+        }
+        if(event.code === "ArrowLeft") {
+          const prev = document.activeElement.previousElementSibling;
+          if(prev) {
+            event.preventDefault();
+            event.stopPropagation();
+            prev.focus();
+          }
+        }
+      }
+      if(event.code === "ArrowDown") {
+        const containingRow = container.closest("tr");
+        const nextRow = containingRow.nextElementSibling;
+        if(nextRow) {
+          const nextIcons = nextRow.querySelector(".icons");
+          if(nextIcons) {
+            event.preventDefault();
+            event.stopPropagation();
+            nextIcons.focus();
+          }
+        }
+      }
+      if(event.code === "ArrowUp") {
+        const containingRow = container.closest("tr");
+        const prevRow = containingRow.previousElementSibling;
+        if(prevRow) {
+          const prevIcons = prevRow.querySelector(".icons");
+          if(prevIcons) {
+            event.preventDefault();
+            event.stopPropagation();
+            prevIcons.focus();
+          }
+        }
+      }
+    })
     container.addEventListener("keyup", (event) => {
       if (event.target !== container) return;
       if (event.code === "Enter") {
