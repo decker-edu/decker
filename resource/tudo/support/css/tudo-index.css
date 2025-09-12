@@ -378,10 +378,15 @@ a.handout-link:hover::after {
   align-content: center;
   justify-content: space-between;
   align-items: center;
+  border-radius: 0.2em;
+  padding: 0.1em;
   gap: 0.5em;
   & > a {
     width: 1em;
     height: 1em;
+    border-radius: 0.1em;
+    line-height: 1em;
+    padding: 0.2em;
   }
   & a[href$="deck.html"] {
     order: 1;
