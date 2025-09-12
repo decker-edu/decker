@@ -54,8 +54,9 @@ const Plugin = () => {
     searchElement.style.padding = "calc(var(--icon-size) * 0.5)";
     searchElement.style.borderRadius = "0.25em";
     searchElement.style.background = "white";
+    searchElement.style.border = "2px solid var(--icon-active-color)";
     searchElement.style.fontSize = "var(--icon-size)";
-    searchElement.style.color = "var(--icon-active-color)";
+    searchElement.style.color = "black";
     searchElement.style.display = "flex";
     searchElement.style.flexDirection = "column";
 
@@ -65,7 +66,7 @@ const Plugin = () => {
     <label id="searchinputlabel" for="searchinput" style="font-size: 1rem;">${l10n.searchinslides}</label>
   </div>
   <div role="search" id="searchrow" style="display:flex; align-items:center;">
-    <i class="fa-button fas fa-search" style="padding-right: 10px;"></i>
+    <i class="fa-button fas fa-search" style="padding-right: 10px; color: var(--icon-active-color);"></i>
     <input type="search" id="searchinput"></input>
     <span id="searchamount">0 / 0</span>
     <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
@@ -86,13 +87,14 @@ const Plugin = () => {
     searchInput.style.border = "2px solid var(--icon-active-color)";
     searchInput.style.outline = "0";
     searchInput.style["-webkit-appearance"] = "none";
+    searchInput.placeholder = l10n.search;
 
     inputLabel = searchElement.querySelector("#searchinputlabel");
 
     searchPrev = searchElement.querySelector("#searchprev");
     searchPrev.style.border = "none";
     searchPrev.style.background = "transparent";
-    searchPrev.style.color = "var(--icon-active-color)";
+    searchPrev.style.color = "var(--icon-disabled-color)";
     searchPrev.style.fontSize = "1.2rem";
     searchPrev.style.marginLeft = "1rem";
     searchPrev.style.marginRight = "0.5rem";
@@ -106,7 +108,7 @@ const Plugin = () => {
     searchNext = searchElement.querySelector("#searchnext");
     searchNext.style.border = "none";
     searchNext.style.background = "transparent";
-    searchNext.style.color = "var(--icon-active-color)";
+    searchNext.style.color = "var(--icon-disabled-color)";
     searchNext.style.fontSize = "1.2rem";
     searchNext.style.marginLeft = "0.5rem";
     searchNext.addEventListener("click", () => {
@@ -206,11 +208,16 @@ const Plugin = () => {
   function disableButtons() {
     searchPrev.setAttribute("aria-disabled", "true");
     searchNext.setAttribute("aria-disabled", "true");
+    /* All the styling in this plugin is done by hand and not a css file which would make this much easier ... */
+    searchPrev.style.color = "var(--icon-disabled-color)";
+    searchNext.style.color = "var(--icon-disabled-color)";
   }
 
   function enableButtons() {
     searchPrev.removeAttribute("aria-disabled");
     searchNext.removeAttribute("aria-disabled");
+    searchPrev.style.color = "var(--icon-active-color)";
+    searchNext.style.color = "var(--icon-active-color)";
   }
 
   function nextResult() {
