@@ -30,12 +30,17 @@
   grid-column: 2 / 6;
   display: grid;
   grid-template-columns: subgrid;
+  &:focus-within {
+    outline: solid 2px var(--focus-color) !important;
+    outline-offset: 2px;
+  }
 }
 
 .menu-header button {
   box-sizing: border-box;
   background: none;
   color: var(--menu-header-text-color);
+  border-radius: 100%;
 }
 
 #decker-menu-close-button {
