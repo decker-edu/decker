@@ -263,20 +263,13 @@ body.index table :is(p, span) {
   margin-bottom: 0.1em;
 }
 
-tr {
-  height: 2.5rem;
+/* last column (icons) should be as small as possible */
+body.index table tr td:last-child {
+  width: 10%;
 }
 
-td[align="center"] {
-  text-align: center;
-}
-
-td[align="right"] {
-  text-align: right;
-}
-
-td[align="left"] {
-  text-align: left;
+body.index table tr {
+  line-height: 2.2;
 }
 
 p {
@@ -380,7 +373,7 @@ a.handout-link:hover::after {
   align-items: center;
   border-radius: 0.2em;
   padding: 0.1em;
-  gap: 0.5em;
+  gap: 1em;
   & > a {
     width: 1em;
     height: 1em;
@@ -493,7 +486,7 @@ details.howto > summary::marker {
 }
 
 details[role="search"] > summary::marker {
-  content: ""
+  content: "";
 }
 
 details[role="search"] > summary::before {

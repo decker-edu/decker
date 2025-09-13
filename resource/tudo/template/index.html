@@ -80,24 +80,28 @@ $endif$
 
     <!-- page header -->
     <header>
-    $if(template.index-page.banner)$
-    <div class="index-page-banner">
-       <img src=$template.index-page.banner$>
-    </div>
-    $endif$
-    $if(title)$
-      <h1>$title$</h1>
-      $if(subtitle)$
-      <h2>$subtitle$</h2>
+      $if(template.index-page.banner)$
+        <div class="index-page-banner">
+          <img src=$template.index-page.banner$>
+        </div>
       $endif$
-    $endif$
-    <button id="index-color-button"></button>
+
+      $if(title)$
+        <h1>$title$</h1>
+        $if(subtitle)$
+          <h2>$subtitle$</h2>
+        $endif$
+      $endif$
+
+      <button id="index-color-button"></button>
     </header>
+    
     <!-- main content -->
     <main class="content">
       $if(index.manual)$
-      $manual.html()$
+        $manual.html()$
       $endif$
+
       $if(index.search)$
         <div id="index-search"></div>
         <script type="module">

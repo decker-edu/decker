@@ -344,15 +344,16 @@ html[lang="de"] .english {
 }
 
 #index-color-button {
-  font-size: 2rem;
+  font-size: var(--icon-size);
   font-family: "Font Awesome 7 Free";
   font-weight: 900;
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 3rem;
-  height: 3rem;
+  top: 0.5em;
+  right: 0.5em;
+  width: 2em;
+  height: 2em;
   border: none;
+  border-radius: 100%;
   background-color: transparent;
   color: var(--foreground-color);
 }
@@ -362,7 +363,6 @@ html[lang="de"] .english {
 }
 
 #index-color-button:hover {
-  border-radius: 100%;
   background-color: var(--background-color);
 }
 
