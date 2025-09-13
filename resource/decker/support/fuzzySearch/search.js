@@ -145,11 +145,11 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
 
         let deck = "";
         if (showDeckTitles && dInfo.deckTitle) {
-          deck += dInfo.deckTitle;
+          deck += `<span>${dInfo.deckTitle}</span>`;
         }
         if (showDeckSubtitles && dInfo.deckSubtitle) {
-          if (deck.length) deck += " &mdash; ";
-          deck += dInfo.deckSubtitle;
+          if (deck.length) deck += `<span> &mdash; </span><br/>`;
+          deck += `<span>${dInfo.deckSubtitle}</span>`;
         }
 
         let item = document.createElement("tr");

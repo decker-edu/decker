@@ -207,6 +207,13 @@ details input {
  * TABLES
  *********************************************/
 
+table.search td {
+  vertical-align: top;
+}
+table.search td span {
+  line-height: 1.3;
+}
+
 body.index table {
   display: table;
   width: 100%;
