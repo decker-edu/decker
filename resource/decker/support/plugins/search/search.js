@@ -12,6 +12,7 @@ const lang_de = {
   searchinslides: "In den Folien suchen",
   prevResult: "Vorherige Übereinstimmung",
   nextResult: "Nächste Übereinstimmung",
+  close: "Suchdialog schließen",
   searchinputfield:
     "In den Folien suchen. Eingabe drücken, um Suche zu starten.",
   of: "von",
@@ -22,8 +23,9 @@ const lang_de = {
 const lang_en = {
   search: "Search ...",
   searchinslides: "Search in slides",
-  prevResult: "Previous Match",
-  nextResult: "Next Match",
+  prevResult: "Previous match",
+  nextResult: "Next match",
+  close: "Close search dialog",
   searchinputfield: "Search in slides",
   of: "of",
   matches: "Matches",
@@ -42,6 +44,7 @@ const Plugin = () => {
   let searchPrev;
   let searchNext;
   let searchLabel;
+  let searchClose;
 
   let matchedSlides;
   let currentMatchedIndex;
@@ -50,20 +53,7 @@ const Plugin = () => {
 
   function render() {
     searchElement = document.createElement("div");
-    searchElement.classList.add("searchbox");
-
-    // MARIO: adjust position, size, color
-    searchElement.style.fontSize = "1.2rem";
-    searchElement.style.padding = "0.3em";
-    searchElement.style.borderRadius = "0.25em";
-    searchElement.style.background = "var(--shade1)";
-    searchElement.style.border = "2px solid var(--shade2)";
-    searchElement.style.color = "var(--foreground-color)";
-    searchElement.style.display = "flex";
-    searchElement.style.flexDirection = "column";
-    searchElement.style.height = "min-content";
-
-    // MARIO: adjust border color and search icon (requires font-awesome)
+    searchElement.id = "searchbox";
     searchElement.innerHTML = `<div>
       <label id="searchinputlabel" for="searchinput">${l10n.searchinslides}</label>
       <div role="search" id="searchrow" style="display:flex; align-items:center; gap:0.5em;">
@@ -73,61 +63,25 @@ const Plugin = () => {
         <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
         <button id="searchprev" class="fas fa-chevron-up" title="${l10n.prevResult}" aria-label="${l10n.prevResult}"></button>
         <button id="searchnext" class="fas fa-chevron-down" title="${l10n.nextResult}" aria-label="${l10n.nextResult}"></button>
+        <button id="searchclose" class="fas fa-xmark" title="${l10n.close}" aria-label="${l10n.close}"></button>
       </div>
     </div>`;
 
-    // MARIO: override some styling
-    inputLabel = searchElement.querySelector("#searchinputlabel");
-    inputLabel.style.position = "absolute";
-    inputLabel.style.width = 1;
-    inputLabel.style.height = 1;
-    inputLabel.style.overflow = "hidden";
-    inputLabel.style.clip = "rect(1px, 1px, 1px, 1px)";
-
     searchInput = searchElement.querySelector("#searchinput");
-    searchInput.style.fontSize = "1em";
-    searchInput.style.width = "10em";
-    searchInput.style.padding = "0.2em 0.3em";
-    searchInput.style.color = "var(--foreground-color)";
-    searchInput.style.background = "var(--background-color)";
-    searchInput.style.borderRadius = "0.2em";
-    searchInput.style.border = "2px solid var(--icon-active-color)";
     searchInput.placeholder = l10n.search;
 
     searchPrev = searchElement.querySelector("#searchprev");
-    searchPrev.style.border = "none";
-    searchPrev.style.background = "transparent";
-    searchPrev.style.color = "var(--icon-disabled-color)";
-    searchPrev.style.fontSize = "0.8em";
-    searchPrev.style.padding = "0.2em";
-    searchPrev.style.width = "1.5em";
     searchPrev.addEventListener("click", () => {
-      if (searchPrev.hasAttribute("aria-disabled")) {
-        return;
-      }
-      previousResult();
+      if (!searchPrev.hasAttribute("aria-disabled")) previousResult();
     });
 
     searchNext = searchElement.querySelector("#searchnext");
-    searchNext.style.border = "none";
-    searchNext.style.background = "transparent";
-    searchNext.style.color = "var(--icon-disabled-color)";
-    searchNext.style.fontSize = "0.8em";
-    searchNext.style.padding = "0.2em";
-    searchNext.style.width = "1.5em";
     searchNext.addEventListener("click", () => {
-      if (searchNext.hasAttribute("aria-disabled")) {
-        return;
-      }
-      nextResult();
+      if (!searchNext.hasAttribute("aria-disabled")) nextResult();
     });
 
-    searchLabel = searchElement.querySelector("#searchlabel");
-    searchLabel.style.position = "absolute";
-    searchLabel.style.width = 1;
-    searchLabel.style.height = 1;
-    searchLabel.style.overflow = "hidden";
-    searchLabel.style.clip = "rect(1px, 1px, 1px, 1px)";
+    searchClose = searchElement.querySelector("#searchclose");
+    searchClose.addEventListener("click", closeSearch);
 
     if (!deck.hasPlugin("ui-anchors")) {
       console.error("no decker ui anchor plugin loaded");
@@ -173,6 +127,10 @@ const Plugin = () => {
 
     searchElement.style.display = "none";
     if (hilitor) hilitor.remove();
+    setLabelToNoMatches();
+    disableButtons();
+    matchedSlides = null;
+    currentMatchedIndex = -1;
   }
 
   function toggleSearch() {
