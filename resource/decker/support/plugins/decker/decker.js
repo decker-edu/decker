@@ -21,7 +21,7 @@ function onStart() {
   Reveal.addEventListener("ready", () => {
     if (!printMode) {
       totalSlides = Reveal.getTotalSlides();
-      setTimeout(() => continueWhereYouLeftOff, 500);
+      continueWhereYouLeftOff();
     }
 
     prepareFullscreenIframes();
@@ -311,6 +311,7 @@ function continueWhereYouLeftOff() {
         }
       }
     });
+
     // if we are on the first slide
     const slideIndex = Reveal.getIndices();
     if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
@@ -331,16 +332,11 @@ function continueWhereYouLeftOff() {
           type: "div",
           id: "continue-dialog",
           parent: reveal,
-        });
-
-        let label = createElement({
-          type: "span",
-          id: "continue-label",
-          parent: dialog,
           text: german
             ? "Bei Folie " + slideNumber + " weitermachen?"
             : "Continue on slide " + slideNumber + "?",
         });
+        dialog.setAttribute("aria-hidden", "true");
 
         let hideDialog = () => {
           dialog.style.display = "none";
@@ -367,38 +363,7 @@ function continueWhereYouLeftOff() {
           onclick: hideDialog,
         });
 
-        yes.setAttribute("aria-describedby", "continue-label");
-        no.setAttribute("aria-describedby", "continue-label");
-
-        dialog.setAttribute("role", "menu");
-        yes.setAttribute("role", "menuitem");
-        no.setAttribute("role", "menuitem");
-        yes.focus();
-
-        dialog.addEventListener("keydown", (event) => {
-          switch (event.key) {
-            case "ArrowRight":
-            case "ArrowLeft":
-            case "ArrowUp":
-            case "ArrowDown":
-            case "Tab": {
-              if (document.activeElement === yes) {
-                event.preventDefault();
-                event.stopPropagation();
-                setTimeout(() => no.focus());
-              } else if (document.activeElement === no) {
-                event.preventDefault();
-                event.stopPropagation();
-                setTimeout(() => yes.focus());
-              }
-              break;
-            }
-            default:
-              break;
-          }
-        });
-
-        deck.addEventListener("slidechanged", hideDialog);
+        Reveal.addEventListener("slidechanged", hideDialog);
       }
     }
   }
