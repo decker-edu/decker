@@ -80,21 +80,39 @@ $endif$
 
     <!-- page header -->
     <header>
-    $if(template.index-page.banner)$
-    <div class="index-page-banner">
-       <img src=$template.index-page.banner$>
-    </div>
-    $endif$
-    $if(title)$
-      <h1>$title$</h1>
-      $if(subtitle)$
-      <h2>$subtitle$</h2>
+      $if(template.index-page.banner)$
+        <div class="index-page-banner">
+          <img src=$template.index-page.banner$>
+        </div>
       $endif$
-    $endif$
-    </header>
 
+      $if(title)$
+        <h1>$title$</h1>
+        $if(subtitle)$
+          <h2>$subtitle$</h2>
+        $endif$
+      $endif$
+
+      <button id="index-color-button"></button>
+    </header>
+    
     <!-- main content -->
     <main class="content">
+      $if(index.manual)$
+        $manual.html()$
+      $endif$
+
+      $if(index.search)$
+        <div id="index-search"></div>
+        <script type="module">
+          import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
+          window.addEventListener("load", () => {
+            let searchBox = document.getElementById("index-search");
+            setupSearch(searchBox, 0.5, $index.searchShowsDeckTitle$, $index.searchShowsDeckSubtitle$);
+          });
+        </script>
+      $endif$
+
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
@@ -115,9 +133,14 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/index.js"></script>
-  <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
+  <script type="module">
+    import * as colorScheme from "./$decker-support-dir$/js/color-scheme.js";
+    const colorButton = document.getElementById("index-color-button");
+    colorButton.addEventListener("click", colorScheme.toggleColor);
+    colorButton.title = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+    colorButton.ariaLabel = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+  </script>
   <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
-
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
   $endfor$

@@ -1,27 +1,5 @@
 function initIndexPage() {
-  const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
-  const insert = Decker.meta.index?.progress?.insert || "after";
-  const links = document.querySelectorAll(selector);
-
-  for (const link of links) {
-    let url = null;
-    try {
-      url = new URL(link.href);
-    } catch {
-      continue;
-    }
-    const container = document.createElement("div");
-    container.classList.add("link-additions");
-    setupModeLinks(container, url);
-    setupProgressIndicator(container, url);
-    if (insert === "replace") {
-      link.replaceWith(container);
-    } else if (insert == "before") {
-      link.before(container);
-    } else {
-      link.after(container);
-    }
-  }
+  insertAdditionalLinks();
   loadSources();
 }
 
@@ -37,6 +15,15 @@ async function resourceExists(url) {
 
 async function setupModeLinks(container, url) {
   const links = Decker.meta.index?.links || [];
+  let title = "Unbekannter Titel";
+  let subtitle = undefined;
+  const decks = Decker.meta.decks["by-title"];
+  for (const deck of decks) {
+    if (url.href.endsWith(deck.url)) {
+      title = deck.title;
+      subtitle = deck.subtitle;
+    }
+  }
 
   if (links.includes("presenter")) {
     const presenterLink = document.createElement("a");
@@ -56,7 +43,6 @@ async function setupModeLinks(container, url) {
     );
     container.appendChild(presenterLink);
   }
-
   if (links.includes("handout")) {
     const handoutLink = document.createElement("a");
     handoutLink.href = url.pathname + "?handout";
@@ -64,14 +50,18 @@ async function setupModeLinks(container, url) {
     handoutLink.setAttribute(
       "title",
       navigator.language === "de"
-        ? "In Handout-Darstellung öffnen"
-        : "Access in handout mode"
+        ? `${title}${
+            subtitle ? " - " + subtitle : ""
+          } in Handout-Darstellung öffnen`
+        : `Access ${title}${subtitle ? " - " + subtitle : ""} in handout mode`
     );
     handoutLink.setAttribute(
       "aria-label",
       navigator.language === "de"
-        ? "In Handout-Darstellung öffnen"
-        : "Access in handout mode"
+        ? `${title}${
+            subtitle ? " - " + subtitle : ""
+          } in Handout-Darstellung öffnen`
+        : `Access ${title}${subtitle ? " - " + subtitle : ""} in handout mode`
     );
     container.appendChild(handoutLink);
   }
@@ -118,6 +108,124 @@ async function setupModeLinks(container, url) {
   }
 }
 
+async function insertAdditionalLinks() {
+  const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
+  const insert = Decker.meta.index?.progress?.insert || "after";
+  const links = document.querySelectorAll(selector);
+  for (const link of links) {
+    let url = null;
+    try {
+      url = new URL(link.href);
+    } catch {
+      continue;
+    }
+    let container = link.closest(".icons");
+    if (!container) {
+      const container = document.createElement("div");
+      container.classList.add("icons");
+      if (insert === "replace") {
+        link.replaceWith(container);
+      } else if (insert == "before") {
+        link.before(container);
+      } else {
+        link.after(container);
+      }
+    }
+    let title =
+      navigator.language === "de" ? "Unbekannter Titel" : "Unknown Title";
+    let subtitle = undefined;
+    const decks = Decker.meta.decks["by-title"];
+    for (const deck of decks) {
+      if (link.href.endsWith(deck.url)) {
+        title = deck.title;
+        subtitle = deck.subtitle;
+      }
+    }
+    container.title =
+      navigator.language === "de"
+        ? `Foliensatz ${title}${
+            subtitle ? " - " + subtitle : ""
+          } betrachten: Drücke Eingabe, um Betrachtungsmodus auszuwählen.`
+        : `View slide deck ${title}${
+            subtitle ? " - " + subtitle : ""
+          }: Press Enter to choose view mode.`;
+    await setupModeLinks(container, url);
+    setupProgressIndicator(container, url);
+    container.prepend(link);
+    for (const child of container.children) {
+      child.setAttribute("tabindex", -1);
+    }
+    container.setAttribute("tabindex", 0);
+    /* Internal Navigation */
+    container.addEventListener("keydown", (event) => {
+      if (container.contains(document.activeElement)) {
+        if (event.code === "ArrowRight") {
+          const next = document.activeElement.nextElementSibling;
+          if (next) {
+            event.preventDefault();
+            event.stopPropagation();
+            next.focus();
+          }
+        }
+        if (event.code === "ArrowLeft") {
+          const prev = document.activeElement.previousElementSibling;
+          if (prev) {
+            event.preventDefault();
+            event.stopPropagation();
+            prev.focus();
+          }
+        }
+      }
+      if (event.code === "ArrowDown") {
+        const containingRow = container.closest("tr");
+        const nextRow = containingRow.nextElementSibling;
+        if (nextRow) {
+          const nextIcons = nextRow.querySelector(".icons");
+          if (nextIcons) {
+            event.preventDefault();
+            event.stopPropagation();
+            nextIcons.focus();
+          }
+        }
+      }
+      if (event.code === "ArrowUp") {
+        const containingRow = container.closest("tr");
+        const prevRow = containingRow.previousElementSibling;
+        if (prevRow) {
+          const prevIcons = prevRow.querySelector(".icons");
+          if (prevIcons) {
+            event.preventDefault();
+            event.stopPropagation();
+            prevIcons.focus();
+          }
+        }
+      }
+    });
+    container.addEventListener("keyup", (event) => {
+      if (event.target !== container) return;
+      if (event.code === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
+        for (const child of container.children) {
+          child.setAttribute("tabindex", 0);
+        }
+        container.removeAttribute("tabindex");
+        container.children[0].focus();
+      }
+    });
+    container.addEventListener("focusout", (event) => {
+      if (container.contains(event.relatedTarget)) {
+        return;
+      } else {
+        container.setAttribute("tabindex", 0);
+        for (const child of container.children) {
+          child.setAttribute("tabindex", -1);
+        }
+      }
+    });
+  }
+}
+
 function setupProgressIndicator(container, url) {
   if (!localStorage) return;
   if (!Decker.meta.index?.progress) return;
@@ -142,10 +250,21 @@ function setupProgressIndicator(container, url) {
     this.setValue(percent);
   };
 
-  progress.onclick = function () {
+  progress.toggle = function () {
     const percent = this.dataset.value == 100 ? 0 : 100;
     this.setValue(percent);
     localStorage.setItem(this.key, percent);
+  };
+
+  progress.onclick = function () {
+    this.toggle();
+  };
+  progress.onkeyup = function (event) {
+    if (event.code === "Enter") {
+      this.toggle();
+      event.preventDefault();
+      event.stopPropagation();
+    }
   };
 
   progress.update();
@@ -157,6 +276,7 @@ function updateProgressIndicators() {
     progress.update();
   });
 }
+
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) updateProgressIndicators();
 });

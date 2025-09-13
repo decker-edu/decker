@@ -252,7 +252,8 @@ deckerRules = do
       if exists
         then do
           need [indexSource]
-          markdownToHtml htmlIndex meta getTemplate indexSource out
+          targetMeta <- addTargetInfo deps meta
+          markdownToHtml htmlIndex targetMeta getTemplate indexSource out
           template <- getTemplate "template/index-generated.html"
           renderIndex template meta deps generatedIndex
         else do

@@ -22,6 +22,7 @@ class SlideMenu {
     this.open_button = undefined;
     this.menu = {
       container: undefined,
+      header: undefined,
       home_button: undefined,
       search_button: undefined,
       print_button: undefined,
@@ -104,14 +105,24 @@ class SlideMenu {
   openMenu(event) {
     if (this.inert) {
       this.inert = false;
-      this.reveal.getRevealElement().inert = true;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(true);
+      }
+      if (document.documentElement.classList.contains("handout")) {
+        document.getElementById("handout-container").inert = true;
+      } else {
+        this.reveal.getRevealElement().inert = true;
+      }
       this.disableKeybinds();
       this.glass.classList.add("show");
+      this.menu.home_button.removeAttribute("tabindex");
+      this.menu.container.scroll(0, 0);
       if (event && event.detail === 0) {
         this.menu.close_button.focus();
-        //        setTimeout(() => this.menu.close_button.focus(), 500);
       }
-      document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
+      // scrolling the current slide into view now conflicts with the entire menu being scrollable
+      // document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
     }
   }
 
@@ -122,11 +133,22 @@ class SlideMenu {
   closeMenu(event) {
     if (!this.inert) {
       this.inert = true;
-      this.reveal.getRevealElement().inert = false;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(false);
+      }
+      if (document.documentElement.classList.contains("handout")) {
+        document.getElementById("handout-container").inert = false;
+      } else {
+        this.reveal.getRevealElement().inert = false;
+      }
+      for (const button of this.plugin_buttons.querySelectorAll("button")) {
+        button.setAttribute("tabindex", -1);
+      }
       this.enableKeybinds();
       this.glass.classList.remove("show");
       if (event && event.detail === 0) {
-        this.open_button.focus();
+        setTimeout(() => this.open_button.focus());
       }
     }
   }
@@ -176,21 +198,9 @@ class SlideMenu {
   }
 
   enableKeybinds() {
-    this.reveal.configure({ keyboard: true });
-  }
-
-  /**
-   * Stops the default functionality of moving up or down the scrollbar of the slide wrapper div.
-   * @param {*} event The Keyboard Event
-   */
-  ignoreTraversalKeys(event) {
-    if (
-      !this.inert &&
-      (event.code == "Escape" ||
-        event.code == "ArrowUp" ||
-        event.code == "ArrowDown")
-    ) {
-      event.preventDefault();
+    // Do not enable keybinds again when we leaving in handout mode
+    if (!document.documentElement.classList.contains("handout")) {
+      this.reveal.configure({ keyboard: true });
     }
   }
 
@@ -199,26 +209,19 @@ class SlideMenu {
    * @param {*} event The Keyboard Event
    */
   traverseList(event) {
+    function changeFocus(to) {
+      const currentItem = document.activeElement;
+      currentItem.setAttribute("tabindex", "-1");
+      to.setAttribute("tabindex", "0");
+      to.focus();
+    }
     if (!this.inert) {
       switch (event.code) {
-        case "Escape":
-          //              event.stopImmediatePropagation();
-          this.closeMenu();
-          break;
         case "ArrowUp":
-          if (
-            document.activeElement &&
-            document.activeElement.classList.contains("tile")
-          ) {
-            event.preventDefault();
-            //                event.stopImmediatePropagation();
-            this.menu.slide_list.lastElementChild.firstElementChild.focus();
-          }
           if (
             document.activeElement &&
             document.activeElement.classList.contains("slide-link")
           ) {
-            //                  event.stopImmediatePropagation();
             let parent = document.activeElement.parentElement;
             let target = undefined;
             if (parent.previousElementSibling) {
@@ -228,23 +231,15 @@ class SlideMenu {
               // wrap around
               target = parent.parentElement.lastElementChild.firstElementChild;
             }
-            setTimeout(() => target.focus());
+            changeFocus(target);
+            event.preventDefault();
           }
           break;
         case "ArrowDown":
           if (
             document.activeElement &&
-            document.activeElement.classList.contains("tile")
-          ) {
-            event.preventDefault();
-            //            event.stopImmediatePropagation();
-            this.menu.slide_list.firstElementChild.firstElementChild.focus();
-          }
-          if (
-            document.activeElement &&
             document.activeElement.classList.contains("slide-link")
           ) {
-            //              event.stopImmediatePropagation();
             let parent = document.activeElement.parentElement;
             let target = undefined;
             if (parent.nextElementSibling) {
@@ -254,11 +249,53 @@ class SlideMenu {
               // wrap around
               target = parent.parentElement.firstElementChild.firstElementChild;
             }
-            setTimeout(() => target.focus());
+            changeFocus(target);
+            event.preventDefault();
           }
           break;
         default:
       }
+    }
+  }
+
+  traverseButtons(event) {
+    function changeFocus(to) {
+      const currentItem = document.activeElement;
+      to.setAttribute("tabindex", "0");
+      setTimeout(() => {
+        to.focus();
+        currentItem.setAttribute("tabindex", "-1");
+      });
+    }
+    if (!document.activeElement) {
+      return;
+    }
+    switch (event.key) {
+      case "ArrowLeft":
+      case "ArrowUp":
+        {
+          let target = document.activeElement;
+          target = target.previousElementSibling;
+          if (!target) {
+            target = this.plugin_buttons.lastElementChild;
+          }
+          changeFocus(target);
+          event.preventDefault();
+        }
+        break;
+      case "ArrowRight":
+      case "ArrowDown":
+        {
+          let target = document.activeElement;
+          target = target.nextElementSibling;
+          if (!target) {
+            target = this.plugin_buttons.firstElementChild;
+          }
+          changeFocus(target);
+          event.preventDefault();
+        }
+        break;
+      default:
     }
   }
 
@@ -280,8 +317,8 @@ class SlideMenu {
    */
   initializeSlideList() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="slide-list-wrapper" tabindex="-1">
-      <ul class="slide-list" tabindex="-1"></ul>
+    template.innerHTML = String.raw`<div class="slide-list-wrapper">
+      <ul class="slide-list" role="menu" aria-label="${this.localization.navigation_list_label}"></ul>
     </div>`;
     let wrapper = template.content.firstElementChild;
     let list = wrapper.firstElementChild;
@@ -310,9 +347,6 @@ class SlideMenu {
         item.classList.add("separator-slide");
       }
     });
-    wrapper.addEventListener("keydown", (event) =>
-      this.ignoreTraversalKeys(event)
-    );
     this.menu.container.appendChild(wrapper);
     this.menu.slide_list = list;
   }
@@ -418,24 +452,26 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-labeledby="decker-menu-button" inert>
+    template.innerHTML = String.raw`<nav class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label}" inert>
       <div class="menu-header">
         <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
-        </button>
-        <div class="menu-header-button-group">
-          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem">
+        </button> 
+        <div class="menu-header-button-group" role="group" aria-label="${this.localization.navigationmenu_label}">
+          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem" tabindex="-1">
           </button>
-          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem">
+          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem" tabindex="-1">
           </button>
-          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem">
+          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem" tabindex="-1">
           </button>
-          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem">
+          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem" tabindex="-1">
           </button>
         </div>
       </div>
-     </div>`;
+     </nav>`;
     let container = template.content.firstElementChild;
     this.menu.container = container;
+
+    this.menu.header = container.querySelector(".menu-header");
 
     /* Getting references */
     this.menu.home_button = container.querySelector(
@@ -472,21 +508,28 @@ class SlideMenu {
     this.menu.print_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.color_button.addEventListener("click", (event) =>
-      colorScheme.toggleColor()
-    );
+    this.menu.color_button.addEventListener("click", (event) => {
+      if (this.menu.color_button.ariaDisabled) {
+        return;
+      }
+      colorScheme.toggleColor();
+    });
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
 
     const colorSetting = window.Decker?.meta?.colorscheme;
     if (colorSetting == "light" || colorSetting == "dark")
-      this.menu.color_button.disabled = true;
+      this.menu.color_button.ariaDisabled = true;
 
     this.initializeSlideList();
-    this.menu.container.addEventListener("keydown", (event) =>
+    this.menu.slide_list.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
+
+    this.plugin_buttons.addEventListener("keydown", (event) => {
+      this.traverseButtons(event);
+    });
 
     /* Temporary Solution */
     this.glass = document.querySelector("#glass");
@@ -495,6 +538,45 @@ class SlideMenu {
       this.glass.id = "glass";
       document.body.appendChild(this.glass);
     }
+
+    /* Allow exit with ESC and focus with HOME and END */
+
+    this.menu.container.addEventListener("keydown", (event) => {
+      switch (event.key) {
+        case "Escape":
+          this.closeMenu(event);
+          break;
+        case "Home":
+          setTimeout(() => this.menu.close_button.focus());
+          event.preventDefault();
+          break;
+        case "End":
+          setTimeout(() =>
+            this.menu.slide_list.querySelector("[aria-current]").focus()
+          );
+          event.preventDefault();
+          break;
+      }
+    });
+
+    /* Trap Keyboard Focus */
+
+    this.menu.slide_list.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() => this.menu.close_button.focus());
+      }
+    });
+
+    this.menu.close_button.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() =>
+          this.menu.slide_list.querySelector("[aria-current]").focus()
+        );
+      }
+    });
+
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
@@ -522,6 +604,7 @@ class SlideMenu {
     button.title = title;
     button.setAttribute("aria-label", title);
     button.setAttribute("role", "menuitem");
+    button.setAttribute("tabindex", "-1");
     button.addEventListener("click", callback);
     this.plugin_buttons.appendChild(button);
     button.setLabel = function (value) {
@@ -534,7 +617,8 @@ class SlideMenu {
   clearCurrentSlideMark() {
     let listItems = this.menu.slide_list.childNodes;
     for (let item of listItems) {
-      item.classList.remove("current-slide");
+      item.querySelector("a").removeAttribute("aria-current");
+      item.querySelector("a").setAttribute("tabindex", "-1");
     }
   }
 
@@ -545,7 +629,8 @@ class SlideMenu {
     let id = slide.id;
     let item = this.getListItemByID(id);
     if (item) {
-      item.classList.add("current-slide");
+      item.querySelector("a").setAttribute("aria-current", "page");
+      item.querySelector("a").setAttribute("tabindex", "0");
     }
   }
 
@@ -583,6 +668,8 @@ const plugin = () => {
         title: "Navigation",
         print_confirmation: "Leave presentation to export it to PDF?",
         index_confirmation: "Go back to index page?",
+        navigationmenu_label: "Navigation Menu",
+        navigation_list_label: "Slide List",
       };
 
       let lang = navigator.language;
@@ -601,13 +688,15 @@ const plugin = () => {
           title: "Navigation",
           print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
           index_confirmation: "Zurück zur Index-Seite gehen?",
+          navigationmenu_label: "Navigationsmenu",
+          navigation_list_label: "Folienliste",
         };
       }
 
       menu.initializeButton();
       menu.initializeMenu();
 
-      document.body.appendChild(menu.menu.container);
+      document.body.prepend(menu.menu.container);
 
       this.getSlideList = () => {
         return menu.getSlideList();
@@ -644,6 +733,9 @@ const plugin = () => {
       reveal.addEventListener("slidechanged", (event) => {
         const currentSlide = event.currentSlide;
         menu.updateCurrentSlideMark(currentSlide);
+      });
+      reveal.addEventListener("ready", () => {
+        this.updateCurrentSlideMark();
       });
     },
   };

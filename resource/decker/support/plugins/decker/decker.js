@@ -21,7 +21,7 @@ function onStart() {
   Reveal.addEventListener("ready", () => {
     if (!printMode) {
       totalSlides = Reveal.getTotalSlides();
-      setTimeout(() => continueWhereYouLeftOff, 500);
+      continueWhereYouLeftOff();
     }
 
     prepareFullscreenIframes();
@@ -199,27 +199,57 @@ function prepareFullscreenIframes() {
 
     // add fullscreen button
     var btn = document.createElement("button");
+    btn.title =
+      navigator.language === "de"
+        ? "Einbettung in Vollbild anzeigen"
+        : "Display embedding in fullscreen";
+    btn.ariaLabel =
+      navigator.language === "de"
+        ? "Einbettung in Vollbild anzeigen"
+        : "Display embedding in fullscreen";
     btn.classList.add("fs-button");
     btn.innerHTML =
-      '<i class="fas fa-expand-arrows-alt" style="font-size:20px"></i>';
+      '<i class="fas fa-up-right-and-down-left-from-center" style="font-size:20px"></i>';
     div.btn = btn;
-    div.appendChild(btn);
+    div.prepend(btn);
 
     // handle button click: enter/exit fullscreen
     btn.onclick = function () {
       var doc = window.document;
       var container = this.parentElement;
-      if (doc.fullscreenElement == container) doc.exitFullscreen();
-      else container.requestFullscreen();
+      if (doc.fullscreenElement == container) {
+        doc.exitFullscreen();
+      } else {
+        container.requestFullscreen();
+      }
     };
 
     // handle fullscreen change: adjust button icon
     div.onfullscreenchange = function () {
       var doc = window.document;
-      this.btn.innerHTML =
-        doc.fullscreenElement == this
-          ? '<i class="fas fa-compress-arrows-alt"></i>'
-          : '<i class="fas fa-expand-arrows-alt"></i>';
+      if (doc.fullscreenElement === this) {
+        this.btn.innerHTML =
+          '<i class="fas fa-down-left-and-up-right-to-center"></i>';
+        this.btn.title =
+          navigator.language === "de"
+            ? "Vollbild verlassen"
+            : "Leave fullscreen";
+        this.btn.ariaLabel =
+          navigator.language === "de"
+            ? "Vollbild verlassen"
+            : "Leave fullscreen";
+      } else {
+        this.btn.innerHTML =
+          '<i class="fas fa-up-right-and-down-left-from-center"></i>';
+        this.btn.title =
+          navigator.language === "de"
+            ? "Einbettung in Vollbild anzeigen"
+            : "Display embedding in fullscreen";
+        this.btn.ariaLabel =
+          navigator.language === "de"
+            ? "Einbettung in Vollbild anzeigen"
+            : "Display embedding in fullscreen";
+      }
     };
   }
 }
@@ -281,6 +311,7 @@ function continueWhereYouLeftOff() {
         }
       }
     });
+
     // if we are on the first slide
     const slideIndex = Reveal.getIndices();
     if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
@@ -305,6 +336,7 @@ function continueWhereYouLeftOff() {
             ? "Bei Folie " + slideNumber + " weitermachen?"
             : "Continue on slide " + slideNumber + "?",
         });
+        dialog.setAttribute("aria-hidden", "true");
 
         let hideDialog = () => {
           dialog.style.display = "none";
@@ -331,8 +363,6 @@ function continueWhereYouLeftOff() {
           onclick: hideDialog,
         });
 
-        // hide dialog after 5sec or on slide change
-        setTimeout(hideDialog, 5000);
         Reveal.addEventListener("slidechanged", hideDialog);
       }
     }

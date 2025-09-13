@@ -105,6 +105,12 @@ Caption: General structure of all media embeddings
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
+# Embedded SVG
+
+##
+
+![Caption](./assets/slab-test-0.svg){.embed height=256px}
+
 # Local Media in 2 columns {.columns}
 
 ## Left {.left}

@@ -11,6 +11,7 @@ div.top-left-anchor {
   flex-direction: row;
   top: 0px;
   left: 0px;
+  align-items: unset;
 }
 
 div.top-right-anchor {

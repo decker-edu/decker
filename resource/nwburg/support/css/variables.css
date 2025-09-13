@@ -71,7 +71,6 @@
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent7-bg); /* JMU Anpassung */
-  --flying-focus-color: var(--highlight-color);
 
   --icon-active-color: var(--accent7); /* JMU Anpassung */
   --icon-disabled-color: var(--shade2);

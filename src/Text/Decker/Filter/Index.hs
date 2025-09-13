@@ -6,7 +6,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-ambiguous-fields #-}
 
-module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex) where
+module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo) where
 
 import Control.Lens ((^.))
 import Data.Aeson

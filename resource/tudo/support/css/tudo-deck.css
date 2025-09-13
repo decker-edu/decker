@@ -276,6 +276,18 @@ div.grid-layout {
   display: none;
 }
 
+.reveal h1:has(.sr-only:only-child) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* section headers */
 .reveal section.section h1,
 .reveal section h1:only-child {
@@ -1203,20 +1215,19 @@ section#title-slide .decker-link:hover {
   top: 2px;
   right: 2px;
   cursor: pointer;
-  outline: none;
   font-size: 20px;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   padding: 2px;
   border: none;
   border-radius: 4px;
-  opacity: 0;
+  opacity: 0.5;
   color: var(--icon-inactive-color);
   background-color: rgba(255, 255, 255, 0.5);
 }
 
 .reveal div.fs-container:hover > button.fs-button {
-  opacity: 0.5;
+  opacity: 0.75;
 }
 
 .reveal div.fs-container > button.fs-button:hover {
@@ -1224,6 +1235,17 @@ section#title-slide .decker-link:hover {
   color: var(--icon-active-color);
   background-color: rgba(255, 255, 255, 0.8);
 }
+
+.reveal div.fs-container > button.fs-button:focus {
+  opacity: 1;
+  color: var(--icon-active-color);
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* button.fs-button:focus:has(.fa-down-left-and-up-right-to-center) {
+  outline: 2px solid var(--accent0);
+  outline-offset: 2px;
+} */
 
 /*********************************************
  * bibliography

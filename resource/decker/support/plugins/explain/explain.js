@@ -42,6 +42,8 @@ let uiState;
 
 let localization;
 
+let pluginButton;
+
 function transition(name) {
   return (_) => uiState.transition(name);
 }
@@ -569,6 +571,8 @@ async function setupRecorder() {
     // open panel to select camera and mic
     openRecordPanel();
 
+    // disable plugin menu button
+    pluginButton.ariaDisabled = true;
     return true;
   } catch (e) {
     console.error(e);
@@ -936,35 +940,44 @@ function createPlayerGUI() {
       doubleClick: false,
       // our keyboard shortcuts
       hotkeys: function (event) {
-        event.stopPropagation();
-        event.preventDefault();
-
         switch (event.code) {
           // space or k: play/pause
           case "Space":
           case "KeyK":
+            event.stopPropagation();
+            event.preventDefault();
             if (this.paused()) this.play();
             else this.pause();
             break;
 
-          // left/right: skip slides
+          // Page Up/Page Down: skip slides
           case "PageUp":
+            event.stopPropagation();
+            event.preventDefault();
             prev();
             break;
           case "PageDown":
+            event.stopPropagation();
+            event.preventDefault();
             next();
             break;
 
           // up/down: increase/decrease volume by 5%
           case "ArrowUp":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.min(1.0, this.volume() + 0.05));
             break;
           case "ArrowDown":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.max(0.0, this.volume() - 0.05));
             break;
 
           // c: toggle captions
           case "KeyC":
+            event.stopPropagation();
+            event.preventDefault();
             let tracks = player.textTracks();
             for (let i = 0; i < tracks.length; i++) {
               if (tracks[i].kind === "captions") {
@@ -977,20 +990,28 @@ function createPlayerGUI() {
           // left/right or j/l: jump backward/forward by 10sec
           case "ArrowLeft":
           case "KeyJ":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() - 10);
             break;
           case "ArrowRight":
           case "KeyL":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() + 10);
             break;
 
           // m: mute/unmute
           case "KeyM":
+            event.stopPropagation();
+            event.preventDefault();
             this.muted(!this.muted());
             break;
 
           // esc: stop and hide video
           case "Escape":
+            event.stopPropagation();
+            event.preventDefault();
             uiState.transition("stop");
             break;
         }
@@ -1812,6 +1833,13 @@ function updatePlayButton() {
     currentRevealSlideIndex() == -1 ? "none" : "initial";
 }
 
+function enableViewButton() {
+  if (pluginButton && Decker.isPresenterMode()) {
+    pluginButton.airaDisabled = false;
+  }
+  return true;
+}
+
 // export the plugin
 const Plugin = {
   id: "explain",
@@ -1927,13 +1955,30 @@ const Plugin = {
       };
     }
     deck.addEventListener("ready", () => {
+      Decker.addPresenterModeListener((mode) => {
+        if (pluginButton) {
+          if (
+            mode &&
+            uiState.name() !== "RECORDER_READY" &&
+            uiState.name() !== "RECORDING" &&
+            uiState.name() !== "RECORDER_PAUSED"
+          ) {
+            pluginButton.ariaDisabled = false;
+          } else {
+            pluginButton.ariaDisabled = true;
+          }
+        }
+      });
       const menuPlugin = deck.getPlugin("decker-menu");
       if (menuPlugin && !!menuPlugin.addPluginButton) {
-        menuPlugin.addPluginButton(
+        pluginButton = menuPlugin.addPluginButton(
           "decker-menu-recording-button",
           "fa-video",
           localization.init_recording,
           () => {
+            if (pluginButton.ariaDisabled) {
+              return;
+            }
             switch (uiState.name()) {
               case "INIT":
               case "PLAYER_READY":
@@ -1946,6 +1991,7 @@ const Plugin = {
             }
           }
         );
+        pluginButton.ariaDisabled = true;
       }
     });
   },

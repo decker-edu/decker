@@ -27,7 +27,7 @@ header {
   justify-content: center;
   text-align: center;
   background: var(--primary-color);
-  padding: 2rem 0;
+  padding: 2rem 0 2rem;
   width: 100%;
 }
 
@@ -69,8 +69,8 @@ h1 {
 
 h2 {
   font-size: 1.25rem;
-  margin-top: 0.5em;
-  font-family: monospace;
+  margin-top: 2em;
+  font-family: inherit;
 }
 
 hr {
@@ -207,6 +207,13 @@ details input {
  * TABLES
  *********************************************/
 
+table.search td {
+  vertical-align: top;
+}
+table.search td span {
+  line-height: 1.3;
+}
+
 body.index table {
   display: table;
   width: 100%;
@@ -240,7 +247,7 @@ body.index table th {
 body.index table th,
 body.index table td {
   text-align: left;
-  padding: 0.2em 1em 0.2em 1em;
+  padding: 0.2em;
 }
 
 body.index table th[align="center"],
@@ -258,25 +265,44 @@ body.index table tbody tr:last-child td {
   border-bottom: none;
 }
 
-tr {
-  height: 2.5rem;
+body.index table :is(p, span) {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
 }
 
-td[align="center"] {
-  text-align: center;
+/* last column (icons) should be as small as possible */
+body.index table tr td:last-child {
+  width: 10%;
 }
 
-td[align="right"] {
-  text-align: right;
-}
-
-td[align="left"] {
-  text-align: left;
+body.index table tr {
+  line-height: 2.2;
 }
 
 p {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+a,
+button,
+input,
+select,
+h2,
+tr,
+summary,
+textarea,
+.progress,
+.icons {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
 }
 
 .german {
@@ -291,11 +317,20 @@ html[lang="de"] .english {
   display: none;
 }
 
-.link-additions {
-  display: inline-flex;
-  flex-direction: row;
-  gap: 0.25rem;
-  margin-left: 0.25rem;
+details.howto[lang="en"] .english {
+  display: unset !important;
+}
+
+details.howto[lang="de"] .english {
+  display: none !important;
+}
+
+details.howto[lang="de"] .german {
+  display: unset !important;
+}
+
+details.howto[lang="en"] .german {
+  display: none !important;
 }
 
 a.handout-link {
@@ -335,7 +370,7 @@ a.handout-link:hover::after {
   background-color: var(--accent5);
 }
 
-span.icons {
+.icons {
   font-size: 1.25rem;
   display: flex;
   flex-wrap: nowrap;
@@ -343,13 +378,15 @@ span.icons {
   align-content: center;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5em;
-  & .link-additions {
-    display: contents;
-  }
+  border-radius: 0.2em;
+  padding: 0.1em;
+  gap: 1em;
   & > a {
     width: 1em;
     height: 1em;
+    border-radius: 0.1em;
+    line-height: 1em;
+    padding: 0.2em;
   }
   & a[href$="deck.html"] {
     order: 1;
@@ -365,12 +402,11 @@ span.icons {
   }
   & .progress {
     order: 5;
-    margin-left: 0.4em;
   }
 }
 
-span.icons a[href$="deck.html"],
-span.icons a[href$="deck.html?handout"] {
+.icons a[href$="deck.html"],
+.icons a[href$="deck.html?handout"] {
   position: relative;
   &::after,
   &::before {
@@ -387,7 +423,7 @@ span.icons a[href$="deck.html?handout"] {
     box-shadow: var(--background-color) 0.07em 0.07em;
   }
 }
-span.icons a[href$="deck.html?handout"] {
+.icons a[href$="deck.html?handout"] {
   &::after {
     translate: -50% -110%;
   }
@@ -395,7 +431,7 @@ span.icons a[href$="deck.html?handout"] {
     translate: -50% 10%;
   }
 }
-span.icons a[href$="deck.html"] {
+.icons a[href$="deck.html"] {
   & > i.fa-html5 {
     display: none;
   }
@@ -412,20 +448,66 @@ section[data-items="0"] {
   display: none;
 }
 
-/* make focus more visible */
-a,
-button,
-input,
-select,
-details,
-summary {
-  transition: outline-offset 0.2s ease !important;
-  outline-offset: 30px;
-  &:focus-visible {
-    outline: solid 3px var(--focus-color) !important;
-    outline-offset: 1px !important;
+.index details {
+  position: relative;
+  & select {
+    position: absolute;
+
+    /* size should fit top-right corner of select-summary */
+    right: 0;
+    top: 0;
+    height: 30px;
+    font-size: 24px;
+    border-radius: 0;
+    border-top-right-radius: 8px;
+    padding: 0;
+    padding-left: 4px;
+
+    outline: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+
+    /* remove browser-specific appearance */
+    -webkit-appearance: none;
+    appearance: none;
+
+    /* Add arrow icon. Source: https://material.io/tools/icons/?icon=keyboard_arrow_down&style=baseline */
+    padding-right: 24px;
+    background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" xml:space="preserve"><path d="M7.41,8.59L12,13.17l4.59-4.58L18,10l-6,6l-6-6L7.41,8.59z"/><path fill="none" d="M0,0h24v24H0V0z"/></svg>');
+    background-position: center right;
+    background-repeat: no-repeat;
+
+    &:hover {
+      background-color: var(--greenish);
+    }
   }
-  &:active {
-    outline-offset: -2px !important;
+  & li {
+    margin-bottom: 0.5em;
   }
+}
+
+/* markers can not have a right padding */
+details.howto > summary::marker {
+  content: "";
+}
+
+details[role="search"] > summary::marker {
+  content: "";
+}
+
+details[role="search"] > summary::before {
+  content: "\f002";
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  color: var(--greenish);
+  padding-right: 0.5rem;
+}
+
+details.howto > summary::before {
+  content: "\3f";
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  color: var(--greenish);
+  padding-right: 0.5rem;
 }

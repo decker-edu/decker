@@ -67,7 +67,7 @@
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent5-bg);
-  --flying-focus-color: var(--highlight-color);
+  --focus-color: var(--accent1);
 
   --icon-active-color: var(--accent5);
   --icon-disabled-color: var(--shade2);
@@ -78,9 +78,6 @@
 
   --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
-
-  --highlight-color: var(--accent5-bg);
-  --flying-focus-color: var(--highlight-color);
 
   --menu-background-color: var(--shade1);
   --menu-text-color: var(--shade6);
