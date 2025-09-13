@@ -202,64 +202,96 @@ html.handout .decker-anchor #handout-minus {
 
 .handout-feedback-container {
   text-align: center;
-  background-color: var(--menu-background-color);
-  border-top: 1px solid var(--shade3);
-  border-left: 1px solid var(--shade3);
-  border-right: 1px solid var(--shade3);
+  background-color: var(--shade1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 0.5rem;
-  --tail-size: 0.5rem;
+  padding: 0.5em;
+  border: 2px solid var(--shade2);
+  border-radius: 0 0 1em 1em;
+  margin-bottom: 0.5em !important;
 }
 
 .handout-feedback-comments {
-  width: 50%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.5em;
+  font-size: 1.5rem;
+  margin-top: 0.5em;
+}
+
+.handout-feedback-answer,
+.handout-feedback-comment {
+  position: relative;
+  font-size: 1em;
+  font-weight: normal;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  text-align: left;
+  box-sizing: border-box;
+  background-color: var(--background-color);
 }
 
 .handout-feedback-comment {
-  position: relative;
-  margin: 0.5rem;
-  padding: 0.25rem;
-  border-radius: 0 0.5rem 0.5rem 0.5rem;
-  background-color: var(--background-color);
-  text-align: left;
-  box-sizing: border-box;
-  font-size: 1.5rem;
-  font-weight: normal;
-}
+  margin-right: 5em;
+  margin-left: 3em;
+  justify-content: flex-start;
 
-.handout-feedback-comment::before {
-  position: absolute;
-  content: "";
-  top: 0;
-  left: calc(-1 * var(--tail-size));
-  width: 0;
-  height: 0;
-  border-top: var(--tail-size) solid var(--background-color);
-  border-left: var(--tail-size) solid transparent;
+  &:before {
+    content: "🙄";
+    font-size: 1.7em;
+    position: absolute;
+    left: -2em;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+    border: none;
+  }
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0.7em;
+    left: -0.9em;
+    bottom: auto;
+    border-width: 0.6em 0.9em 0.6em 0;
+    border-style: solid;
+    border-color: transparent var(--background-color);
+    display: block;
+    width: 0;
+  }
 }
 
 .handout-feedback-answer {
-  position: relative;
-  margin: 0.5rem;
-  margin-left: 4ex;
-  padding: 0.25rem;
-  border-radius: 0.5rem 0 0.5rem 0.5rem;
-  background-color: var(--accent3-bg);
-  text-align: right;
-  box-sizing: border-box;
-  font-size: 1.5rem;
-  font-weight: normal;
-}
+  margin-left: 5em;
+  margin-right: 3em;
+  justify-content: flex-end;
 
-.handout-feedback-answer::after {
-  position: absolute;
-  content: "";
-  top: 0;
-  right: calc(-1 * var(--tail-size));
-  width: 0;
-  height: 0;
-  border-top: var(--tail-size) solid var(--accent3-bg);
-  border-right: var(--tail-size) solid transparent;
+  &:before {
+    content: "🤓";
+    font-size: 1.7em;
+    position: absolute;
+    right: -2em;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+    border: none;
+  }
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0.7em;
+    right: -0.9em;
+    bottom: auto;
+    border-width: 0.6em 0 0.6em 0.9em;
+    border-style: solid;
+    border-color: transparent var(--background-color);
+    display: block;
+    width: 0;
+  }
 }
