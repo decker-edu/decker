@@ -108,7 +108,7 @@ async function setupModeLinks(container, url) {
   }
 }
 
-function insertAdditionalLinks() {
+async function insertAdditionalLinks() {
   const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
   const insert = Decker.meta.index?.progress?.insert || "after";
   const links = document.querySelectorAll(selector);
@@ -120,7 +120,7 @@ function insertAdditionalLinks() {
       continue;
     }
     let container = link.closest(".icons");
-    if(!container) {
+    if (!container) {
       const container = document.createElement("div");
       container.classList.add("icons");
       if (insert === "replace") {
@@ -149,7 +149,7 @@ function insertAdditionalLinks() {
         : `View slide deck ${title}${
             subtitle ? " - " + subtitle : ""
           }: Press Enter to choose view mode.`;
-    setupModeLinks(container, url);
+    await setupModeLinks(container, url);
     setupProgressIndicator(container, url);
     container.prepend(link);
     for (const child of container.children) {
@@ -158,49 +158,49 @@ function insertAdditionalLinks() {
     container.setAttribute("tabindex", 0);
     /* Internal Navigation */
     container.addEventListener("keydown", (event) => {
-      if(container.contains(document.activeElement)) {
-        if(event.code === "ArrowRight") {
+      if (container.contains(document.activeElement)) {
+        if (event.code === "ArrowRight") {
           const next = document.activeElement.nextElementSibling;
-          if(next) {
+          if (next) {
             event.preventDefault();
             event.stopPropagation();
             next.focus();
           }
         }
-        if(event.code === "ArrowLeft") {
+        if (event.code === "ArrowLeft") {
           const prev = document.activeElement.previousElementSibling;
-          if(prev) {
+          if (prev) {
             event.preventDefault();
             event.stopPropagation();
             prev.focus();
           }
         }
       }
-      if(event.code === "ArrowDown") {
+      if (event.code === "ArrowDown") {
         const containingRow = container.closest("tr");
         const nextRow = containingRow.nextElementSibling;
-        if(nextRow) {
+        if (nextRow) {
           const nextIcons = nextRow.querySelector(".icons");
-          if(nextIcons) {
+          if (nextIcons) {
             event.preventDefault();
             event.stopPropagation();
             nextIcons.focus();
           }
         }
       }
-      if(event.code === "ArrowUp") {
+      if (event.code === "ArrowUp") {
         const containingRow = container.closest("tr");
         const prevRow = containingRow.previousElementSibling;
-        if(prevRow) {
+        if (prevRow) {
           const prevIcons = prevRow.querySelector(".icons");
-          if(prevIcons) {
+          if (prevIcons) {
             event.preventDefault();
             event.stopPropagation();
             prevIcons.focus();
           }
         }
       }
-    })
+    });
     container.addEventListener("keyup", (event) => {
       if (event.target !== container) return;
       if (event.code === "Enter") {
