@@ -1,8 +1,10 @@
 /*!
  * Handles finding a text string anywhere in the slides and showing the next occurrence to the user
- * by navigatating to that slide and highlighting it.
+ * by navigating to that slide and highlighting it.
  *
  * @author Jon Snyder <snyder.jon@gmail.com>, February 2013
+ *
+ * Several adjustments and fixes by Sebastian Hauer, Mario Botsch
  */
 
 const lang_de = {
@@ -51,53 +53,54 @@ const Plugin = () => {
     searchElement.classList.add("searchbox");
 
     // MARIO: adjust position, size, color
-    searchElement.style.padding = "calc(var(--icon-size) * 0.5)";
+    searchElement.style.fontSize = "1.2rem";
+    searchElement.style.padding = "0.3em";
     searchElement.style.borderRadius = "0.25em";
-    searchElement.style.background = "white";
-    searchElement.style.border = "2px solid var(--icon-active-color)";
-    searchElement.style.fontSize = "var(--icon-size)";
-    searchElement.style.color = "black";
+    searchElement.style.background = "var(--shade1)";
+    searchElement.style.border = "2px solid var(--shade2)";
+    searchElement.style.color = "var(--foreground-color)";
     searchElement.style.display = "flex";
     searchElement.style.flexDirection = "column";
+    searchElement.style.height = "min-content";
 
     // MARIO: adjust border color and search icon (requires font-awesome)
     searchElement.innerHTML = `<div>
-  <div id="labelrow" style="margin-top: none; margin-bottom: 0.5rem; line-height: 0.8rem;">
-    <label id="searchinputlabel" for="searchinput" style="font-size: 1rem;">${l10n.searchinslides}</label>
-  </div>
-  <div role="search" id="searchrow" style="display:flex; align-items:center;">
-    <i class="fa-button fas fa-search" style="padding-right: 10px; color: var(--icon-active-color);"></i>
-    <input type="search" id="searchinput"></input>
-    <span id="searchamount">0 / 0</span>
-    <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
-    <button id="searchprev" class="fas fa-chevron-up" title="${l10n.prevResult}" aria-label="${l10n.prevResult}"></button>
-    <button id="searchnext" class="fas fa-chevron-down" title="${l10n.nextResult}" aria-label="${l10n.nextResult}"></button>
-  </div>
-</div>`;
+      <label id="searchinputlabel" for="searchinput">${l10n.searchinslides}</label>
+      <div role="search" id="searchrow" style="display:flex; align-items:center; gap:0.5em;">
+        <i class="fa-button fas fa-search"></i>
+        <input type="search" id="searchinput"></input>
+        <span id="searchamount">0 / 0</span>
+        <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
+        <button id="searchprev" class="fas fa-chevron-up" title="${l10n.prevResult}" aria-label="${l10n.prevResult}"></button>
+        <button id="searchnext" class="fas fa-chevron-down" title="${l10n.nextResult}" aria-label="${l10n.nextResult}"></button>
+      </div>
+    </div>`;
 
     // MARIO: override some styling
-    searchInput = searchElement.querySelector("#searchinput");
-    searchInput.style.fontSize = "1.2rem";
-    searchInput.style.width = "10em";
-    searchInput.style.padding = "4px 6px";
-    searchInput.style.marginRight = "12px";
-    searchInput.style.color = "#000";
-    searchInput.style.background = "#fff";
-    searchInput.style.borderRadius = "2px";
-    searchInput.style.border = "2px solid var(--icon-active-color)";
-    searchInput.style.outline = "0";
-    searchInput.style["-webkit-appearance"] = "none";
-    searchInput.placeholder = l10n.search;
-
     inputLabel = searchElement.querySelector("#searchinputlabel");
+    inputLabel.style.position = "absolute";
+    inputLabel.style.width = 1;
+    inputLabel.style.height = 1;
+    inputLabel.style.overflow = "hidden";
+    inputLabel.style.clip = "rect(1px, 1px, 1px, 1px)";
+
+    searchInput = searchElement.querySelector("#searchinput");
+    searchInput.style.fontSize = "1em";
+    searchInput.style.width = "10em";
+    searchInput.style.padding = "0.2em 0.3em";
+    searchInput.style.color = "var(--foreground-color)";
+    searchInput.style.background = "var(--background-color)";
+    searchInput.style.borderRadius = "0.2em";
+    searchInput.style.border = "2px solid var(--icon-active-color)";
+    searchInput.placeholder = l10n.search;
 
     searchPrev = searchElement.querySelector("#searchprev");
     searchPrev.style.border = "none";
     searchPrev.style.background = "transparent";
     searchPrev.style.color = "var(--icon-disabled-color)";
-    searchPrev.style.fontSize = "1.2rem";
-    searchPrev.style.marginLeft = "1rem";
-    searchPrev.style.marginRight = "0.5rem";
+    searchPrev.style.fontSize = "0.8em";
+    searchPrev.style.padding = "0.2em";
+    searchPrev.style.width = "1.5em";
     searchPrev.addEventListener("click", () => {
       if (searchPrev.hasAttribute("aria-disabled")) {
         return;
@@ -109,8 +112,9 @@ const Plugin = () => {
     searchNext.style.border = "none";
     searchNext.style.background = "transparent";
     searchNext.style.color = "var(--icon-disabled-color)";
-    searchNext.style.fontSize = "1.2rem";
-    searchNext.style.marginLeft = "0.5rem";
+    searchNext.style.fontSize = "0.8em";
+    searchNext.style.padding = "0.2em";
+    searchNext.style.width = "1.5em";
     searchNext.addEventListener("click", () => {
       if (searchNext.hasAttribute("aria-disabled")) {
         return;
