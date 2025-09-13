@@ -1128,35 +1128,34 @@ html.dark
 }
 
 #page-color-button {
-  font-size: 2rem;
+  font-size: var(--icon-size);
   font-family: "Font Awesome 7 Free";
   font-weight: 900;
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 3rem;
-  height: 3rem;
+  top: 0.5em;
+  right: 0.5em;
+  width: 2em;
+  height: 2em;
   border: none;
-  background-color: transparent;
+  border-radius: 999px;
+  transition: background-color 0.1s;
   color: var(--foreground-color);
-}
+  background-color: transparent;
 
-.light #page-color-button {
-  color: var(--background-color);
-}
-
-#page-color-button:hover {
-  border-radius: 100%;
-  background-color: var(--background-color);
+  &:hover,
+  &:focus {
+    color: var(--icon-hover-color);
+    background-color: var(--background-color);
+  }
 }
 
 html.dark #page-color-button::before {
   content: "\f185";
 }
-
 html.light #page-color-button::before {
   content: "\f186";
 }
+
 /* make focus more visible */
 a,
 button,

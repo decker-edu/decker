@@ -353,21 +353,16 @@ html[lang="de"] .english {
   width: 2em;
   height: 2em;
   border: none;
-  border-radius: 100%;
-  background-color: transparent;
+  border-radius: 999px;
+  transition: background-color 0.1s;
   color: var(--foreground-color);
-}
+  background-color: transparent;
 
-.light #index-color-button {
-  color: var(--background-color);
-}
-
-#index-color-button:hover {
-  background-color: var(--background-color);
-}
-
-.light #index-color-button:hover {
-  background-color: var(--foreground-color);
+  &:hover,
+  &:focus {
+    color: var(--icon-hover-color);
+    background-color: var(--background-color);
+  }
 }
 
 html.dark #index-color-button::before {
@@ -394,4 +389,8 @@ summary {
   &:active {
     outline-offset: -2px !important;
   }
+}
+.icons:focus-within {
+  outline: solid 2px var(--focus-color) !important;
+  outline-offset: 2px;
 }
