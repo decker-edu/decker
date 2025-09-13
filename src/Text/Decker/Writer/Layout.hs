@@ -86,7 +86,16 @@ markdownToHtml disp meta getTemplate markdownFile out = do
             writerCiteMethod = Citeproc
           }
   writePandocFile options out pandoc
+  let chattyWriteMarkdown = lookupMeta "chatty.write-markdown" meta :: Maybe Bool
+  when (chattyWriteMarkdown == Just True) $
+    writeMarkdownFile options (out <.> "md" ) pandoc
 
+writeMarkdownFile options out pandoc@(Pandoc meta blocks) = do
+  liftIO
+    $ runIO (setVerbosity ERROR >> writeMarkdown def pandoc)
+    >>= handleError
+    >>= Text.writeFile out
+  
 -- | writes a document in two steps. First the document is written as a fragment
 -- of plain HTML 4. which is then adjusted for reveal compatible section tags.
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
@@ -97,22 +106,6 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
   let meta' = addMetaKeyValue "decker-meta-url" (toText metaFile) meta
   let metaJson = encodePretty $ fromPandocMeta meta'
   liftIO $ BS.writeFile metaPath metaJson
-  -- liftIO $ do
-  --   html <-
-  --     runIO (setVerbosity ERROR >> writeHtml4 options {writerTemplate = Nothing} pandoc) >>= handleError
-  --   let string = renderHtml $ transformHtml (nullA, []) html
-  --   let raw =
-  --         [ RawBlock "html" $ fromLazy string,
-  --           Plain
-  --             [ Code
-  --                 ( "",
-  --                   ["force-highlight-styles", "markdown"],
-  --                   [("style", "display:none;")]
-  --                 )
-  --                 ""
-  --             ]
-  --         ]
-  -- runIO (writeHtml5String options (embedMetaMeta (Pandoc meta raw)))
   liftIO
     $ runIO (setVerbosity ERROR >> writeHtml45String options meta' pandoc)
     >>= handleError
