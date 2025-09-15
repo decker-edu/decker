@@ -147,9 +147,7 @@ class SlideMenu {
       }
       this.enableKeybinds();
       this.glass.classList.remove("show");
-      if (event && event.detail === 0) {
-        setTimeout(() => this.open_button.focus());
-      }
+      this.open_button.focus();
     }
   }
 
@@ -497,10 +495,10 @@ class SlideMenu {
       this.goToIndex()
     );
     this.menu.search_button.addEventListener("click", (event) =>
-      this.toggleSearchbar()
+      this.closeMenu(event)
     );
     this.menu.search_button.addEventListener("click", (event) =>
-      this.closeMenu(event)
+      this.toggleSearchbar()
     );
     this.menu.print_button.addEventListener("click", (event) =>
       this.printPDF()
@@ -509,7 +507,7 @@ class SlideMenu {
       this.closeMenu(event)
     );
     this.menu.color_button.addEventListener("click", (event) => {
-      if (this.menu.color_button.ariaDisabled) {
+      if (this.menu.color_button.ariaDisabled === "true") {
         return;
       }
       colorScheme.toggleColor();
@@ -520,7 +518,7 @@ class SlideMenu {
 
     const colorSetting = window.Decker?.meta?.colorscheme;
     if (colorSetting == "light" || colorSetting == "dark")
-      this.menu.color_button.ariaDisabled = true;
+      this.menu.color_button.ariaDisabled = "true";
 
     this.initializeSlideList();
     this.menu.slide_list.addEventListener("keydown", (event) =>
