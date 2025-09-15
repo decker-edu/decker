@@ -572,7 +572,7 @@ async function setupRecorder() {
     openRecordPanel();
 
     // disable plugin menu button
-    pluginButton.ariaDisabled = true;
+    pluginButton.ariaDisabled = "true";
     return true;
   } catch (e) {
     console.error(e);
@@ -1963,9 +1963,9 @@ const Plugin = {
             uiState.name() !== "RECORDING" &&
             uiState.name() !== "RECORDER_PAUSED"
           ) {
-            pluginButton.ariaDisabled = false;
+            pluginButton.ariaDisabled = "false";
           } else {
-            pluginButton.ariaDisabled = true;
+            pluginButton.ariaDisabled = "true";
           }
         }
       });
@@ -1976,7 +1976,7 @@ const Plugin = {
           "fa-video",
           localization.init_recording,
           () => {
-            if (pluginButton.ariaDisabled) {
+            if (pluginButton.ariaDisabled === "true") {
               return;
             }
             switch (uiState.name()) {
@@ -1991,7 +1991,7 @@ const Plugin = {
             }
           }
         );
-        pluginButton.ariaDisabled = true;
+        pluginButton.ariaDisabled = "true";
       }
     });
   },
