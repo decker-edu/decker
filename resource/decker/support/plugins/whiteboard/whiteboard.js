@@ -1795,6 +1795,18 @@ const Plugin = {
     selectPenColor(penColors[0]);
     selectPenRadius(2);
 
+    /* Allow the focused slides with scrollbar to be navigated with arrow keys */
+
+    const slidesElement = Reveal.getSlidesElement();
+    slidesElement.addEventListener("focus", (event) => {
+      storedKeyboardConfig = Reveal.getConfig().keyboard;
+      Reveal.configure({ keyboard: false });
+    });
+
+    slidesElement.addEventListener("blur", (event) => {
+      Reveal.configure({ keyboard: storedKeyboardConfig });
+    });
+
     // load annotations
     return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
   },
