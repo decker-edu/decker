@@ -1800,18 +1800,21 @@ const Plugin = {
     const slidesElement = Reveal.getSlidesElement();
 
     const suppressor = (event) => {
-      if (event.code === "ArrowUp" || event.code === "ArrowDown") {
+      if (!slidesElement.classList.contains("needScrollbar")) {
+        return;
+      }
+      if (
+        event.code === "ArrowUp" ||
+        event.code === "ArrowDown" ||
+        event.code === "PageUp" ||
+        event.code === "PageDown" ||
+        event.code === "Space"
+      ) {
         event.stopPropagation();
       }
     };
 
-    slidesElement.addEventListener("focus", (event) => {
-      slidesElement.addEventListener("keydown", suppressor);
-    });
-
-    slidesElement.addEventListener("blur", (event) => {
-      slidesElement.removeEventListener("keydown", suppressor);
-    });
+    slidesElement.addEventListener("keydown", suppressor);
 
     // load annotations
     return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
