@@ -1699,6 +1699,7 @@ a,
 button,
 input,
 select,
+.slides.needScrollbar,
 summary {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
