@@ -149,6 +149,14 @@ async function insertAdditionalLinks() {
         : `View slide deck ${title}${
             subtitle ? " - " + subtitle : ""
           }: Press Enter to choose view mode.`;
+    container.ariaLabel =
+      navigator.language === "de"
+        ? `Foliensatz ${title}${
+            subtitle ? " - " + subtitle : ""
+          } betrachten: Drücke Eingabe, um Betrachtungsmodus auszuwählen.`
+        : `View slide deck ${title}${
+            subtitle ? " - " + subtitle : ""
+          }: Press Enter to choose view mode.`;
     await setupModeLinks(container, url);
     setupProgressIndicator(container, url);
     container.prepend(link);
