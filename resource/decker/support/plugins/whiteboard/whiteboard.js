@@ -1795,16 +1795,22 @@ const Plugin = {
     selectPenColor(penColors[0]);
     selectPenRadius(2);
 
-    /* Allow the focused slides with scrollbar to be navigated with arrow keys */
+    /* Allow the focused slides with scrollbar to be navigated with up & down arrow keys */
 
     const slidesElement = Reveal.getSlidesElement();
+
+    const suppressor = (event) => {
+      if (event.code === "ArrowUp" || event.code === "ArrowDown") {
+        event.stopPropagation();
+      }
+    };
+
     slidesElement.addEventListener("focus", (event) => {
-      storedKeyboardConfig = Reveal.getConfig().keyboard;
-      Reveal.configure({ keyboard: false });
+      slidesElement.addEventListener("keydown", suppressor);
     });
 
     slidesElement.addEventListener("blur", (event) => {
-      Reveal.configure({ keyboard: storedKeyboardConfig });
+      slidesElement.removeEventListener("keydown", suppressor);
     });
 
     // load annotations
