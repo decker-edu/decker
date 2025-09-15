@@ -331,16 +331,22 @@ function continueWhereYouLeftOff() {
         let dialog = createElement({
           type: "div",
           id: "continue-dialog",
-          parent: reveal,
-          text: german
-            ? "Bei Folie " + slideNumber + " weitermachen?"
-            : "Continue on slide " + slideNumber + "?",
+          parent: document.body,
         });
-        dialog.setAttribute("aria-hidden", "true");
+        //        dialog.setAttribute("aria-hidden", "true");
 
         let hideDialog = () => {
           dialog.style.display = "none";
         };
+
+        let label = createElement({
+          type: "span",
+          id: "continue-label",
+          parent: dialog,
+          text: german
+            ? "Bei Folie " + slideNumber + " weitermachen?"
+            : "Continue on slide " + slideNumber + "?",
+        });
 
         let yes = createElement({
           type: "button",
@@ -363,6 +369,32 @@ function continueWhereYouLeftOff() {
           onclick: hideDialog,
         });
 
+        yes.setAttribute("aria-describedby", "continue-label");
+        no.setAttribute("aria-describedby", "continue-label");
+
+        yes.addEventListener("keydown", (event) => {
+          if (event.code === "Tab") {
+            event.preventDefault();
+            event.stopPropagation();
+            no.focus();
+          }
+        });
+
+        no.addEventListener("keydown", (event) => {
+          if (event.code === "Tab") {
+            event.preventDefault();
+            event.stopPropagation();
+            yes.focus();
+          }
+        });
+
+        dialog.addEventListener("focusout", (event) => {
+          if (!dialog.contains(event.relatedTarget)) {
+            hideDialog();
+          }
+        });
+
+        yes.focus();
         Reveal.addEventListener("slidechanged", hideDialog);
       }
     }
