@@ -359,7 +359,7 @@ html[lang="de"] .english {
   background-color: transparent;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     color: var(--icon-hover-color);
     background-color: var(--background-color);
   }
@@ -390,7 +390,8 @@ summary {
     outline-offset: -2px !important;
   }
 }
-.icons:focus-within {
+
+.icons:has(:focus-visible) {
   outline: solid 2px var(--focus-color) !important;
   outline-offset: 2px;
 }
