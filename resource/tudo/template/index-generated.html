@@ -103,13 +103,13 @@ $endif$
           import setupSearch from "./$decker-support-dir$/fuzzySearch/search.js";
           window.addEventListener("load", () => {
             let searchBox = document.getElementById("index-search");
-            setupSearch(searchBox, 0.5, $index.searchShowsDeckTitle$, $index.searchShowsDeckSubtitle$);
+            setupSearch(searchBox, 0.5, "$index.searchResultDisplay$");
           });
         </script>
       $endif$
 
       <div class="english">
-        <section data-items="$decks.by-title/length$"">
+        <section data-items="$decks.by-title/length$">
           <h2>
             Slide Decks
           </h2>
@@ -131,7 +131,7 @@ $endif$
           </table>
         </section>
 
-        <section data-items="$pages.by-title/length$"">
+        <section data-items="$pages.by-title/length$">
           <h2>Additional Material</h2>
           <table>
             <thead>
@@ -150,7 +150,7 @@ $endif$
         </section>
       </div>
       <div class="german">
-        <section data-items="$decks.by-title/length$"">
+        <section data-items="$decks.by-title/length$">
           <h2>
             Foliensätze
           </h2>
@@ -172,7 +172,7 @@ $endif$
           </table>
         </section>
 
-        <section data-items="$pages.by-title/length$"">
+        <section data-items="$pages.by-title/length$">
           <h2>Zusatzmaterial</h2>
           <table>
             <thead>

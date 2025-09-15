@@ -38,12 +38,7 @@ const l10n_en = {
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? l10n_de : l10n_en;
 
-function setupSearch(
-  anchor,
-  minScore = 0.5,
-  showDeckTitles = true,
-  showDeckSubtitles = false
-) {
+function setupSearch(anchor, minScore = 0.5, display = "title") {
   // let indexPath = Decker.meta.projectPath;
   // if (!indexPath.endsWith("/")) indexPath += "/";
   // indexPath += "index.json";
@@ -57,12 +52,12 @@ function setupSearch(
       else throw new Error("Cannot download index file.");
     })
     .then((index) => {
-      setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
+      setup(index, anchor, minScore, display);
     })
     .catch((err) => console.log(err));
 }
 
-function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
+function setup(index, anchor, minScore, display) {
   if (anchor.innerHTML.trim() === "") {
     anchor.innerHTML = `<details role="search">
   <summary>${l10n.details_summary}</summary>
@@ -144,10 +139,13 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
         const dInfo = index.decks[sInfo.deckUrl];
 
         let deck = "";
-        if (showDeckTitles && dInfo.deckTitle) {
+        if ((display === "title" || display === "both") && dInfo.deckTitle) {
           deck += `<span>${dInfo.deckTitle}</span>`;
         }
-        if (showDeckSubtitles && dInfo.deckSubtitle) {
+        if (
+          (display === "subtitle" || display === "both") &&
+          dInfo.deckSubtitle
+        ) {
           if (deck.length) deck += `<span> &mdash; </span><br/>`;
           deck += `<span>${dInfo.deckSubtitle}</span>`;
         }
