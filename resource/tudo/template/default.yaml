@@ -72,7 +72,8 @@ index:
   progress: true
   manual: true
   search: true
-  searchResultDisplay: "both"
+  searchShowsDeckTitle: true
+  searchShowsDeckSubtitle: true
   links:
     - a11y
     - handout

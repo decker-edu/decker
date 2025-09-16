@@ -37,8 +37,8 @@ math:
 index:
   progress: true
   links:
-#    - a11y
-#    - handout
+    - a11y
+    - handout
 #    - presenter
 
 # Reveal Config
