@@ -511,3 +511,32 @@ details.howto > summary::before {
   color: var(--greenish);
   padding-right: 0.5rem;
 }
+
+/*********************************************
+* FontAwesome buttons
+*********************************************/
+
+/* adapted from https://dev.to/kevinbism/recreating-apples-liquid-glass-effect-with-pure-css-3gpl */
+button.fa-button {
+  position: relative;
+  width: 2em;
+  height: 2em;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(2px) saturate(150%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2),
+    inset 0 4px 20px rgba(255, 255, 255, 0.3);
+}
+@media (hover: hover) {
+  button.fa-button:not([aria-disabled="true"]):hover {
+    color: var(--icon-active-color);
+    background-color: var(--background-color);
+    border: 2px solid var(--icon-active-color);
+  }
+}
+button.fa-button:not([aria-disabled="true"]):focus-visible {
+  color: var(--focus-color);
+  background-color: var(--background-color);
+  border: 2px solid var(--focus-color);
+}
