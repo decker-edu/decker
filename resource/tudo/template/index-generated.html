@@ -103,7 +103,7 @@ $endif$
           import setupSearch from "./$decker-support-dir$/fuzzySearch/search.js";
           window.addEventListener("load", () => {
             let searchBox = document.getElementById("index-search");
-            setupSearch(searchBox, 0.5, "$index.searchResultDisplay$");
+            setupSearch(searchBox, 0.5, $index.searchShowsDeckTitle$, $index.searchShowsDeckSubtitle$);
           });
         </script>
       $endif$
