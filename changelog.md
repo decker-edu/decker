@@ -97,9 +97,38 @@ quizzer:
     volume: 0.75
 ```
 
-- External tools are not configured in YAML. 
-  We should really document this...
-  Documentated changes below (e.g. `rsync`) might already be outdated.
+- External tools can now be configured in the decker.yaml:
+    - Each external tool can be directly configured for all operating systems or have individual cases for `windows`, `linux` and `macos`.
+    - The configuration of each tool defines the command to execute the external program call and the list of arguments to be passed to the called program.
+    - Each argument should be its own entry in the arguments list.
+    - You can use the placeholders `${input}` and `${output}` to pass the file names in the argument list.
+    - As an example, here is the default configuration of calling the external gnuplot tool:
+``` yaml
+external-tools:
+  gnuplot:
+    command: "gnuplot"
+    arguments:
+      - "-d"
+      - "-e"
+      - "set terminal svg"
+      - "-e"
+      - "set output '${output}'"
+      - "${input}"
+```
+    - Each tool is either called during conversion from markdown to html or triggered by an explicit operation of decker:
+        - rsync: Called by `decker publish` to transfer files from the local machine to a remote host.
+        - gnuplot: Called during markdown compilation to pre-render a code-block marked by `.render .gnuplot`.
+        - plantuml: Called during markdown compilation to pre-render a code-block marked by `.render .plantuml`.
+        - mermaid: Called during markdown compilation to pre-render a code-block marked by `.render .mermaid`.
+        - dot: Called during markdown compilation to pre-render a code-block marked by `.render .dot`.
+        - pdflatex: Called during markdown compilation to pre-render a code-block marked by `.render .tex`.
+        - chrome: Program used to trigger a print-to-pdf call of the slides.
+        - mp4towav: Program used by `decker transcribe` to convert existing `.mp4`-recordings to `.wav` so `whisper` can accept the recordings for transcription.
+        - whisper: Program used to generate subtitles for the recordings by `decker transcribe` as well as perform automatic translation to english for these subtitles.
+        - tomp4-copy: Program used by `decker crunch` to transcode `.webm` files to `.mp4` files.
+        - tomp4-transcode: Program used by `decker crrrunch` to transcode `.webm` files to `.mp4` files while also doing several codec transformations.
+        - tomp4-concat: Program used by `decker crunch` to concatenate multiple recordings to a single file.
+    - The input and output of the rendered-code-block programs are temporary files that are copied to their final destination after conversion.
   
 - Palette for charts can now be defined in YAML in `chart.colors`. 
   For this to work, disable the color plugin of Chart.js.
@@ -141,9 +170,9 @@ quizzer:
         - presenter
     ```
 
--   Handout Mode now supports zooming both by the (-)/(+) buttons in the
-    top right corner and the browser's native zoom level. In addition,
-    if the slides are zoomed away from, they center while if they are
+-   Handout Mode now supports zooming by the (-)/(+) buttons in the
+    top right corner. In addition, if the slides are zoomed away from,
+    they center while if they are
     zoomed in they attach to the left side of the screen to properly
     allow scrolling the page. (Previously they fell out of the left side
     of the viewport).
