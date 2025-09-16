@@ -86,25 +86,34 @@ async function setupModeLinks(container, url) {
   }
 
   if (links.includes("pdf")) {
-    const exists = await resourceExists(url.pathname.replace(".html", ".pdf"));
-    if (exists) {
-      const pdfLink = document.createElement("a");
-      pdfLink.href = url.pathname.replace(".html", ".pdf");
-      pdfLink.classList.add("fas", "fa-file-pdf");
-      pdfLink.setAttribute(
-        "title",
-        navigator.language === "de"
-          ? "PDF Export des Foliensatzes herunterladen"
-          : "Download presentation PDF"
-      );
-      pdfLink.setAttribute(
-        "aria-label",
-        navigator.language === "de"
-          ? "PDF Export des Foliensatzes herunterladen"
-          : "Download presentation PDF"
-      );
-      container.appendChild(pdfLink);
-    }
+    const pdfLink = document.createElement("a");
+    pdfLink.href = url.pathname.replace(".html", ".pdf");
+    pdfLink.classList.add("fas", "fa-file-pdf");
+    pdfLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? "PDF Export des Foliensatzes herunterladen"
+        : "Download presentation PDF"
+    );
+    pdfLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? "PDF Export des Foliensatzes herunterladen"
+        : "Download presentation PDF"
+    );
+    pdfLink.setAttribute("aria-disabled", "true");
+    pdfLink.addEventListener("click", (event) => {
+      if (pdfLink.ariaDisabled === "true") {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    });
+    container.appendChild(pdfLink);
+    resourceExists(url.pathname.replace(".html", ".pdf")).then((exists) => {
+      if (exists) {
+        pdfLink.removeAttribute("aria-disabled");
+      }
+    });
   }
 }
 
