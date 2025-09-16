@@ -6,7 +6,6 @@
  * @author Sebastian Hauer (rewrite)
  */
 import client from "./api-client.js";
-
 class Feedback {
   timeout = 500;
 
@@ -17,6 +16,7 @@ class Feedback {
     interface: undefined,
     question_container: undefined,
     answer_container: undefined,
+    send_credentials: undefined,
   };
 
   reveal = undefined;
@@ -41,12 +41,14 @@ class Feedback {
     close_button: undefined,
     feedback_list: undefined,
     feedback_input: undefined,
+    feedback_send_button: undefined,
     feedback_login_area: undefined,
     feedback_login_button: undefined,
     feedback_credentials: {
       container: undefined,
       username_input: undefined,
       password_input: undefined,
+      login_button: undefined,
     },
   };
 
@@ -121,7 +123,7 @@ class Feedback {
   /**
    * Opens the menu and updates its content. Also focuses the first button in the menu.
    */
-  openMenu() {
+  openMenu(event) {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
       // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
@@ -129,22 +131,39 @@ class Feedback {
       if (!document.documentElement.classList.contains("handout"))
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(true);
+      }
+      this.reveal.configure({ keyboard: false });
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
       this.menu.close_button.focus();
+      if (event && event.detail === 0) {
+        this.menu.close_button.focus();
+      }
     }
   }
 
   /**
    * Closes the menu and focuses the button that opened it.
    */
-  closeMenu() {
+  closeMenu(event) {
     if (!this.menu.container.inert) {
       this.menu.container.inert = true;
       this.reveal.getRevealElement().inert = false;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(false);
+      }
       localStorage.removeItem("feedback-state");
-      this.glass.classList.remove("show");
-      this.open_button.focus();
+      this.glass.classList.remove("show", "blur");
+      if (event && event.detail === 0) {
+        setTimeout(() => this.open_button.focus());
+      }
+      if (!document.documentElement.classList.contains("handout")) {
+        this.reveal.configure({ keyboard: true });
+      }
     }
   }
 
@@ -184,35 +203,36 @@ class Feedback {
   /**
    * Tries to perfom a login with the entered credentials.
    */
-  async sendLogin(event) {
-    if (event.key === "Enter") {
-      let credentials = {
-        login: this.menu.feedback_credentials.username_input.value,
-        password: this.menu.feedback_credentials.password_input.value,
-        deck: this.engine.deckId,
-      };
-      try {
-        const token = await this.engine.api.getLogin(credentials);
-        this.engine.token.admin = token.admin;
-        this.menu.feedback_login_area.classList.add("admin");
-        this.menu.feedback_credentials.username_input.value = "";
-        this.menu.feedback_credentials.password_input.value = "";
-        this.menu.feedback_credentials.container.classList.remove("visible");
-        this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
-        this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
-        this.menu.feedback_login_button.setAttribute(
-          "title",
-          this.localization.interface.logout_as_admin
-        );
-        this.menu.feedback_login_button.setAttribute(
-          "aria-label",
-          this.localization.interface.logout_as_admin
-        );
-        this.requestMenuContent();
-      } catch (error) {
-        console.error(error);
-        this.menu.feedback_credentials.password_input.value = "";
-      }
+  async sendLogin() {
+    let credentials = {
+      login: this.menu.feedback_credentials.username_input.value,
+      password: this.menu.feedback_credentials.password_input.value,
+      deck: this.engine.deckId,
+    };
+    try {
+      this.menu.feedback_credentials.password_input.classList.remove("error");
+      const token = await this.engine.api.getLogin(credentials);
+      this.engine.token.admin = token.admin;
+      this.menu.feedback_login_area.classList.add("admin");
+      this.menu.feedback_credentials.username_input.value = "";
+      this.menu.feedback_credentials.password_input.value = "";
+      this.menu.feedback_credentials.container.classList.remove("visible");
+      this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
+      this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
+      this.menu.feedback_login_button.setAttribute(
+        "title",
+        this.localization.interface.logout_as_admin
+      );
+      this.menu.feedback_login_button.setAttribute(
+        "aria-label",
+        this.localization.interface.logout_as_admin
+      );
+      this.requestMenuContent();
+    } catch (error) {
+      console.error(error);
+      this.menu.feedback_credentials.password_input.value = "";
+      this.menu.feedback_credentials.password_input.classList.add("error");
+      this.menu.feedback_credentials.password_input.focus();
     }
   }
 
@@ -221,48 +241,46 @@ class Feedback {
    * @param {*} event
    */
   async sendComment(event) {
-    if (event.key === "Enter" && event.shiftKey) {
-      let slideId = this.reveal.getCurrentSlide().id;
-      if (
-        document.documentElement.classList.contains("handout") &&
-        this.mostRecentSlideID
-      ) {
-        slideId = this.mostRecentSlideID;
-      }
-      if (this.menu.feedback_input.hasAttribute("answer")) {
-        try {
-          await this.engine.api.postAnswer(
-            this.menu.feedback_input.commentId,
-            this.engine.token.admin,
-            this.menu.feedback_input.value,
-            null
-          );
-          this.clearTextArea();
-          await this.requestMenuContent();
-          await this.requestSlideMenuUpdate();
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        try {
-          await this.engine.api.submitComment(
-            this.engine.deckId,
-            slideId,
-            this.engine.token.admin || this.usertoken,
-            this.menu.feedback_input.value,
-            this.menu.feedback_input.commentId,
-            window.location.toString()
-          );
-          this.clearTextArea();
-          await this.requestMenuContent();
-          await this.requestSlideMenuUpdate();
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      event.stopPropagation();
-      event.preventDefault();
+    let slideId = this.reveal.getCurrentSlide().id;
+    if (
+      document.documentElement.classList.contains("handout") &&
+      this.mostRecentSlideID
+    ) {
+      slideId = this.mostRecentSlideID;
     }
+    if (this.menu.feedback_input.hasAttribute("answer")) {
+      try {
+        await this.engine.api.postAnswer(
+          this.menu.feedback_input.commentId,
+          this.engine.token.admin,
+          this.menu.feedback_input.value,
+          null
+        );
+        this.clearTextArea();
+        await this.requestMenuContent();
+        await this.requestSlideMenuUpdate();
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      try {
+        await this.engine.api.submitComment(
+          this.engine.deckId,
+          slideId,
+          this.engine.token.admin || this.usertoken,
+          this.menu.feedback_input.value,
+          this.menu.feedback_input.commentId,
+          window.location.toString()
+        );
+        this.clearTextArea();
+        await this.requestMenuContent();
+        await this.requestSlideMenuUpdate();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   /**
@@ -282,8 +300,16 @@ class Feedback {
    * @param {*} answered
    */
   updateBadges(value, answered) {
+    let label;
+    if (value > 0) {
+      label = `${this.localization.interface.open_label}, ${value} ${this.localization.interface.question_string}`;
+    } else {
+      label = this.localization.interface.open_label;
+    }
     this.button_badge.textContent = value;
     this.button_badge.setAttribute("data-count", value);
+    this.open_button.title = label;
+    this.open_button.ariaLabel = label;
     this.menu.badge.textContent = value;
     this.menu.badge.setAttribute("data-count", value);
     if (answered) {
@@ -312,9 +338,15 @@ class Feedback {
   async requestMenuContent(slide) {
     let slideId;
     if (!slide) {
-      slideId = this.reveal.getCurrentSlide().id;
+      slideId = this.reveal.getCurrentSlide()?.id;
     } else {
       slideId = slide.id;
+    }
+    if (!slideId) {
+      console.error(
+        "Can not determine slideID: No passed slide value and no current slide. Ignore this if we are in handout mode."
+      );
+      return;
     }
     this.mostRecentSlideID = slideId;
     try {
@@ -439,20 +471,21 @@ class Feedback {
     let isAnswered = comment.answers && comment.answers.length > 0;
 
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="feedback-item">
+    template.innerHTML = String.raw`<li class="feedback-item" role="menuitem">
   <div class="feedback-content">
-    ${comment.html}
+    <span class="sr-only">${text.question}: </span>${comment.html}
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
-      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${
-      comment.votes > 0 ? comment.votes : ""
-    }</span>
+      <span class="votes" title="${text.votes}" aria-label="${
+      comment.votes > 0 ? comment.votes : 0
+    } ${text.votes}">${comment.votes > 0 ? comment.votes : ""}</span>
       <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${
       !isAuthor ? "canvote" : "cantvote"
     } ${comment.didvote ? "didvote" : ""}"
         title="${comment.didvote ? text.downvote : text.upvote}"
-        aria-label="${comment.didvote ? text.downvote : text.upvote}">
+        aria-label="${comment.didvote ? text.downvote : text.upvote}"
+        aria-disabled="${isAuthor}">
       </button>
       ${
         isDeletable
@@ -466,7 +499,7 @@ class Feedback {
       }
       ${
         isAdmin
-          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
+          ? `<button class="fa fa-reply feedback-answer-question-button" title="${text.add}" aria-label="${text.add}"></button>`
           : ""
       }
       ${
@@ -474,17 +507,17 @@ class Feedback {
           ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${
               isDeletable ? text.reset : text.answered
             }" aria-label="${isDeletable ? text.reset : text.answered}" ${
-              !isDeletable ? "disabled" : ""
+              !isDeletable ? "aria-disabled" : ""
             }></button>`
           : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${
               isDeletable ? text.mark : text.notanswered
             }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${
-              !isDeletable ? "disabled" : ""
+              !isDeletable ? "aria-disabled" : ""
             }></button>`
       }
     </div>
   </div>
-</div>`;
+</li>`;
     let question = template.content.firstElementChild;
     if (!isAuthor) {
       let voteButton = question.querySelector(".vote");
@@ -528,7 +561,6 @@ class Feedback {
         this.answerQuestion(comment)
       );
     }
-    MathJax.typeset([question]);
     return question;
   }
 
@@ -544,9 +576,9 @@ class Feedback {
     let html = answer.html ? answer.html : "";
     let template = document.createElement("template");
     template.innerHTML = String.raw`
-      <div class="feedback-item answer">
+      <li class="feedback-item answer" role="menu-item">
         <div class="feedback-content">
-          ${html}
+          <span class="sr-only">${text.answer}: </span>${html}
         </div>
         <div class="feedback-controls">
           ${
@@ -565,13 +597,12 @@ class Feedback {
               : ""
           }
         </div>
-      </div>`;
+      </li>`;
     let item = template.content.cloneNode(true);
     if (isAdmin) {
       let deleteButton = item.querySelector(".feedback-delete-answer-button");
       deleteButton.addEventListener("click", () => this.deleteAnswer(answer));
     }
-    MathJax.typeset([item]);
     return item;
   }
 
@@ -602,7 +633,15 @@ class Feedback {
         this.menu.feedback_list.appendChild(block);
       }
     }
-
+    if (this.menu.feedback_list.firstElementChild) {
+      this.menu.feedback_list.firstElementChild.setAttribute("tabindex", "0");
+    }
+    const buttons = this.menu.feedback_list.querySelectorAll("button");
+    for (const button of buttons) {
+      button.setAttribute("tabindex", "-1");
+      button.setAttribute("aria-hidden", true);
+    }
+    MathJax.typeset([this.menu.feedback_list]);
     this.menu.feedback_list.scrollTop = 0;
   }
 
@@ -682,20 +721,25 @@ class Feedback {
    */
   createInterface() {
     let text = this.localization.interface;
-    let button_string = String.raw`<button class="fa-button open-button fas fa-question-circle" title="${text.open_label}" aria-label="${text.open_label}">
+    let button_string = String.raw`<button class="fa-button open-button" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
+      <div class="icon-combo">
+        <span class="fas fa-message"></span>
+        <span class="fas fa-question"></span>
+      </div>
       <div class="feedback-badge"></div>
     </button>`;
 
-    let menu_string = String.raw`<div class="feedback-menu  slide-in-right" inert>
+    let menu_string = String.raw`<div id="feedback-menu" class="feedback-menu slide-in-right" role="menu" inert>
       <div class="feedback-header">
         <div class="counter">0</div>
         <div class="feedback-title">${text.menu_title}</div>
-        <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}">
+        <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}" role="menuitem">
         </button>
       </div>
-      <div class="feedback-list"></div>
+      <ul class="feedback-list" role="group"></ul>
       <div class="feedback-question-input">
-        <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
+        <textarea wrap="hard" placeholder="${this.localization.question_placeholder}"></textarea> 
+        <button class="feedback-send-button" aria-label="${this.localization.send_comment_label}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment_html}</span></button>
       </div>
       <div class="feedback-footer">
         <div class="feedback-login">
@@ -704,6 +748,7 @@ class Feedback {
         <div class="feedback-credentials">
           <input id="feedback-username" placeholder="${text.username_placeholder}">
           <input id="feedback-password" placeholder="${text.password_placeholder}" type="password">
+          <button id="feedback-login-send" type="button" title="${text.send_credentials}" aria-label="${text.send_credentials}">Admin Login</button>
         </div>
       </div>
     </div>`;
@@ -725,6 +770,9 @@ class Feedback {
     this.menu.feedback_input = menu.querySelector(
       ".feedback-question-input textarea"
     );
+    this.menu.feedback_send_button = menu.querySelector(
+      ".feedback-send-button"
+    );
     this.menu.badge = menu.querySelector(".counter");
     this.menu.feedback_list = menu.querySelector(".feedback-list");
     this.menu.close_button = menu.querySelector(".feedback-close");
@@ -739,35 +787,191 @@ class Feedback {
       menu.querySelector("#feedback-username");
     this.menu.feedback_credentials.password_input =
       menu.querySelector("#feedback-password");
+    this.menu.feedback_credentials.login_button = menu.querySelector(
+      "#feedback-login-send"
+    );
 
     /* Add EventListeners */
 
-    this.open_button.addEventListener("click", () => this.openMenu());
+    this.open_button.addEventListener("click", (event) => this.openMenu(event));
 
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
     );
+    this.menu.feedback_send_button.addEventListener("click", (event) =>
+      this.sendComment(event)
+    );
     this.menu.close_button.addEventListener("click", (event) =>
-      this.closeMenu()
+      this.closeMenu(event)
     );
     this.menu.feedback_login_button.addEventListener("click", (event) =>
       this.toggleLoginArea()
     );
-    this.menu.feedback_input.addEventListener("keydown", (event) =>
-      this.sendComment(event)
-    );
+    this.menu.feedback_input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.shiftKey) {
+        this.sendComment(event);
+      }
+    });
 
     this.menu.feedback_credentials.password_input.addEventListener(
       "keydown",
-      (event) => this.sendLogin(event)
+      (event) => {
+        this.menu.feedback_credentials.password_input.classList.remove("error");
+        if (event.key === "Enter") {
+          this.sendLogin();
+        }
+      }
     );
 
-    this.reveal.addEventListener("slidechanged", () =>
-      this.requestMenuContent()
+    this.menu.feedback_credentials.login_button.addEventListener(
+      "click",
+      (event) => {
+        this.sendLogin();
+      }
     );
-    this.reveal.addEventListener("slidechanged", () =>
-      this.requestSlideMenuUpdate()
+
+    this.slideChanged = (slide) => {
+      this.requestMenuContent(slide);
+      this.requestSlideMenuUpdate();
+    };
+    this.reveal.addEventListener("slidechanged", (event) => {
+      this.slideChanged(event.currentSlide);
+    });
+
+    /* Trap focus inside Menu */
+
+    this.menu.feedback_login_button.addEventListener("keydown", (event) => {
+      if (
+        this.menu.feedback_credentials.container.classList.contains("visible")
+      ) {
+        return;
+      } else if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() => this.menu.close_button.focus());
+      }
+    });
+
+    this.menu.feedback_credentials.login_button.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Tab" && !event.shiftKey) {
+          event.preventDefault();
+          setTimeout(() => this.menu.close_button.focus());
+        }
+      }
     );
+
+    this.menu.feedback_list.addEventListener("keydown", (event) => {
+      function changeFocus(element) {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          document.activeElement.removeAttribute("tabindex");
+        }
+        element.setAttribute("tabindex", "0");
+        element.focus();
+      }
+      const firstItem = this.menu.feedback_list.firstElementChild;
+      const lastItem = this.menu.feedback_list.lastElementChild;
+      if (event.key === "ArrowDown") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          if (document.activeElement === lastItem) {
+            changeFocus(firstItem);
+          } else {
+            const target = document.activeElement.nextElementSibling;
+            changeFocus(target);
+          }
+        }
+      }
+      if (event.key === "ArrowUp") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          if (document.activeElement === firstItem) {
+            changeFocus(lastItem);
+          } else {
+            const target = document.activeElement.previousElementSibling;
+            changeFocus(target);
+          }
+        }
+      }
+      if (event.key === "Enter") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          const controls =
+            document.activeElement.querySelector(".feedback-controls");
+          const buttons = controls.querySelectorAll("button");
+          const focusOutListener = function (event) {
+            if (controls.contains(event.relatedTarget)) {
+              return;
+            }
+            controls.removeEventListener("focusout", focusOutListener);
+            for (const button of buttons) {
+              button.setAttribute("tabindex", "-1");
+              button.setAttribute("aria-hidden", true);
+            }
+          };
+          controls.addEventListener("focusout", focusOutListener);
+          for (const button of buttons) {
+            button.removeAttribute("tabindex");
+            button.removeAttribute("aria-hidden");
+          }
+          if (buttons.length > 0) {
+            buttons[0].focus();
+            event.preventDefault();
+          }
+        }
+      }
+      if (event.key === "Escape") {
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        ) {
+          const listElement = document.activeElement.closest("li");
+          listElement.focus();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }
+      if (event.key === "Tab") {
+        // If we have focus on one of the buttons
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        ) {
+          const controls = document.activeElement.closest(".feedback-controls");
+          const buttons = controls.querySelectorAll("button");
+          const firstButton = buttons[0];
+          const lastButton = buttons[buttons.length - 1];
+          if (document.activeElement === lastButton && !event.shiftKey) {
+            firstButton.focus();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          if (document.activeElement === firstButton && event.shiftKey) {
+            lastButton.focus();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }
+      }
+    });
+
+    this.menu.close_button.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        if (
+          this.menu.feedback_credentials.container.classList.contains("visible")
+        ) {
+          setTimeout(() => this.menu.feedback_credentials.login_button.focus());
+        } else {
+          setTimeout(() => this.menu.feedback_login_button.focus());
+        }
+      }
+    });
+
+    /* Exit with ESC */
+
+    this.menu.container.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        this.closeMenu(event);
+      }
+    });
 
     /* Place Button in UI */
 
@@ -775,7 +979,7 @@ class Feedback {
       let anchors = this.reveal.getPlugin("ui-anchors");
       anchors.placeButton(this.open_button, this.position);
     }
-    document.body.appendChild(this.menu.container);
+    document.body.prepend(this.menu.container);
 
     /* Temporary Solution */
     this.glass = document.querySelector("#glass");
@@ -798,8 +1002,9 @@ let plugin = () => {
   return {
     id: "feedback",
 
-    getEngine: undefined,
-    requestMenuContent: undefined,
+    slideChanged: () => {
+      /* will be redefined below */
+    },
 
     init(reveal) {
       if (printMode) return;
@@ -815,6 +1020,8 @@ let plugin = () => {
           "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
         answer_placeholder:
           "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
+        send_comment_label: "Send Message",
+        send_comment_html: "Send<br>Message",
         interface: {
           open_label: "Open Feedback Menu",
           menu_title: "Questions",
@@ -823,6 +1030,8 @@ let plugin = () => {
           logout_as_admin: "Logout as Admin",
           username_placeholder: "Username",
           password_placeholder: "Password",
+          send_credentials: "Send credentials",
+          question_string: "Question(s)",
         },
         question_container: {
           upvote: "Up-vote question",
@@ -835,9 +1044,11 @@ let plugin = () => {
           answered: "Question has been answered",
           notanswered: "Question has not been answered",
           votes: "Up-Votes",
+          question: "Question",
         },
         answer_container: {
           delete: "Delete answer",
+          answer: "Answer",
         },
       };
 
@@ -847,6 +1058,8 @@ let plugin = () => {
             "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
           answer_placeholder:
             "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
+          send_comment_label: "Nachricht senden",
+          send_comment_html: "Nachricht<br>senden",
           interface: {
             open_label: "Fragemenu öffnen",
             menu_title: "Fragen",
@@ -855,6 +1068,8 @@ let plugin = () => {
             logout_as_admin: "Als Administrator abmelden",
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
+            send_credentials: "Anmeldedaten absenden",
+            question_string: "Frage(n)",
           },
           question_container: {
             upvote: "Frage unterstützen",
@@ -867,15 +1082,18 @@ let plugin = () => {
             answered: "Frage wurde beantwortet",
             notanswered: "Frage wurde noch nicht beantwortet",
             votes: "Stimmen",
+            question: "Frage",
           },
           answer_container: {
             delete: "Antwort löschen",
+            answer: "Antwort",
           },
         };
       }
 
+      // slideChanged has to triggered from handout plugin
+      this.slideChanged = (slide) => instance.slideChanged?.(slide);
       this.getEngine = () => instance.engine;
-      this.requestMenuContent = (slide) => instance.requestMenuContent(slide);
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];

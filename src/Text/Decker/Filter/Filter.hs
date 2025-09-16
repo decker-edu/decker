@@ -28,6 +28,7 @@ import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
+import Text.Decker.Filter.Select (dropSolutionBlocks)
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
@@ -120,11 +121,11 @@ wrapBoxes slide@(Slide header body dir) = do
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap [] = []
     wrap ((Header 2 attr@(id, cls, kvs) text) : blocks)
-      | "details" `elem` cls = [makeDetail attr text blocks]
+      | "details" `elem` cls = [makeFramedDetail attr text blocks]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks)
       | "notes" `elem` cls =
-          [ tag "aside" $
-              Div
+          [ tag "aside"
+              $ Div
                 (id_, ["notes"], [])
                 (Header 2 (id_, deFragment cls, kvs) text : blocks)
           ]
@@ -144,6 +145,7 @@ mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
   slides <-
     selectActiveContent (toSlides blocks)
+      >>= dupSub
       >>= processNotesSlides
       >>= mapM action
       >>= fromSlidesD
@@ -177,6 +179,17 @@ deDiv = foldr flatten []
     flatten (Div attr blocks) result = blocks ++ result
     flatten block result = block : result
 
+isDupSub slide@(Slide (Just (Header 1 (_, cls, _) _)) _ _) = "dupsub" `elem` cls
+isDupSub slide = False
+
+-- makes a slide vertical and marks it as a solution
+makeVertical (Slide (Just (Header n (id, cls, kvs) inlines)) blocks _) =
+  Slide (Just (Header n (id, List.nub ("solution" : cls), kvs) inlines)) blocks Vertical
+makeVertical (Slide _ blocks _) =
+  Slide (Just (Header 1 ("", ["solution"], []) [])) blocks Vertical
+
+dupSub slides = return $ foldr (\slide r -> if isDupSub slide then slide : makeVertical slide : r else slide : r) [] slides
+
 -- | Slide specific processing.
 processSlides :: Pandoc -> Decker Pandoc
 processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
@@ -188,6 +201,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         processNotes,
         pauseDots,
         wrapBoxes,
+        dropSolutionBlocks meta,
         processNotes,
         incrementalBlocks,
         selectActiveSlideContent,
@@ -200,16 +214,17 @@ pauseDots (Slide header body dir) = do
   let fragments = split (dropDelims $ whenElt ((== ". . .") . stringify)) body
   let blocks = case fragments of
         bls : blss ->
-          concat $
-            bls : map ((: []) . Div ("", ["fragment"], [])) blss
+          concat
+            $ bls
+            : map ((: []) . Div ("", ["fragment"], [])) blss
         blss -> concat blss
   return (Slide header blocks dir)
 
-selectActiveContent :: HasAttr a => [a] -> Decker [a]
+selectActiveContent :: (HasAttr a) => [a] -> Decker [a]
 selectActiveContent fragments = do
   disp <- gets disposition
-  return $
-    case disp of
+  return
+    $ case disp of
       Disposition Deck _ -> dropByClass ["comment", "handout"] fragments
       Disposition Handout _ ->
         dropByClass ["comment", "deck", "notes"] fragments

@@ -67,7 +67,7 @@
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent5-bg);
-  --flying-focus-color: var(--highlight-color);
+  --focus-color: var(--accent1);
 
   --icon-active-color: var(--accent5);
   --icon-disabled-color: var(--shade2);
@@ -78,9 +78,6 @@
 
   --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
-
-  --highlight-color: var(--accent5-bg);
-  --flying-focus-color: var(--highlight-color);
 
   --menu-background-color: var(--shade1);
   --menu-text-color: var(--shade6);
@@ -99,6 +96,9 @@
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
   --feedback-footer-text-color: var(--shade7);
+
+  /* default maximum code block height */
+  --code-block-max-height: 700px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -162,3 +162,36 @@
   --dark-violet: var(--accent6-bg);
   --dark-brown: var(--accent7-bg);
 }
+
+/* Colors for the grid templates */
+@media (prefers-color-scheme: light) {
+    :root {
+      --canvas: color(
+        from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05)
+      );
+      --grid: var(--light-shade2);
+    }
+    :root.dark {
+      --canvas: color(
+        from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8)
+      );
+      --grid: var(--dark-shade2);
+    }
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas: color(
+        from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8)
+      );
+      --grid: var(--dark-shade2);
+    }
+    :root.light {
+      --canvas: color(
+        from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05)
+      );
+      --grid: var(--light-shade2);
+    }
+  }
+  
+  

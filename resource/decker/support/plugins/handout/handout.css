@@ -1,7 +1,12 @@
 html.handout #handout-container {
   margin: auto;
+  overflow: unset;
+  touch-action: pan-x pan-y pinch-zoom;
+  scroll-behavior: smooth;
+}
+
+html.handout .reveal-viewport {
   overflow: auto;
-  touch-action: pan-x pan-y;
 }
 
 /* hide standard reveal element in handout mode, since it consumes space
@@ -13,6 +18,7 @@ html.handout :not(#handout-container).reveal {
 html.handout .reveal .slides {
   display: block;
   width: var(--slide-width);
+  transform: scale(var(--scale-factor));
   transform-origin: top center;
   translate: -50% 0;
   left: 50%;
@@ -128,10 +134,6 @@ html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
   visibility: visible;
 }
 
-html.handout .decker-anchor #explain-play,
-html.handout .decker-anchor .open-button {
-  display: none;
-}
 html .decker-anchor #handout-plus,
 html .decker-anchor #handout-minus {
   display: none;
@@ -139,4 +141,157 @@ html .decker-anchor #handout-minus {
 html.handout .decker-anchor #handout-plus,
 html.handout .decker-anchor #handout-minus {
   display: inline-block;
+}
+
+/* animated button */
+
+#menu-handout-button {
+  position: relative;
+  --dwidth: var(--icon-size);
+  --dheight: calc(var(--dwidth) * 9 / 16);
+  --dcenterx: calc((100% / 2) - (0.5 * var(--dwidth)));
+  --dcentery: calc((100% / 2) - (0.5 * var(--dheight)));
+  --dhspace: calc(100% - 2 * var(--dheight));
+}
+
+#menu-handout-button div {
+  box-sizing: content-box;
+  background-color: var(--menu-header-text-color);
+  box-shadow: 0.125rem 0.125rem var(--menu-header-background-color);
+  border-radius: 0.15rem;
+  width: var(--dwidth);
+  height: var(--dheight);
+  transition: top 0.3s ease-in-out, left 0.3s ease-in-out;
+}
+
+#menu-handout-button:hover div {
+  background-color: var(--accent3);
+}
+
+#menu-handout-button .top-anim-rect {
+  position: absolute;
+  top: calc(var(--dhspace) / 3);
+  left: var(--dcenterx);
+  z-index: 512;
+}
+
+#menu-handout-button .bottom-anim-rect {
+  position: absolute;
+  top: calc(var(--dhspace) / 3 * 2 + var(--dheight));
+  left: var(--dcenterx);
+  z-index: 511;
+}
+
+.handout #menu-handout-button .top-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery) - 0.3 * var(--dheight));
+  left: calc(var(--dcenterx) - 0.2 * var(--dwidth));
+  z-index: 512;
+}
+
+.handout #menu-handout-button .bottom-anim-rect {
+  position: absolute;
+  top: calc(var(--dcentery) + 0.3 * var(--dheight));
+  left: calc(var(--dcenterx) + 0.2 * var(--dwidth));
+  z-index: 511;
+}
+
+.handout .decker {
+  position: relative;
+}
+
+.handout-feedback-container {
+  text-align: center;
+  background-color: var(--shade1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5em;
+  border: 2px solid var(--shade2);
+  border-radius: 0 0 1em 1em;
+  margin-bottom: 0.5em !important;
+}
+
+.handout-feedback-comments {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.5em;
+  font-size: 1.5rem;
+  margin-top: 0.5em;
+}
+
+.handout-feedback-answer,
+.handout-feedback-comment {
+  position: relative;
+  font-size: 1em;
+  font-weight: normal;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  text-align: left;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+}
+
+.handout-feedback-comment {
+  margin-right: 5em;
+  margin-left: 3em;
+  justify-content: flex-start;
+
+  &:before {
+    content: "🙄";
+    font-size: 1.7em;
+    position: absolute;
+    left: -2em;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+    border: none;
+  }
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0.7em;
+    left: -0.9em;
+    bottom: auto;
+    border-width: 0.6em 0.9em 0.6em 0;
+    border-style: solid;
+    border-color: transparent var(--background-color);
+    display: block;
+    width: 0;
+  }
+}
+
+.handout-feedback-answer {
+  margin-left: 5em;
+  margin-right: 3em;
+  justify-content: flex-end;
+
+  &:before {
+    content: "🤓";
+    font-size: 1.7em;
+    position: absolute;
+    right: -2em;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+    border: none;
+  }
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0.7em;
+    right: -0.9em;
+    bottom: auto;
+    border-width: 0.6em 0 0.6em 0.9em;
+    border-style: solid;
+    border-color: transparent var(--background-color);
+    display: block;
+    width: 0;
+  }
 }

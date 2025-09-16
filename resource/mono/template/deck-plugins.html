@@ -1,0 +1,51 @@
+<script type="module">
+  // import Reveal and all plugins 
+  import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
+  import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
+  import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js';
+  import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
+  import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
+  import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
+  import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+  import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+  import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+  import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
+  import examinerPlugin from "./$decker-support-dir$/plugins/examiner/examiner.js";
+  import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
+  import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
+  import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+  import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
+  import quizzerPlugin from './$decker-support-dir$/plugins/quizzer/quizzer.js';
+
+  let revealConfig = { 
+    // reveal configuration (see https://revealjs.com/config/)
+    ...Decker.meta.reveal,
+
+    // plugin configuration
+    math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
+    chart: Decker.meta.chart,
+    menu: Decker.meta.menu,
+    explain: Decker.meta.explain,
+    whiteboard: Decker.meta.whiteboard,
+    
+    // list of plugins
+    plugins: [
+       deckerPlugin,
+       uiAnchorsPlugin,
+       mathPlugin,
+       chartsPlugin,
+       whiteboardPlugin,
+       searchPlugin,
+       printPlugin,
+       explainPlugin,
+       examinerPlugin,
+       menuPlugin,
+       a11yPlugin,
+       handoutPlugin,
+       quizzerPlugin
+    ]
+  };
+  
+  Reveal.initialize(revealConfig);
+  window.Reveal = Reveal;
+</script>

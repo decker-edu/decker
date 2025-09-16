@@ -1,59 +1,401 @@
 /* Here be CSS */
 
 @import url("../vendor/fontawesome/css/all.css");
-@import url("./structure.css");
-@import url("./style.css");
-@import url("./media.css");
+
+/**********************/
+/* Variables
+/**********************/
 
 html {
-  color: var(--foreground-color);
-  background-color: var(--background-color);
+  --details-background-color: rgba(0, 0, 0, 0.03);
+  --summary-background-color: rgba(0, 0, 0, 0.05);
+  --summary-hover-color: rgba(0, 0, 0, 0.4);
+}
+
+html.dark {
+  --details-background-color: rgba(255, 255, 255, 0.03);
+  --summary-background-color: rgba(255, 255, 255, 0.05);
+  --summary-hover-color: rgba(255, 255, 255, 0.4);
+}
+
+/**********************/
+/* HEADER
+/**********************/
+
+header {
+  margin: 0 0 2rem 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  background: var(--primary-color);
+  padding: 2rem 0;
+  width: 100%;
+}
+
+header > h1,
+header > h2 {
+  color: white;
+  line-height: 1.5;
+  margin: auto;
+  border: none;
+}
+
+header > h1 {
+  font-size: 3rem;
+  margin: 0 auto;
+  padding: 0;
+}
+
+header > h2 {
+  font-size: 2rem;
+  margin: 0 auto;
+  padding: 0;
+  font-family: monospace;
+  font-weight: normal;
+}
+
+header nav {
+  margin-bottom: 0.5rem;
+}
+
+/**********************/
+/* H1/H2 in non-header
+/**********************/
+
+h1 {
+  font-size: 1.5rem;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 0.5em;
+  font-family: monospace;
+}
+
+hr {
+  margin-top: 2rem;
+}
+
+details input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/********************************/
+/*       Actual content         */
+/********************************/
+
+html {
+  width: 100%;
+  height: 100dvh;
+  position: relative;
+  accent-color: var(--accent3);
+  box-sizing: border-box;
+  font-family: system-ui, "Helvetica Neue", sans-serif;
 }
 
 body.index {
-  box-sizing: border-box;
-  font-size: 16px;
-  max-width: 52em;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  background: var(--background-color);
   color: var(--foreground-color);
-  background-color: var(--background-color);
+  text-align: justify;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  line-height: 1.3; /* It is said 1.5 improves readability */
 }
 
-code {
-  font-size: 100%;
+main {
+  flex-grow: 1;
+  width: 50rem;
+  max-width: 50rem;
+  margin: auto;
+  padding: 1rem;
 }
 
-pre > code {
-  font-size: 90%;
+footer {
+  inset: 0;
+  border-top: 1px solid var(--shade4);
+  font-style: italic;
+  font-size: 1rem;
+  margin: 2rem 0 0 0;
 }
 
-figure {
+footer p {
+  display: inline-block;
+  width: 100%;
   margin: 0;
+  padding: 0.5em;
+  line-height: 2em;
+  text-align: center;
+  box-sizing: border-box;
 }
 
-p {
-  word-wrap: normal;
+@media only screen and (max-width: 600px) {
+  main {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+  }
 }
 
-progress {
-  accent-color: initial;
-  margin: auto 0.5em;
-  width: 3em;
+a {
+  color: var(--accent5-fg);
+  font-weight: 600;
+  text-decoration: none;
 }
+
+a:hover {
+  text-shadow: none;
+  text-decoration: underline;
+  border: none;
+}
+
+a[aria-disabled="true"] {
+  color: var(--shade2);
+}
+
+/*********************************************
+ * Detail boxes
+ *********************************************/
+
+div.media > figure {
+  box-sizing: border-box;
+  margin: auto;
+  width: 100%;
+}
+
+details {
+  box-sizing: border-box;
+  margin-top: 20px;
+  padding: 1em;
+  padding-bottom: 0;
+  border-radius: 10px;
+  background: var(--details-background-color);
+}
+details[open] {
+  padding-bottom: 1em;
+}
+
+details summary {
+  box-sizing: border-box;
+  width: auto;
+  margin-left: -1em;
+  margin-right: -1em;
+  margin-top: -1em;
+  margin-bottom: 0em;
+  padding: 4px;
+  padding-left: 0.5rem;
+  border-radius: 8px;
+  background: var(--summary-background-color);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: 1em;
+}
+
+details[open] > summary {
+  margin-bottom: 1em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+details summary:hover {
+  background-color: var(--summary-hover-color);
+  color: var(--background-color);
+}
+
+details input {
+  box-sizing: border-box;
+  font-size: 1.25em;
+  width: 100%;
+}
+
+/*********************************************
+ * TABLES
+ *********************************************/
 
 body.index table {
-  margin-left: auto;
-  margin-right: auto;
-  width: 90%;
+  display: table;
+  width: 100%;
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 2px;
+  text-align: center;
+  margin-bottom: 1em;
+  line-height: 1.5em;
+  border-top: 1px solid var(--shade4);
+  border-bottom: 1px solid var(--shade4);
 }
 
-body.index div.search table.search {
-  display: none;
+body.index table caption {
+  margin: 10px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  font-size: 0.8em;
+  text-align: center;
+  caption-side: bottom;
 }
 
-body.index div.search table.search {
+body.index table th {
+  font-weight: bold;
+}
+
+body.index table th {
+  border-bottom: 1px solid var(--shade4);
+}
+
+body.index table th,
+body.index table td {
+  text-align: left;
+  padding: 0.3em 1em 0.3em 1em;
+  line-height: 1;
+}
+
+body.index table th[align="center"],
+body.index table td[align="center"] {
+  text-align: center;
+}
+
+body.index table th[align="right"],
+body.index table td[align="right"] {
+  text-align: right;
+}
+
+body.index table tbody tr:last-child th,
+body.index table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+td[align="center"] {
+  text-align: center;
+}
+
+td[align="right"] {
+  text-align: right;
+}
+
+td[align="left"] {
   text-align: left;
 }
 
-body.index div.search.results table.search {
-  display: table;
+p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.german {
+  display: none;
+}
+
+html[lang="de"] .german {
+  display: unset;
+}
+
+html[lang="de"] .english {
+  display: none;
+}
+
+/* nice circular progress bars, adapted from 
+  https://verpex.com/blog/website-tips/how-to-style-a-progress-bar-using-css) */
+@property --progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+.index .progress {
+  --progress: 0%;
+  --color: color-mix(in hsl, var(--redish), var(--greenish) var(--progress));
+  --background: conic-gradient(var(--color) var(--progress), var(--shade1) 0);
+  height: 1em;
+  width: 1em;
+  inset: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--background);
+  -webkit-mask: radial-gradient(
+    transparent 39%,
+    white 40% 70%,
+    transparent 71%
+  );
+  position: relative;
+}
+
+.index .progress[data-value="0"] {
+  background: var(--shade2);
+}
+
+.index .progress[data-value="100"] {
+  -webkit-mask: none;
+  --background: var(--greenish);
+  &::before {
+    font-family: "Font Awesome 7 Free";
+    font-weight: 900;
+    content: "\f00c";
+    color: white;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 0.7em;
+    transform: translate(-50%, -50%);
+  }
+}
+
+#index-color-button {
+  font-size: var(--icon-size);
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  width: 2em;
+  height: 2em;
+  border: none;
+  border-radius: 999px;
+  transition: background-color 0.1s;
+  color: var(--foreground-color);
+  background-color: transparent;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--icon-hover-color);
+    background-color: var(--background-color);
+  }
+}
+
+html.dark #index-color-button::before {
+  content: "\f185";
+}
+
+html.light #index-color-button::before {
+  content: "\f186";
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+details,
+summary {
+  transition: outline-offset 0.2s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: 1px !important;
+  }
+  &:active {
+    outline-offset: -2px !important;
+  }
+}
+
+.icons:has(:focus-visible) {
+  outline: solid 2px var(--focus-color) !important;
+  outline-offset: 2px;
 }

@@ -8,11 +8,16 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./structure.css");
 @import url("./style.css");
 @import url("./media.css");
+@import url("./sizes.css");
+
+:root {
+  --root-font-size: 38px;
+}
 
 /* Box sizing is much nicer for calculations. */
 body.deck {
   box-sizing: border-box;
-  font-size: 38px;
+  font-size: var(--root-font-size);
 }
 
 /* Title slide (simple) */
@@ -92,13 +97,33 @@ section#title-slide div.logos {
 }
 
 section#title-slide .logo {
-  position: relative;
-  width: max-content;
+  display: flex;
+  flex: 1 0 0;
+  align-items: center;
+  justify-content: center;
   height: 100%;
+  &:first-child {
+    justify-content: start;
+  }
+  &:last-child {
+    justify-content: end;
+  }
 }
 
 section#title-slide .logo img {
   max-height: 100%;
+}
+
+/* Allow for multi-line headers */
+
+section#title-slide h1.title {
+  display: flex;
+  flex-direction: column;
+}
+
+section#title-slide h2.subtitle {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Margins and spacing */
@@ -199,10 +224,9 @@ div.block[popup="center-down"] {
 div.decker-flash-panel {
   z-index: 1000;
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
   padding: 0;
   margin: 0;
   display: flex;
@@ -212,8 +236,9 @@ div.decker-flash-panel {
   align-content: center;
 }
 
+/* This is not display: none so screen readers have time to actually read out the content */
 div.decker-flash-panel:not(.flashing) {
-  display: none;
+  opacity: 0;
 }
 
 div.decker-flash-panel div.content {
@@ -263,6 +288,24 @@ html.dark img {
   background-color: var(--shade7);
 }
 
+/* Focus Ping */
+a,
+button,
+input,
+select,
+li,
+textarea {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--orangeish) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
+}
+
 /*
  * Fixed Position so the watermark is displayed on every slide in print mode
  */
@@ -273,4 +316,69 @@ html.dark img {
   opacity: 0.5;
   z-index: -1;
   font-weight: bold;
+}
+
+/* re-introduce the screen-reader-only settings of FontAwesome <7 */
+.sr-only,
+.fa-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* search dialog of searchPlugin */
+#searchbox {
+  font-size: 1.2rem;
+  padding: 0.3em;
+  border: 2px solid var(--shade2);
+  border-radius: 0.25em;
+  background: rgb(from var(--shade1) r g b / 0.8);
+  color: var(--foreground-color);
+  display: flex;
+  flex-direction: column;
+  height: min-content;
+}
+#searchrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+#searchlabel,
+#searchinputlabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+}
+#searchinput {
+  font-size: 1em;
+  width: 10em;
+  padding: 0.2em 0.3em;
+  color: var(--foreground-color);
+  background: var(--background-color);
+  border: 2px solid var(--icon-active-color);
+  border-radius: 0.2em;
+}
+#searchprev,
+#searchnext,
+#searchclose {
+  border: none;
+  background: transparent;
+  font-size: 0.8em;
+  padding: 0.2em;
+  width: 1.5em;
+}
+#searchprev,
+#searchnext {
+  color: var(--icon-disabled-color);
+}
+#searchclose {
+  color: var(--icon-active-color);
 }

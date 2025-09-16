@@ -1,13 +1,15 @@
 @import url("../vendor/fontawesome/css/all.css");
-@import url("../fonts/lato.css");
 
 /*********************************************
  * GLOBAL STYLES
  *********************************************/
 
+:root {
+  --root-font-size: 32px;
+}
+
 body {
   background: var(--background-color);
-  font-family: "Lato", sans-serif;
   color: var(--foreground-color);
   accent-color: var(--accent3);
 }
@@ -16,17 +18,17 @@ body.reveal-viewport {
   --inner-width: calc(
     var(--slide-width) - 2 * var(--block-border-width) - 2 * var(--block-outset)
   );
+  line-height: 1.5;
 }
 
 .reveal {
-  font-size: 32px;
+  font-size: var(--root-font-size);
   font-weight: normal;
 }
 
 .reveal .slides > section {
   width: var(--slide-width);
   height: var(--slide-height);
-  line-height: 1.5;
   text-align: left;
   padding: 0;
 }
@@ -90,18 +92,6 @@ div.block {
 /*********************************************
  * font sizes and styles
  *********************************************/
-
-.reveal .tiny {
-  font-size: 0.5em;
-}
-
-.reveal .small {
-  font-size: 0.7em;
-}
-
-.reveal .large {
-  font-size: 1.2em;
-}
 
 del {
   color: var(--accent0);
@@ -284,6 +274,18 @@ div.grid-layout {
 .reveal h2:empty,
 .reveal .no-header h1 {
   display: none;
+}
+
+.reveal h1:has(.sr-only:only-child) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* section headers */
@@ -493,18 +495,18 @@ div.align-right > p {
  **************************************************/
 
 /* code block */
-div.sourceCode > pre.sourceCode {
+.reveal .media .code pre {
   display: block;
   position: relative;
   margin: auto;
   padding: 0.5em 0.75em;
-  /* width: auto; */
-  text-align: center;
+  text-align: left;
   max-height: 500px;
   overflow: auto;
   background: var(--shade1);
   border: 1px solid var(--shade2);
   border-radius: 4px;
+  font-size: 0.5em;
 }
 
 /* inline source code */
@@ -522,7 +524,6 @@ pre > code.sourceCode {
   padding: 0;
   white-space: pre;
   position: relative;
-  font-size: 0.5em;
   overflow: auto;
   max-height: 100%;
   box-sizing: border-box;
@@ -693,16 +694,16 @@ code span.wa {
   width: unset;
   margin: auto;
   border-collapse: collapse;
-  border-spacing: 2px;
-  border-top: 2px solid var(--shade6);
-  border-bottom: 2px solid var(--shade6);
+  border-spacing: 0.07em;
+  border-top: 0.07em solid var(--shade6);
+  border-bottom: 0.07em solid var(--shade6);
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
 }
 
 .reveal table caption {
-  margin: 10px 0px 0px 0px;
+  margin: 0.35em 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
   font-size: 0.8em;
@@ -715,7 +716,7 @@ code span.wa {
 }
 
 .reveal table thead {
-  border-bottom: 1px solid var(--shade6);
+  border-bottom: 0.035em solid var(--shade6);
 }
 
 .reveal table th,
@@ -848,6 +849,15 @@ span.sequence {
   display: contents;
 }
 
+/* this block allows to show the first item w/o fragment, but to still remove it when the second item is activated */
+.reveal .stack:has(.current-fragment) > p > :not(.current-fragment),
+.reveal .stack:has(.current-fragment) > :not(.current-fragment) {
+  visibility: hidden;
+}
+.reveal .stack:has(.current-fragment) :has(.current-fragment) {
+  visibility: inherit !important;
+}
+
 /* hide non-active stack items 
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
@@ -909,6 +919,7 @@ section#title-slide h1 {
   margin: 20px !important;
   box-sizing: border-box;
   line-height: 1.5;
+  text-wrap: balance;
 }
 
 section#title-slide h2 {
@@ -921,9 +932,9 @@ section#title-slide h2 {
   line-height: 1.5;
 }
 
-section#title-slide img.teaser {
+section#title-slide div.teaser img {
   margin: 30px 0 0 0;
-  height: 250px;
+  height: 200px;
   width: auto;
   object-fit: contain;
 }
@@ -935,6 +946,13 @@ section#title-slide div.author {
   font-size: 1em;
   text-align: center;
   color: var(--shade6);
+}
+
+section#title-slide div.author > img {
+  margin: 30px 0 20px 0;
+  height: 150px;
+  width: auto;
+  object-fit: contain;
 }
 
 section#title-slide div.affiliation {
@@ -994,8 +1012,12 @@ section#title-slide .decker-link:hover {
   font-size: 0.75em;
 }
 
+.reveal:has(.slides section:first-child.present) .slide-number {
+  visibility: hidden;
+}
+
 /*********************************************
- * COMMENT BUBBLES
+ * COMMENT BUBBLES & POP-UP
  *********************************************/
 
 .reveal .bubble {
@@ -1006,6 +1028,41 @@ section#title-slide .decker-link:hover {
   padding: 10px;
   margin: 0.1em auto 0.5em auto;
   border-radius: 5px;
+}
+
+[popup] {
+  display: block;
+  position: absolute;
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  z-index: 3000;
+  background: var(--accent3);
+  color: white;
+  font-size: 1.25em;
+  padding: 0.5em;
+  border-radius: 0.25em;
+  font-weight: bold;
+}
+
+/* A centered block. This is very clever. */
+[popup="center"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+}
+
+/* A centered box that is also tilted up. */
+[popup="center-up"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-23deg) scale(1);
+}
+
+/* A centered box that is also tilted down. */
+[popup="center-down"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(23deg) scale(1);
 }
 
 /*********************************************
@@ -1112,6 +1169,13 @@ section#title-slide .decker-link:hover {
   fill: var(--icon-hover-color);
 }
 
+/* avoid too fat font when exporting PDF */
+@media print {
+  mjx-container[jax="SVG"] :is(use[data-c], path[data-c]) {
+    stroke-width: 0;
+  }
+}
+
 /*********************************************
  * fullscreen for iframes
  *********************************************/
@@ -1151,20 +1215,19 @@ section#title-slide .decker-link:hover {
   top: 2px;
   right: 2px;
   cursor: pointer;
-  outline: none;
   font-size: 20px;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   padding: 2px;
   border: none;
   border-radius: 4px;
-  opacity: 0;
+  opacity: 0.5;
   color: var(--icon-inactive-color);
   background-color: rgba(255, 255, 255, 0.5);
 }
 
 .reveal div.fs-container:hover > button.fs-button {
-  opacity: 0.5;
+  opacity: 0.75;
 }
 
 .reveal div.fs-container > button.fs-button:hover {
@@ -1172,6 +1235,17 @@ section#title-slide .decker-link:hover {
   color: var(--icon-active-color);
   background-color: rgba(255, 255, 255, 0.8);
 }
+
+.reveal div.fs-container > button.fs-button:focus {
+  opacity: 1;
+  color: var(--icon-active-color);
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* button.fs-button:focus:has(.fa-down-left-and-up-right-to-center) {
+  outline: 2px solid var(--accent0);
+  outline-offset: 2px;
+} */
 
 /*********************************************
  * bibliography
@@ -1212,7 +1286,9 @@ section#title-slide .decker-link:hover {
 
 /* possibility to hide quizzes */
 .hide-quizzes .reveal .quiz,
-.hide-quizzes .reveal .quiz * {
+.hide-quizzes .reveal .quiz *,
+.hide-quizzes .reveal .quizzer,
+.hide-quizzes .reveal .quizzer * {
   visibility: hidden;
 }
 
@@ -1300,7 +1376,7 @@ section#title-slide .decker-link:hover {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;
@@ -1446,7 +1522,7 @@ section#title-slide .decker-link:hover {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;
@@ -1554,17 +1630,41 @@ section#title-slide .decker-link:hover {
 }
 
 /*********************************************
+* FontAwesome buttons
+*********************************************/
+
+/* adapted from https://dev.to/kevinbism/recreating-apples-liquid-glass-effect-with-pure-css-3gpl */
+button.fa-button {
+  position: relative;
+  width: 2em;
+  height: 2em;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(2px) saturate(150%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2),
+    inset 0 4px 20px rgba(255, 255, 255, 0.3);
+}
+@media (hover: hover) {
+  button.fa-button:not([aria-disabled="true"]):hover {
+    color: var(--icon-active-color);
+    background-color: var(--background-color);
+    border: 2px solid var(--icon-active-color);
+  }
+}
+button.fa-button:not([aria-disabled="true"]):focus-visible {
+  color: var(--focus-color);
+  background-color: var(--background-color);
+  border: 2px solid var(--focus-color);
+}
+
+/*********************************************
 * various hacks
 *********************************************/
 
-.decker-anchor > button.fa-button {
-  border-radius: 999px;
-  transition: background-color 0.1s;
-  background-color: transparent;
-}
-.decker-anchor > button.fa-button:hover,
-.decker-anchor > button.fa-button:focus {
-  background-color: var(--background-color);
+/* get higher contrast for hovered elements in menu */
+#decker-menu ul.slide-list > li:hover > a {
+  color: white;
 }
 
 /*********************************************
@@ -1579,12 +1679,15 @@ html.dark .light-only {
 html.dark
   .media
   :is(figure, .figure)
-  :is(svg, img, div.chart-container, iframe) {
+  :not(.MathJax)
+  > :is(svg, img, canvas[data-chart]) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+  border-radius: 0;
 }
 
-html.dark section#title-slide .logo {
+/* put white background on the image instead of the container */
+html.dark section#title-slide .logo img {
   background-color: var(--shade7);
   border-radius: 0.5rem;
 }
@@ -1608,4 +1711,22 @@ html.a11y .reveal a:hover {
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);
   transform: scale(1.05);
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+.slides.needScrollbar,
+summary {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
 }

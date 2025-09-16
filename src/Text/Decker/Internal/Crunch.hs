@@ -1,13 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module Text.Decker.Internal.Crunch where
+module Text.Decker.Internal.Crunch () where
 
 import Control.Lens ((^.), (^?))
 import Control.Monad
 import Data.Aeson
 import Data.Aeson.Lens
-import qualified Data.List as List
-import qualified Data.Map.Strict as Map
+import Data.List qualified as List
+import Data.Map.Strict qualified as Map
 import Development.Shake
 import Development.Shake.FilePath
 import Relude
@@ -22,8 +23,8 @@ import Text.Decker.Server.Video
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if
 -- they have not yet been transcoded.
-crunchRules :: Rules ()
-crunchRules = do
+crunchRules_ :: Rules ()
+crunchRules_ = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   want ["mp4s"]
   phony "mp4s" $ do
@@ -47,7 +48,7 @@ crunchRules = do
       let list = out <.> "list"
       need [list]
       putNormal $ "# ffmpeg (for " <> out <> ")"
-      liftIO $ concatVideoMp4' slow list out
+      liftIO $ concatVideoMp4' list out
     -- compile the lost of WEBMs
     "**/*-recording.mp4.list" %> \out -> do
       alwaysRerun
@@ -59,8 +60,8 @@ crunchRules = do
 
 -- | Reads the 'comment' meta data field from the video container. Return True
 -- if the value is 'decker-crunched', False otherwise.
-wasCrunched :: FilePath -> IO Bool
-wasCrunched mp4 = do
+wasCrunched_ :: FilePath -> IO Bool
+wasCrunched_ mp4 = do
   (code, stdout, stderr) <- readProcessWithExitCode "ffprobe" (["-print_format", "json", "-show_format"] <> [mp4]) ""
   case code of
     ExitFailure _ -> return False

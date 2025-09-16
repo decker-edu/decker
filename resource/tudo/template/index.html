@@ -5,17 +5,22 @@
     <meta charset="utf-8">
     <meta name="generator" content="pandoc">
 
+    <!-- prevent caching, since index page changes frequently -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <!-- PWA Kram -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#84b819" />
+    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <link rel="manifest" href="$decker-support-dir$/pwa/manifest.webmanifest" crossorigin="use-credentials" />
 
+    <!-- Store JSON encoded Pandoc meta data in a global variable -->
     <script type="module">
-      /* Store JSON encoded Pandoc meta data in a global variable. */
       import initializeDecker from "./$decker-support-dir$/js/decker.js";
       initializeDecker("$decker-meta-url$");
     </script>
@@ -56,42 +61,14 @@ $endif$
 
     <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/tudo-index.css">
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+    $if(template.font)$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/$template.font$.css">
+    $else$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
+    $endif$
     $for(template.index.css)$
     <link rel="stylesheet" href="$template.index.css$">
     $endfor$
-
-
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
 
   </head>
 
@@ -103,21 +80,39 @@ $endif$
 
     <!-- page header -->
     <header>
-    $if(template.index-page.banner)$
-    <div class="index-page-banner">
-       <img src=$template.index-page.banner$>
-    </div>
-    $endif$
-    $if(title)$
-      <h1>$title$</h1>
-      $if(subtitle)$
-      <h2>$subtitle$</h2>
+      $if(template.index-page.banner)$
+        <div class="index-page-banner">
+          <img src=$template.index-page.banner$>
+        </div>
       $endif$
-    $endif$
-    </header>
 
+      $if(title)$
+        <h1>$title$</h1>
+        $if(subtitle)$
+          <h2>$subtitle$</h2>
+        $endif$
+      $endif$
+
+      <button id="index-color-button" class="fa-button"></button>
+    </header>
+    
     <!-- main content -->
     <main class="content">
+      $if(index.manual)$
+        $manual.html()$
+      $endif$
+
+      $if(index.search)$
+        <div id="index-search"></div>
+        <script type="module">
+          import setupSearch from "./$decker-support-dir$/fuzzySearch/search.js";
+          window.addEventListener("load", () => {
+            let searchBox = document.getElementById("index-search");
+            setupSearch(searchBox, 0.5, $index.searchShowsDeckTitle$, $index.searchShowsDeckSubtitle$);
+          });
+        </script>
+      $endif$
+
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
@@ -125,8 +120,11 @@ $body$
 
     <!-- footer with author information -->
     <footer>
-      <p class="author">
-        $if(copyright)$$copyright$$endif$ $if(author)$$author$$endif$$if(affiliation)$, $affiliation$$endif$$if(date)$, $date$$endif$
+      <p>
+        $if(copyright)$ $copyright$ $endif$ 
+        $if(author)$ $author$;&ensp; $endif$
+        $if(affiliation)$ $affiliation$;&ensp; $endif$
+        $if(date)$ $date$ $endif$
       </p>
     </footer>
   </body>
@@ -135,13 +133,14 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/index.js"></script>
-  <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
-
   <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
+    import * as colorScheme from "./$decker-support-dir$/js/color-scheme.js";
+    const colorButton = document.getElementById("index-color-button");
+    colorButton.addEventListener("click", colorScheme.toggleColor);
+    colorButton.title = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+    colorButton.ariaLabel = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
   </script>
-
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
   $endfor$
@@ -156,7 +155,5 @@ $body$
         window.location.reload(true);
     };
   </script>
-
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
 
 </html>

@@ -8,17 +8,21 @@
 -- All decker specific meta data is embedded into the document meta data under
 -- the `decker` key. Information gathered during the filter run is appended
 -- under the `decker` key in the meta data of the resulting document.
-module Text.Decker.Filter.Decker2 (mediaFilter2, runFilter2) where
+module Text.Decker.Filter.Decker2  where
 
+import Data.Map.Strict as Map
 import Relude
 import Text.Decker.Filter.Header
-import Text.Decker.Filter.Local
-import Text.Decker.Filter.Media
 import Text.Decker.Filter.Monad
-import Text.Decker.Filter.Util (oneImagePerLine)
+import Text.Decker.Filter.Util (oneImagePerLine, single)
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
+import Development.Shake (Action, need)
+import Text.Decker.Internal.Meta
+import System.FilePath (takeDirectory)
+import Text.Decker.Filter.Media (compileImage, compileCodeBlock, compileBlockQuote, compileLineBlock)
+import Text.Decker.Filter.Run (runDeckerFilter)
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -129,18 +133,36 @@ mediaInlineFilter inline = return inline
 unprocessed :: Attr -> Bool
 unprocessed (_, cls, _) = "processed" `notElem` cls
 
+-- |  Runs the new decker media filter.
+deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
+deckerMediaFilter dispo docPath pandoc@(Pandoc meta _) =
+  runDeckerFilter (mediaFilter2 dispo) docPath pandoc
+ 
 -- | Runs a filter on a Pandoc document. The options are used to rewrite document
 -- fragments to HTML or back to Markdown. The meta data may be transformed by
 -- the filter. The filter runs in the Filter monad and has access to options
 -- and meta data via `gets` and `puts`.
 runFilter2 ::
-  Walkable a Pandoc =>
+  (Walkable a Pandoc) =>
   Disposition ->
   (a -> Filter a) ->
   Pandoc ->
   IO Pandoc
 runFilter2 dispo filter pandoc@(Pandoc meta _) = do
   mutex <- newMVar 0
-  (Pandoc _ blocks, FilterState meta _ _) <-
-    runStateT (walkM filter pandoc) (FilterState meta dispo mutex)
-  return $ Pandoc meta blocks
+  templates <- newTVarIO Map.empty
+  (Pandoc _ resultBlocks, FilterState resultMeta _ _ _) <-
+    runStateT (walkM filter pandoc) (FilterState meta dispo mutex templates)
+  return $ Pandoc resultMeta resultBlocks
+
+runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
+runNewFilter dispo filter docPath pandoc@(Pandoc docMeta blocks) = do
+  let deckerMeta =
+        setMetaValue "decker.doc-path" docPath
+          $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta
+  (Pandoc resultMeta resultBlocks) <-
+    liftIO $ runFilter2 dispo filter (Pandoc deckerMeta blocks)
+  need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
+  --   putNormal $ lookupMetaOrElse [] "decker.filter.resources" resultMeta
+  return (Pandoc docMeta resultBlocks)
+

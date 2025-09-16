@@ -17,7 +17,7 @@
   */
   --vertical-margin: 0.2em;
 
-  /* Icon settings */
+  /* Icon settings 1.5rem*/
   --icon-size: 1.5rem;
 
   /* Rainbow Accents */
@@ -62,7 +62,7 @@
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
 
-  --header-color: var(--shade6);
+  --header-color: var(--shade7);
 
   --primary-color: var(--accent6-fg);   /* JMU Anpassung */
   --secondary-color: var(--accent1);
@@ -71,7 +71,6 @@
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent7-bg); /* JMU Anpassung */
-  --flying-focus-color: var(--highlight-color);
 
   --icon-active-color: var(--accent7); /* JMU Anpassung */
   --icon-disabled-color: var(--shade2);

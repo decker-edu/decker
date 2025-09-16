@@ -42,6 +42,8 @@ let uiState;
 
 let localization;
 
+let pluginButton;
+
 function transition(name) {
   return (_) => uiState.transition(name);
 }
@@ -188,7 +190,8 @@ function jumpToTime(index) {
 
 // Looks up the index of the current Reveal slide in the explainTimes array.
 function currentRevealSlideIndex() {
-  let slideId = Reveal.getCurrentSlide().id;
+  if (!explainTimesPlay) return -1;
+  const slideId = Reveal.getCurrentSlide().id;
   return explainTimesPlay.findIndex((i) => i.slideId === slideId);
 }
 
@@ -210,9 +213,22 @@ function prev() {
   jumpToTime(currentVideoSlideIndex() - 1);
 }
 
+// store player volume in local storage
+function storePlayerVolume() {
+  if (player) {
+    // get current volume
+    let vol = player.volume();
+    // round to two digits
+    vol = Math.round(vol * 100) / 100;
+    // save in local storage
+    localStorage.setItem(player.storage, vol);
+  }
+}
+
 // Stops the video and navigates Reveal to the current slide.
 function stop() {
   player.pause();
+  storePlayerVolume();
   goToSlide(currentVideoSlideIndex());
   return true;
 }
@@ -518,6 +534,11 @@ async function getDevices() {
 }
 
 async function setupRecorder() {
+  if (!Decker.isPresenterMode()) {
+    Decker.togglePresenterMode();
+    // Decker.flash.message(localization.presenter_mode_error);
+    // return false;
+  }
   try {
     stream = null;
 
@@ -550,6 +571,8 @@ async function setupRecorder() {
     // open panel to select camera and mic
     openRecordPanel();
 
+    // disable plugin menu button
+    pluginButton.ariaDisabled = "true";
     return true;
   } catch (e) {
     console.error(e);
@@ -897,9 +920,11 @@ function createPlayerGUI() {
     autoplay: false,
     preload: "metadata",
     playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3],
+    playsinline: true,
+    html5: { nativeTextTracks: true },
     controlBar: {
       playToggle: true,
-      volumePanel: true,
+      volumePanel: { inline: false },
       currentTimeDisplay: true,
       timeDivider: false,
       durationDisplay: false,
@@ -909,39 +934,50 @@ function createPlayerGUI() {
       pictureInPictureToggle: false,
     },
     userActions: {
+      // mouse click toggles play/pause
+      click: true,
       // disable going to fullscreen by double click
       doubleClick: false,
       // our keyboard shortcuts
       hotkeys: function (event) {
-        event.stopPropagation();
-        event.preventDefault();
-
         switch (event.code) {
           // space or k: play/pause
           case "Space":
           case "KeyK":
+            event.stopPropagation();
+            event.preventDefault();
             if (this.paused()) this.play();
             else this.pause();
             break;
 
-          // left/right: skip slides
-          case "ArrowLeft":
+          // Page Up/Page Down: skip slides
+          case "PageUp":
+            event.stopPropagation();
+            event.preventDefault();
             prev();
             break;
-          case "ArrowRight":
+          case "PageDown":
+            event.stopPropagation();
+            event.preventDefault();
             next();
             break;
 
           // up/down: increase/decrease volume by 5%
           case "ArrowUp":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.min(1.0, this.volume() + 0.05));
             break;
           case "ArrowDown":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.max(0.0, this.volume() - 0.05));
             break;
 
           // c: toggle captions
           case "KeyC":
+            event.stopPropagation();
+            event.preventDefault();
             let tracks = player.textTracks();
             for (let i = 0; i < tracks.length; i++) {
               if (tracks[i].kind === "captions") {
@@ -951,21 +987,31 @@ function createPlayerGUI() {
             }
             break;
 
-          // j/l: jump backward/forward by 10sec
+          // left/right or j/l: jump backward/forward by 10sec
+          case "ArrowLeft":
           case "KeyJ":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() - 10);
             break;
+          case "ArrowRight":
           case "KeyL":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() + 10);
             break;
 
           // m: mute/unmute
           case "KeyM":
+            event.stopPropagation();
+            event.preventDefault();
             this.muted(!this.muted());
             break;
 
           // esc: stop and hide video
           case "Escape":
+            event.stopPropagation();
+            event.preventDefault();
             uiState.transition("stop");
             break;
         }
@@ -1039,6 +1085,11 @@ function createPlayerGUI() {
     },
     3
   );
+
+  // restore previous volume from localStorage
+  player.storage = "decker-explain-volume";
+  const storedVolume = localStorage.getItem(player.storage);
+  if (storedVolume) player.volume(storedVolume);
 }
 
 function toggleRecordPanel() {
@@ -1690,6 +1741,12 @@ async function setupPlayer() {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
+      updatePlayButton();
+
+      // ayy1 mode?
+      const a11yPlugin = Reveal.getPlugin("a11y");
+      const a11y = !!(a11yPlugin && a11yPlugin.a11yMode());
+
       let vtt;
 
       // "old" version of VTT w/o language specifier
@@ -1701,6 +1758,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
+            default: a11y,
           },
           false
         );
@@ -1710,7 +1768,7 @@ async function setupPlayer() {
       vtt = deckUrlBase() + "-recording-en.vtt";
       if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt },
+          { kind: "captions", srclang: "en", src: vtt, default: a11y },
           false
         );
       }
@@ -1721,7 +1779,7 @@ async function setupPlayer() {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
           player.addRemoteTextTrack(
-            { kind: "captions", srclang: lang, src: vtt },
+            { kind: "captions", srclang: lang, src: vtt, default: a11y },
             false
           );
         }
@@ -1754,6 +1812,9 @@ function setupCallbacks() {
     toggleCamera
   );
 
+  // Store video player volume on page leave
+  window.addEventListener("beforeunload", storePlayerVolume);
+
   // Intercept page leave when we are recording
   window.addEventListener("beforeunload", (evt) => {
     if (uiState.in("RECORDER_PAUSED", "RECORDING")) {
@@ -1762,6 +1823,21 @@ function setupCallbacks() {
       return evt.returnValue;
     }
   });
+
+  // show/hide play button, depending on slides is found in times array
+  Reveal.addEventListener("slidechanged", updatePlayButton);
+}
+
+function updatePlayButton() {
+  playButton.style.display =
+    currentRevealSlideIndex() == -1 ? "none" : "initial";
+}
+
+function enableViewButton() {
+  if (pluginButton && Decker.isPresenterMode()) {
+    pluginButton.airaDisabled = false;
+  }
+  return true;
 }
 
 // export the plugin
@@ -1814,7 +1890,7 @@ const Plugin = {
       RECORDER_READY: {
         name: "RECORDER_READY",
         transition: {
-          cancel: { action: null, next: "INIT" },
+          // cancel: { action: enableViewButton, next: "INIT" },
           record: { action: startRecording, next: "RECORDING" },
         },
       },
@@ -1847,6 +1923,8 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      init_recording: "Initialise Screen Recording (R)",
+      invalid_state: "Recording was already initialized.",
       no_camera_stream: "No camera stream available.",
       replacement_title: "Append or Replace?",
       replacement_warning:
@@ -1854,6 +1932,8 @@ const Plugin = {
       Do you want to append to the existing recording or replace it?",
       accept: "Accept",
       abort: "Abort",
+      presenter_mode_error:
+        'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.',
     };
 
     if (lang === "de") {
@@ -1861,6 +1941,8 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        init_recording: "Bildschirmaufnahme vorbereiten",
+        invalid_state: "Aufnamesystem wurde bereits initialisiert.",
         no_camera_stream: "Kein Kamerastream verfügbar.",
         replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
@@ -1868,8 +1950,50 @@ const Plugin = {
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        presenter_mode_error:
+          'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.',
       };
     }
+    deck.addEventListener("ready", () => {
+      Decker.addPresenterModeListener((mode) => {
+        if (pluginButton) {
+          if (
+            mode &&
+            uiState.name() !== "RECORDER_READY" &&
+            uiState.name() !== "RECORDING" &&
+            uiState.name() !== "RECORDER_PAUSED"
+          ) {
+            pluginButton.ariaDisabled = "false";
+          } else {
+            pluginButton.ariaDisabled = "true";
+          }
+        }
+      });
+      const menuPlugin = deck.getPlugin("decker-menu");
+      if (menuPlugin && !!menuPlugin.addPluginButton) {
+        pluginButton = menuPlugin.addPluginButton(
+          "decker-menu-recording-button",
+          "fa-video",
+          localization.init_recording,
+          () => {
+            if (pluginButton.ariaDisabled === "true") {
+              return;
+            }
+            switch (uiState.name()) {
+              case "INIT":
+              case "PLAYER_READY":
+                uiState.transition("setupRecorder");
+                break;
+              default:
+                Decker.flash.message(
+                  `<span>${localization.invalid_state}</span>`
+                );
+            }
+          }
+        );
+        pluginButton.ariaDisabled = "true";
+      }
+    });
   },
 
   playVideo: play,

@@ -12,12 +12,12 @@ jupyter:
   nbformat_minor: 2
 title: Write to Jupyter notebook
 write-back:
-  enable: true
-write-notebook: true
+  enable: false
+write-notebook: false
 ---
 
 
-# Write deck to notebook {#write-deck-to-notebook .columns}
+# Write deck to notebook[ test/decks/notebook-deck.md]{.document-path} {#write-deck-to-notebook .columns data-source-path="test/decks/notebook-deck.md"}
 
 ## Decker metadata {#decker-metadata .left}
 
@@ -27,7 +27,7 @@ write-notebook: True
 
 ##  {#section .right}
 
-## Jupyter metadata
+## Jupyter metadata {#jupyter-metadata}
 
 ``` yaml
 jupyter:
@@ -45,17 +45,17 @@ jupyter:
      version: "8.6.5"
 ```
 
-# In the notebook {#in-the-notebook .notebook}
+# In the notebook[ test/decks/notebook-deck.md]{.document-path} {#in-the-notebook .notebook data-source-path="test/decks/notebook-deck.md"}
 
-## Selected content
+## Selected content {#selected-content}
 
 -   Only slides marked with `{.notebook}`
 
-## Code block as cells
+## Code block as cells {#code-block-as-cells}
 
 -   Code blocks marked with `{.code}`
 
-# A live code cell (Haskell) {#a-live-code-cell-haskell .notebook}
+# A live code cell (Haskell)[ test/decks/notebook-deck.md]{.document-path} {#a-live-code-cell-haskell .notebook data-source-path="test/decks/notebook-deck.md"}
 
 This cell will be live in the notebook.
 

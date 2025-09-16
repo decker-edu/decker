@@ -1,13 +1,43 @@
-import {
-  setupFlyingFocus,
-  hideFlyingFocus,
-} from "../../flyingFocus/flying-focus.js";
-
 import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
 
 let Reveal;
 
 let a11yMode;
+
+let pluginButton = undefined;
+
+let slidesAmount = 0;
+
+function addScreenReaderSlideNumbers() {
+  const slides = document.querySelectorAll(".slides > section");
+  slidesAmount = slides.length;
+  slides.forEach((slide, h) => {
+    const subslides = slide.querySelectorAll("section");
+    if (subslides.length > 0) {
+      subslides.forEach((subslide, v) => {
+        addScreenReaderSlideNumber(subslide, h, v);
+      });
+      return;
+    }
+    addScreenReaderSlideNumber(slide, h);
+  });
+}
+
+function addScreenReaderSlideNumber(slide, h, v) {
+  const header = slide.querySelector("h1");
+  if (header) {
+    const innerHTML = header.innerHTML;
+    let replacementHTML = `<span class="sr-only">${localization.slide} ${
+      h + 1
+    }${v ? "." + v : ""} / ${slidesAmount}`;
+    if (header.textContent.trim() !== "") {
+      replacementHTML = replacementHTML + `, </span><span>${innerHTML}</span>`;
+    } else {
+      replacementHTML = replacementHTML + "</span>";
+    }
+    header.innerHTML = replacementHTML;
+  }
+}
 
 /**
  * Adds inert to all inactive slides and adds an on-slidechanged callback to reveal
@@ -46,12 +76,12 @@ function fixTabsByInert() {
 }
 
 /* setup flying focus and its callbacks */
-function addFlyingFocusCallbacks() {
-  setupFlyingFocus();
-  Reveal.on("slidechanged", (event) => {
-    hideFlyingFocus();
-  });
-}
+// function addFlyingFocusCallbacks() {
+//   setupFlyingFocus();
+//   Reveal.on("slidechanged", (event) => {
+//     hideFlyingFocus();
+//   });
+// }
 
 let previousKeyboardConfig;
 
@@ -68,14 +98,78 @@ function addCustomSpacebarHandler() {
   }
 }
 
+function toggleAccessibility() {
+  a11yMode = !a11yMode;
+
+  if (a11yMode) {
+    pluginButton.ariaPressed = true;
+    pluginButton.setLabel(localization.deactivate_accessibility);
+    document.documentElement.classList.add("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      modifyMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      modifyMedia(audio);
+    }
+    Decker.flash.message(localization.accessible_colors_on);
+    if (window.MathJax) {
+      window.MathJax.startup.document.menu.options.settings.enrich = true;
+      window.MathJax.startup.document.menu.setEnrichment(true);
+      window.MathJax.startup.document.options.enableMenu = true;
+    }
+  } else {
+    pluginButton.ariaPressed = false;
+    pluginButton.setLabel(localization.activate_accessibility);
+    document.documentElement.classList.remove("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      restoreMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      restoreMedia(audio);
+    }
+    Decker.flash.message(localization.accessible_colors_off);
+    if (window.MathJax) {
+      window.MathJax.startup.document.menu.options.settings.enrich = false;
+      window.MathJax.startup.document.menu.setEnrichment(false);
+      window.MathJax.startup.document.options.enableMenu = false;
+    }
+  }
+}
+
+const localization = {
+  activate_accessibility: "Activate Accessibility Features (A,A,A)",
+  deactivate_accessibility: "Deactivate Accessibility Features (A,A,A)",
+  accessible_colors_on: `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`,
+  accessible_colors_off: `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`,
+  slide: "Slide",
+};
+
+if (navigator.language === "de") {
+  localization.activate_accessibility =
+    "Barrierefreie Funktionen anschalten (A,A,A)";
+  localization.deactivate_accessibility =
+    "Barrierefreie Funktionen abschalten (A,A,A)";
+  localization.accessible_colors_on = `<span>Kontrastfarben: <strong style="color:var(--accent3);">AN</strong></span>`;
+  localization.accessible_colors_off = `<span>Kontrastfarben: <strong style="color:var(--accent1);">AUS</strong></span>`;
+  localization.slide = "Folie";
+}
+
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "a11y",
+  a11yMode: () => {
+    return a11yMode;
+  },
   init: (reveal) => {
     Reveal = reveal;
-    // This may no longer be necessary if we clearly recommend the handout mode to people using assistive technology
-    // fixTabsByInert();
-    addFlyingFocusCallbacks();
+    fixTabsByInert();
     addCustomSpacebarHandler();
+    addScreenReaderSlideNumbers();
     reveal.addKeyBinding(
       {
         keyCode: 65,
@@ -83,38 +177,24 @@ const Plugin = {
         description: "Toggle Decker Accessibility Adjustments (Triple Click)",
       },
 
-      Decker.tripleClick(() => {
-        a11yMode = !a11yMode;
-
-        if (a11yMode) {
-          document.documentElement.classList.add("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            modifyMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            modifyMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
-          );
-        } else {
-          document.documentElement.classList.remove("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            restoreMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            restoreMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
-          );
-        }
-      })
+      Decker.tripleClick(toggleAccessibility)
     );
+    reveal.addEventListener("ready", () => {
+      const menuPlugin = reveal.getPlugin("decker-menu");
+      if (!!menuPlugin && !!menuPlugin.addPluginButton) {
+        pluginButton = menuPlugin.addPluginButton(
+          "decker-menu-a11y-button",
+          "fa-universal-access",
+          localization.activate_accessibility,
+          toggleAccessibility
+        );
+      }
+    });
+    if (a11y) {
+      Reveal.addEventListener("ready", () => {
+        toggleAccessibility();
+      });
+    }
   },
 };
 

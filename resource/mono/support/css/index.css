@@ -1,0 +1,258 @@
+/* Here be CSS */
+
+@import url("../vendor/fontawesome/css/all.css");
+@import url("./structure.css");
+@import url("./style.css");
+@import url("./media.css");
+
+html {
+    color: var(--foreground-color);
+    background-color: var(--background-color);
+}
+
+body.index {
+    padding-top: 0;
+}
+
+body.index header {
+    font-size: 150%;
+    background-position: center;
+    background-color: var(--shade1);
+
+    border-bottom: 1px solid var(--shade2);
+
+    /* This sets the right and left margins to cancel out the body's margins. It's
+  width is still the same, but the background stretches across the page's width.
+  */
+
+    margin-top: 0;
+    margin-bottom: 1em;
+
+    padding-top: 1em;
+    padding-bottom: 1em;
+
+    margin-left: calc(0px - (50vw - 50%));
+    margin-right: calc(0px - (50vw - 50%));
+    padding-left: calc(50vw - 50%);
+    padding-right: calc(50vw - 50%);
+}
+
+body.index {
+    box-sizing: border-box;
+    font-size: 16px;
+    max-width: 52em;
+    margin: auto;
+    color: var(--foreground-color);
+    background-color: var(--background-color);
+}
+
+body.index div.block {
+    padding: 0.4em 0.8em;
+    margin: 0.4em -0.8em;
+}
+
+body.index header p.subtitle {
+    font-size: 80%
+}
+
+body.index header div.author p{
+    font-size: 70%
+}
+
+code {
+    font-size: 100%;
+}
+
+pre>code {
+    font-size: 90%;
+}
+
+figure {
+    margin: 0;
+}
+
+p {
+    word-wrap: normal;
+}
+
+body.index table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body.index progress {
+    /* Enable those pseudo-elements below */
+    appearance: none;
+
+    width: 5em;
+    height: 0.5em;
+
+    vertical-align: middle;
+}
+
+body.index ::-webkit-progress-bar {
+    background-color: var(--shade1);
+    border: 1px solid var(--shade3);
+    border-radius: 0.5em;
+}
+
+body.index ::-webkit-progress-value {
+    background-color: var(--accent3);
+    border-radius: 0.5em;
+}
+
+body.index ::-moz-progress-bar {
+    background-color: var(--accent3);
+    /* border-radius: 0.5em; */
+}
+
+body.index input.search {
+    font-size: 1em;
+}
+
+body.index i.fa-solid.fa-magnifying-glass::before {
+    color: var(--accent5);
+    font-weight: bold;
+}
+
+body.index div.search-box {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    width: 14em;
+}
+
+body.index table {
+    width: 90%;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body.index div.search table.search {
+    display: none;
+    text-align: left;
+}
+
+body.index div.search.results table.search {
+    display: table;
+}
+
+body.index .label {
+    border-radius: 1em;
+    padding-left: 0.7em;
+    padding-right: 0.7em;
+    margin-left: 1em;
+    margin-right: 1em;
+    font-size: 80%;
+    font-weight: bold;
+}
+
+html[lang="de"] .german {
+  display: unset;
+}
+
+html[lang="de"] .english {
+  display: none;
+}
+
+.link-additions {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 0.25rem;
+    margin-left: 0.25rem;
+    align-items: center;
+}
+
+.link-additions a:hover {
+    margin: -0.2rem;
+    padding: 0.2rem;
+}
+
+a.handout-link {
+    display: inline-block;
+    box-sizing: content-box;
+    vertical-align: bottom;
+    position: relative;
+    width: 1em;
+    height: 1em;
+}
+
+a.handout-link::before {
+    display: block;
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0.05em;
+    width: 0.8em;
+    height: 0.45em;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+}
+
+a.handout-link::after {
+    display: block;
+    position: absolute;
+    content: "";
+    bottom: 0;
+    left: 0.05em;
+    width: 0.8em;
+    height: 0.45em;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+}
+
+a.handout-link:hover::before {
+    top: 0.25em;
+    left: 0.3em;
+}
+
+a.handout-link:hover::after {
+    bottom: 0.25em;
+    left: 0.3em;
+}
+
+#index-color-button {
+  font-size: 2rem;
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  background-color: transparent;
+  color: var(--foreground-color);
+}
+
+#index-color-button:hover {
+  border-radius: 100%;
+  background-color: var(--background-color);
+}
+
+html.dark #index-color-button::before {
+  content: "\f185";
+}
+
+html.light #index-color-button::before {
+  content: "\f186";
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+details,
+summary {
+  transition: outline-offset 0.2s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: 1px !important;
+  }
+  &:active {
+    outline-offset: -2px !important;
+  }
+}

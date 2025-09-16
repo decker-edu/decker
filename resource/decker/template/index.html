@@ -91,9 +91,22 @@ $if(title)$
 $if(subtitle)$
 <p class="subtitle">$subtitle$</p>
 $endif$
-$for(author)$
-<p class="author">$author$</p>
-$endfor$
+
+$if(copyright)$
+  $copyright:copyright-template.html()$
+$endif$
+
+$if(author)$
+  $author:author-template.html()$
+$endif$
+
+$if(authors)$
+<div class="authors">
+  $for(authors)$
+  $it:author-template.html()$
+  $endfor$
+</div>
+$endif$
 $if(date)$
 <p class="date">$date$</p>
 $endif$
@@ -105,6 +118,8 @@ $include-after$
 $endfor$
 
   <script src="$decker-support-dir$/js/index.js"></script>
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js">
+  </script>
 
   <script>
     var socket = new WebSocket("ws://" + location.host + "/reload");
@@ -113,5 +128,8 @@ $endfor$
         window.location.reload(true);
     };
   </script>
+  $if(codapi.server)$
+  <codapi-settings $if(codapi.server)$url="$codapi.server$"$endif$> </codapi-settings>
+  $endif$
 </body>
 </html>

@@ -52,6 +52,7 @@ dependencies:
   - deepseq
   - directory
   - doctemplates
+  - doclayout
   - exceptions
   - extra
   - file-embed
@@ -83,6 +84,8 @@ dependencies:
   - network-uri
   - pandoc
   - pandoc-types
+  - path-io
+  - path
   - pretty-simple
   - process
   - pureMD5
@@ -118,6 +121,7 @@ dependencies:
   - xml-types
   - yaml
   - zip
+  - raw-strings-qq
 
 ghc-options:
   - -Wunused-top-binds
@@ -129,14 +133,6 @@ ghc-options:
 library:
   source-dirs:
     - src
-  when:
-    - condition: os(windows)
-      then:
-        source-dirs: src-win
-        exposed-modules: "System.Decker.OS"
-      else:
-        source-dirs: src-unix
-        exposed-modules: "System.Decker.OS"
 
 executables:
   decker:

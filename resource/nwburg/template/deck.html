@@ -33,6 +33,11 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
   <link rel="stylesheet" href="support/css/wburg.css">
 
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
+
+
   <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
   into a style sheet. Default values can come from `variables.css`. -->
   <style class="css-declarations">
@@ -93,7 +98,6 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
   $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
-  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
 $if(poll)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
 $endif$
@@ -111,9 +115,13 @@ $highlighting-css$
   </style>
 $endif$
 
+<!-- This is the template's very own css  -->
+<link rel="stylesheet" href="$decker-support-dir$/css/wburg.css">
+
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
+
 
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
@@ -224,13 +232,12 @@ $endif$
 
 </body>
 
-$if(live-captions)$
-<script src="$decker-support-dir$/components/awesome-button.js"></script>
-$endif$
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
 $for(template.js)$
   <script type="module" src="$template.js$"></script>
 $endfor$
+
+<script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
 
 <!--  Injection of own code for reveal's highlight.js is not as trivial as it seems. A good overview
 is found in this issue: https://github.com/hakimel/reveal.js/issues/2761

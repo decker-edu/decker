@@ -1,22 +1,21 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Resource.Template
   ( TemplateCache,
     readTemplate,
     readTemplateMeta,
+    readTemplateMetaIO,
     templateFile,
   )
 where
 
 import Control.Exception
 import Control.Monad
-import qualified Data.Map.Strict as Map
+import Data.Map.Strict qualified as Map
 import Data.Maybe
-import qualified Data.Text.IO as Text
+import Data.Text.IO qualified as Text
 import Data.Yaml
 import Development.Shake
 import Relude
@@ -104,28 +103,58 @@ readTemplate meta file = do
 readTemplateMeta :: Meta -> Action Meta
 readTemplateMeta meta = do
   (Resources decker pack) <- liftIO $ deckerResources meta
+  putInfo $ "# extracting meta data"
   deckerMeta <- readTemplateMeta' decker
   packMeta <- readTemplateMeta' pack
+  return $ mergePandocMeta packMeta deckerMeta
+
+readTemplateMetaIO :: Meta -> IO Meta
+readTemplateMetaIO meta = do
+  (Resources decker pack) <- liftIO $ deckerResources meta
+  deckerMeta <- readTemplateMetaIO' decker
+  packMeta <- readTemplateMetaIO' pack
   return $ mergePandocMeta packMeta deckerMeta
 
 readTemplateMeta' :: Source -> Action Meta
 readTemplateMeta' (DeckerExecutable baseDir) = do
   executable <- liftIO getExecutablePath
-  putInfo $ "# extracting meta data from: " <> executable
-  liftIO $
-    toPandocMeta <$> (extractEntry (baseDir </> defaultMetaPath) executable >>= decodeThrow)
+  -- putInfo $ "# extracting meta data from: " <> executable
+  liftIO
+    $ toPandocMeta
+    <$> (extractEntry (baseDir </> defaultMetaPath) executable >>= decodeThrow)
 readTemplateMeta' (LocalZip zipPath) = do
-  putInfo $ "# extracting meta data from: " <> zipPath
+  -- putInfo $ "# extracting meta data from: " <> zipPath
   need [zipPath]
-  liftIO $
-    toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+  liftIO
+    $ toPandocMeta
+    <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
 readTemplateMeta' (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
-  putInfo $ "# loading meta data from: " <> defaultMeta
+  -- putInfo $ "# loading meta data from: " <> defaultMeta
   need [defaultMeta]
-  liftIO $ readMetaDataFile defaultMeta
+  liftIO $ fromRight nullMeta <$> readMetaDataFile defaultMeta
 readTemplateMeta' None = do
-  putInfo "# no pack, no meta data"
+  -- putInfo "# no pack, no meta data"
+  return nullMeta
+
+readTemplateMetaIO' :: Source -> IO Meta
+readTemplateMetaIO' (DeckerExecutable baseDir) = do
+  executable <- liftIO getExecutablePath
+  -- putStrLn $ "# extracting meta data from: " <> executable
+  liftIO
+    $ toPandocMeta
+    <$> (extractEntry (baseDir </> defaultMetaPath) executable >>= decodeThrow)
+readTemplateMetaIO' (LocalZip zipPath) = do
+  -- putStrLn $ "# extracting meta data from: " <> zipPath
+  liftIO
+    $ toPandocMeta
+    <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+readTemplateMetaIO' (LocalDir baseDir) = do
+  let defaultMeta = baseDir </> defaultMetaPath
+  -- putStrLn $ "# loading meta data from: " <> defaultMeta
+  liftIO $ fromRight nullMeta <$> readMetaDataFile defaultMeta
+readTemplateMetaIO' None = do
+  -- putStrLn "# no pack, no meta data"
   return nullMeta
 
 type SourceM = ReaderT Resources IO
@@ -140,8 +169,8 @@ instance TemplateMonad SourceM where
     where
       getIt :: Source -> SourceM (Maybe Text)
       getIt source =
-        liftIO $
-          catch
+        liftIO
+          $ catch
             ( case source of
                 DeckerExecutable base -> do
                   deckerExecutable <- getExecutablePath

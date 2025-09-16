@@ -40,13 +40,24 @@ explain:
   useGreenScreen: false
 
 chart:
+  colors:
+    - "#f5871f"
+    - "#84B819"
+    - "#2a9ddf"
+    - "#c82829"
+    - "#3e999f"
+    - "#a3685a"
+    - "#eab700"
+    - "#8959a8"
   defaults:
-    font: {family: "Lato", size: 20 }
+    font: { family: "Lato", size: 20 }
     plugins:
       title:
         font: { weight: "normal", size: 30 }
       legend:
         position: "bottom"
+      colors:
+        enabled: false
 
 # live captions through WebSpeech API
 live-captions: true
@@ -57,7 +68,17 @@ speech-recognition-language: de-DE
 showDeckerLink: true
 
 # progress bar on index page
-progress: true
+index:
+  progress: true
+  manual: true
+  search: true
+  searchShowsDeckTitle: true
+  searchShowsDeckSubtitle: true
+  links:
+    - a11y
+    - handout
+    - pdf
+#    - presenter
 
 palette:
   contrast: 0.40
@@ -96,3 +117,10 @@ palette:
       - "#81a2be"
       - "#b294bb"
       - "#a3685a"
+
+templates:
+  deck: |
+    <span class="icons">
+    <a title="Open HTML slides" href=":(url)-deck.html"><i class="fa-brands fa-html5"></i></a>
+    <a title="Open PDF slides" href=":(url)-deck.pdf"><i class="fas fa-file-pdf"></i></a>
+    </span>

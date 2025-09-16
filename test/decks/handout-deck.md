@@ -10,6 +10,7 @@ title: Handout Test
 title-prefix: Decker
 ---
 
+
 # Notes
 
 ## Currently
@@ -166,3 +167,14 @@ Span]{.notes}
 | This |  is | just |   a | table |
 | This |  is | just |   a | table |
 | This |  is | just |   a | table |
+
+# A slide with a comment code block
+
+## Below should be nothing
+
+``` comment
+THIS IS A COMMENT
+AWAY WITH IT  
+```
+
+## Above should be nothing

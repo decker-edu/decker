@@ -27,7 +27,7 @@ import Text.Printf
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: Meta -> Targets -> FilePath -> Action ()
 writeIndexLists meta targets out = do
-  let get field = sort $ Map.keys $ (targets ^. field)
+  let get field = sort $ Map.keys (targets ^. field)
   let decks' = zip (get decks) (get decksPdf)
   let handouts' = zip (get handouts) (get handoutsPdf)
   let pages' = zip (get pages) (get pagesPdf)
@@ -46,22 +46,10 @@ title: Generated Index
 subtitle: #{cwd}
 ---
 ``` {.javascript .run}
-import("./" + Decker.meta.supportPath + "/fuzzySearch/search.js")
-    .then((module) => {
-      anchor.classList.add("search");
-      anchor.innerHTML = `
-        <p>
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input class="search" placeholder="In Folien suchen" type="text">
-        </p>
-        <table class="search">
-        <thead><tr><th>Wort</th><th>Foliensatz</th><th>Folie</th><th>Treffer</th></tr></thead>
-        <tbody></tbody>
-        </table>
-      `;
-      module.default(anchor, 0.6);
-    });
+import setupSearch from "./support/fuzzySearch/search.js";
+setupSearch(anchor, 0.5, false, true);
 ```
+
 \# Slide decks
 #{unlines decksLinks}
 \# Handouts

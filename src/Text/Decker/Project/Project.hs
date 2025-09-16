@@ -9,7 +9,6 @@
 module Text.Decker.Project.Project
   ( scanTargetsToFile,
     setProjectDirectory,
-    -- , dachdeckerFromMeta
     unusedResources,
     scanTargets,
     excludeDirs,
@@ -30,6 +29,8 @@ module Text.Decker.Project.Project
     fromMetaValue,
     toMetaValue,
     readTargetsFile,
+    alwaysExclude,
+    calcTargets
   )
 where
 
@@ -50,19 +51,18 @@ import Development.Shake hiding (Resource)
 import Relude
 import System.Directory qualified as Directory
 import System.FilePath qualified as FP
+import System.FilePath.Glob
 import System.FilePath.Posix
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
   ( FromMetaValue (..),
-    globalMetaFileName,
     lookupMetaOrElse,
   )
 import Text.Decker.Project.Glob
 import Text.Decker.Resource.Resource
 import Text.Pandoc.Builder hiding (lookupMeta)
 import Text.Regex.TDFA
-import System.FilePath.Glob
 
 -- | target and source path
 type Dependencies = Map FilePath FilePath
@@ -153,35 +153,19 @@ findProjectRoot = do
   where
     search :: FilePath -> FilePath -> IO FilePath
     search dir start = do
-      hasYaml <- Directory.doesFileExist (dir </> globalMetaFileName)
+      hasYaml <- Directory.doesFileExist (dir </> deckerMetaFile)
       hasGit <- Directory.doesDirectoryExist (dir </> ".git")
       if
-          | hasYaml || hasGit -> return dir
-          | FP.isDrive dir -> return start
-          | otherwise -> search (FP.takeDirectory dir) start
+        | hasYaml || hasGit -> return dir
+        | FP.isDrive dir -> return start
+        | otherwise -> search (FP.takeDirectory dir) start
 
 -- Move CWD to the project directory.
 setProjectDirectory :: IO ()
 setProjectDirectory = do
   projectDir <- findProjectRoot
   Directory.setCurrentDirectory projectDir
-  putStrLn $ "# Running decker in: " <> projectDir
-
-deckSuffix = "-deck.md"
-
-deckHTMLSuffix = "-deck.html"
-
-deckPDFSuffix = "-deck.pdf"
-
-pageSuffix = "-page.md"
-
-pageHTMLSuffix = "-page.html"
-
-pagePDFSuffix = "-page.pdf"
-
-handoutHTMLSuffix = "-handout.html"
-
-handoutPDFSuffix = "-handout.pdf"
+  -- putStrLn $ "# Running decker in: " <> projectDir
 
 sourceRegexes :: [String] =
   [ "-deck.md\\'",
@@ -191,7 +175,7 @@ sourceRegexes :: [String] =
     "\\`(^_).*\\.scss\\'"
   ]
 
-alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
+alwaysExclude = [publicDir, "dist", ".git", ".vscode", ".stack-work"]
 
 questSuffix = "-quest.yaml"
 
@@ -199,8 +183,9 @@ questHTMLSuffix = "-quest.html"
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  map normalise $
-    alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
+  map normalise
+    $ alwaysExclude
+    <> lookupMetaOrElse [] "exclude-directories" meta
 
 -- glob patterns used to exclude paths from watching
 excludeGlob :: Meta -> [Pattern]
@@ -212,14 +197,15 @@ staticResources meta =
 
 unusedResources :: Meta -> IO [FilePath]
 unusedResources meta = do
+  live <- liveFile
   srcs <- Set.fromList <$> fastGlobFiles (excludeDirs meta) [] projectDir
-  live <- Set.fromList <$> String.lines . decodeUtf8 <$> readFileBS liveFile
+  live <- Set.fromList . String.lines . decodeUtf8 <$> readFileBS live
   return $ Set.toList $ Set.difference srcs live
 
 scanTargetsToFile :: (MonadIO m, Partial) => Meta -> FilePath -> m ()
 scanTargetsToFile meta file = do
   targets <- liftIO $ scanTargets meta
-  liftIO $ putStrLn $ "# scanned targets to " <> file
+  -- liftIO $ putStrLn $ "# scanned targets to " <> file
   writeFileChanged file $ decodeUtf8 $ Yaml.encodePretty Yaml.defConfig targets
 
 anySource :: FilePath -> Bool
@@ -252,11 +238,15 @@ scanTargets meta = do
       }
   where
     publicDep src = (publicDir </> src, src)
-    calcTargets = calcTargets' publicDir
-    calcPrivateTargets = calcTargets' privateDir
-    calcTarget baseDir srcSuffix targetSuffix source =
-      baseDir </> replaceSuffix srcSuffix targetSuffix source
-    calcTargets' baseDir srcSuffix targetSuffix sources =
-      Map.fromList $
-        map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s)) $
-          filter (srcSuffix `List.isSuffixOf`) sources
+
+calcTargets = calcTargets' publicDir
+
+calcPrivateTargets = calcTargets' privateDir
+
+calcTarget baseDir srcSuffix targetSuffix source =
+    baseDir </> replaceSuffix srcSuffix targetSuffix source
+
+calcTargets' baseDir srcSuffix targetSuffix sources =
+    Map.fromList
+    $ map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s))
+    $ filter (srcSuffix `List.isSuffixOf`) sources

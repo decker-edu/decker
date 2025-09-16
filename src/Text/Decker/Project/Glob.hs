@@ -31,9 +31,9 @@ fastGlobFiles' exclude predicate root = sort . map normalise <$> glob root
       dirExists <- doesDirectoryExist root
       fileExists <- doesFileExist root
       if
-          | dirExists -> globDir root
-          | fileExists -> globFile root
-          | otherwise -> return []
+        | dirExists -> globDir root
+        | fileExists -> globFile root
+        | otherwise -> return []
     globFile :: String -> IO [String]
     globFile file =
       if predicate file
@@ -50,18 +50,18 @@ fastGlobFiles exclude suffixes = fastGlobFiles' exclude predicate
   where
     predicate file = null suffixes || any (`isSuffixOf` file) suffixes
 
--- | Glob for directories efficiently. 'exclude' contains a list of directories
--- (relative to 'root') that will be culled from the traversal.
-fastGlobDirs :: [String] -> FilePath -> IO [FilePath]
-fastGlobDirs exclude root = map normalise <$> glob root
+-- | Glob for directories efficiently.
+fastGlobDirs :: [FilePath] -> (FilePath -> Bool) -> FilePath -> IO [FilePath]
+fastGlobDirs exclude predicate root = do
+  map normalise <$> glob root
   where
-    absExclude = map (normalise . (root </>)) exclude
-    absListDirectory dir =
-      map (normalise . (dir </>)) . filter (not . isPrefixOf ".") <$> listDirectory dir
     glob dir = do
       dirExists <- doesDirectoryExist dir
-      if dirExists && notElem dir absExclude
-        then (dir :) <$> (concat <$> (absListDirectory dir >>= mapM glob))
+      if dirExists && takeFileName dir `notElem` exclude
+        then do
+          files <- map (normalise . (dir </>)) <$> listDirectory dir
+          dirs <- concat <$> mapM glob files
+          return $ filter (predicate . takeFileName) $ dir : dirs
         else return []
 
 -- | Same as `fastGlobFiles` but groups results by file extension.

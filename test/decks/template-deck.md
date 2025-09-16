@@ -1,16 +1,24 @@
 ---
 lork: true
+meta-data:
+- /test/decks/macro-templates.yaml
 templates:
+  block-test: |
+    :(1) :(2) :(3) :(param1) :(param2) :(code)
   test: ":(1) :(2) :(3) [:(title)](:(url)) :(args)"
   test2: |
-    <a href=":(url)">Pony</a> :(args) <a href=":(url)">Unicorn</a>
+    `<a href=":(url)">`{=html}Pony`</a>`{=html} :(args)
+    `<a href=":(url)">`{=html}Unicorn`</a>`{=html} [:fas](ghost)
   video: |
+    ```{=html}
     <video controls style="width: var(--slide-width); height: var(--slide-height);">
     <source src=":(url)" type="video/mp4" />
     <track kind="subtitles" label="Deutsch" srclang="de" src=":(title)" default />
     </video>
+    ```
 title: Template Macros
 ---
+
 
 # Template
 
@@ -29,8 +37,29 @@ templates:
 
 ## Result
 
-Hallo [@test arg1 arg2 arg3](the%20url "Title") Was denn [@test2 There is
-no](the%20url "Title")
+-   Hallo [@test arg1 arg2 arg3](the%20url "Title")
+-   Was denn [@test2 There is no](the%20url "Title")
+
+--------------------------------------------------------------------------------
+
+# Wikipedia
+
+## Macro definition
+
+``` yaml
+  wp: |
+    <a href=":(url)"><i class="fa-brands fa-wikipedia-w"></i> - :(title)</a>
+```
+
+## Invocation
+
+``` markdown
+[@wp](https://de.wikipedia.org/wiki/SRGB-Farbraum "sRGB Farbraum")
+```
+
+## Result
+
+[@wp](https://de.wikipedia.org/wiki/SRGB-Farbraum "sRGB Farbraum")
 
 --------------------------------------------------------------------------------
 
@@ -38,7 +67,7 @@ no](the%20url "Title")
 
 ## The data definition
 
-```yaml
+``` yaml
 templates:
   video: |
     <video controls style="width: var(--slide-width); height: var(--slide-height);">
@@ -53,13 +82,19 @@ templates:
 [@video](/videos/myvideo.mp4 "/videos/mycaptions.vtt")
 ```
 
----
+--------------------------------------------------------------------------------
 
 # Into
 
-```html
+``` html
 <video controls style="width: var(--slide-width); height: var(--slide-height);">
 <source src="/videos/myvideo.mp4" type="video/mp4" />
 <track kind="subtitles" label="Deutsch" srclang="de" src="/videos/mycaptions.vtt" default />
 </video>
+```
+
+# Codeblock Macro
+
+``` {.arg1 .arg2 .arg3 macro="block-test" param1="p1" param2="p2"}
+The Block Test Code
 ```

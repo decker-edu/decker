@@ -18,10 +18,9 @@ import Control.Monad.Catch
 import Control.Monad.State
 import Data.List (isSuffixOf)
 import Data.Maybe
-import Data.Set qualified as Set
 import Data.Text qualified as Text
 import Network.HTTP.Types
-import Network.Mime
+-- import Network.Mime
 import Network.Wai.Handler.Warp
 import Network.Wai.Handler.WebSockets (websocketsOr)
 import Network.Wai.Middleware.Static
@@ -29,7 +28,8 @@ import Network.WebSockets
 import Relude
 import System.Directory
 import System.Directory qualified as Dir
-import System.FilePath.Posix
+-- import System.FilePath.Posix
+import System.FilePath
 import System.Random
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
@@ -38,6 +38,8 @@ import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Printf
 import Web.Scotty.Trans as Scotty
+import Text.Decker.Internal.Helper (uniqueTransientFileName)
+import Network.Wai (modifyResponse, mapResponseHeaders)
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =
@@ -53,19 +55,19 @@ removeClient tvar cid =
     remove (ServerState clients pages) =
       ServerState [c | c <- clients, cid /= fst c] pages
 
-addPage :: AppActionM ()
-addPage = do
-  tvar <- asks serverState
-  page <- requestPathString
-  atomically $ modifyTVar tvar (add page)
-  where
-    add page (ServerState clients pages) =
-      ServerState
-        clients
-        ( if ".html" `isSuffixOf` page
-            then Set.insert page pages
-            else pages
-        )
+-- addPage :: AppActionM ()
+-- addPage = do
+--   tvar <- asks serverState
+--   page <- requestPathString
+--   atomically $ modifyTVar tvar (add page)
+--   where
+--     add page (ServerState clients pages) =
+--       ServerState
+--         clients
+--         ( if ".html" `isSuffixOf` page
+--             then Set.insert page pages
+--             else pages
+--         )
 
 reloadClients :: TVar ServerState -> IO ()
 reloadClients tvar = do
@@ -89,6 +91,7 @@ uploadable = ["-manip.json", "-annot.json", "-times.json", "-transcript.json", "
 runHttpServer :: ActionContext -> IO ()
 runHttpServer context = do
   let meta = context ^. globalMeta
+  (Resources deckerSource packSource) <- deckerResources meta
   let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
   exists <- liftIO $ Dir.doesFileExist indexSource
@@ -104,18 +107,38 @@ runHttpServer context = do
   let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
   startUpdater state
   scottyOptsT opts (useState server) $ do
+    -- TODO this middleware business is not the right way to do this.
+    -- middleware is ecvaluated BEFORE any routes are resolved. so, if
+    -- a path can be served statically, it will not be routed. this is
+    -- the opposite of what wie want here. we want to serve static files
+    -- as a fallback.
+    middleware $ modifyResponse (mapResponseHeaders (("Cache-Control", "no-store") :))
+    when (context ^. devRun) $ do
+      -- first tries the resource pack
+      resourceMiddleware "support" packSource
+      -- then the decker default resources
+      resourceMiddleware "support" deckerSource
+    middleware $ staticPolicy (noDots >-> addBase publicDir)
+    middleware $ staticPolicy (noDots >-> addBase privateDir)
+    middleware $ websocketsOr defaultConnectionOptions $ reloader state
+    
     Scotty.get "/" $ redirect "index.html"
     Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
-    Scotty.get (fromString supportPath) $ serveSupport context
+    -- when (context ^. devRun) $
+    -- Scotty.get (regex "^/support/(.*)$") $ serveSupport context
     Scotty.get (regex "^/recordings/(.*)$") listRecordings
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
     Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
-    middleware $ websocketsOr defaultConnectionOptions $ reloader state
-    middleware $ staticPolicy (noDots >-> addBase publicDir)
-    middleware $ staticPolicy (noDots >-> addBase privateDir)
 
 useState state x = runReaderT x state
+
+resourceMiddleware prefix source =
+  case source of
+    (LocalDir base) -> middleware $ staticPolicy (noDots >-> hasPrefix prefix >-> addBase base)
+    _ -> middleware $ nullMiddleware
+    
+nullMiddleware app req respond = app req respond
 
 --       route
 --         [ ("/reload", runWebSocketsSnap $ reloader state),
@@ -182,38 +205,38 @@ headDirectory directory = do
 -- | Serves all files in the directory. If it is one of the optional annotation
 -- and recording stuff that does not exist (yet), return a "204 No Content"
 -- instead of a 404 so that the browser does not need to flag the 404.
-serveDirectory :: FilePath -> AppActionM ()
-serveDirectory directory = do
-  tvar <- asks serverState
-  path <- requestPathString
-  setHeader "Cache-Control" "no-store"
-  addPage
-  file $ directory </> path
+-- serveDirectory :: FilePath -> AppActionM ()
+-- serveDirectory directory = do
+--   tvar <- asks serverState
+--   path <- requestPathString
+--   setHeader "Cache-Control" "no-store"
+--   addPage
+--   file $ directory </> path
 
-serveSupport :: ActionContext -> AppActionM ()
-serveSupport context =
-  if context ^. devRun
-    then do
-      path <- requestPathString
-      let meta = context ^. globalMeta
-      sources <- liftIO $ deckerResources meta
-      serveResource sources ("support" </> path)
-      setHeader "Cache-Control" "no-store"
-    else do
-      serveDirectory supportDir
+-- serveSupport :: ActionContext -> AppActionM ()
+-- serveSupport context = do
+--   path <- requestPathString
+--   putStrLn $ "server support: " <> path
+--   let meta = context ^. globalMeta
+--   sources <- liftIO $ deckerResources meta
+--   serveResource sources ("support" </> path)
+--   setHeader "Cache-Control" "no-store"
 
-firstJustM :: [IO (Maybe a)] -> IO (Maybe a)
-firstJustM = foldM (\b a -> do if isNothing b then a else return b) Nothing
+-- firstJustM :: [IO (Maybe a)] -> IO (Maybe a)
+-- firstJustM = foldM (\b a -> do if isNothing b then a else return b) Nothing
 
-serveResource :: Resources -> FilePath -> AppActionM ()
-serveResource (Resources decker pack) path = do
-  resource <- liftIO $ firstJustM [readResource path pack, readResource path decker]
-  case resource of
-    Nothing -> status (Status 404 "Resource not found")
-    Just content -> do
-      setHeader "Cache-Control" "no-store"
-      setHeader "Content-Type" $ decodeUtf8 $ defaultMimeLookup (toText path)
-      raw $ toLazy content
+-- serveResource :: Resources -> FilePath -> AppActionM ()
+-- serveResource (Resources decker pack) path = do
+--   resource <- liftIO $ firstJustM [readResource path pack, readResource path decker]
+--   liftIO $ putStrLn $ "serving resource: " <> show pack <> ": " <> path
+--   case resource of
+--     Nothing -> status (Status 404 "Resource not found")
+--     Just content -> do
+--       setHeader "Content-Type" $ decodeUtf8 $ defaultMimeLookup (toText path)
+--       setHeader "Cache-Control" "no-store, no-cache, must-revalidate, max-age=0"
+--       setHeader "Pragma:" "no-cache"
+--       setHeader "Expires:" "0"
+--       raw $ toLazy content
 
 -- Accepts a request and adds the connection to the client list. Then reads the
 -- connection forever. Removes the client from the list on disconnect.

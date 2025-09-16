@@ -18,7 +18,7 @@ $endfor$
 $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$">
 $endif$
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 $if(template.favicon)$
     <link rel="shortcut icon" href="$template.favicon$">
 $endif$
@@ -49,45 +49,17 @@ $endif$
 
     <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/tudo-page.css">
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+    $if(template.font)$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/$template.font$.css">
+    $else$
+    <link rel="stylesheet" href="$decker-support-dir$/fonts/lato.css">
+    $endif$
     $for(template.css)$
     <link rel="stylesheet" href="$template.css$"/>
     $endfor$
     $for(template.page.css)$
     <link rel="stylesheet" href="$template.page.css$">
     $endfor$
-
-
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
 
   </head>
 
@@ -110,6 +82,7 @@ $endif$
       <h2>$subtitle$</h2>
       $endif$
     $endif$
+    <button id="page-color-button"></button>
     </header>
 
     <!-- main content -->
@@ -120,20 +93,18 @@ $body$
     </main>
 
     <!-- footer with author information -->
-    $if(author)$
     <footer>
-      $if(date)$
-      <p id="date">$date$</p>
-      $endif$
-      <p class="author">
-        $if(copyright)$$copyright$$endif$ $author$$if(affiliation)$, $affiliation$ $endif$
+      <p>
+        $if(copyright)$ $copyright$ $endif$ 
+        $if(author)$ $author$;&ensp; $endif$
+        $if(affiliation)$ $affiliation$;&ensp; $endif$
+        $if(date)$ $date$ $endif$
       </p>
     </footer>
-    $endif$
 
     <!-- spruch fuer ladebildschirm -->
     <div id="waiting-screen" class="glass">
-      <div id="waiting-spinner" class="fas fa-cog"></div>
+      <div id="waiting-spinner" class="fas fa-cog fa-spin"></div>
       <div id="waiting-quote">
         <div id="waiting-quote-text"></div>
         <div id="waiting-quote-author"></div>
@@ -148,13 +119,21 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/page.js"></script>
-  <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
-
   <script type="module">
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
+    import * as colorScheme from "./$decker-support-dir$/js/color-scheme.js";
+    const colorButton = document.getElementById("page-color-button");
+    colorButton.addEventListener("click", colorScheme.toggleColor);
+    colorButton.title = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
+    colorButton.ariaLabel = navigator.language === "de" ? "Farbmodus umschalten" : "Switch Colormode";
   </script>
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
 
+  $for(template.js)$
+  <script src="$template.js$"></script>
+  $endfor$
+  $for(template.js-module)$
+  <script type="module" src="$template.js$"></script>
+  $endfor$
   $for(template.page.js)$
   <script src="$template.page.js$"></script>
   $endfor$
@@ -169,7 +148,5 @@ $body$
         window.location.reload(true);
     };
   </script>
-
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
 
 </html>

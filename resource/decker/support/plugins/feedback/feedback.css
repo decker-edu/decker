@@ -23,6 +23,22 @@
   visibility: hidden;
 }
 
+.open-button .icon-combo {
+  display: grid;
+  grid-template-areas: "icons";
+  justify-items: center;
+}
+
+.open-button .icon-combo span {
+  grid-area: icons;
+}
+
+.open-button .icon-combo .fa-question {
+  font-size: 60%;
+  line-height: 1.5;
+  color: var(--background-color);
+}
+
 .open-button .feedback-badge {
   font-size: 50%;
 }
@@ -110,10 +126,14 @@ div.feedback-header input[type="password"] {
   color: var(--foreground-color);
 }
 
-div.feedback-header button,
+div.feedback-header button {
+  /* flex: 0 1; */
+  color: var(--menu-header-text-color);
+}
+
 div.feedback-footer button {
   flex: 0 1;
-  color: var(--menu-header-text-color);
+  color: var(--feedback-footer-text-color);
 }
 
 div.feedback-menu button {
@@ -135,7 +155,7 @@ div.feedback-header button > span {
   display: none;
 }
 
-div.feedback-menu div.feedback-list {
+div.feedback-menu .feedback-list {
   flex: 1 1;
   background-color: var(--list-background);
   padding: 0.3em;
@@ -143,7 +163,7 @@ div.feedback-menu div.feedback-list {
   overflow-y: scroll;
 }
 
-div.feedback-menu div.feedback-list div.feedback-item {
+div.feedback-menu .feedback-list .feedback-item {
   color: var(--foreground-color);
   background-color: var(--background-color);
   font-family: var(--ui-font-family);
@@ -167,14 +187,14 @@ div.feedback-content {
   overflow: hidden;
 }
 
-div.feedback-item.answer {
+.feedback-item.answer {
   display: block;
   background-color: rgba(230, 230, 230, 0.9);
   margin-left: 4ex;
   font-size: 80%;
 }
 
-div.feedback-item.answer > div.link {
+.feedback-item.answer > div.link {
   float: right;
 }
 
@@ -188,7 +208,7 @@ div.feedback-controls-wrapper {
   transform: translate(0, -50%);
 }
 
-div.feedback-list button {
+.feedback-list button {
   color: var(--icon-inactive-color);
   border: none;
   margin: 0;
@@ -214,7 +234,7 @@ div.feedback-menu button.cantvote:hover {
   color: var(--icon-disabled-color);
 }
 
-div.feedback-item button {
+.feedback-item button {
   flex: 0 1 content;
 }
 
@@ -223,13 +243,16 @@ div.feedback-menu div.feedback-question-input {
   padding: 0.3em;
 
   background: var(--feedback-list-background-color);
+
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
 }
 
 div.feedback-question-input textarea {
   resize: none;
   padding: 0.3em;
-  height: 6em;
-  width: calc(100% - 0.6em);
+  flex-grow: 1;
 
   color: var(--foreground-color);
   background-color: var(--feedback-input-background-color);
@@ -237,6 +260,28 @@ div.feedback-question-input textarea {
   border: none;
   border-radius: var(--feedback-element-border-radius);
   font-size: 0.8em;
+}
+
+div.feedback-question-input button.feedback-send-button {
+  font-size: 1.5rem;
+  flex-grow: 0;
+  background-color: var(--accent5);
+  color: var(--background-color);
+  padding: 1rem;
+  border-radius: var(--feedback-element-border-radius);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+div.feedback-question-input button.feedback-send-button:hover {
+  background-color: var(--accent5-bg);
+  color: var(--foreground-color);
+}
+
+div.feedback-question-input button.feedback-send-button span.fas {
+  padding: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -295,6 +340,29 @@ div.feedback-credentials input {
   font-size: 0.8em;
 }
 
+div.feedback-credentials input.error {
+  background-color: var(--accent0-bbg);
+}
+
+div.feedback-credentials button {
+  background-color: var(--accent5);
+  color: var(--background-color);
+  font-weight: bold;
+  margin-left: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+div.feedback-credentials button:hover {
+  background-color: var(--accent5-bg);
+  color: var(--foreground-color);
+}
+
+div.feedback-credentials button:active {
+  background-color: var(--accent5-fg);
+  color: var(--background-color);
+}
+
 div.feedback-login {
   flex: 0 1;
 
@@ -313,58 +381,58 @@ div.feedback-login.admin {
   color: var(--accent0);
 }
 
-div.feedback-menu div.feedback-item p,
+div.feedback-menu .feedback-item p,
 div.feedback-menu ul,
 div.feedback-menu ol {
   padding-bottom: 0.3em;
 }
 
-div.feedback-menu div.feedback-item p:last-child,
-div.feedback-menu div.feedback-item ul:last-child,
-div.feedback-menu div.feedback-item ol:last-child {
+div.feedback-menu .feedback-item p:last-child,
+div.feedback-menu .feedback-item ul:last-child,
+div.feedback-menu .feedback-item ol:last-child {
   padding-bottom: 0;
 }
 
 /* Markdown Styling of questions and answers */
 
-div.feedback-menu div.feedback-item {
+div.feedback-menu .feedback-item {
   font-size: 1em;
 }
 
-div.feedback-menu div.feedback-item em {
+div.feedback-menu .feedback-item em {
   font-style: italic;
 }
 
-div.feedback-menu div.feedback-item strong {
+div.feedback-menu .feedback-item strong {
   font-weight: bold;
 }
 
-div.feedback-menu div.feedback-item a {
+div.feedback-menu .feedback-item a {
   color: var(--accent4-fg);
 }
 
-div.feedback-menu div.feedback-item ol {
+div.feedback-menu .feedback-item ol {
   list-style-type: lower-alpha;
   list-style-position: inside;
 }
 
-div.feedback-menu div.feedback-item ul {
+div.feedback-menu .feedback-item ul {
   list-style-type: disc;
   list-style-position: inside;
 }
 
-div.feedback-menu div.feedback-item code {
+div.feedback-menu .feedback-item code {
   font-family: var(--code-font-family);
   font-size: 0.9em;
 }
 
-div.feedback-menu div.feedback-item pre {
+div.feedback-menu .feedback-item pre {
   padding: 0.2em;
   background-color: var(--code-background-color);
   white-space: pre-wrap;
 }
 
-div.feedback-menu div.feedback-item h1 {
+div.feedback-menu .feedback-item h1 {
   font-size: 1.2em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -372,7 +440,7 @@ div.feedback-menu div.feedback-item h1 {
   color: #333;
 }
 
-div.feedback-menu div.feedback-item h2 {
+div.feedback-menu .feedback-item h2 {
   font-size: 1.1em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -380,7 +448,7 @@ div.feedback-menu div.feedback-item h2 {
   color: #333;
 }
 
-div.feedback-menu div.feedback-item img {
+div.feedback-menu .feedback-item img {
   width: 100%;
   image-rendering: pixelated;
 }

@@ -17,39 +17,51 @@ function setHeight() {
 // makes positioning w.r.t. slide bottom difficult.
 // hence we remove these p-elements and put the
 // footers as children of the slide element
+// Changes by Hauer: Moved footer not into the slide
+// element, but the decker wrapper element
 function fixFooters() {
-  Reveal.getSlides().forEach(function (slide) {
-    let footers = slide.getElementsByClassName("footer");
-    for (var i = 0; i < footers.length; i++) {
-      let footer = footers[i];
-      let parent = footer.parentElement;
-      if (parent.nodeName == "P") {
-        slide.appendChild(footer);
-        if (parent.childNodes.length == 0) {
-          parent.parentElement.removeChild(parent);
+  const slides = Reveal.getSlides();
+  for (const slide of slides) {
+    const deckerWrapper = slide.querySelector(".decker");
+    if (!deckerWrapper) {
+      console.error("No decker wrapper found.", slide);
+      continue;
+    }
+    const footers = slide.getElementsByClassName("footer");
+    for (const footer of footers) {
+      const parent = footer.parentElement;
+      if (parent.nodeName === "P") {
+        deckerWrapper.appendChild(footer);
+        if (parent.childNodes.length === 0) {
+          parent.remove();
         }
       }
     }
-  });
+  }
 }
 
 /* check whether the current slide is too tall and print error in that case */
 function checkHeight() {
   const configHeight = Reveal.getConfig().height;
   const slide = Reveal.getCurrentSlide();
-  const slideHeight = slide.clientHeight;
-
-  if (slideHeight > configHeight) {
-    console.warn(
-      "slide " +
-        slideNumber() +
-        " is " +
-        (slideHeight - configHeight) +
-        "px too high"
-    );
-    slide.style.border = "1px dashed red";
+  const decker = slide.querySelector(".decker");
+  if (decker) {
+    const scrollHeight = decker.scrollHeight;
+    if (scrollHeight > configHeight) {
+      console.warn(
+        "slide " +
+          slideNumber() +
+          " is " +
+          (scrollHeight - configHeight) +
+          "px too high"
+      );
+      slide.style.border = "1px dashed red";
+    } else {
+      slide.style.border = "";
+    }
   } else {
-    slide.style.border = "";
+    console.error("[PRINT] slide has no decker container");
+    console.error(slide);
   }
 }
 
@@ -79,56 +91,49 @@ function setupIframes() {
  * from the sixth video on in this configuration.
  */
 function setupVideos() {
+  const headless =
+    /HeadlessChrome/.test(window.navigator.userAgent) || navigator.webdriver;
   let numVideos = 0;
-  const maxVideos = 5; // headless Chrome can handle 5 videos
+  const maxVideos = 7; // headless Chrome might stall for too many videos
 
   // go through all slides
   for (let slide of document.getElementsByTagName("section")) {
     // do we have a background video?
     if (slide.hasAttribute("data-background-video")) {
-      // handle headless Chrome bug
-      if (navigator.webdriver && numVideos >= maxVideos) {
+      // avoid headless Chrome bug
+      if (headless && numVideos >= maxVideos) {
         slide.removeAttribute("data-background-video");
-      }
-
-      // play video to 0.5s to get a poster frame
-      else {
-        var src = slide.getAttribute("data-background-video");
+      } else {
+        // play video to 0.5s to get a poster frame
+        let src = slide.getAttribute("data-background-video");
         if (!src.includes("#t=")) {
-          src = src + "#t=0.5";
+          src = src + "#t=1.0";
           slide.setAttribute("data-background-video", src);
         }
       }
-
       numVideos++;
     }
 
     // do we have videos on this slide?
     for (let video of slide.getElementsByTagName("video")) {
-      // handle headless Chrome bug
-      if (navigator.webdriver && numVideos >= maxVideos) {
-        /* do not load video */
-        video.src = "";
-        video.removeAttribute("data-src");
-        /* hide video, since we cannot determine its size anyway */
-        video.style.display = "none";
-      }
-
-      // play video to 0.5s to get a poster frame
-      else {
-        if (video.hasAttribute("data-src")) {
-          var src = video.getAttribute("data-src");
-          if (!src.includes("#t=")) src = src + "#t=0.5";
-
+      // play video to 0.5s to get a poster frame,
+      // but only if we don't have a poster already
+      if (video.hasAttribute("data-src") && !video.hasAttribute("poster")) {
+        // avoid headless Chrome bug
+        if (headless && numVideos >= maxVideos) {
+          video.src = "";
+          // video.style.border = "3px solid red";
+        } else {
+          let src = video.getAttribute("data-src");
+          if (!src.includes("#t=")) src = src + "#t=1.0";
           video.src = src;
-          video.removeAttribute("data-src");
+          // video.style.border = "3px solid lightgreen";
         }
-
-        video.removeAttribute("controls");
-        video.removeAttribute("data-autoplay");
-        video.removeAttribute("autoplay");
       }
-
+      video.removeAttribute("data-src");
+      video.removeAttribute("controls");
+      video.removeAttribute("data-autoplay");
+      video.removeAttribute("autoplay");
       numVideos++;
     }
   }

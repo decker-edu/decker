@@ -1,5 +1,4 @@
 @import url("../vendor/fontawesome/css/all.css");
-@import url("../fonts/lato.css");
 
 /**********************/
 /* Variables
@@ -28,7 +27,7 @@ header {
   justify-content: center;
   text-align: center;
   background: var(--primary-color);
-  padding: 2rem 0;
+  padding: 2rem 0 2rem;
   width: 100%;
 }
 
@@ -50,7 +49,7 @@ header > h2 {
   font-size: 2rem;
   margin: 0 auto;
   padding: 0;
-  font-family: monospace;
+  font-family: inherit;
   font-weight: normal;
 }
 
@@ -65,12 +64,13 @@ header nav {
 h1 {
   font-size: 1.5rem;
   margin-top: 2em;
+  margin-bottom: 0.5em;
 }
 
 h2 {
   font-size: 1.25rem;
-  margin-top: 0.5em;
-  font-family: monospace;
+  margin-top: 2em;
+  font-family: inherit;
 }
 
 hr {
@@ -88,8 +88,7 @@ details input {
 
 html {
   width: 100%;
-  height: 100vh;
-  font-family: "Lato";
+  height: 100dvh;
   position: relative;
   accent-color: var(--accent3);
 }
@@ -102,21 +101,19 @@ body.index {
   color: var(--foreground-color);
   text-align: justify;
   margin: auto;
-  width: 100%;
-  height: 100%;
+  min-width: 100%;
   max-width: 100%;
+  height: unset;
+  min-height: 100vh;
   line-height: 1.3; /* It is said 1.5 improves readability */
 }
 
-body.page {
-  max-width: 100%;
-}
-
 main {
-  flex-grow: 1;
-  padding-top: 1rem;
+  min-height: 100%;
   width: 50rem;
-  max-width: 50rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
   margin: auto;
 }
 
@@ -129,17 +126,13 @@ footer {
 }
 
 footer p {
-  padding: 0.5em;
+  display: inline-block;
+  width: 100%;
   margin: 0;
+  padding: 0.5em;
   line-height: 2em;
-}
-
-@media only screen and (max-width: 600px) {
-  main {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 1rem;
-  }
+  text-align: center;
+  box-sizing: border-box;
 }
 
 a {
@@ -214,21 +207,27 @@ details input {
  * TABLES
  *********************************************/
 
-table {
+table.search td {
+  vertical-align: top;
+}
+table.search td span {
+  line-height: 1.3;
+}
+
+body.index table {
   display: table;
-  /* width: fit-content; */
   width: 100%;
   margin: auto;
   border-collapse: collapse;
   border-spacing: 2px;
-  border-top: 2px solid var(--foreground-color);
-  border-bottom: 2px solid var(--foreground-color);
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
+  border-top: 1px solid var(--shade4);
+  border-bottom: 1px solid var(--shade4);
 }
 
-table caption {
+body.index table caption {
   margin: 10px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
@@ -237,45 +236,47 @@ table caption {
   caption-side: bottom;
 }
 
-table th {
+body.index table th {
   font-weight: bold;
 }
 
-table th {
-  border-bottom: 1px solid;
+body.index table th {
+  border-bottom: 1px solid var(--shade4);
 }
 
-table th,
-table td {
+body.index table th,
+body.index table td {
   text-align: left;
-  padding: 0.2em 1em 0.2em 1em;
+  padding: 0.2em;
 }
 
-table th[align="center"],
-table td[align="center"] {
+body.index table th[align="center"],
+body.index table td[align="center"] {
   text-align: center;
 }
 
-table th[align="right"],
-table td[align="right"] {
+body.index table th[align="right"],
+body.index table td[align="right"] {
   text-align: right;
 }
 
-table tbody tr:last-child th,
-table tbody tr:last-child td {
+body.index table tbody tr:last-child th,
+body.index table tbody tr:last-child td {
   border-bottom: none;
 }
 
-td[align="center"] {
-  text-align: center;
+body.index table :is(p, span) {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
 }
 
-td[align="right"] {
-  text-align: right;
+/* last column (icons) should be as small as possible */
+body.index table tr td:last-child {
+  width: 10%;
 }
 
-td[align="left"] {
-  text-align: left;
+body.index table tr {
+  line-height: 2.2;
 }
 
 p {
@@ -283,8 +284,259 @@ p {
   margin-bottom: 1rem;
 }
 
-progress {
-  accent-color: initial;
-  margin: auto 0.5em;
-  width: 3em;
+a,
+button,
+input,
+select,
+h2,
+tr,
+summary,
+textarea,
+.progress,
+.icons {
+  transition: outline-offset 0.1s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: -1px !important;
+  }
+  &:active {
+    outline-offset: -3px !important;
+  }
+}
+
+.german {
+  display: none;
+}
+
+html[lang="de"] .german {
+  display: unset;
+}
+
+html[lang="de"] .english {
+  display: none;
+}
+
+details.howto[lang="en"] .english {
+  display: unset !important;
+}
+
+details.howto[lang="de"] .english {
+  display: none !important;
+}
+
+details.howto[lang="de"] .german {
+  display: unset !important;
+}
+
+details.howto[lang="en"] .german {
+  display: none !important;
+}
+
+a.handout-link {
+  display: inline-block;
+  vertical-align: bottom;
+  position: relative;
+  width: 1em;
+  height: 1em;
+}
+
+a.handout-link::before {
+  display: block;
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--accent5-fg);
+  border-radius: 2px;
+}
+
+a.handout-link::after {
+  display: block;
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 5%;
+  width: 0.8em;
+  height: 0.45em;
+  background-color: var(--accent5-fg);
+  border-radius: 2px;
+}
+
+a.handout-link:hover::before,
+a.handout-link:hover::after {
+  background-color: var(--accent5);
+}
+
+.icons {
+  font-size: 1.25rem;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  align-content: center;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 0.2em;
+  padding: 0.1em;
+  gap: 1em;
+  & > a {
+    width: 1em;
+    height: 1em;
+    border-radius: 0.1em;
+    line-height: 1em;
+    padding: 0.2em;
+  }
+  & a[href$="deck.html"] {
+    order: 1;
+  }
+  & a[href$="deck.html?handout"] {
+    order: 2;
+  }
+  & a[href$="deck.html?a11y"] {
+    order: 3;
+  }
+  & a[href$="deck.pdf"] {
+    order: 4;
+  }
+  & .progress {
+    order: 5;
+  }
+}
+
+.icons a[href$="deck.html"],
+.icons a[href$="deck.html?handout"] {
+  position: relative;
+  &::after,
+  &::before {
+    display: block;
+    position: absolute;
+    content: "";
+    width: 0.9em;
+    height: 0.5em;
+    left: 50%;
+    top: 50%;
+    background-color: var(--accent5-fg);
+    border-radius: 0.15em;
+    box-sizing: border-box;
+    box-shadow: var(--background-color) 0.07em 0.07em;
+  }
+}
+.icons a[href$="deck.html?handout"] {
+  &::after {
+    translate: -50% -110%;
+  }
+  &::before {
+    translate: -50% 10%;
+  }
+}
+.icons a[href$="deck.html"] {
+  & > i.fa-html5 {
+    display: none;
+  }
+  &::after {
+    translate: -60% -80%;
+  }
+  &::before {
+    translate: -30% -30%;
+  }
+}
+
+/* hide empty lists */
+section[data-items="0"] {
+  display: none;
+}
+
+.index details {
+  position: relative;
+  & select {
+    position: absolute;
+
+    /* size should fit top-right corner of select-summary */
+    right: 0;
+    top: 0;
+    height: 30px;
+    font-size: 24px;
+    border-radius: 0;
+    border-top-right-radius: 8px;
+    padding: 0;
+    padding-left: 4px;
+
+    outline: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+
+    /* remove browser-specific appearance */
+    -webkit-appearance: none;
+    appearance: none;
+
+    /* Add arrow icon. Source: https://material.io/tools/icons/?icon=keyboard_arrow_down&style=baseline */
+    padding-right: 24px;
+    background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" xml:space="preserve"><path d="M7.41,8.59L12,13.17l4.59-4.58L18,10l-6,6l-6-6L7.41,8.59z"/><path fill="none" d="M0,0h24v24H0V0z"/></svg>');
+    background-position: center right;
+    background-repeat: no-repeat;
+
+    &:hover {
+      background-color: var(--greenish);
+    }
+  }
+  & li {
+    margin-bottom: 0.5em;
+  }
+}
+
+/* markers can not have a right padding */
+details.howto > summary::marker {
+  content: "";
+}
+
+details[role="search"] > summary::marker {
+  content: "";
+}
+
+details[role="search"] > summary::before {
+  content: "\f002";
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  color: var(--greenish);
+  padding-right: 0.5rem;
+}
+
+details.howto > summary::before {
+  content: "\3f";
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  color: var(--greenish);
+  padding-right: 0.5rem;
+}
+
+/*********************************************
+* FontAwesome buttons
+*********************************************/
+
+/* adapted from https://dev.to/kevinbism/recreating-apples-liquid-glass-effect-with-pure-css-3gpl */
+button.fa-button {
+  position: relative;
+  width: 2em;
+  height: 2em;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(2px) saturate(150%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2),
+    inset 0 4px 20px rgba(255, 255, 255, 0.3);
+}
+@media (hover: hover) {
+  button.fa-button:not([aria-disabled="true"]):hover {
+    color: var(--icon-active-color);
+    background-color: var(--background-color);
+    border: 2px solid var(--icon-active-color);
+  }
+}
+button.fa-button:not([aria-disabled="true"]):focus-visible {
+  color: var(--focus-color);
+  background-color: var(--background-color);
+  border: 2px solid var(--focus-color);
 }

@@ -15,14 +15,14 @@ $if(keywords)$
 $endif$
 $if(title)$
 $if(subtitle)$
-  <title>$title$: $subtitle$</title>
+  <title>$for(title)$ $title$$endfor$: $for(subtitle)$ $subtitle$$endfor$</title>
 $else$
-  <title>$title$</title>
+  <title>$for(title)$ $title$$endfor$</title>
 $endif$
 $endif$
 
   <!-- PWA stuff -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-touch-fullscreen" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
@@ -63,6 +63,8 @@ $body$
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script src="$decker-support-dir$/vendor/chartjs/chart.umd.js"></script>
+  <script src="$decker-support-dir$/plugins/quizzer/wordcloud2.js"></script>
+  <script src="$decker-support-dir$/plugins/quizzer/d3-sankey.min.js"></script>
   <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
 
@@ -72,13 +74,13 @@ $for(template.js)$
   <script src="$template.js$"></script>
 $endfor$
 $for(template.js-module)$
-  <script module src="$template.js-module$"></script>
+  <script type="module" src="$template.js-module$"></script>
 $endfor$  
 $for(template.deck.js)$
   <script src="$template.deck.js$"></script>
 $endfor$
 $for(template.deck.js-module)$
-  <script module src="$template.deck.js$"></script>
+  <script type="module" src="$template.deck.js-module$"></script>
 $endfor$
 
 </body>
