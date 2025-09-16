@@ -127,7 +127,7 @@ div.feedback-header input[type="password"] {
 }
 
 div.feedback-header button {
-  flex: 0 1;
+  /* flex: 0 1; */
   color: var(--menu-header-text-color);
 }
 

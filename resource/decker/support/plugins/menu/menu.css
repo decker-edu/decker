@@ -30,6 +30,7 @@
   grid-column: 2 / 6;
   display: grid;
   grid-template-columns: subgrid;
+  justify-items: center;
   &:has(:focus-visible) {
     outline: solid 2px var(--focus-color) !important;
     outline-offset: 2px;
