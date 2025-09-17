@@ -58,8 +58,7 @@
 
 .menu-header button[aria-pressed="true"] {
   background-color: var(--accent3);
-  border: 1px inset var(--foreground-color);
-  border-radius: 0.25rem;
+  border: 1px solid var(--menu-text-header-color);
 }
 
 .menu-header button[aria-pressed="true"]:hover {

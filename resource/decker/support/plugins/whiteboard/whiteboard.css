@@ -105,10 +105,10 @@ button.whiteboard.radiobutton {
   border-radius: 100%;
 }
 
-button.whiteboard.checkbox[data-active="false"],
+/* button.whiteboard.checkbox[data-active="false"],
 button.whiteboard.radiobutton[data-active="false"] {
   border: 2px solid var(--icon-inactive-color);
-}
+} */
 button.whiteboard.checkbox[data-active="true"],
 button.whiteboard.radiobutton[data-active="true"] {
   border: 2px solid var(--icon-active-color);
@@ -199,11 +199,9 @@ html.print-pdf #whiteboardButtons {
   text-align: center;
   vertical-align: middle;
   color: var(--shade6);
-}
-
-#whiteboardColorPicker button.whiteboard:hover {
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  border-radius: 100%;
+  background: transparent;
+  width: calc(var(--icon-size) * 2);
+  height: calc(var(--icon-size) * 2);
 }
 
 /* MacOS only shows scrollbars when they are used.
