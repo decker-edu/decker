@@ -44,10 +44,6 @@ let localization;
 
 let pluginButton;
 
-function transition(name) {
-  return (_) => uiState.transition(name);
-}
-
 // The state of this plugins UI. All possible legal states sre encoded in
 // `uiStates`. Each state has set of possible transition actions together with
 // the target states defined. For each state change, the DOM elements in
@@ -564,9 +560,9 @@ async function setupRecorder() {
     // capture video stream of webcam
     await captureCamera();
 
-    recordButton.disabled = undefined;
-    pauseButton.disabled = true;
-    stopButton.disabled = true;
+    recordButton.ariaDisabled = "false";
+    pauseButton.ariaDisabled = "true";
+    stopButton.ariaDisabled = "true";
 
     // open panel to select camera and mic
     openRecordPanel();
@@ -777,9 +773,9 @@ async function startRecording() {
   };
 
   recorder.start();
-  recordButton.disabled = true;
-  pauseButton.disabled = undefined;
-  stopButton.disabled = undefined;
+  recordButton.ariaDisabled = "true";
+  pauseButton.ariaDisabled = "false";
+  stopButton.ariaDisabled = "false";
   micSelect.disabled = true;
   camSelect.disabled = true;
   return true;
@@ -787,26 +783,28 @@ async function startRecording() {
 
 function pauseRecording() {
   recorder.pause();
-  recordButton.disabled = true;
-  pauseButton.disabled = undefined;
-  stopButton.disabled = undefined;
+  recordButton.ariaDisabled = "true";
+  pauseButton.ariaDisabled = "false";
+  pauseButton.ariaPressed = "true";
+  stopButton.ariaDisabled = "false";
   return true;
 }
 
 function resumeRecording() {
   recorder.resume();
-  recordButton.disabled = true;
-  pauseButton.disabled = undefined;
-  stopButton.disabled = undefined;
+  recordButton.ariaDisabled = "true";
+  pauseButton.ariaDisabled = "false";
+  pauseButton.removeAttribute("aria-pressed");
+  stopButton.ariaDisabled = "false";
   return true;
 }
 
 function stopRecording() {
   recorder.stop();
   stream.getTracks().forEach((s) => s.stop());
-  recordButton.disabled = undefined;
-  pauseButton.disabled = true;
-  stopButton.disabled = true;
+  recordButton.ariaDisabled = "false";
+  pauseButton.ariaDisabled = "true";
+  stopButton.ariaDisabled = "true";
   micSelect.disabled = undefined;
   camSelect.disabled = undefined;
 
@@ -896,7 +894,7 @@ function createPlayerGUI() {
     id: "explain-play",
     classes: "explain fa-button fas fa-play",
     title: "Play video recording",
-    onclick: transition("play"),
+    onclick: () => uiState.transition("play"),
   });
 
   if (Reveal.hasPlugin("ui-anchors")) {
@@ -1041,7 +1039,7 @@ function createPlayerGUI() {
     lastTap = now;
   });
 
-  player.on("ended", transition("stop"));
+  player.on("ended", () => uiState.transition("stop"));
 
   player.on("error", (_) => {
     console.error(
@@ -1332,26 +1330,43 @@ async function createRecordingGUI() {
 
   recordButton = createElement({
     type: "button",
-    classes: "explain record-button fas fa-play-circle",
+    classes: "explain record-button fas fa-play-circle fa-button",
     title: "Start recording",
     parent: row,
-    onclick: transition("record"),
+    onclick: () => {
+      console.log("start");
+      if (recordButton.ariaDisabled === "true") {
+        console.log("cancel");
+        return;
+      }
+      uiState.transition("record");
+    },
   });
 
   pauseButton = createElement({
     type: "button",
-    classes: "explain pause-button fas fa-pause-circle",
+    classes: "explain pause-button fas fa-pause-circle fa-button",
     title: "Pause/resume recording",
     parent: row,
-    onclick: transition("pause"),
+    onclick: () => {
+      if (pauseButton.ariaDisabled === "true") {
+        return;
+      }
+      uiState.transition("pause");
+    },
   });
 
   stopButton = createElement({
     type: "button",
-    classes: "explain stop-button fas fa-stop-circle",
+    classes: "explain stop-button fas fa-stop-circle fa-button",
     title: "Stop recording",
     parent: row,
-    onclick: transition("stop"),
+    onclick: () => {
+      if (stopButton.ariaDisabled === "true") {
+        return;
+      }
+      uiState.transition("stop");
+    },
   });
 
   /* inert everything but the toggle button */
@@ -1835,7 +1850,7 @@ function updatePlayButton() {
 
 function enableViewButton() {
   if (pluginButton && Decker.isPresenterMode()) {
-    pluginButton.airaDisabled = false;
+    pluginButton.airaDisabled = "false";
   }
   return true;
 }

@@ -48,28 +48,6 @@
   grid-column: 1 / 1;
 }
 
-.menu-header button:hover {
-  color: var(--icon-hover-color);
-}
-
-.menu-header button:active {
-  color: var(--icon-active-color);
-}
-
-.menu-header button[aria-pressed="true"] {
-  background-color: var(--accent3);
-  border: 1px solid var(--menu-text-header-color);
-}
-
-.menu-header button[aria-pressed="true"]:hover {
-  color: var(--foreground-color);
-}
-
-.menu-header button[aria-disabled="true"] {
-  cursor: default;
-  color: var(--shade4);
-}
-
 ul.slide-list {
   font-size: 0.8em;
   list-style: none;
