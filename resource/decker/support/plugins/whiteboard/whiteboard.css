@@ -108,7 +108,7 @@ html.print-pdf #whiteboardButtons {
 }
 
 #whiteboardButtons.active.showMenu {
-  background-color: var(--shade1);
+  background-color: var(--menu-background-color);
   border: 1px solid var(--icon-active-color);
 }
 
@@ -147,7 +147,7 @@ html.print-pdf #whiteboardButtons {
   z-index: 40;
   border-radius: calc(var(--icon-size) * 0.5);
   border: 1px solid var(--icon-active-color);
-  background-color: var(--shade1);
+  background-color: var(--menu-background-color);
   display: grid;
   gap: 0.5rem;
   grid-template-columns: repeat(8, 1fr);
