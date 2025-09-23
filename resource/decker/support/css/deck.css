@@ -293,12 +293,14 @@ a,
 button,
 input,
 select,
-li,
+li[tabindex],
+.slides.needScrollbar,
+summary,
 textarea {
   transition: outline-offset 0.1s ease !important;
   outline-offset: 30px;
   &:focus-visible {
-    outline: solid 3px var(--orangeish) !important;
+    outline: solid 3px var(--focus-color) !important;
     outline-offset: -1px !important;
   }
   &:active {
