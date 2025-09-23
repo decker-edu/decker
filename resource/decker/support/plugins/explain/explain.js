@@ -569,6 +569,7 @@ async function setupRecorder() {
 
     // disable plugin menu button
     pluginButton.ariaDisabled = "true";
+    pluginButton.setLabel(localization.invalid_state);
     return true;
   } catch (e) {
     console.error(e);
@@ -794,7 +795,7 @@ function resumeRecording() {
   recorder.resume();
   recordButton.ariaDisabled = "true";
   pauseButton.ariaDisabled = "false";
-  pauseButton.removeAttribute("aria-pressed");
+  pauseButton.ariaPressed = "false";
   stopButton.ariaDisabled = "false";
   return true;
 }
@@ -1846,13 +1847,6 @@ function setupCallbacks() {
 function updatePlayButton() {
   playButton.style.display =
     currentRevealSlideIndex() == -1 ? "none" : "initial";
-}
-
-function enableViewButton() {
-  if (pluginButton && Decker.isPresenterMode()) {
-    pluginButton.airaDisabled = "false";
-  }
-  return true;
 }
 
 // export the plugin

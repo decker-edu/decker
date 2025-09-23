@@ -36,6 +36,7 @@ function onStart() {
         localization.activate_presenter_mode,
         togglePresenterMode
       );
+      pluginButton.setAttribute("aria-pressed", "false");
     }
 
     Decker.addPresenterModeListener(onPresenterMode);

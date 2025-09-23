@@ -127,14 +127,6 @@ html.print-pdf #whiteboardButtons {
   display: inline-block;
 }
 
-#whiteboardButtons button {
-  color: var(--icon-inactive-color);
-}
-
-#whiteboardButtons button.checkbox {
-  border-radius: 15%;
-}
-
 /* container for color picker */
 #whiteboardColorPicker {
   position: absolute;
@@ -164,7 +156,7 @@ html.print-pdf #whiteboardButtons {
   padding: 0;
   text-align: center;
   vertical-align: middle;
-  color: var(--shade6);
+/*  color: var(--shade6); */
   background: transparent;
   width: calc(var(--icon-size) * 2);
   height: calc(var(--icon-size) * 2);

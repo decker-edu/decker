@@ -446,10 +446,16 @@ button.fa-button {
   }
 }
 
+button.fa-button[aria-pressed="false"],
+button.fa-button[aria-checked="false"] {
+  box-shadow: inset -1px -1px var(--shade7);
+}
+
 button.fa-button[aria-pressed="true"],
 button.fa-button[aria-checked="true"] {
   background-color: var(--accent3);
   border-color: var(--accent3);
+  box-shadow: inset 1px 1px var(--shade7);
 }
 
 button.fa-button[aria-pressed="true"]:hover,

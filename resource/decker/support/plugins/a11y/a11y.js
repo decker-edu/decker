@@ -188,6 +188,7 @@ const Plugin = {
           localization.activate_accessibility,
           toggleAccessibility
         );
+        pluginButton.ariaPressed = "false";
       }
     });
     if (a11y) {

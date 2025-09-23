@@ -115,6 +115,7 @@ function activateHandoutMode() {
   // Switch state of view menu button
   if (pluginButton) {
     pluginButton.setLabel(localization.deactivate_handout_mode);
+    pluginButton.ariaPressed = "true";
   }
 
   // Store current reveal config and disable everything but keyboard shortcuts
@@ -290,6 +291,7 @@ function disassembleHandoutMode() {
   // Change state of view menu button
   if (pluginButton) {
     pluginButton.setLabel(localization.activate_handout_mode);
+    pluginButton.ariaPressed = "false";
   }
 
   // Restore configuration
@@ -709,6 +711,7 @@ function createButtons() {
       toggleHandoutMode
     );
     attachAnimatedIcon(pluginButton);
+    pluginButton.ariaPressed = "false";
   }
 
   // add zoom in/out buttons
