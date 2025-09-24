@@ -6,7 +6,6 @@
  * @author Sebastian Hauer (rewrite)
  */
 import client from "./api-client.js";
-
 class Feedback {
   timeout = 500;
 
@@ -124,7 +123,7 @@ class Feedback {
   /**
    * Opens the menu and updates its content. Also focuses the first button in the menu.
    */
-  openMenu() {
+  openMenu(event) {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
       // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
@@ -132,22 +131,39 @@ class Feedback {
       if (!document.documentElement.classList.contains("handout"))
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(true);
+      }
+      this.reveal.configure({ keyboard: false });
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
       this.menu.close_button.focus();
+      if (event && event.detail === 0) {
+        this.menu.close_button.focus();
+      }
     }
   }
 
   /**
    * Closes the menu and focuses the button that opened it.
    */
-  closeMenu() {
+  closeMenu(event) {
     if (!this.menu.container.inert) {
       this.menu.container.inert = true;
       this.reveal.getRevealElement().inert = false;
+      if (this.reveal.hasPlugin("ui-anchors")) {
+        const anchors = this.reveal.getPlugin("ui-anchors");
+        anchors.setInert(false);
+      }
       localStorage.removeItem("feedback-state");
       this.glass.classList.remove("show", "blur");
-      this.open_button.focus();
+      if (event && event.detail === 0) {
+        setTimeout(() => this.open_button.focus());
+      }
+      if (!document.documentElement.classList.contains("handout")) {
+        this.reveal.configure({ keyboard: true });
+      }
     }
   }
 
@@ -284,8 +300,16 @@ class Feedback {
    * @param {*} answered
    */
   updateBadges(value, answered) {
+    let label;
+    if (value > 0) {
+      label = `${this.localization.interface.open_label}, ${value} ${this.localization.interface.question_string}`;
+    } else {
+      label = this.localization.interface.open_label;
+    }
     this.button_badge.textContent = value;
     this.button_badge.setAttribute("data-count", value);
+    this.open_button.title = label;
+    this.open_button.ariaLabel = label;
     this.menu.badge.textContent = value;
     this.menu.badge.setAttribute("data-count", value);
     if (answered) {
@@ -447,20 +471,21 @@ class Feedback {
     let isAnswered = comment.answers && comment.answers.length > 0;
 
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="feedback-item">
+    template.innerHTML = String.raw`<li class="feedback-item" role="menuitem">
   <div class="feedback-content">
-    ${comment.html}
+    <span class="sr-only">${text.question}: </span>${comment.html}
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
-      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${
-      comment.votes > 0 ? comment.votes : ""
-    }</span>
+      <span class="votes" title="${text.votes}" aria-label="${
+      comment.votes > 0 ? comment.votes : 0
+    } ${text.votes}">${comment.votes > 0 ? comment.votes : ""}</span>
       <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${
       !isAuthor ? "canvote" : "cantvote"
     } ${comment.didvote ? "didvote" : ""}"
         title="${comment.didvote ? text.downvote : text.upvote}"
-        aria-label="${comment.didvote ? text.downvote : text.upvote}">
+        aria-label="${comment.didvote ? text.downvote : text.upvote}"
+        aria-disabled="${isAuthor}">
       </button>
       ${
         isDeletable
@@ -482,17 +507,17 @@ class Feedback {
           ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${
               isDeletable ? text.reset : text.answered
             }" aria-label="${isDeletable ? text.reset : text.answered}" ${
-              !isDeletable ? "disabled" : ""
+              !isDeletable ? "aria-disabled" : ""
             }></button>`
           : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${
               isDeletable ? text.mark : text.notanswered
             }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${
-              !isDeletable ? "disabled" : ""
+              !isDeletable ? "aria-disabled" : ""
             }></button>`
       }
     </div>
   </div>
-</div>`;
+</li>`;
     let question = template.content.firstElementChild;
     if (!isAuthor) {
       let voteButton = question.querySelector(".vote");
@@ -551,9 +576,9 @@ class Feedback {
     let html = answer.html ? answer.html : "";
     let template = document.createElement("template");
     template.innerHTML = String.raw`
-      <div class="feedback-item answer">
+      <li class="feedback-item answer" role="menu-item">
         <div class="feedback-content">
-          ${html}
+          <span class="sr-only">${text.answer}: </span>${html}
         </div>
         <div class="feedback-controls">
           ${
@@ -572,7 +597,7 @@ class Feedback {
               : ""
           }
         </div>
-      </div>`;
+      </li>`;
     let item = template.content.cloneNode(true);
     if (isAdmin) {
       let deleteButton = item.querySelector(".feedback-delete-answer-button");
@@ -607,6 +632,14 @@ class Feedback {
         let block = this.createAnswerContainer(answer);
         this.menu.feedback_list.appendChild(block);
       }
+    }
+    if (this.menu.feedback_list.firstElementChild) {
+      this.menu.feedback_list.firstElementChild.setAttribute("tabindex", "0");
+    }
+    const buttons = this.menu.feedback_list.querySelectorAll("button");
+    for (const button of buttons) {
+      button.setAttribute("tabindex", "-1");
+      button.setAttribute("aria-hidden", true);
     }
     MathJax.typeset([this.menu.feedback_list]);
     this.menu.feedback_list.scrollTop = 0;
@@ -688,7 +721,11 @@ class Feedback {
    */
   createInterface() {
     let text = this.localization.interface;
-    let button_string = String.raw`<button class="fa-button open-button fas fa-question-circle" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
+    let button_string = String.raw`<button class="fa-button open-button" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
+      <div class="icon-combo">
+        <span class="fas fa-message"></span>
+        <span class="fas fa-question"></span>
+      </div>
       <div class="feedback-badge"></div>
     </button>`;
 
@@ -699,10 +736,10 @@ class Feedback {
         <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}" role="menuitem">
         </button>
       </div>
-      <div class="feedback-list"></div>
+      <ul class="feedback-list" role="group"></ul>
       <div class="feedback-question-input">
-        <textarea wrap="hard" placeholder="${this.localization.question_placeholder}" tabindex="0"></textarea> 
-        <button class="feedback-send-button" aria-label="${this.localization.send_comment}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment}</span></button>
+        <textarea wrap="hard" placeholder="${this.localization.question_placeholder}"></textarea> 
+        <button class="feedback-send-button" aria-label="${this.localization.send_comment_label}"><span class="fas fa-paper-plane"></span><span>${this.localization.send_comment_html}</span></button>
       </div>
       <div class="feedback-footer">
         <div class="feedback-login">
@@ -756,16 +793,16 @@ class Feedback {
 
     /* Add EventListeners */
 
-    this.open_button.addEventListener("click", () => this.openMenu());
+    this.open_button.addEventListener("click", (event) => this.openMenu(event));
 
     this.menu.feedback_input.addEventListener("keypress", (e) =>
       e.stopPropagation()
     );
-    this.menu.feedback_send_button.addEventListener("click", (e) =>
-      this.sendComment()
+    this.menu.feedback_send_button.addEventListener("click", (event) =>
+      this.sendComment(event)
     );
     this.menu.close_button.addEventListener("click", (event) =>
-      this.closeMenu()
+      this.closeMenu(event)
     );
     this.menu.feedback_login_button.addEventListener("click", (event) =>
       this.toggleLoginArea()
@@ -801,13 +838,148 @@ class Feedback {
       this.slideChanged(event.currentSlide);
     });
 
+    /* Trap focus inside Menu */
+
+    this.menu.feedback_login_button.addEventListener("keydown", (event) => {
+      if (
+        this.menu.feedback_credentials.container.classList.contains("visible")
+      ) {
+        return;
+      } else if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() => this.menu.close_button.focus());
+      }
+    });
+
+    this.menu.feedback_credentials.login_button.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Tab" && !event.shiftKey) {
+          event.preventDefault();
+          setTimeout(() => this.menu.close_button.focus());
+        }
+      }
+    );
+
+    this.menu.feedback_list.addEventListener("keydown", (event) => {
+      function changeFocus(element) {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          document.activeElement.removeAttribute("tabindex");
+        }
+        element.setAttribute("tabindex", "0");
+        element.focus();
+      }
+      const firstItem = this.menu.feedback_list.firstElementChild;
+      const lastItem = this.menu.feedback_list.lastElementChild;
+      if (event.key === "ArrowDown") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          if (document.activeElement === lastItem) {
+            changeFocus(firstItem);
+          } else {
+            const target = document.activeElement.nextElementSibling;
+            changeFocus(target);
+          }
+        }
+      }
+      if (event.key === "ArrowUp") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          if (document.activeElement === firstItem) {
+            changeFocus(lastItem);
+          } else {
+            const target = document.activeElement.previousElementSibling;
+            changeFocus(target);
+          }
+        }
+      }
+      if (event.key === "Enter") {
+        if (document.activeElement && document.activeElement.tagName === "LI") {
+          const controls =
+            document.activeElement.querySelector(".feedback-controls");
+          const buttons = controls.querySelectorAll("button");
+          const focusOutListener = function (event) {
+            if (controls.contains(event.relatedTarget)) {
+              return;
+            }
+            controls.removeEventListener("focusout", focusOutListener);
+            for (const button of buttons) {
+              button.setAttribute("tabindex", "-1");
+              button.setAttribute("aria-hidden", true);
+            }
+          };
+          controls.addEventListener("focusout", focusOutListener);
+          for (const button of buttons) {
+            button.removeAttribute("tabindex");
+            button.removeAttribute("aria-hidden");
+          }
+          if (buttons.length > 0) {
+            buttons[0].focus();
+            event.preventDefault();
+          }
+        }
+      }
+      if (event.key === "Escape") {
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        ) {
+          const listElement = document.activeElement.closest("li");
+          listElement.focus();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }
+      if (event.key === "Tab") {
+        // If we have focus on one of the buttons
+        if (
+          document.activeElement &&
+          document.activeElement.tagName === "BUTTON"
+        ) {
+          const controls = document.activeElement.closest(".feedback-controls");
+          const buttons = controls.querySelectorAll("button");
+          const firstButton = buttons[0];
+          const lastButton = buttons[buttons.length - 1];
+          if (document.activeElement === lastButton && !event.shiftKey) {
+            firstButton.focus();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          if (document.activeElement === firstButton && event.shiftKey) {
+            lastButton.focus();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }
+      }
+    });
+
+    this.menu.close_button.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        if (
+          this.menu.feedback_credentials.container.classList.contains("visible")
+        ) {
+          setTimeout(() => this.menu.feedback_credentials.login_button.focus());
+        } else {
+          setTimeout(() => this.menu.feedback_login_button.focus());
+        }
+      }
+    });
+
+    /* Exit with ESC */
+
+    this.menu.container.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        this.closeMenu(event);
+      }
+    });
+
     /* Place Button in UI */
 
     if (this.reveal.hasPlugin("ui-anchors")) {
       let anchors = this.reveal.getPlugin("ui-anchors");
       anchors.placeButton(this.open_button, this.position);
     }
-    document.body.appendChild(this.menu.container);
+    document.body.prepend(this.menu.container);
 
     /* Temporary Solution */
     this.glass = document.querySelector("#glass");
@@ -848,7 +1020,8 @@ let plugin = () => {
           "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
         answer_placeholder:
           "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
-        send_comment: "Send<br>Message",
+        send_comment_label: "Send Message",
+        send_comment_html: "Send<br>Message",
         interface: {
           open_label: "Open Feedback Menu",
           menu_title: "Questions",
@@ -858,6 +1031,7 @@ let plugin = () => {
           username_placeholder: "Username",
           password_placeholder: "Password",
           send_credentials: "Send credentials",
+          question_string: "Question(s)",
         },
         question_container: {
           upvote: "Up-vote question",
@@ -870,9 +1044,11 @@ let plugin = () => {
           answered: "Question has been answered",
           notanswered: "Question has not been answered",
           votes: "Up-Votes",
+          question: "Question",
         },
         answer_container: {
           delete: "Delete answer",
+          answer: "Answer",
         },
       };
 
@@ -882,7 +1058,8 @@ let plugin = () => {
             "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
           answer_placeholder:
             "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
-          send_comment: "Nachricht<br>senden",
+          send_comment_label: "Nachricht senden",
+          send_comment_html: "Nachricht<br>senden",
           interface: {
             open_label: "Fragemenu öffnen",
             menu_title: "Fragen",
@@ -892,6 +1069,7 @@ let plugin = () => {
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
             send_credentials: "Anmeldedaten absenden",
+            question_string: "Frage(n)",
           },
           question_container: {
             upvote: "Frage unterstützen",
@@ -904,15 +1082,18 @@ let plugin = () => {
             answered: "Frage wurde beantwortet",
             notanswered: "Frage wurde noch nicht beantwortet",
             votes: "Stimmen",
+            question: "Frage",
           },
           answer_container: {
             delete: "Antwort löschen",
+            answer: "Antwort",
           },
         };
       }
 
       // slideChanged has to triggered from handout plugin
       this.slideChanged = (slide) => instance.slideChanged?.(slide);
+      this.getEngine = () => instance.engine;
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];

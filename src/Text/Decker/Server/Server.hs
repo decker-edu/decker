@@ -112,6 +112,7 @@ runHttpServer context = do
     -- a path can be served statically, it will not be routed. this is
     -- the opposite of what wie want here. we want to serve static files
     -- as a fallback.
+    middleware $ modifyResponse (mapResponseHeaders (("Cache-Control", "no-store") :))
     when (context ^. devRun) $ do
       -- first tries the resource pack
       resourceMiddleware "support" packSource
@@ -119,7 +120,6 @@ runHttpServer context = do
       resourceMiddleware "support" deckerSource
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
-    middleware $ modifyResponse (mapResponseHeaders (("Cache-Control", "no-cache") :))
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
     
     Scotty.get "/" $ redirect "index.html"

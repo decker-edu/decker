@@ -191,6 +191,8 @@ compileCodeBlock attr@(id, classes, _) code caption = do
             (writeAndRenderCodeBlock docPath codeId "tex")
         | all (`elem` classes) ["javascript", "run"] ->
             (javascriptCodeBlock code caption)
+        | all (`elem` classes) ["comment"] ->
+            return $ Div nullAttr []
         | otherwise ->
             (codeBlock code caption)
     attribs <- do

@@ -43,11 +43,16 @@ To install `decker` for the entire system, simply put it into that system's dire
 
 ### Manual installation on MacOS
 
-To install `decker` on MacOS you need to download the executable and put it into your binary search path and set the downloaded file as *executable*. To do this open a terminal and navigate to the downloaded file. Rename it to `decker`, then enter `chmod +x decker` to make it *executable*. Then move it into a directory on your binary search path, usually `/usr/local/bin`.
+To install `decker` on MacOS you need to download the executable and put it into your binary search path and set the downloaded file as *executable*. 
+For instance, download the latest executable from  [Releases](https://github.com/decker-edu/decker/releases) and globally then globally install it on your system:
+```
+cd ~/Downloads/
+mv decker-* decker
+chmod +x decker
+```
+You should then put the decker binary into a directory that is in your PATH (see Linux instructions above).
 
-In order to run the application you need to open it once with the `open` command: `open -a terminal decker`. The operating system will likely warn and prevent you from running the application. Find a button labeled `Really Open` to tell your system to trust it. This should only be necessary once per downloaded file.
-
-If the operating system does not display a `Really Open` or `Open anyway ...` button, you need to go into your system settings and find the category `Security`. If you recently tried to run `decker`, the application should be in a list of recently blocked ones. You can select the application there and add it to your exceptions. This should only be necessary once per downloaded file.
+If you then run `decker -h` in the terminal for the first time, MacOS will show a dialog complaining that it cannot open `decker` for security reasons. Click on "Done", not on "Move to Trash". The open your system settings, go to "Privacy & Security", scroll down to "decker was blocked to protect your Mac". Click "Allow Anyway" and run `decker -h` in the terminal again. In the dialog asking "Open decker?" click on "Open Anyway" and enter the requested password. From that time on you can run `decker` like any other command line programm.
 
 ## Installation from source
 

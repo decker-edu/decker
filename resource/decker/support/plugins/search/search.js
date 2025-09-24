@@ -1,9 +1,38 @@
 /*!
  * Handles finding a text string anywhere in the slides and showing the next occurrence to the user
- * by navigatating to that slide and highlighting it.
+ * by navigating to that slide and highlighting it.
  *
  * @author Jon Snyder <snyder.jon@gmail.com>, February 2013
+ *
+ * Several adjustments and fixes by Sebastian Hauer, Mario Botsch
  */
+
+const lang_de = {
+  search: "Suche ...",
+  searchinslides: "In den Folien suchen",
+  prevResult: "Vorherige Übereinstimmung",
+  nextResult: "Nächste Übereinstimmung",
+  close: "Suchdialog schließen",
+  searchinputfield:
+    "In den Folien suchen. Eingabe drücken, um Suche zu starten.",
+  of: "von",
+  matches: "Übereinstimmungen",
+  noMatches: "Keine Übereinstimmungen",
+};
+
+const lang_en = {
+  search: "Search ...",
+  searchinslides: "Search in slides",
+  prevResult: "Previous match",
+  nextResult: "Next match",
+  close: "Close search dialog",
+  searchinputfield: "Search in slides",
+  of: "of",
+  matches: "Matches",
+  noMatches: "No Matches",
+};
+
+let l10n = navigator.language === "de" ? lang_de : lang_en;
 
 const Plugin = () => {
   // The reveal.js instance this plugin is attached to
@@ -11,6 +40,11 @@ const Plugin = () => {
 
   let searchElement;
   let searchInput;
+  let inputLabel;
+  let searchPrev;
+  let searchNext;
+  let searchLabel;
+  let searchClose;
 
   let matchedSlides;
   let currentMatchedIndex;
@@ -19,30 +53,35 @@ const Plugin = () => {
 
   function render() {
     searchElement = document.createElement("div");
-    searchElement.classList.add("searchbox");
+    searchElement.id = "searchbox";
+    searchElement.innerHTML = `<div>
+      <label id="searchinputlabel" for="searchinput">${l10n.searchinslides}</label>
+      <div role="search" id="searchrow" style="display:flex; align-items:center; gap:0.5em;">
+        <i class="fa-button fas fa-search"></i>
+        <input type="search" id="searchinput"></input>
+        <span id="searchamount">0 / 0</span>
+        <span id="searchlabel" aria-live="polite">${l10n.noMatches}</span>
+        <button id="searchprev" class="fas fa-chevron-up" title="${l10n.prevResult}" aria-label="${l10n.prevResult}"></button>
+        <button id="searchnext" class="fas fa-chevron-down" title="${l10n.nextResult}" aria-label="${l10n.nextResult}"></button>
+        <button id="searchclose" class="fas fa-xmark" title="${l10n.close}" aria-label="${l10n.close}"></button>
+      </div>
+    </div>`;
 
-    // MARIO: adjust position, size, color
-    searchElement.style.padding = "calc(var(--icon-size) * 0.5)";
-    searchElement.style.borderRadius = "0.25em";
-    searchElement.style.background = "white";
-    searchElement.style.fontSize = "var(--icon-size)";
-    searchElement.style.color = "var(--icon-active-color)";
-
-    // MARIO: adjust border color and search icon (requires font-awesome)
-    searchElement.innerHTML =
-      '<span style="display:flex; align-items:center;"><i class="fa-button fas fa-search" style="padding-right: 10px;"></i><input type="search" id="searchinput" placeholder="Search..."></span>';
-
-    // MARIO: override some styling
     searchInput = searchElement.querySelector("#searchinput");
-    searchInput.style.fontSize = "1.2rem";
-    searchInput.style.width = "10em";
-    searchInput.style.padding = "4px 6px";
-    searchInput.style.color = "#000";
-    searchInput.style.background = "#fff";
-    searchInput.style.borderRadius = "2px";
-    searchInput.style.border = "2px solid var(--icon-active-color)";
-    searchInput.style.outline = "0";
-    searchInput.style["-webkit-appearance"] = "none";
+    searchInput.placeholder = l10n.search;
+
+    searchPrev = searchElement.querySelector("#searchprev");
+    searchPrev.addEventListener("click", () => {
+      if (!searchPrev.hasAttribute("aria-disabled")) previousResult();
+    });
+
+    searchNext = searchElement.querySelector("#searchnext");
+    searchNext.addEventListener("click", () => {
+      if (!searchNext.hasAttribute("aria-disabled")) nextResult();
+    });
+
+    searchClose = searchElement.querySelector("#searchclose");
+    searchClose.addEventListener("click", closeSearch);
 
     if (!deck.hasPlugin("ui-anchors")) {
       console.error("no decker ui anchor plugin loaded");
@@ -53,21 +92,21 @@ const Plugin = () => {
     searchInput.addEventListener(
       "keyup",
       function (event) {
-        switch (event.keyCode) {
-          case 13:
-            event.preventDefault();
-            doSearch();
-            searchboxDirty = false;
-            break;
-
-          // MARIO: close search field on key Escape
-          case 27:
-            closeSearch();
-            break;
-
-          default:
-            searchboxDirty = true;
+        if (event.key === "Enter") {
+          event.preventDefault();
+          doSearch();
+          searchboxDirty = false;
+        } else {
+          searchboxDirty = true;
         }
+      },
+      false
+    );
+
+    searchElement.addEventListener(
+      "keyup",
+      function (event) {
+        if (event.key === "Escape") closeSearch();
       },
       false
     );
@@ -78,7 +117,7 @@ const Plugin = () => {
   function openSearch() {
     if (!searchElement) render();
 
-    searchElement.style.display = "inline";
+    searchElement.style.display = "flex";
     searchInput.focus();
     searchInput.select();
   }
@@ -88,15 +127,92 @@ const Plugin = () => {
 
     searchElement.style.display = "none";
     if (hilitor) hilitor.remove();
+    setLabelToNoMatches();
+    disableButtons();
+    matchedSlides = null;
+    currentMatchedIndex = -1;
   }
 
   function toggleSearch() {
     if (!searchElement) render();
 
-    if (searchElement.style.display !== "inline") {
+    if (searchElement.style.display !== "flex") {
       openSearch();
     } else {
       closeSearch();
+    }
+  }
+
+  /**
+   * Update text of labels when no matches were found and disable the next and prev buttons.
+   */
+  function setLabelToNoMatches() {
+    const amountSpan = searchElement.querySelector("#searchamount");
+    const amountLabel = searchElement.querySelector("#searchlabel");
+    disableButtons();
+    amountSpan.innerText = `0 / 0`;
+    amountLabel.innerText = `${l10n.noMatches}`;
+  }
+
+  /**
+   * Update text of labels when matches were found and enable next and prev buttons.
+   */
+  function updateLabels(matchIndex) {
+    const amountSpan = searchElement.querySelector("#searchamount");
+    const amountLabel = searchElement.querySelector("#searchlabel");
+    enableButtons();
+    amountSpan.innerText = `${matchIndex + 1} / ${matchedSlides.length}`;
+    amountLabel.innerText = `${matchIndex + 1}. ${l10n.of} ${
+      matchedSlides.length
+    } ${l10n.matches}`;
+  }
+
+  function disableButtons() {
+    searchPrev.setAttribute("aria-disabled", "true");
+    searchNext.setAttribute("aria-disabled", "true");
+    /* All the styling in this plugin is done by hand and not a css file which would make this much easier ... */
+    searchPrev.style.color = "var(--icon-disabled-color)";
+    searchNext.style.color = "var(--icon-disabled-color)";
+  }
+
+  function enableButtons() {
+    searchPrev.removeAttribute("aria-disabled");
+    searchNext.removeAttribute("aria-disabled");
+    searchPrev.style.color = "var(--icon-active-color)";
+    searchNext.style.color = "var(--icon-active-color)";
+  }
+
+  function nextResult() {
+    if (matchedSlides && matchedSlides.length > 0) {
+      let matchIndex = currentMatchedIndex + 1;
+      //navigate to the next slide that has the keyword, wrapping to the first if necessary
+      if (matchedSlides.length && matchIndex >= matchedSlides.length) {
+        matchIndex = 0;
+      }
+      if (matchIndex < matchedSlides.length) {
+        deck.slide(matchedSlides[matchIndex].h, matchedSlides[matchIndex].v);
+        updateLabels(matchIndex);
+        currentMatchedIndex = matchIndex;
+      }
+    } else {
+      setLabelToNoMatches();
+    }
+  }
+
+  function previousResult() {
+    if (matchedSlides && matchedSlides.length > 0) {
+      let matchIndex = currentMatchedIndex - 1;
+      //navigate to the next slide that has the keyword, wrapping to the first if necessary
+      if (matchedSlides.length && matchIndex < 0) {
+        matchIndex = matchedSlides.length - 1;
+      }
+      if (matchIndex >= 0) {
+        deck.slide(matchedSlides[matchIndex].h, matchedSlides[matchIndex].v);
+        updateLabels(matchIndex);
+        currentMatchedIndex = matchIndex;
+      }
+    } else {
+      setLabelToNoMatches();
     }
   }
 
@@ -110,32 +226,19 @@ const Plugin = () => {
         matchedSlides = null;
       } else {
         //find the keyword amongst the slides
-        hilitor = new Hilitor("slidecontent");
+        hilitor = new Hilitor(".slides");
         matchedSlides = hilitor.apply(searchstring);
-        currentMatchedIndex = 0;
+        currentMatchedIndex = -1;
       }
     }
-
-    if (matchedSlides) {
-      //navigate to the next slide that has the keyword, wrapping to the first if necessary
-      if (matchedSlides.length && matchedSlides.length <= currentMatchedIndex) {
-        currentMatchedIndex = 0;
-      }
-      if (matchedSlides.length > currentMatchedIndex) {
-        deck.slide(
-          matchedSlides[currentMatchedIndex].h,
-          matchedSlides[currentMatchedIndex].v
-        );
-        currentMatchedIndex++;
-      }
-    }
+    nextResult();
   }
 
   // Original JavaScript code by Chirp Internet: www.chirp.com.au
   // Please acknowledge use of this code by including this header.
   // 2/2013 jon: modified regex to display any match, not restricted to word boundaries.
-  function Hilitor(id, tag) {
-    var targetNode = document.getElementById(id) || document.body;
+  function Hilitor(selector, tag) {
+    var targetNode = document.querySelector(selector) || document.body;
     var hiliteTag = tag || "EM";
     var skipTags = new RegExp("^(?:" + hiliteTag + "|SCRIPT|FORM)$");
     var colors = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
@@ -150,10 +253,11 @@ const Plugin = () => {
     };
 
     this.getRegex = function () {
-      return matchRegex
+      const regex = matchRegex
         .toString()
         .replace(/^\/\\b\(|\)\\b\/i$/g, "")
         .replace(/\|/g, " ");
+      return regex;
     };
 
     // recursively apply word highlighting
@@ -213,8 +317,11 @@ const Plugin = () => {
     this.remove = function () {
       var arr = document.getElementsByTagName(hiliteTag);
       var el;
+      // destroy hiliteTag span elements and re-merge the text nodes
       while (arr.length && (el = arr[0])) {
-        el.parentNode.replaceChild(el.firstChild, el);
+        const parent = el.parentNode;
+        parent.replaceChild(el.firstChild, el);
+        parent.normalize();
       }
     };
 
