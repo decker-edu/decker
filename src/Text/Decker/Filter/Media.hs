@@ -185,10 +185,14 @@ compileCodeBlock attr@(id, classes, _) code caption = do
             (writeAndRenderCodeBlock docPath codeId "dot")
         | all (`elem` classes) ["gnuplot", "render"] ->
             (writeAndRenderCodeBlock docPath codeId "gnuplot")
+        | all (`elem` classes) ["d2", "render"] ->
+            (writeAndRenderCodeBlock docPath codeId "d2")
         | all (`elem` classes) ["tex", "render"] ->
             (writeAndRenderCodeBlock docPath codeId "tex")
         | all (`elem` classes) ["javascript", "run"] ->
             (javascriptCodeBlock code caption)
+        | all (`elem` classes) ["comment"] ->
+            return $ Div nullAttr []
         | otherwise ->
             (codeBlock code caption)
     attribs <- do

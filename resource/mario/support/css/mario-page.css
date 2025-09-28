@@ -100,7 +100,7 @@ details summary[icon]::marker {
   font-variant: normal;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   font-weight: 900;
   color: var(--blue);
   content: attr(icon);

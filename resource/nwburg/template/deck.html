@@ -31,6 +31,7 @@ $endif$
   <!-- Default values for CSS variables can live here. They can be overridden by
   meta data values. -->
   <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+  <link rel="stylesheet" href="support/css/wburg.css">
 
   <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
@@ -97,7 +98,6 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
   $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
-  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
 $if(poll)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
 $endif$
@@ -232,9 +232,6 @@ $endif$
 
 </body>
 
-$if(live-captions)$
-<script src="$decker-support-dir$/components/awesome-button.js"></script>
-$endif$
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
 $for(template.js)$
   <script type="module" src="$template.js$"></script>

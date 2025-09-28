@@ -426,7 +426,7 @@ button.fa-button {
   padding: calc(var(--icon-size) * 0.15);
   margin: calc(var(--icon-size) * 0.15);
   background: none;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   border: 2px solid transparent;
   cursor: pointer;
 }

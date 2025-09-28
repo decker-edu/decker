@@ -12,7 +12,9 @@ import Data.List qualified as List
 import Data.List.Extra qualified as List
 import Data.Scientific
 import Data.Set qualified as Set
+import Data.Time.Clock
 import Relude
+import System.IO (openFile, hClose)
 import System.CPUTime
 import System.Directory
 import System.Directory qualified as Dir
@@ -261,3 +263,16 @@ writeNativeWhileDebugging out mod doc =
   liftIO $
     runIO (writeNative pandocWriterOpts doc) >>= handleError
       >>= T.writeFile (out -<.> mod <.> ".hs")
+
+-- | Touch a file UNIX style.
+touchFile :: FilePath -> IO ()
+touchFile filePath = do
+    exists <- doesFileExist filePath
+    if exists
+        then do
+            currentTime <- Data.Time.Clock.getCurrentTime
+            setModificationTime filePath currentTime
+        else do
+            -- Create empty file without truncating if it exists
+            handle <- openFile filePath WriteMode
+            hClose handle

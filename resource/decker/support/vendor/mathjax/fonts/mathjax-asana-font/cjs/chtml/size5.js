@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.size5 = void 0;
+exports.size5 = {
+    0x7C: [1.673, 1.039, .288],
+    0x2C6: [.783, -.627, 3.026],
+    0x2D7: [.792, -.627, 2.94],
+    0x2DC: [.772, -.642, 2.797],
+    0x27C5: [1.26, 1.803, .45],
+    0x27C6: [1.26, 1.803, .45]
+};
+//# sourceMappingURL=size5.js.map

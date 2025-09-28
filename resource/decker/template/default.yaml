@@ -219,6 +219,12 @@ external-tools:
       - "-o${output}"
       - "${input}"
     help: https://graphviz.org/
+  d2:
+    command: d2
+    arguments:
+      - "${input}"
+      - "${output}"
+    help: https://d2lang.com/
   pdf2svg:
     command: pdf2svg
     arguments:

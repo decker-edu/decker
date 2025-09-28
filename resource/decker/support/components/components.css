@@ -87,7 +87,7 @@
 }
 
 .multi-dialog-button:focus {
-  outline: 2px solid var(--flying-focus-color) !important;
+  outline: 2px solid var(--focus-color) !important;
   outline-offset: 0.25rem;
   animation: ping 1s linear;
 }

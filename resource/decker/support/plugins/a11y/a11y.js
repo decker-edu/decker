@@ -1,8 +1,3 @@
-// import {
-//   setupFlyingFocus,
-//   hideFlyingFocus,
-// } from "../../flyingFocus/flying-focus.js";
-
 import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
 
 let Reveal;
@@ -11,8 +6,11 @@ let a11yMode;
 
 let pluginButton = undefined;
 
+let slidesAmount = 0;
+
 function addScreenReaderSlideNumbers() {
   const slides = document.querySelectorAll(".slides > section");
+  slidesAmount = slides.length;
   slides.forEach((slide, h) => {
     const subslides = slide.querySelectorAll("section");
     if (subslides.length > 0) {
@@ -27,11 +25,16 @@ function addScreenReaderSlideNumbers() {
 
 function addScreenReaderSlideNumber(slide, h, v) {
   const header = slide.querySelector("h1");
-  if (header && header.textContent.trim() !== "") {
+  if (header) {
     const innerHTML = header.innerHTML;
-    const replacementHTML = `<span class="sr-only">${localization.slide} ${
+    let replacementHTML = `<span class="sr-only">${localization.slide} ${
       h + 1
-    }${v ? "." + v : ""}, </span>${innerHTML}`;
+    }${v ? "." + v : ""} / ${slidesAmount}`;
+    if (header.textContent.trim() !== "") {
+      replacementHTML = replacementHTML + `, </span><span>${innerHTML}</span>`;
+    } else {
+      replacementHTML = replacementHTML + "</span>";
+    }
     header.innerHTML = replacementHTML;
   }
 }
@@ -112,13 +115,9 @@ function toggleAccessibility() {
     }
     Decker.flash.message(localization.accessible_colors_on);
     if (window.MathJax) {
+      window.MathJax.startup.document.menu.options.settings.enrich = true;
+      window.MathJax.startup.document.menu.setEnrichment(true);
       window.MathJax.startup.document.options.enableMenu = true;
-      window.MathJax.startup.document.menu.menu
-        .findID("Accessibility", "Activate")
-        .variable.setter(true);
-      window.MathJax.startup.document.menu.loadingPromise.then(() => {
-        window.MathJax.startup.document.rerender();
-      });
     }
   } else {
     pluginButton.ariaPressed = false;
@@ -134,14 +133,9 @@ function toggleAccessibility() {
     }
     Decker.flash.message(localization.accessible_colors_off);
     if (window.MathJax) {
-      // Does it make sense to remove this again if once activated?
+      window.MathJax.startup.document.menu.options.settings.enrich = false;
+      window.MathJax.startup.document.menu.setEnrichment(false);
       window.MathJax.startup.document.options.enableMenu = false;
-      window.MathJax.startup.document.menu.menu
-        .findID("Accessibility", "Activate")
-        .variable.setter(false);
-      window.MathJax.startup.document.menu.loadingPromise.then(() => {
-        window.MathJax.startup.document.rerender();
-      });
     }
   }
 }
@@ -168,10 +162,12 @@ const a11y = /a11y/gi.test(window.location.search);
 
 const Plugin = {
   id: "a11y",
+  a11yMode: () => {
+    return a11yMode;
+  },
   init: (reveal) => {
     Reveal = reveal;
     fixTabsByInert();
-    // addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
     addScreenReaderSlideNumbers();
     reveal.addKeyBinding(

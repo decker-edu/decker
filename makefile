@@ -7,14 +7,14 @@ local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
-.PHONY: build clean test install list dist docs resource-zip css
+.PHONY: build clean test install list dist docs css
 
 build: 
 	stack build -j8
 
 clean-build: clean 
 	stack clean
-	stack build -j8
+	ATTACH_RESOURCE_ZIP=1 stack build -j8
 
 upgrade-third-party:
 	git submodule update --init
@@ -22,10 +22,6 @@ upgrade-third-party:
  
 less:
 	stack build 2>&1 | less 
-
-resource-zip:
-	rm -f resource/decker-resources.zip
-	(cd resource; zip -qr decker-resources.zip example support template)
 
 install: clean-build
 	mkdir -p "$(local-bin-path)"

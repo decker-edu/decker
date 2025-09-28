@@ -13,14 +13,18 @@ import Distribution.PackageDescription
 import Distribution.Simple
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
+import System.Environment
 import System.Directory
 import System.FilePath
 import System.FilePath.Glob
 import System.IO
 import System.IO.Extra
 
--- main = defaultMain
-main = defaultMainWithHooks simpleUserHooks {postCopy = appendResourceArchive}
+main = do
+  dev <- lookupEnv "ATTACH_RESOURCE_ZIP"
+  case dev of
+    Just _ -> defaultMainWithHooks simpleUserHooks {postCopy = appendResourceArchive}
+    Nothing -> defaultMain
 
 resourceDir = "./resource"
 
