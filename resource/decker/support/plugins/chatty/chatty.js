@@ -35,12 +35,6 @@ const Plugin = {
   id: "chatty",
   init: (deck) => {
     Reveal = deck;
-    const serverConfig = window.Decker?.meta?.chatty?.server;
-    const promptConfig = window.Decker?.meta?.chatty?.prompt;
-    if (!serverConfig || !promptConfig) {
-      console.error("Chatty config missing: ", serverConfig, promptConfig);
-      return;
-    }
     createGUI();
   },
 };
