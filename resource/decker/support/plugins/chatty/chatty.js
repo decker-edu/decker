@@ -2,8 +2,11 @@ import setup from "../../chatty/chatty.js";
 
 let Reveal;
 
-function createGUI() {
+function createGUI(deck) {
   // first check whether chatty is configured
+  const server = window.Decker?.meta?.chatty?.server;
+  const prompt = window.Decker?.meta?.chatty?.prompt;
+  if (!server || !prompt) return;
 
   // create dialog
   let dialog = document.createElement("div");
@@ -12,7 +15,7 @@ function createGUI() {
   document.body.appendChild(dialog);
 
   // fill dialog with chatty content
-  setup(dialog);
+  setup(dialog, Reveal);
 
   // create button
   let button = document.createElement("button");
@@ -35,7 +38,7 @@ const Plugin = {
   id: "chatty",
   init: (deck) => {
     Reveal = deck;
-    createGUI();
+    Reveal.on("ready", createGUI);
   },
 };
 

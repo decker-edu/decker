@@ -5,6 +5,9 @@ import "./marked.min.js";
 let server;
 let prompt;
 
+// access to Reveal
+let Reveal;
+
 // HTML elements
 let dialog;
 let chatEl;
@@ -34,14 +37,14 @@ const englishLocalization = {
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
 
-function setup(anchor) {
+function setup(anchor, reveal) {
+  // are we running in a slide deck?
+  if (reveal) Reveal = reveal;
+
   // get server and prompt from config
   server = window.Decker?.meta?.chatty?.server;
   prompt = window.Decker?.meta?.chatty?.prompt;
-  if (!server || !prompt) {
-    console.error("Chatty config missing: ", server, prompt);
-    return;
-  }
+  if (!server || !prompt) return;
 
   // setup GUI
   anchor.innerHTML = `
@@ -163,11 +166,12 @@ async function send() {
   let input = userInput;
 
   // insert current slide deck and slide into the input
-  const url = location.pathname;
-  const filename = url.split("\\").pop().split("/").pop().split(".")[0];
-  if (filename.endsWith("-deck")) {
+  if (Reveal) {
+    const url = location.pathname;
+    const filename = url.split("\\").pop().split("/").pop().split(".")[0];
     const deck = filename.replace("deck.html", "deck.md");
-    const h1 = document.querySelector(".reveal .slides section.present h1");
+    const slide = Reveal.getCurrentSlide();
+    const h1 = slide.querySelector("h1");
     if (deck && h1) {
       const title =
         h1.childElementCount > 1 ? h1.lastElementChild.innerText : h1.innerText;
