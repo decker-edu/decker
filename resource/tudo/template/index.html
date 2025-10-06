@@ -113,6 +113,20 @@ $endif$
         </script>
       $endif$
 
+      $if(chatty)$
+        <details class="chatty">
+          <summary>
+            <span class="english">Ask Prof. Bot<del>sch</del></span>
+            <span class="german">Frag Prof. Bot<del>sch</del></span>
+          </summary>
+          <div id="chatty"></div>
+        </details>
+        <script type="module">
+          import setup from "./$decker-support-dir$/chatty/chatty.js";
+          setup(document.getElementById("chatty"));
+        </script>
+      $endif$
+
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
