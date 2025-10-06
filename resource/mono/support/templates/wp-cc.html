@@ -1,0 +1,18 @@
+(<a href="https://en.wikipedia.org/wiki/File:$url$" title="Wikipedia"
+    ><i class="fa-brands fa-wikipedia-w"></i
+></a>
+
+$if(arg3)$
+<a href="https://creativecommons.org/licenses/by-$arg1$-$arg2$/$arg3$"
+    ><i class="fa-brands fa-creative-commons"></i> BY-$arg1/uppercase$-$arg2/uppercase$ $arg3$</a
+>)
+$elseif(arg2)$
+<a href="https://creativecommons.org/licenses/by-$arg1$/$arg2$"
+    ><i class="fa-brands fa-creative-commons"></i> BY-$arg1/uppercase$ $arg2$</a
+>)
+$elseif(arg1)$
+<a href="https://creativecommons.org/licenses/by/$arg1$"
+    ><i class="fa-brands fa-creative-commons"></i> BY $arg1$</a
+>)
+$endif$
+
