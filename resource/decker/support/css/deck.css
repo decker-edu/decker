@@ -9,6 +9,7 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./style.css");
 @import url("./media.css");
 @import url("./sizes.css");
+@import url("./buttons.css");
 
 :root {
   --root-font-size: 38px;

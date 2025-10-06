@@ -1,6 +1,7 @@
 /* Here be CSS */
 
 @import url("../vendor/fontawesome/css/all.css");
+@import url("./buttons.css");
 
 /**********************/
 /* Variables
@@ -178,6 +179,7 @@ details {
   border-radius: 10px;
   background: var(--details-background-color);
 }
+
 details[open] {
   padding-bottom: 1em;
 }
@@ -347,20 +349,14 @@ html[lang="de"] .english {
   }
 }
 
+/* Manual color adjustments for index page header */
+
 #index-color-button {
-  font-size: var(--icon-size);
-  font-family: "Font Awesome 7 Free";
-  font-weight: 900;
   position: absolute;
   top: 0.5em;
   right: 0.5em;
-  width: 2em;
-  height: 2em;
-  border: none;
-  border-radius: 999px;
-  transition: background-color 0.1s;
-  color: var(--foreground-color);
-  background-color: transparent;
+  font-weight: 900;
+  color: var(--background-color);
 
   &:hover,
   &:focus-visible {
@@ -368,6 +364,18 @@ html[lang="de"] .english {
     background-color: var(--background-color);
   }
 }
+
+html.dark #index-color-button {
+  color: var(--foreground-color);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--icon-hover-color);
+    background-color: var(--foreground-color);
+  }
+}
+
+/* index-color-button Icon defined here */
 
 html.dark #index-color-button::before {
   content: "\f185";

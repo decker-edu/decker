@@ -78,6 +78,7 @@
   --icon-hover-color: var(--hover-color);
   --icon-background-color: rgba(0, 0, 0, 0);
   --icon-border-radius: 0.2em;
+  --icon-shadow-color: var(--foreground-color);
 
   --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
@@ -163,6 +164,8 @@
   --dark-blue: var(--accent7-bg);
   --dark-violet: var(--accent6-bg);
   --dark-brown: var(--accent1-bg);
+
+  --icon-shadow-color: var(--background-color);
 }
 
  /* quizzes */

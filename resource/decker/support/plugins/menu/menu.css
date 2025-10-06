@@ -38,10 +38,7 @@
 }
 
 .menu-header button {
-  box-sizing: border-box;
-  background: none;
   color: var(--menu-header-text-color);
-  border-radius: 100%;
 }
 
 #decker-menu-close-button {
