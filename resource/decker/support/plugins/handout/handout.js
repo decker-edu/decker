@@ -732,8 +732,8 @@ function createButtons() {
       userScale *= 1.25;
       updateScaling();
     };
-    anchors.placeButton(buttonMinus, "TOP_RIGHT");
-    anchors.placeButton(buttonPlus, "TOP_RIGHT");
+    anchors.placeButton(buttonMinus, "TOP_LEFT");
+    anchors.placeButton(buttonPlus, "TOP_LEFT");
   }
 }
 
