@@ -687,15 +687,6 @@ function toggleHandoutMode() {
   }
 }
 
-function attachAnimatedIcon(button) {
-  const first = document.createElement("div");
-  first.className = "top-anim-rect";
-  const second = document.createElement("div");
-  second.className = "bottom-anim-rect";
-  button.appendChild(first);
-  button.appendChild(second);
-}
-
 /**
  * Add handout mode button to Menu plugin.
  * Add zoom in/out buttons to top right anchor.
@@ -710,7 +701,6 @@ function createButtons() {
       localization.activate_handout_mode,
       toggleHandoutMode
     );
-    attachAnimatedIcon(pluginButton);
     pluginButton.ariaPressed = "false";
   }
 

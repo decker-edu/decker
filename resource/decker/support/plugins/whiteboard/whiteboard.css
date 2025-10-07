@@ -101,6 +101,7 @@
   background: transparent;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 html.print-pdf #whiteboardButtons {
@@ -123,8 +124,10 @@ html.print-pdf #whiteboardButtons {
   display: inline-block;
 }
 
-#whiteboardButtons.active > button[aria-checked="true"] {
+#whiteboardButtons.active:not(.showMenu) > button[aria-checked="true"] {
   display: inline-block;
+  background: transparent;
+  box-shadow: inset 0px 0px 2px 1px rgb(from currentColor r g b / 0.3);
 }
 
 /* container for color picker */
@@ -141,7 +144,7 @@ html.print-pdf #whiteboardButtons {
   border: 1px solid var(--icon-active-color);
   background-color: var(--menu-background-color);
   display: grid;
-  gap: 0.5rem;
+  gap: 2px;
   grid-template-columns: repeat(8, 1fr);
   visibility: hidden;
   transform: translateY(-50%);
@@ -156,7 +159,7 @@ html.print-pdf #whiteboardButtons {
   padding: 0;
   text-align: center;
   vertical-align: middle;
-/*  color: var(--shade6); */
+  /*  color: var(--shade6); */
   background: transparent;
   width: calc(var(--icon-size) * 2);
   height: calc(var(--icon-size) * 2);
