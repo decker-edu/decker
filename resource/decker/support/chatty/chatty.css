@@ -117,7 +117,7 @@
     margin-right: 3em;
 
     &:before {
-      content: "😀";
+      content: "🤔";
       font-size: 2em;
       position: absolute;
       right: -1.5em;
@@ -183,4 +183,11 @@
 
 [lang="de"] #chatty-dialog .bot .bubble .content:empty:before {
   content: "nachdenken...";
+}
+
+#chatty-dialog .bot .bubble:has(.content:empty)::before {
+  animation-name: fa-fade;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
 }
