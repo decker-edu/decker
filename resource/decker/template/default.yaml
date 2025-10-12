@@ -176,6 +176,9 @@ external-tools:
       arguments:
         - "--headless"
         - "--no-pdf-header-footer"
+        - "--run-all-compositor-stages-before-draw"
+        - "--virtual-time-budget=100"
+        - "--incognito"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
       help: ""
@@ -184,6 +187,9 @@ external-tools:
       arguments:
         - "--headless"
         - "--no-pdf-header-footer"
+        - "--run-all-compositor-stages-before-draw"
+        - "--virtual-time-budget=100"
+        - "--incognito"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
       help: ""
@@ -266,7 +272,7 @@ external-tools:
       - "5"
       - "-mc"
       - "0"
-      - "--output-vtt" 
+      - "--output-vtt"
       - "--output-file"
       - "${output}"
     help: ""
