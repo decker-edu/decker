@@ -276,6 +276,7 @@ body.index table tbody tr:last-child td {
 body.index table :is(p, span) {
   margin-top: 0.1em;
   margin-bottom: 0.1em;
+  vertical-align: middle;
 }
 
 /* column with icons should be as small as possible */
@@ -376,11 +377,11 @@ a.handout-link:hover::after {
 
 .icons {
   font-size: 1.25rem;
-  display: flex;
+  display: inline-flex;
   flex-wrap: nowrap;
   flex-direction: row;
   align-content: center;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
   border-radius: 0.2em;
   padding: 0;
@@ -393,19 +394,19 @@ a.handout-link:hover::after {
     line-height: 1em;
     padding: 0.2em;
   }
-  & a[href$="deck.html"] {
+  & > a[href$="deck.html"] {
     order: 1;
   }
-  & a[href$="deck.html?handout"] {
+  & > a[href$="deck.html?handout"] {
     order: 2;
   }
-  & a[href$="deck.html?a11y"] {
+  & > a[href$="deck.html?a11y"] {
     order: 3;
   }
-  & a[href$="deck.pdf"] {
+  & > a[href$="deck.pdf"] {
     order: 4;
   }
-  & .progress {
+  & > .progress {
     order: 5;
   }
 }
