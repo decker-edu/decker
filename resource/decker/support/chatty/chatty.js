@@ -88,7 +88,7 @@ function setup(anchor, reveal) {
     e.stopPropagation();
   };
   promptEl.onkeypress = (e) => {
-    e.stopPropagation(); // prevent ? from toggling help dialog
+    e.stopPropagation(); // prevent key '?' from toggling help dialog
   };
 
   // details open callback (autofocus doesn't work on index page)
@@ -193,11 +193,11 @@ async function send() {
   stopBtn.disabled = false;
   abortController = new AbortController();
 
-  // User-Nachricht: Markdown + Math rendern
+  // add user question to chat and clear prompt
   newMessage("user").add(userInput);
   promptEl.value = "";
 
-  // Bot-Nachricht anlegen (wird im Stream gefüllt)
+  // add bot message to chat; content will be filled below
   const botMsg = newMessage("bot");
 
   try {
@@ -215,7 +215,7 @@ async function send() {
 
     if (!response.ok || !response.body) {
       const txt = await response.text().catch(() => String(response.status));
-      botContent.innerText = "[Error] " + txt;
+      botMsg.innerText = "[Error] " + txt;
       return;
     }
 
@@ -223,8 +223,8 @@ async function send() {
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = "";
-    let mdText = ""; // gesamter bislang empfangener Markdown
+    let buffer = ""; // buffer gets decoded stream
+    let mdText = ""; // accumulate response text
 
     while (true) {
       const { value, done } = await reader.read();
@@ -252,14 +252,16 @@ async function send() {
             chatEl.scrollTop = chatEl.scrollHeight;
           }
 
-          // remember ID
+          // remember response ID
           previous_response_id = evt.response.id;
         } catch {}
       }
     }
+
+    // console.log("DEBUG", mdText);
   } catch (err) {
     if (err.name !== "AbortError") {
-      botContent.innerText = "[Error] " + err.message;
+      botMsg.innerText = "[Error] " + err.message;
     }
   } finally {
     sendBtn.disabled = false;
