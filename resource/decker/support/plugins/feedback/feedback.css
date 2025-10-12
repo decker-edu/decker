@@ -23,24 +23,24 @@
   visibility: hidden;
 }
 
-.open-button .icon-combo {
-  display: grid;
-  grid-template-areas: "icons";
-  justify-items: center;
-}
-
-.open-button .icon-combo span {
-  grid-area: icons;
-}
-
-.open-button .icon-combo .fa-question {
-  font-size: 60%;
-  line-height: 1.5;
-  color: var(--background-color);
-}
-
 .open-button .feedback-badge {
   font-size: 50%;
+}
+
+.fa-message.add-questionmark {
+  position: relative;
+  &:after {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    translate: -50% -50%;
+    content: "?";
+    font-size: 0.45em;
+    font-weight: bold;
+    display: inline-block;
+    align-content: center;
+    color: var(--background-color);
+  }
 }
 
 .feedback-badge,
