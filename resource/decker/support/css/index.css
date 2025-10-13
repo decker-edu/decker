@@ -407,3 +407,17 @@ summary {
   outline: solid 2px var(--focus-color) !important;
   outline-offset: 2px;
 }
+
+/* re-introduce the screen-reader-only settings of FontAwesome <7 */
+.sr-only,
+.fa-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

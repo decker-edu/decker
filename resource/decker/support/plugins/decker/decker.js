@@ -32,7 +32,7 @@ function onStart() {
     if (!!menuPlugin && !!menuPlugin.addPluginButton) {
       pluginButton = menuPlugin.addPluginButton(
         "decker-menu-presenter-button",
-        "fa-chalkboard-teacher",
+        "fas fa-chalkboard-teacher",
         localization.activate_presenter_mode,
         togglePresenterMode
       );

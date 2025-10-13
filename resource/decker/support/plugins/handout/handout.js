@@ -697,7 +697,7 @@ function createButtons() {
   if (menu && !!menu.addPluginButton) {
     pluginButton = menu.addPluginButton(
       "menu-handout-button",
-      "animated-button",
+      "handout-button",
       localization.activate_handout_mode,
       toggleHandoutMode
     );

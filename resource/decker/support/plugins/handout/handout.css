@@ -143,33 +143,6 @@ html.handout .decker-anchor #handout-minus {
   display: inline-block;
 }
 
-/* animated button */
-
-#menu-handout-button {
-  &::after,
-  &::before {
-    display: block;
-    position: absolute;
-    content: "";
-    width: 0.9em;
-    height: 0.5em;
-    left: 50%;
-    top: 50%;
-    background-color: currentColor;
-    border-radius: 0.15em;
-    box-sizing: border-box;
-  }
-  &::before {
-    translate: -50% 10%;
-  }
-  &::after {
-    translate: -50% -110%;
-  }
-  & div {
-    display: none;
-  }
-}
-
 .handout .decker {
   position: relative;
 }

@@ -22,6 +22,7 @@ button.fa-button {
   cursor: pointer;
   text-align: center;
   vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
 }
 
 button.fa-button[aria-pressed] {
@@ -69,4 +70,52 @@ button.fa-button:not([aria-disabled="true"]):focus-visible {
   color: var(--focus-color);
   background-color: var(--background-color);
   border-color: var(--focus-color);
+}
+
+/* our custom buttons for feedback menu and handout mode */
+.feedback-button {
+  position: relative;
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  &::before {
+    content: "\f27a";
+  }
+  &::after {
+    content: "?";
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    translate: -50% -50%;
+    font-size: 0.45em;
+    color: var(--background-color);
+  }
+}
+.handout-button {
+  position: relative;
+  width: 1.25em;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  &::after,
+  &::before {
+    display: block;
+    position: absolute;
+    content: "";
+    width: 0.9em;
+    height: 0.5em;
+    left: 50%;
+    top: 50%;
+    background-color: currentColor;
+    border-radius: 0.15em;
+    box-sizing: border-box;
+  }
+  &::before {
+    translate: -50% 10%;
+  }
+  &::after {
+    translate: -50% -110%;
+  }
+  & div {
+    display: none;
+  }
 }

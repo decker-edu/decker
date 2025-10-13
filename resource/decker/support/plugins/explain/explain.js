@@ -1982,7 +1982,7 @@ const Plugin = {
       if (menuPlugin && !!menuPlugin.addPluginButton) {
         pluginButton = menuPlugin.addPluginButton(
           "decker-menu-recording-button",
-          "fa-video",
+          "fas fa-video",
           localization.init_recording,
           () => {
             if (pluginButton.ariaDisabled === "true") {

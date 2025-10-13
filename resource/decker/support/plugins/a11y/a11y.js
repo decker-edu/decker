@@ -184,7 +184,7 @@ const Plugin = {
       if (!!menuPlugin && !!menuPlugin.addPluginButton) {
         pluginButton = menuPlugin.addPluginButton(
           "decker-menu-a11y-button",
-          "fa-universal-access",
+          "fas fa-universal-access",
           localization.activate_accessibility,
           toggleAccessibility
         );

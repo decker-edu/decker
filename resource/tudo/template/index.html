@@ -103,7 +103,7 @@ $endif$
       $endif$
 
       $if(index.search)$
-        <div id="index-search"></div>
+        <div id="index-search" name="index-details"></div>
         <script type="module">
           import setupSearch from "./$decker-support-dir$/fuzzySearch/search.js";
           window.addEventListener("load", () => {
@@ -114,7 +114,7 @@ $endif$
       $endif$
 
       $if(chatty)$
-        <details class="chatty">
+        <details class="chatty" name="index-details">
           <summary>
             <span class="english">Ask Prof. Bot<del>sch</del></span>
             <span class="german">Frag Prof. Bot<del>sch</del></span>
