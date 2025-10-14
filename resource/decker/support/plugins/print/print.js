@@ -53,7 +53,7 @@ function checkHeight() {
           slideNumber() +
           " is " +
           (scrollHeight - configHeight) +
-          "px too high"
+          "px too high",
       );
       slide.style.border = "1px dashed red";
     } else {
@@ -78,7 +78,7 @@ function slideNumber() {
  */
 function setupIframes() {
   for (let e of document.querySelectorAll(
-    ".reveal section .media .print iframe[data-src]"
+    ".reveal section .media .print iframe[data-src]",
   )) {
     e.src = e.getAttribute("data-src");
   }
@@ -178,6 +178,23 @@ function setupMargin() {
   Reveal.configure({ margin: 0.0 });
 }
 
+// Sets the document mode to light mode
+// on printing in dark mode seems to be broken.
+// Also this gives consistency when using `decker pdf`,
+// as now the color mode is not determined
+// by how reveal slides where last viewed in browser
+// or how the system color config is set up.
+function setupLightMode() {
+  document.documentElement.classList.remove("dark");
+  document.documentElement.classList.add("light");
+  // For the `decker pdf` command it seems to work without setting the mode in the sessionStorage,
+  // but for the decker pdf export in decker it doesn't.
+  // Nevertheless I would say we leave it commented out (or remove it here),
+  // as in the webbased decker export the user can go back and switch to light theme for export.
+  // If we want, we could also integrate this behaviour directly in the menu button click for the print pdf button.
+  // sessionStorage.setItem("color-mode", "light");
+}
+
 // export the plugin
 const Plugin = {
   id: "print",
@@ -199,6 +216,7 @@ const Plugin = {
         setupVideos();
         setupTitle();
         setupMargin();
+        setupLightMode();
 
         // automatically press the print button when not in headless mode
         if (!navigator.webdriver && !Decker.isElectron()) {
