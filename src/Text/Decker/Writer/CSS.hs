@@ -16,6 +16,7 @@ import Relude
 import Text.Decker.Internal.Meta
 import Text.Pandoc (Meta)
 import Text.Printf
+import qualified Data.Text as T
 
 -- Theme: Tomorrow (http://chriskempson.com/projects/base16/)
 defaultLight :: [String]
@@ -104,8 +105,6 @@ deriveColors :: [String] -> Float -> Map Text Text -> (Map Text Text, [Text])
 deriveColors palette contrast existing =
   let colors = map sRGB24read palette
       nShades = length palette `div` 2
-      bg = fromJust $ colors !!? 0
-      fg = fromJust $ colors !!? (nShades - 1)
       deriveShades colors i color =
         let c = toHex color
          in Map.union colors $
@@ -114,29 +113,19 @@ deriveColors palette contrast existing =
                   (printfT "shade%d" i, c)
                 ]
       deriveAccents colors i color =
-        let cBbg = toHex (blend (2 * contrast) bg color)
-            cBg = toHex (blend contrast bg color)
-            c = toHex color
-            cFg = toHex (blend contrast fg color)
-            cFfg = toHex (blend (2 * contrast) fg color)
+        let c = toHex color
          in Map.union colors $
               Map.fromList
-                [ (printfT "base%0.2X-bbg" (i + nShades), cBbg),
-                  (printfT "base%0.2X-bg" (i + nShades), cBg),
+                [
                   (printfT "base%0.2X" (i + nShades), c),
-                  (printfT "base%0.2X-fg" (i + nShades), cFg),
-                  (printfT "base%0.2X-ffg" (i + nShades), cFfg),
-                  (printfT "accent%d-bbg" i, cBbg),
-                  (printfT "accent%d-bg" i, cBg),
-                  (printfT "accent%d" i, c),
-                  (printfT "accent%d-fg" i, cFg),
-                  (printfT "accent%d-ffg" i, cFfg)
+                  (printfT "accent%d" i, c)
                 ]
       shades :: Map Text Text = foldi deriveShades Map.empty (0 :: Int) $ take nShades colors
       accents :: Map Text Text = foldi deriveAccents Map.empty (0 :: Int) $ drop nShades colors
+      contrastCSS :: Map Text Text = Map.fromList [("contrast", T.pack $ show (round (contrast * 100)) ++ "%")]
       -- Map.union ist left-biased. Does not overwrite colors that have been set
       -- by other means.
-      cssColors = foldl' Map.union Map.empty [existing, shades, accents]
+      cssColors = foldl' Map.union Map.empty [contrastCSS, existing, shades, accents]
       cssColorDeclarations = toDeclarations cssColors
    in (cssColors, cssColorDeclarations)
 
