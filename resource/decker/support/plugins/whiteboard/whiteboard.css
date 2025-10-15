@@ -124,6 +124,10 @@ html.print-pdf #whiteboardButtons {
   display: inline-block;
 }
 
+#whiteboardButtons:not(.active) > #whiteboardButton {
+  display: inline-block;
+}
+
 #whiteboardButtons.active:not(.showMenu) > button[aria-checked="true"] {
   display: inline-block;
   background: transparent;
