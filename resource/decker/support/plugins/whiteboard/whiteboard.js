@@ -231,7 +231,6 @@ let buttonPen;
 let buttonEraser;
 let buttonLaser;
 let colorPicker;
-let hoverTimer;
 
 function isPanelVisible() {
   return buttons.classList.contains("showMenu");
@@ -247,7 +246,7 @@ function hidePanel() {
 
 function showPanel() {
   buttons.classList.add("showMenu");
-  clearInterval(hoverTimer);
+  clearTimeout(autoToggleTimer);
   document.addEventListener("pointerdown", clickHidesPanel, true);
 }
 
@@ -298,15 +297,6 @@ function createGUI() {
   buttons = document.createElement("div");
   buttons.id = "whiteboardButtons";
   buttons.classList.add("presenter-only");
-
-  // handle hover visibility of panel
-  // MARIO: this is not cool on Wacom
-  // buttons.onmouseenter = (evt) => {
-  //   clearInterval(hoverTimer);
-  // };
-  // buttons.onmouseleave = (evt) => {
-  //   hoverTimer = setInterval(hidePanel, 3000);
-  // };
 
   buttonDownload = createActionButton(
     "fas fa-download",
@@ -754,7 +744,11 @@ function toggleWhiteboard(state) {
 let autoToggleTimer;
 function autoToggleOff(evt) {
   if (evt.pointerType == "pen") {
-    if (whiteboardActive) {
+    if (
+      whiteboardActive &&
+      evt.target.classList.contains("whiteboard") &&
+      !isPanelVisible()
+    ) {
       clearTimeout(autoToggleTimer);
       autoToggleTimer = setTimeout(disableWhiteboard, 2000);
     }
