@@ -240,6 +240,11 @@ div.decker-flash-panel {
 /* This is not display: none so screen readers have time to actually read out the content */
 div.decker-flash-panel:not(.flashing) {
   opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
 }
 
 div.decker-flash-panel div.content {
