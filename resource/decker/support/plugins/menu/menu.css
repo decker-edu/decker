@@ -6,8 +6,15 @@
   z-index: 256;
   background: var(--menu-background-color);
   color: var(--menu-text-color);
+  border: none;
   border-right: 2px solid var(--menu-border-color);
   overflow: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.decker-menu::backdrop {
+  backdrop-filter: blur(4px);
 }
 
 .menu-header {

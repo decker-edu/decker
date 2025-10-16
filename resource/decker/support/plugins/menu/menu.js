@@ -33,7 +33,6 @@ class SlideMenu {
     this.plugin_buttons = {
       container: undefined,
     };
-    this.glass = undefined;
     this.position = position;
     this.localization = undefined;
   }
@@ -91,10 +90,10 @@ class SlideMenu {
    * @param {*} event
    */
   toggleMenu(event) {
-    if (this.inert) {
-      this.openMenu(event);
-    } else {
+    if (this.menu.container.getAttribute("open")) {
       this.closeMenu(event);
+    } else {
+      this.openMenu(event);
     }
   }
 
@@ -103,26 +102,12 @@ class SlideMenu {
    * @param {*} event
    */
   openMenu(event) {
-    if (this.inert) {
-      this.inert = false;
-      if (this.reveal.hasPlugin("ui-anchors")) {
-        const anchors = this.reveal.getPlugin("ui-anchors");
-        anchors.setInert(true);
-      }
-      if (document.documentElement.classList.contains("handout")) {
-        document.getElementById("handout-container").inert = true;
-      } else {
-        this.reveal.getRevealElement().inert = true;
-      }
-      this.disableKeybinds();
-      this.glass.classList.add("show");
-      this.menu.home_button.removeAttribute("tabindex");
-      this.menu.container.scroll(0, 0);
-      if (event && event.detail === 0) {
-        this.menu.close_button.focus();
-      }
-      // scrolling the current slide into view now conflicts with the entire menu being scrollable
-      // document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
+    this.menu.container.showModal();
+    this.disableKeybinds();
+    this.menu.home_button.removeAttribute("tabindex");
+    this.menu.container.scroll(0, 0);
+    if (event && event.detail === 0) {
+      this.menu.close_button.focus();
     }
   }
 
@@ -131,24 +116,13 @@ class SlideMenu {
    * @param {*} event
    */
   closeMenu(event) {
-    if (!this.inert) {
-      this.inert = true;
-      if (this.reveal.hasPlugin("ui-anchors")) {
-        const anchors = this.reveal.getPlugin("ui-anchors");
-        anchors.setInert(false);
-      }
-      if (document.documentElement.classList.contains("handout")) {
-        document.getElementById("handout-container").inert = false;
-      } else {
-        this.reveal.getRevealElement().inert = false;
-      }
-      for (const button of this.plugin_buttons.querySelectorAll("button")) {
-        button.setAttribute("tabindex", -1);
-      }
-      this.enableKeybinds();
-      this.glass.classList.remove("show");
-      this.open_button.focus();
+    this.menu.container.close();
+    /* reset initial cursor position to the home button on later open */
+    for (const button of this.plugin_buttons.querySelectorAll("button")) {
+      button.setAttribute("tabindex", -1);
     }
+    this.enableKeybinds();
+    this.open_button.focus();
   }
 
   /**
@@ -450,7 +424,7 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<nav class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label}" inert>
+    template.innerHTML = String.raw`<dialog class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label}">
       <div class="menu-header">
         <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
         </button> 
@@ -529,14 +503,6 @@ class SlideMenu {
       this.traverseButtons(event);
     });
 
-    /* Temporary Solution */
-    this.glass = document.querySelector("#glass");
-    if (!this.glass) {
-      this.glass = document.createElement("div");
-      this.glass.id = "glass";
-      document.body.appendChild(this.glass);
-    }
-
     /* Allow exit with ESC and focus with HOME and END */
 
     this.menu.container.addEventListener("keydown", (event) => {
@@ -557,6 +523,20 @@ class SlideMenu {
       }
     });
 
+    this.menu.container.addEventListener("click", (event) => {
+      const bounds = this.menu.container.getBoundingClientRect();
+      const cx = event.clientX;
+      const cy = event.clientY;
+      if (
+        cx < bounds.x ||
+        bounds.x + bounds.width < cx ||
+        cy < bounds.y ||
+        bounds.y + bounds.height < cy
+      ) {
+        this.closeMenu();
+      }
+    });
+
     /* Trap Keyboard Focus */
 
     this.menu.slide_list.addEventListener("keydown", (event) => {
@@ -574,8 +554,6 @@ class SlideMenu {
         );
       }
     });
-
-    this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
   addMenuButton(id, icon, title, callback) {

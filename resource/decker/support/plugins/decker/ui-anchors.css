@@ -65,10 +65,11 @@ div.bottom-right-anchor {
   height: 100%;
   max-width: 100%;
   transition: transform 0.5s;
+  transform: translateX(-100%);
 }
 
-.slide-in-left[inert] {
-  transform: translate(-100%);
+.slide-in-left[open] {
+  transform: translateX(0);
 }
 
 .slide-in-right {

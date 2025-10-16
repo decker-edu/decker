@@ -437,7 +437,6 @@ function prepareFlashPanel() {
         } else {
           clearInterval(interval);
           interval = null;
-          content.innerHTML = "";
           panel.classList.remove("flashing");
         }
       }
