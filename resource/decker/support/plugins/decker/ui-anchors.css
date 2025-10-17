@@ -57,33 +57,40 @@ div.bottom-right-anchor {
   color: var(--icon-active-color);
 }
 
+/* This overwrites a random user agent default that causes the
+ * slide in menus to not be able to grow as far as they have to */
+dialog:modal {
+  max-height: 100vh;
+}
+
 .slide-in-left {
   z-index: 110;
   position: fixed;
   top: 0;
   left: 0;
   height: 100%;
-  max-width: 100%;
-  transition: transform 0.5s;
+  transition-property: transform;
+  transition-duration: 0.5s;
   transform: translateX(-100%);
 }
 
 .slide-in-left[open] {
-  transform: translateX(0);
+  transform: unset;
 }
 
 .slide-in-right {
   z-index: 110;
   position: fixed;
   top: 0;
+  left: auto;
   right: 0;
   height: 100%;
-  max-width: 100%;
   transition: transform 0.5s;
+  transform: translateX(100%);
 }
 
-.slide-in-right[inert] {
-  transform: translate(100%);
+.slide-in-right[open] {
+  transform: unset;
 }
 
 @media print {

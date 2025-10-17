@@ -3,11 +3,17 @@
   display: flex;
   flex-direction: column;
   font-size: 1.2rem;
-
   background: var(--menu-background-color);
   color: var(--menu-text-color);
   width: max(33%, 20em);
+  border: none;
   border-left: 2px solid var(--menu-border-color);
+  margin: 0;
+  padding: 0;
+}
+
+.feedback-menu::backdrop {
+  backdrop-filter: blur(4px);
 }
 
 /* Badges */
@@ -48,16 +54,16 @@
 
 /* Menu Parts */
 
-div.feedback-menu.authorized div.feedback-footer {
+.feedback-menu.authorized .feedback-footer {
   display: none;
 }
 
-div.feedback-menu.authorized input.feedback-token-input,
-div.feedback-menu.authorized button.feedback-lock {
+.feedback-menu.authorized input.feedback-token-input,
+.feedback-menu.authorized button.feedback-lock {
   visibility: hidden;
 }
 
-div.feedback-header {
+.feedback-header {
   --icon-inactive-color: var(--shade2);
 
   flex: 0 1 content;
@@ -75,16 +81,16 @@ div.feedback-header {
   color: var(--menu-header-text-color);
 }
 
-div.feedback-title {
+.feedback-title {
   flex: 0 1;
   margin-right: 1em;
 }
 
-div.counter[data-count="0"] {
+.counter[data-count="0"] {
   visibility: hidden;
 }
 
-div.counter {
+.counter {
   flex: 0 1;
   margin-right: 1em;
   font-size: 0.9em;
@@ -94,13 +100,13 @@ div.counter {
   visibility: hidden;
 }
 
-div.feedback-menu div.feedback-header input {
+.feedback-menu .feedback-header input {
   font-family: var(--ui-font-family);
   /* font-size: 0.8em; */
 }
 
-div.feedback-header input[type="text"],
-div.feedback-header input[type="password"] {
+.feedback-header input[type="text"],
+.feedback-header input[type="password"] {
   flex: 1 1;
   min-width: 2em;
   max-width: 100em;
@@ -112,12 +118,12 @@ div.feedback-header input[type="password"] {
   color: var(--foreground-color);
 }
 
-div.feedback-header button {
+.feedback-header button {
   /* flex: 0 1; */
   /* color: var(--menu-header-text-color); */
 }
 
-div.feedback-footer button {
+.feedback-footer button {
   flex: 0 1;
   /* color: var(--feedback-footer-text-color); */
 }
@@ -136,12 +142,12 @@ ul.feedback-list button:active {
   color: var(--icon-active-color);
 }
 
-div.feedback-header button > span {
+.feedback-header button > span {
   font-size: 0.5em;
   display: none;
 }
 
-div.feedback-menu .feedback-list {
+.feedback-menu .feedback-list {
   flex: 1 1;
   background-color: var(--list-background);
   padding: 0.3em;
@@ -149,7 +155,7 @@ div.feedback-menu .feedback-list {
   overflow-y: scroll;
 }
 
-div.feedback-menu .feedback-list .feedback-item {
+.feedback-menu .feedback-list .feedback-item {
   color: var(--foreground-color);
   background-color: var(--background-color);
   font-family: var(--ui-font-family);
@@ -165,7 +171,7 @@ div.feedback-menu .feedback-list .feedback-item {
   justify-content: space-between;
 }
 
-div.feedback-content {
+.feedback-content {
   margin: 0;
   padding: 0;
   padding-right: 0.1em;
@@ -180,15 +186,15 @@ div.feedback-content {
   font-size: 80%;
 }
 
-.feedback-item.answer > div.link {
+.feedback-item.answer > .link {
   float: right;
 }
 
-div.feedback-menu div.feedback-controls {
+.feedback-menu .feedback-controls {
   margin-left: 0.5em;
 }
 
-div.feedback-controls-wrapper {
+.feedback-controls-wrapper {
   position: relative;
   top: 50%;
   transform: translate(0, -50%);
@@ -203,20 +209,20 @@ div.feedback-controls-wrapper {
   font-size: calc(var(--icon-size) * 0.75);
 }
 
-div.feedback-menu button.answered {
+.feedback-menu button.answered {
   color: var(--color-success);
 }
 
-div.feedback-menu button.notanswered {
+.feedback-menu button.notanswered {
   color: var(--color-error);
 }
 
-div.feedback-menu button.cantvote {
+.feedback-menu button.cantvote {
   cursor: default;
   color: var(--icon-disabled-color);
 }
 
-div.feedback-menu button.cantvote:hover {
+.feedback-menu button.cantvote:hover {
   color: var(--icon-disabled-color);
 }
 
@@ -224,7 +230,7 @@ div.feedback-menu button.cantvote:hover {
   flex: 0 1 content;
 }
 
-div.feedback-menu div.feedback-question-input {
+.feedback-menu .feedback-question-input {
   flex: 0 1;
   padding: 0.3em;
 
@@ -235,7 +241,7 @@ div.feedback-menu div.feedback-question-input {
   gap: 0.5rem;
 }
 
-div.feedback-question-input textarea {
+.feedback-question-input textarea {
   resize: none;
   padding: 0.3em;
   flex-grow: 1;
@@ -248,7 +254,7 @@ div.feedback-question-input textarea {
   font-size: 0.8em;
 }
 
-div.feedback-question-input button.feedback-send-button {
+.feedback-question-input button.feedback-send-button {
   font-size: 1.5rem;
   flex-grow: 0;
   background-color: var(--accent5);
@@ -261,31 +267,31 @@ div.feedback-question-input button.feedback-send-button {
   align-items: center;
 }
 
-div.feedback-question-input button.feedback-send-button:hover {
+.feedback-question-input button.feedback-send-button:hover {
   background-color: var(--accent5-bg);
   color: var(--foreground-color);
 }
 
-div.feedback-question-input button.feedback-send-button span.fas {
+.feedback-question-input button.feedback-send-button span.fas {
   padding: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
-  div.feedback-question input textarea {
+  .feedback-question input textarea {
     background-color: var(--shade1);
   }
 }
 
-div.feedback-question-input textarea[answer] {
+.feedback-question-input textarea[answer] {
   background-color: var(--accent3-bbg);
   border: solid 1px var(--accent4-bbg);
 }
 
-div.feedback-question-input textarea::placeholder {
+.feedback-question-input textarea::placeholder {
   color: var(--shade6);
 }
 
-div.feedback-menu div.feedback-footer {
+.feedback-menu .feedback-footer {
   flex: 0 1 content;
 
   display: flex;
@@ -297,20 +303,20 @@ div.feedback-menu div.feedback-footer {
   background: var(--feedback-footer-background-color);
 }
 
-div.feedback-credentials {
+.feedback-credentials {
   display: flex;
   flex: 1 0;
 }
 
-div.feedback-credentials.visible {
+.feedback-credentials.visible {
   visibility: visible;
 }
 
-div.feedback-credentials:not(.visible) {
+.feedback-credentials:not(.visible) {
   visibility: hidden;
 }
 
-div.feedback-credentials input {
+.feedback-credentials input {
   flex: 1 0;
   color: var(--foreground-color);
   margin: 0;
@@ -326,11 +332,11 @@ div.feedback-credentials input {
   font-size: 0.8em;
 }
 
-div.feedback-credentials input.error {
+.feedback-credentials input.error {
   background-color: var(--accent0-bbg);
 }
 
-div.feedback-credentials button {
+.feedback-credentials button {
   background-color: var(--accent5);
   color: var(--background-color);
   font-weight: bold;
@@ -339,17 +345,17 @@ div.feedback-credentials button {
   border-radius: 0.5rem;
 }
 
-div.feedback-credentials button:hover {
+.feedback-credentials button:hover {
   background-color: var(--accent5-bg);
   color: var(--foreground-color);
 }
 
-div.feedback-credentials button:active {
+.feedback-credentials button:active {
   background-color: var(--accent5-fg);
   color: var(--background-color);
 }
 
-div.feedback-login {
+.feedback-login {
   flex: 0 1;
 
   color: var(--feedback-footer-text-color);
@@ -357,68 +363,68 @@ div.feedback-login {
   font-size: 1em;
 }
 
-div.feedback-login:not(.admin) {
+.feedback-login:not(.admin) {
   opacity: 1;
   color: var(--feedback-footer-text-color);
 }
 
-div.feedback-login.admin {
+.feedback-login.admin {
   opacity: 1;
   color: var(--accent0);
 }
 
-div.feedback-menu .feedback-item p,
-div.feedback-menu ul,
-div.feedback-menu ol {
+.feedback-menu .feedback-item p,
+.feedback-menu ul,
+.feedback-menu ol {
   padding-bottom: 0.3em;
 }
 
-div.feedback-menu .feedback-item p:last-child,
-div.feedback-menu .feedback-item ul:last-child,
-div.feedback-menu .feedback-item ol:last-child {
+.feedback-menu .feedback-item p:last-child,
+.feedback-menu .feedback-item ul:last-child,
+.feedback-menu .feedback-item ol:last-child {
   padding-bottom: 0;
 }
 
 /* Markdown Styling of questions and answers */
 
-div.feedback-menu .feedback-item {
+.feedback-menu .feedback-item {
   font-size: 1em;
 }
 
-div.feedback-menu .feedback-item em {
+.feedback-menu .feedback-item em {
   font-style: italic;
 }
 
-div.feedback-menu .feedback-item strong {
+.feedback-menu .feedback-item strong {
   font-weight: bold;
 }
 
-div.feedback-menu .feedback-item a {
+.feedback-menu .feedback-item a {
   color: var(--accent4-fg);
 }
 
-div.feedback-menu .feedback-item ol {
+.feedback-menu .feedback-item ol {
   list-style-type: lower-alpha;
   list-style-position: inside;
 }
 
-div.feedback-menu .feedback-item ul {
+.feedback-menu .feedback-item ul {
   list-style-type: disc;
   list-style-position: inside;
 }
 
-div.feedback-menu .feedback-item code {
+.feedback-menu .feedback-item code {
   font-family: var(--code-font-family);
   font-size: 0.9em;
 }
 
-div.feedback-menu .feedback-item pre {
+.feedback-menu .feedback-item pre {
   padding: 0.2em;
   background-color: var(--code-background-color);
   white-space: pre-wrap;
 }
 
-div.feedback-menu .feedback-item h1 {
+.feedback-menu .feedback-item h1 {
   font-size: 1.2em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -426,7 +432,7 @@ div.feedback-menu .feedback-item h1 {
   color: #333;
 }
 
-div.feedback-menu .feedback-item h2 {
+.feedback-menu .feedback-item h2 {
   font-size: 1.1em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -434,7 +440,7 @@ div.feedback-menu .feedback-item h2 {
   color: #333;
 }
 
-div.feedback-menu .feedback-item img {
+.feedback-menu .feedback-item img {
   width: 100%;
   image-rendering: pixelated;
 }

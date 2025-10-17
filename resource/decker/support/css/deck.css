@@ -222,7 +222,17 @@ div.block[popup="center-down"] {
   text-decoration: none;
 }
 
-div.decker-flash-panel {
+/* This is not display: none so screen readers have time to actually read out the content */
+div.decker-flash-panel:not(.flashing) {
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+}
+
+div.decker-flash-panel.flashing {
   z-index: 1000;
   position: fixed;
   left: 50%;
@@ -235,16 +245,6 @@ div.decker-flash-panel {
   justify-content: center;
   align-items: center;
   align-content: center;
-}
-
-/* This is not display: none so screen readers have time to actually read out the content */
-div.decker-flash-panel:not(.flashing) {
-  opacity: 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
 }
 
 div.decker-flash-panel div.content {

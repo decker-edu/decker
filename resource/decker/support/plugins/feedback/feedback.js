@@ -124,24 +124,15 @@ class Feedback {
    * Opens the menu and updates its content. Also focuses the first button in the menu.
    */
   openMenu(event) {
-    if (this.menu.container.inert) {
-      this.menu.container.inert = false;
-      // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
-      // TODO: Find a better way to deal with this
-      if (!document.documentElement.classList.contains("handout"))
-        this.requestMenuContent();
-      this.reveal.getRevealElement().inert = true;
-      if (this.reveal.hasPlugin("ui-anchors")) {
-        const anchors = this.reveal.getPlugin("ui-anchors");
-        anchors.setInert(true);
-      }
-      this.reveal.configure({ keyboard: false });
-      // localStorage.setItem("feedback-state", "open");
-      this.glass.classList.add("show");
+    this.reveal.configure({ keyboard: false });
+    this.menu.container.showModal();
+    // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
+    // TODO: Find a better way to deal with this
+    if (!document.documentElement.classList.contains("handout")) {
+      this.requestMenuContent();
+    }
+    if (event && event.detail === 0) {
       this.menu.close_button.focus();
-      if (event && event.detail === 0) {
-        this.menu.close_button.focus();
-      }
     }
   }
 
@@ -149,21 +140,12 @@ class Feedback {
    * Closes the menu and focuses the button that opened it.
    */
   closeMenu(event) {
-    if (!this.menu.container.inert) {
-      this.menu.container.inert = true;
-      this.reveal.getRevealElement().inert = false;
-      if (this.reveal.hasPlugin("ui-anchors")) {
-        const anchors = this.reveal.getPlugin("ui-anchors");
-        anchors.setInert(false);
-      }
-      localStorage.removeItem("feedback-state");
-      this.glass.classList.remove("show", "blur");
-      if (event && event.detail === 0) {
-        setTimeout(() => this.open_button.focus());
-      }
-      if (!document.documentElement.classList.contains("handout")) {
-        this.reveal.configure({ keyboard: true });
-      }
+    if (!document.documentElement.classList.contains("handout")) {
+      this.reveal.configure({ keyboard: true });
+    }
+    this.menu.container.close();
+    if (event && event.detail === 0) {
+      setTimeout(() => this.open_button.focus());
     }
   }
 
@@ -726,7 +708,7 @@ class Feedback {
       <div class="feedback-badge"></div>
     </button>`;
 
-    let menu_string = String.raw`<div id="feedback-menu" class="feedback-menu slide-in-right" role="menu" inert>
+    let menu_string = String.raw`<dialog id="feedback-menu" class="feedback-menu slide-in-right" role="menu">
       <div class="feedback-header">
         <div class="counter">0</div>
         <div class="feedback-title">${text.menu_title}</div>
@@ -748,7 +730,7 @@ class Feedback {
           <button id="feedback-login-send" type="button" title="${text.send_credentials}" aria-label="${text.send_credentials}">Admin Login</button>
         </div>
       </div>
-    </div>`;
+    </dialog>`;
 
     let button_template = document.createElement("template");
     let menu_template = document.createElement("template");
@@ -978,14 +960,19 @@ class Feedback {
     }
     document.body.prepend(this.menu.container);
 
-    /* Temporary Solution */
-    this.glass = document.querySelector("#glass");
-    if (!this.glass) {
-      this.glass = document.createElement("div");
-      this.glass.id = "glass";
-      document.body.appendChild(this.glass);
-    }
-    this.glass.addEventListener("click", (event) => this.closeMenu(event));
+    this.menu.container.addEventListener("click", (event) => {
+      const bounds = this.menu.container.getBoundingClientRect();
+      const cx = event.clientX;
+      const cy = event.clientY;
+      if (
+        cx < bounds.x ||
+        bounds.x + bounds.width < cx ||
+        cy < bounds.y ||
+        bounds.y + bounds.height < cy
+      ) {
+        this.closeMenu();
+      }
+    });
 
     /* Finish setup before presentation */
 

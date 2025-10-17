@@ -109,6 +109,10 @@ class SlideMenu {
     if (event && event.detail === 0) {
       this.menu.close_button.focus();
     }
+    const panel = document.querySelector(".decker-flash-panel");
+    if (panel) {
+      this.menu.container.appendChild(panel);
+    }
   }
 
   /**
@@ -122,7 +126,13 @@ class SlideMenu {
       button.setAttribute("tabindex", -1);
     }
     this.enableKeybinds();
-    this.open_button.focus();
+    if (event && event.detail === 0) {
+      this.open_button.focus();
+    }
+    const panel = document.querySelector(".decker-flash-panel");
+    if (panel) {
+      document.body.appendChild(panel);
+    }
   }
 
   /**
@@ -439,7 +449,7 @@ class SlideMenu {
           </button>
         </div>
       </div>
-     </nav>`;
+     </dialog>`;
     let container = template.content.firstElementChild;
     this.menu.container = container;
 
