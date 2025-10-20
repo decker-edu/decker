@@ -125,6 +125,7 @@ class Feedback {
    */
   openMenu(event) {
     this.reveal.configure({ keyboard: false });
+    this.menu.container.inert = false;
     this.menu.container.showModal();
     // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
     // TODO: Find a better way to deal with this
@@ -143,6 +144,7 @@ class Feedback {
     if (!document.documentElement.classList.contains("handout")) {
       this.reveal.configure({ keyboard: true });
     }
+    this.menu.container.inert = true;
     this.menu.container.close();
     if (event && event.detail === 0) {
       setTimeout(() => this.open_button.focus());
@@ -708,7 +710,7 @@ class Feedback {
       <div class="feedback-badge"></div>
     </button>`;
 
-    let menu_string = String.raw`<dialog id="feedback-menu" class="feedback-menu slide-in-right" role="menu">
+    let menu_string = String.raw`<dialog id="feedback-menu" class="feedback-menu slide-in-right" role="menu" inert>
       <div class="feedback-header">
         <div class="counter">0</div>
         <div class="feedback-title">${text.menu_title}</div>

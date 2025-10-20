@@ -102,6 +102,7 @@ class SlideMenu {
    * @param {*} event
    */
   openMenu(event) {
+    this.inert = false;
     this.menu.container.showModal();
     this.disableKeybinds();
     this.menu.home_button.removeAttribute("tabindex");
@@ -121,6 +122,7 @@ class SlideMenu {
    */
   closeMenu(event) {
     this.menu.container.close();
+    this.inert = true;
     /* reset initial cursor position to the home button on later open */
     for (const button of this.plugin_buttons.querySelectorAll("button")) {
       button.setAttribute("tabindex", -1);
@@ -434,7 +436,7 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<dialog class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label}">
+    template.innerHTML = String.raw`<dialog class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label} inert">
       <div class="menu-header">
         <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
         </button> 

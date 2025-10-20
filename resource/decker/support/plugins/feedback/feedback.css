@@ -13,7 +13,8 @@
 }
 
 .feedback-menu::backdrop {
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
 }
 
 /* Badges */
