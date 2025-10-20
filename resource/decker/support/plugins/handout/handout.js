@@ -680,10 +680,8 @@ function makeWhiteboardVisible(svg) {
 function toggleHandoutMode() {
   if (!handoutSlideMode) {
     activateHandoutMode();
-    Decker.flash.message(localization.handout_mode_on);
   } else {
     disassembleHandoutMode();
-    Decker.flash.message(localization.handout_mode_off);
   }
 }
 
@@ -737,6 +735,7 @@ const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
   currentSlide: () => centralSlide,
+  toggle: toggleHandoutMode,
   init: (reveal) => {
     Reveal = reveal;
     createButtons();
@@ -755,9 +754,13 @@ const Plugin = {
         key: "H",
         description: "Toggle Handout Mode (Triple Click)",
       },
-
       Decker.tripleClick(() => {
         toggleHandoutMode();
+        Decker.flashMessage(
+          handoutSlideMode
+            ? localization.handout_mode_on
+            : localization.handout_mode_off
+        );
       })
     );
     if (a11y || handout) {

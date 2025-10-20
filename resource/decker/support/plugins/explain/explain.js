@@ -532,8 +532,6 @@ async function getDevices() {
 async function setupRecorder() {
   if (!Decker.isPresenterMode()) {
     Decker.togglePresenterMode();
-    // Decker.flash.message(localization.presenter_mode_error);
-    // return false;
   }
   try {
     stream = null;
@@ -1994,7 +1992,7 @@ const Plugin = {
                 uiState.transition("setupRecorder");
                 break;
               default:
-                Decker.flash.message(
+                Decker.flashMessage(
                   `<span>${localization.invalid_state}</span>`
                 );
             }
