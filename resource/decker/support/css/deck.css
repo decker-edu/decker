@@ -230,6 +230,7 @@ div.decker-flash-panel:not(.flashing) {
   left: 0;
   width: 1px;
   height: 1px;
+  overflow: hidden;
 }
 
 div.decker-flash-panel.flashing {
