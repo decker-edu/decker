@@ -85,15 +85,9 @@ function visibilityChanged() {
 
 async function onPresenterMode(isActive) {
   if (isActive) {
-    // show info message
-    Decker.flash.message(localization.presenter_mode_on);
-
     // request wake lock: display cannot go to sleep
     requestWakeLock();
   } else {
-    // show info message
-    Decker.flash.message(localization.presenter_mode_off);
-
     // release wake lock, display may go to sleep again
     releaseWakeLock();
   }
@@ -410,15 +404,13 @@ function prepareFlashPanel() {
   let revealElement = Reveal.getRevealElement();
   let viewport = revealElement.parentElement;
   if (viewport) {
-    let panelHtml = `
-  <div class="decker-flash-panel">
-    <div class="content" role="alert" aria-live="assertive"></div>
-  </div>
-  `;
+    const panelHtml = `<div id="decker-flash-panel" popover>
+      <div class="content" role="alert" aria-live="assertive"></div>
+    </div>`;
     viewport.insertAdjacentHTML("beforeend", panelHtml);
 
-    let panel = viewport.querySelector("div.decker-flash-panel");
-    let content = viewport.querySelector("div.decker-flash-panel div.content");
+    let panel = viewport.querySelector("#decker-flash-panel");
+    let content = viewport.querySelector("#decker-flash-panel div.content");
 
     let update = (msg) => {
       if (msg) {
@@ -428,7 +420,7 @@ function prepareFlashPanel() {
         } else {
           interval = setInterval(update, 1000);
           content.innerHTML = msg;
-          panel.classList.add("flashing");
+          panel.showPopover();
         }
       } else {
         // Called by interval timer. No new message.
@@ -437,21 +429,17 @@ function prepareFlashPanel() {
         } else {
           clearInterval(interval);
           interval = null;
-          panel.classList.remove("flashing");
+          panel.hidePopover();
         }
       }
     };
 
-    Decker.flash = {
-      message: update,
-    };
+    Decker.flashMessage = update;
   } else {
     console.error(
       "Element is missing: getRevealElement (This is seriously wrong)"
     );
-    Decker.flash = {
-      message: console.log,
-    };
+    Decker.flashMessage = console.log;
   }
 }
 
@@ -463,6 +451,14 @@ function togglePresenterMode(state) {
   presenterMode = typeof state === "boolean" ? state : !presenterMode;
 
   if (presenterMode) {
+    /* make sure handout mode is turned off */
+    if (Reveal.hasPlugin("handout")) {
+      const handoutPlugin = Reveal.getPlugin("handout");
+      if (handoutPlugin.isActive()) {
+        handoutPlugin.toggle();
+      }
+    }
+
     viewportElement.classList.add("presenter-mode");
     pluginButton.ariaPressed = true;
     pluginButton.setLabel(localization.deactivate_presenter_mode);
@@ -515,13 +511,12 @@ function preparePresenterMode() {
     },
 
     Decker.tripleClick(() => {
-      if (Reveal.hasPlugin("handout")) {
-        const handoutPlugin = Reveal.getPlugin("handout");
-        if (handoutPlugin.isActive()) {
-          return;
-        }
-      }
       togglePresenterMode();
+      Decker.flashMessage(
+        Decker.isPresenterMode()
+          ? localization.presenter_mode_on
+          : localization.presenter_mode_off
+      );
     })
   );
 }
