@@ -44,6 +44,7 @@ data FilterPosition = Before | After deriving (Show, Eq)
 
 runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
 runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
+  putVerbose "runDynamicFilters"
   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
   let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
   if not $ null filters
@@ -64,7 +65,8 @@ processPandoc ::
   Disposition ->
   Pandoc ->
   Action Pandoc
-processPandoc transform base disp pandoc =
+processPandoc transform base disp pandoc = do
+  putVerbose "processPandoc"
   evalStateT (transform pandoc) (DeckerState base disp 0)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.

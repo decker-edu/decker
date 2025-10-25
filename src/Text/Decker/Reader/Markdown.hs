@@ -63,20 +63,23 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do
+  putVerbose "processMeta"
   let processed = computeCssColorVariables $ computeCssVariables meta
   return (Pandoc processed blocks)
 
 -- | Provide default CSL data from the resources if csl: is not set.
-processCites :: (MonadIO m) => Pandoc -> m Pandoc
-processCites pandoc@(Pandoc meta blocks) = liftIO $ do
-  if
-    | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
-        runIOorExplode $ processCitations pandoc
-    | isMetaSet "bibliography" meta -> do
-        defaultCSL <- installDefaultCSL meta
-        let cslMeta = setMetaValue "csl" defaultCSL meta
-        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
-    | otherwise -> return pandoc
+processCites :: Pandoc -> Action Pandoc
+processCites pandoc@(Pandoc meta blocks) = do
+  putVerbose "processCites"
+  liftIO $ 
+    if
+      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+          runIOorExplode $ processCitations pandoc
+      | isMetaSet "bibliography" meta -> do
+          defaultCSL <- installDefaultCSL meta
+          let cslMeta = setMetaValue "csl" defaultCSL meta
+          runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+      | otherwise -> return pandoc
 
 installDefaultCSL :: Meta -> IO FilePath
 installDefaultCSL meta = do
@@ -95,6 +98,7 @@ installDefaultCSL meta = do
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   let base = takeDirectory path
+  putVerbose "readMarkdownFile"
   parseMarkdownFile path
     >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
@@ -173,6 +177,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
 -- the meta data. Also calls need on those files.
 calcRelativeResourcePaths :: FilePath -> Pandoc -> Action Pandoc
 calcRelativeResourcePaths base (Pandoc meta content) = do
+  putVerbose "calcRelativeResourcePaths"
   calculated <- needMetaTargets base meta
   return (Pandoc calculated content)
 
