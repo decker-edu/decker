@@ -122,6 +122,7 @@ dependencies:
   - yaml
   - zip
   - raw-strings-qq
+  - network
 
 ghc-options:
   - -Wunused-top-binds
