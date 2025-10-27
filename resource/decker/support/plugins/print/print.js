@@ -17,20 +17,27 @@ function setHeight() {
 // makes positioning w.r.t. slide bottom difficult.
 // hence we remove these p-elements and put the
 // footers as children of the slide element
+// Changes by Hauer: Moved footer not into the slide
+// element, but the decker wrapper element
 function fixFooters() {
-  Reveal.getSlides().forEach(function (slide) {
-    let footers = slide.getElementsByClassName("footer");
-    for (var i = 0; i < footers.length; i++) {
-      let footer = footers[i];
-      let parent = footer.parentElement;
-      if (parent.nodeName == "P") {
-        slide.appendChild(footer);
-        if (parent.childNodes.length == 0) {
-          parent.parentElement.removeChild(parent);
+  const slides = Reveal.getSlides();
+  for (const slide of slides) {
+    const deckerWrapper = slide.querySelector(".decker");
+    if (!deckerWrapper) {
+      console.error("No decker wrapper found.", slide);
+      continue;
+    }
+    const footers = slide.getElementsByClassName("footer");
+    for (const footer of footers) {
+      const parent = footer.parentElement;
+      if (parent.nodeName === "P") {
+        deckerWrapper.appendChild(footer);
+        if (parent.childNodes.length === 0) {
+          parent.remove();
         }
       }
     }
-  });
+  }
 }
 
 /* check whether the current slide is too tall and print error in that case */

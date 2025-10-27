@@ -1,5 +1,8 @@
 ---
 title: Accessibility Features
+feedback:
+  base-url: https://decker.cs.tu-dortmund.de/feedback/
+  deck-id:  hauer-a11y-test
 ---
 
 # Image Alternative Texts
@@ -47,3 +50,19 @@ title: Accessibility Features
 # Everything {.sub}
 
 ![Caption](include/06-metal.png "Title"){aria-label="Label"}
+
+# Footnote test
+
+These are contents of a slide[^1].
+
+[^1]: This is a markdownfootnote.
+
+[This is a footnote]{.footer} 
+
+# More slides
+
+test
+
+# More tests
+
+This is another test

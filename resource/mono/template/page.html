@@ -84,13 +84,6 @@
   <link rel="stylesheet" href="$template.css$" />
   $endfor$
 
-  <!-- setup MathJax ------------------------------------------------------>
-  <script type="module">
-    import * as math from "$decker-support-dir$/js/page-math.js";
-    Decker.meta.math = {mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math};
-    math.init();
-  </script>
-
   $for(header-includes)$
   $header-includes$
   $endfor$
@@ -119,6 +112,7 @@ $body$
   $include-after$
   $endfor$
 
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
   <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
   <script>
     var socket = new WebSocket("ws://" + location.host + "/reload");

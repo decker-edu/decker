@@ -14,6 +14,7 @@ data FilterState = FilterState
   { meta :: Meta,
     dispo :: Disposition,
     codeMutex :: MVar Int,
+    -- a cache for fragment templates
     templates :: TVar (Map String (Template Text))
   }
 

@@ -175,6 +175,8 @@ external-tools:
       command: "chrome"
       arguments:
         - "--headless"
+        - "--disable-gpu"
+        - "--virtual-time-budget=10000"
         - "--no-pdf-header-footer"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
@@ -183,6 +185,8 @@ external-tools:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       arguments:
         - "--headless"
+        - "--disable-gpu"
+        - "--virtual-time-budget=10000"
         - "--no-pdf-header-footer"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
@@ -219,6 +223,12 @@ external-tools:
       - "-o${output}"
       - "${input}"
     help: https://graphviz.org/
+  d2:
+    command: d2
+    arguments:
+      - "${input}"
+      - "${output}"
+    help: https://d2lang.com/
   pdf2svg:
     command: pdf2svg
     arguments:

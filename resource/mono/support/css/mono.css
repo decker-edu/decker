@@ -58,6 +58,10 @@ code {
   padding: 0.2em;
 }
 
+body.index div.search-box {
+  white-space: nowrap;
+}
+
 /* Bold Sstuff*/
 strong {
   font-weight: var(--bold-font-weight);

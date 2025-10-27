@@ -41,6 +41,7 @@ body.index {
     box-sizing: border-box;
     font-size: 16px;
     max-width: 52em;
+    margin: auto;
     color: var(--foreground-color);
     background-color: var(--background-color);
 }
@@ -147,6 +148,14 @@ body.index .label {
     font-weight: bold;
 }
 
+html[lang="de"] .german {
+  display: unset;
+}
+
+html[lang="de"] .english {
+  display: none;
+}
+
 .link-additions {
     display: inline-flex;
     flex-direction: row;
@@ -201,4 +210,49 @@ a.handout-link:hover::before {
 a.handout-link:hover::after {
     bottom: 0.25em;
     left: 0.3em;
+}
+
+#index-color-button {
+  font-size: 2rem;
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  background-color: transparent;
+  color: var(--foreground-color);
+}
+
+#index-color-button:hover {
+  border-radius: 100%;
+  background-color: var(--background-color);
+}
+
+html.dark #index-color-button::before {
+  content: "\f185";
+}
+
+html.light #index-color-button::before {
+  content: "\f186";
+}
+
+/* make focus more visible */
+a,
+button,
+input,
+select,
+details,
+summary {
+  transition: outline-offset 0.2s ease !important;
+  outline-offset: 30px;
+  &:focus-visible {
+    outline: solid 3px var(--focus-color) !important;
+    outline-offset: 1px !important;
+  }
+  &:active {
+    outline-offset: -2px !important;
+  }
 }

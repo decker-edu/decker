@@ -7,7 +7,7 @@ div.exa-quest {
 div.exa-quest h2 p::before {
   content: "";
   padding-right: 0.5em;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
 }
 
 div.exa-quest :is(input, button, textarea, select) {
@@ -290,17 +290,17 @@ div.question button:is(.qrcode, .poll, .stop) {
 
 div.question button.stop::before {
   content: "";
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
 }
 
 div.question button.qrcode::before {
   content: "";
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
 }
 
 div.question button.poll::before {
   content: "";
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
 }
 
 div.qrcode.container button {

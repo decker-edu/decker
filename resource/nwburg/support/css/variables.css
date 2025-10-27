@@ -71,7 +71,6 @@
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent7-bg); /* JMU Anpassung */
-  --flying-focus-color: var(--highlight-color);
 
   --icon-active-color: var(--accent7); /* JMU Anpassung */
   --icon-disabled-color: var(--shade2);
@@ -79,6 +78,7 @@
   --icon-hover-color: var(--hover-color);
   --icon-background-color: rgba(0, 0, 0, 0);
   --icon-border-radius: 0.2em;
+  --icon-shadow-color: var(--foreground-color);
 
   --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
@@ -164,6 +164,8 @@
   --dark-blue: var(--accent7-bg);
   --dark-violet: var(--accent6-bg);
   --dark-brown: var(--accent1-bg);
+
+  --icon-shadow-color: var(--background-color);
 }
 
  /* quizzes */

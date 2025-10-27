@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sansSerifBoldItalic = void 0;
+exports.sansSerifBoldItalic = {
+    0x30: [.69, .017, .576],
+    0x31: [.676, 0, .454],
+    0x32: [.69, 0, .507],
+    0x33: [.69, .017, .51],
+    0x34: [.693, 0, .555],
+    0x35: [.676, .017, .526],
+    0x36: [.69, .017, .555],
+    0x37: [.676, .016, .458, { ic: .041 }],
+    0x38: [.69, .017, .571],
+    0x39: [.69, .029, .55]
+};
+//# sourceMappingURL=sans-serif-bold-italic.js.map

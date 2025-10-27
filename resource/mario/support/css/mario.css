@@ -1198,7 +1198,7 @@ html.print-pdf div.open-button {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;

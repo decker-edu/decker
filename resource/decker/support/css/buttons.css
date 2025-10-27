@@ -1,0 +1,121 @@
+/*********************************************
+* FontAwesome buttons
+*********************************************/
+
+/* adapted from https://dev.to/kevinbism/recreating-apples-liquid-glass-effect-with-pure-css-3gpl */
+button.fa-button {
+  color: var(--icon-inactive-color);
+  display: inline-block;
+  position: relative;
+  font-family: "Font Awesome 7 Free";
+  font-size: var(--icon-size);
+  width: 2em;
+  height: 2em;
+  padding: 0.15em;
+  margin: 0.15em;
+  border-radius: 100%;
+  border: 1px solid rgb(from currentColor r g b / 0.3);
+  background: transparent;
+  backdrop-filter: blur(3px) saturate(120%);
+  box-shadow: inset 0px 0px 2px 1px rgb(from currentColor r g b / 0.3);
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+}
+
+button.fa-button[aria-pressed] {
+  font-size: calc(0.9 * var(--icon-size));
+  border-radius: 25%;
+}
+
+button.fa-button[aria-pressed="false"],
+button.fa-button[aria-checked="false"] {
+  box-shadow: inset 0px 0px 2px 1px rgb(from currentColor r g b / 0.3),
+    1px 1px 3px 0px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgb(from currentColor r g b / 0.6);
+}
+
+button.fa-button[aria-pressed="true"],
+button.fa-button[aria-checked="true"] {
+  color: var(--icon-active-color);
+  border-color: var(--icon-active-color);
+  background-color: var(--shade2);
+  box-shadow: inset 1px 1px 2px 1px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgb(from currentColor r g b / 0.6);
+}
+
+button.fa-button[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  button.fa-button:not([aria-disabled="true"]):hover {
+    color: var(--icon-active-color);
+    border-color: var(--icon-active-color);
+    background-color: var(--background-color);
+  }
+  button.fa-button[aria-disabled="true"]:hover {
+    cursor: default;
+  }
+}
+
+button.fa-button:not([aria-disabled="true"]):active {
+  background-color: var(--accent3-bbg);
+}
+
+button.fa-button:not([aria-disabled="true"]):focus-visible {
+  color: var(--focus-color);
+  background-color: var(--background-color);
+  border-color: var(--focus-color);
+}
+
+/* our custom buttons for feedback menu and handout mode */
+.feedback-button {
+  position: relative;
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  &::before {
+    content: "\f27a";
+  }
+  &::after {
+    content: "?";
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    translate: -50% -50%;
+    font-size: 0.45em;
+    color: var(--background-color);
+  }
+}
+.handout-button {
+  position: relative;
+  width: 1.25em;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  &::after,
+  &::before {
+    display: block;
+    position: absolute;
+    content: "";
+    width: 0.9em;
+    height: 0.5em;
+    left: 50%;
+    top: 50%;
+    background-color: currentColor;
+    border-radius: 0.15em;
+    box-sizing: border-box;
+  }
+  &::before {
+    translate: -50% 10%;
+  }
+  &::after {
+    translate: -50% -110%;
+  }
+  & div {
+    display: none;
+  }
+}

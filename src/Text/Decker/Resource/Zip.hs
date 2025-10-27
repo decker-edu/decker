@@ -21,7 +21,7 @@ import qualified Data.Map.Strict as Map
 import Relude
 import qualified System.Directory as Dir
 import System.Environment
-import System.FilePath.Posix
+import System.FilePath (splitPath, (</>), takeDirectory, joinPath, dropTrailingPathSeparator)
 import Text.Decker.Internal.Helper
 
 -- | Extracts entries from the embedded resource archive that match the prefix
@@ -32,12 +32,16 @@ extractResourceEntries :: FilePath -> FilePath -> IO ()
 extractResourceEntries prefix destinationDirectory = do
   deckerExecutable <- getExecutablePath
   withArchive deckerExecutable $ do
-    subEntries <- Map.filterWithKey (subEntry prefix) <$> getEntries
+    subEntries <- Map.filterWithKey (isSubEntry prefix) <$> getEntries
     forM_ (Map.keys subEntries) saveSubEntry
   where
-    subEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
+    isSubEntry prefix sel _ =
+      let pl = map dropTrailingPathSeparator $ splitPath prefix
+          sl = map dropTrailingPathSeparator $ splitPath (unEntrySelector sel)
+      in pl `isPrefixOf` sl
     saveSubEntry sel = do
-      let path = destinationDirectory </> unEntrySelector sel
+      let path = destinationDirectory </> stripPrefix prefix (unEntrySelector sel)
+      -- putStrLn $ "extractResourceEntries: " <> show sel <> " -> " <> path
       let dir = takeDirectory path
       liftIO $ Dir.createDirectoryIfMissing True dir
       saveEntry sel path
@@ -58,8 +62,8 @@ extractResourceEntryList entryNames = do
 
 stripPrefix :: FilePath -> FilePath -> FilePath
 stripPrefix prefix path =
-  let pr = splitPath prefix
-      pa = splitPath path
+  let pr = map dropTrailingPathSeparator $ splitPath prefix
+      pa = map dropTrailingPathSeparator $ splitPath path
    in joinPath $ drop (length pr) pa
 
 extractSubEntries :: FilePath -> FilePath -> FilePath -> IO ()

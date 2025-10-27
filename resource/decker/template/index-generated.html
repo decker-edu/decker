@@ -67,7 +67,7 @@
 
   <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
   $for(template.css)$
-  <link rel="stylesheet" href="$template.css$" />
+  <link rel="stylesheet" href="$template.css$">
   $endfor$
 
   $for(header-includes)$
@@ -114,6 +114,7 @@
         <i class="fa-solid fa-magnifying-glass"></i>
         <input class="search" placeholder="In Folien suchen" type="text">
         </p>
+        <h2 id="searchresultheader">Keine Ergebnisse</h2>
         <table class="search">
         <thead>
             <tr>
@@ -128,7 +129,7 @@
     </div>
 
     <script type="module">
-        import setupSearch from "/$decker-support-dir$/fuzzySearch/search.js";
+        import setupSearch from "./$decker-support-dir$/fuzzySearch/search.js";
         window.addEventListener("load", () => {
         let searchBox = document.getElementById("search-box");
         setupSearch(searchBox, 0.5);

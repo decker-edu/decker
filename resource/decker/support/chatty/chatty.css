@@ -1,0 +1,193 @@
+#chatty-popover {
+  position: fixed;
+  width: 70ch;
+  max-width: 80vw;
+  /* max-height: 80vh; */
+  inset: 0;
+  margin: auto;
+  padding: 0.25em;
+  border: 1px solid var(--shade2);
+  border-radius: 0.5em;
+  background: var(--shade1);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+
+  &:popover-open::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+  }
+}
+
+#chatty-dialog {
+  --gap: 12px;
+  --radius: 8px;
+  --max-height: 80vh;
+
+  font-size: 1rem;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+
+  & .col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    align-items: stretch;
+    justify-content: space-between;
+  }
+
+  & .row {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+    align-items: stretch;
+    flex: 0 0 6em;
+  }
+
+  & :is(input, select, textarea, button) {
+    font: inherit;
+    font-size: 1rem;
+    padding: 0.5em;
+    border-radius: var(--radius);
+    border: 1px solid var(--shade1);
+    background-color: var(--shade2);
+    color: var(--foreground-color);
+  }
+
+  & textarea {
+    flex: 1;
+  }
+
+  & button {
+    cursor: pointer;
+  }
+
+  & button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  & #chat {
+    min-height: 5em;
+    max-height: min(calc(var(--max-height) - 6em), 50em);
+    border-radius: var(--radius);
+    padding: var(--gap);
+    overflow-y: auto;
+    background: var(--shade2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    flex: 1 1 auto;
+  }
+
+  & #prompt {
+    background: var(--background-color);
+  }
+
+  & .msg {
+    display: flex;
+    position: relative;
+  }
+  & .msg.user {
+    justify-content: flex-end;
+  }
+  & .msg.bot {
+    justify-content: flex-start;
+  }
+
+  & .bubble {
+    color: var(--foreground-color);
+    border-radius: var(--radius);
+    max-width: 75%;
+    padding: 10px 14px;
+    line-height: 1.4;
+    overflow-x: visible;
+    position: relative;
+  }
+
+  & .bubble p {
+    margin: 0.5em 0;
+  }
+
+  & .user .bubble {
+    background: var(--base0B-bg);
+    margin-right: 3em;
+
+    &:before {
+      content: "🤔";
+      font-size: 2em;
+      position: absolute;
+      right: -1.5em;
+      top: 0;
+      width: 1em;
+      height: 1em;
+    }
+
+    &:after {
+      content: "";
+      position: absolute;
+      top: 16px;
+      right: -12px;
+      bottom: auto;
+      border-width: 12px 0 12px 12px;
+      border-style: solid;
+      border-color: transparent var(--base0B-bg);
+      display: block;
+      width: 0;
+    }
+  }
+
+  & .bot .bubble {
+    background: var(--background-color);
+    margin-left: 3em;
+
+    &:before {
+      content: "🤖";
+      font-size: 2em;
+      position: absolute;
+      left: -1.5em;
+      top: 0;
+      width: 1em;
+      height: 1em;
+    }
+
+    &:after {
+      content: "";
+      position: absolute;
+      top: 16px;
+      left: -12px;
+      bottom: auto;
+      border-width: 12px 12px 12px 0;
+      border-style: solid;
+      border-color: transparent var(--background-color);
+      display: block;
+      width: 0;
+    }
+  }
+
+  & .bot .bubble:has(.content:empty):after {
+    display: none;
+  }
+
+  & .bot .bubble .content:empty {
+    font-style: italic;
+    color: var(--shade4);
+    &:before {
+      content: "thinking...";
+    }
+  }
+}
+
+[lang="de"] #chatty-dialog .bot .bubble .content:empty:before {
+  content: "nachdenken...";
+}
+
+#chatty-dialog .bot .bubble:has(.content:empty)::before {
+  animation-name: fa-fade;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+}

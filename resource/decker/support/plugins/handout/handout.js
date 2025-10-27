@@ -68,6 +68,7 @@ let localization = {
   deactivate_handout_mode: "Deactivate Handout Mode (H,H,H)",
   handout_mode_on: `<span>Handout Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
   handout_mode_off: `<span>Handout Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
+  comment_header: "Questions and Comments",
 };
 
 if (navigator.language === "de") {
@@ -75,7 +76,23 @@ if (navigator.language === "de") {
   localization.deactivate_handout_mode = "Handout-Modus abschalten (H,H,H)";
   localization.handout_mode_on = `<span>Handout-Modus: <strong style="color:var(--accent3);">AN</strong></span>`;
   localization.handout_mode_off = `<span>Handout-Modus: <strong style="color:var(--accent1);">AUS</strong></span>`;
+  localization.comment_header = "Fragen und Kommentare";
 }
+
+/* clicking on a slide will set it to the current slide */
+handoutSlides.addEventListener(
+  "click",
+  (evt) => {
+    const target = evt.target;
+    if (target) {
+      const slide = target.closest("section");
+      if (slide && slide != centralSlide) {
+        setCurrentSlide(slide);
+      }
+    }
+  },
+  true
+);
 
 function activateHandoutMode() {
   /* Store and modify viewport meta tag to allow mobile device zooming */
@@ -93,10 +110,12 @@ function activateHandoutMode() {
     meta.setAttribute("content", unlimited);
   }
   const currentSlide = Reveal.getCurrentSlide();
+  const allSlides = Reveal.getSlides();
 
   // Switch state of view menu button
   if (pluginButton) {
     pluginButton.setLabel(localization.deactivate_handout_mode);
+    pluginButton.ariaPressed = "true";
   }
 
   // Store current reveal config and disable everything but keyboard shortcuts
@@ -107,12 +126,14 @@ function activateHandoutMode() {
   previousRevealConfiguration.slideNumber = currentConfiguration.slideNumber;
   previousRevealConfiguration.disableLayout =
     currentConfiguration.disableLayout;
+  previousRevealConfiguration.keyboard = currentConfiguration.keyboard;
   Reveal.configure({
     controls: false,
     progress: false,
     fragments: false,
     slideNumber: false,
     disableLayout: true,
+    keyboard: false,
   });
 
   // add class to root to enable special rules from handout.css
@@ -180,6 +201,49 @@ function activateHandoutMode() {
     handoutSlides.appendChild(section);
   }
 
+  // setup slides feedback
+  if (Reveal.hasPlugin("feedback")) {
+    const feedback = Reveal.getPlugin("feedback");
+    const engine = feedback.getEngine();
+    if (engine && engine.api) {
+      for (const slide of allSlides) {
+        engine.api
+          .getComments(engine.deckId, slide.id, null)
+          .then((comments) => {
+            if (comments.length > 0) {
+              const container = document.createElement("div");
+              container.className = "handout-feedback-container";
+              slide.appendChild(container);
+              const heading = document.createElement("h4");
+              heading.innerText = localization.comment_header;
+              container.appendChild(heading);
+              const commentWrapper = document.createElement("div");
+              commentWrapper.className = "handout-feedback-comments";
+              container.appendChild(commentWrapper);
+              for (const comment of comments) {
+                const message = document.createElement("div");
+                message.className = "handout-feedback-comment";
+                message.innerHTML = comment.html;
+                commentWrapper.appendChild(message);
+                window.MathJax.typeset([message]);
+                for (const answer of comment.answers) {
+                  const message = document.createElement("div");
+                  message.className = "handout-feedback-answer";
+                  message.innerHTML = answer.html;
+                  commentWrapper.appendChild(message);
+                  window.MathJax.typeset([message]);
+                }
+              }
+            }
+          })
+          .catch((error) => {
+            console.error("[HANDOUT FEEDBACK] Error while fetching comments.");
+            console.error(error);
+          });
+      }
+    }
+  }
+
   // create intersection observers
   createVisibleSlideIntersectionObserver(topLevelSections);
   createSRCIntersectionObserver();
@@ -195,18 +259,39 @@ function activateHandoutMode() {
 
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
   currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
+
+  /* patch Reveal functions for slide navigation */
+  bak_getCurrentSlide = Reveal.getCurrentSlide;
+  Reveal.getCurrentSlide = getCurrentSlide;
+  bak_getIndices = Reveal.getIndices;
+  Reveal.getIndices = getIndices;
+  bak_slide = Reveal.slide;
+  Reveal.slide = slide;
 }
 
 function disassembleHandoutMode() {
+  // restore Reveal functions
+  Reveal.getCurrentSlide = bak_getCurrentSlide;
+  Reveal.getIndices = bak_getIndices;
+  Reveal.slide = bak_slide;
+
   /* Restore old viewport meta */
   const meta = document.querySelector("meta[name=viewport]");
   if (meta) {
     meta.setAttribute("content", storedMetaViewport);
   }
 
+  const commentContainers = document.querySelectorAll(
+    ".handout-feedback-container"
+  );
+  for (const container of commentContainers) {
+    container.remove();
+  }
+
   // Change state of view menu button
   if (pluginButton) {
     pluginButton.setLabel(localization.activate_handout_mode);
+    pluginButton.ariaPressed = "false";
   }
 
   // Restore configuration
@@ -260,6 +345,26 @@ function disassembleHandoutMode() {
   }
 }
 
+let bak_getCurrentSlide;
+let bak_getIndices;
+let bak_slide;
+
+function getCurrentSlide() {
+  return centralSlide;
+}
+
+function getIndices(slide) {
+  let h = Array.prototype.indexOf.call(handoutSlides.children, slide);
+  let v, f;
+  return { h, v, f };
+}
+
+function slide(h, v, f) {
+  // console.log("go to slide ", h, v, f);
+  let slide = handoutSlides.children[h];
+  slide.scrollIntoView({ block: "center" });
+}
+
 /* Remove inert, hidden and aria-hidden attributes of slides */
 function makeSlidesVisible(slideElement) {
   const slides = slideElement.querySelectorAll("section");
@@ -300,10 +405,10 @@ function storeIndices(slideElementList) {
 function updateCurrentSlide(event) {
   if (!handoutSlideMode) return;
 
-  const containerRect = handoutContainer.getBoundingClientRect();
+  const containerRect = document.body.getBoundingClientRect();
   const containerCenter = (containerRect.bottom + containerRect.top) / 2;
 
-  let minDist = 9999;
+  let minDist = Number.MAX_VALUE;
   let minSlide = undefined;
   for (const slide of visibleSlides) {
     const slideRect = slide.getBoundingClientRect();
@@ -317,25 +422,31 @@ function updateCurrentSlide(event) {
 
   // If the current slide changed
   if (centralSlide !== minSlide) {
-    // DEBUG: visualize central slide
-    // if (centralSlide) centralSlide.classList.remove("current");
-    // minSlide.classList.add("current");
-
-    centralSlide = minSlide;
-
-    // Inform menu plugin (highlight current slide)
-    const menu = Reveal.getPlugin("decker-menu");
-    if (menu) {
-      menu.updateCurrentSlideMark(centralSlide);
-    }
-
-    // Inform decker plugin (index page)
-    const decker = Reveal.getPlugin("decker");
-    if (decker && centralSlide.dataset.hIndex) {
-      decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
-      decker.updatePercentage(Number(centralSlide.dataset.hIndex));
-    }
+    setCurrentSlide(minSlide);
   }
+}
+
+function setCurrentSlide(slide) {
+  // visualize central slide
+  if (centralSlide) centralSlide.classList.remove("current");
+  slide.classList.add("current");
+
+  centralSlide = slide;
+
+  // Inform menu plugin: highlight current slide
+  const menuPlugin = Reveal.getPlugin("decker-menu");
+  if (menuPlugin) menuPlugin.updateCurrentSlideMark(centralSlide);
+
+  // Inform decker plugin: update last visited slide and progress percentage
+  const deckerPlugin = Reveal.getPlugin("decker");
+  if (deckerPlugin) deckerPlugin.updateProgress(centralSlide);
+
+  // Inform feedback plugin: update list of questions
+  const feedbackPlugin = Reveal.getPlugin("feedback");
+  if (feedbackPlugin) feedbackPlugin.slideChanged(centralSlide);
+
+  // update location hash (without triggering onhashchanged!)
+  history.replaceState(null, null, "#/" + centralSlide.id);
 }
 
 /**
@@ -360,8 +471,8 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
 
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
-    root: handoutContainer,
-    threshold: [0],
+    root: document.body,
+    threshold: [0, 0.95],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
@@ -387,7 +498,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
  */
 function createSRCIntersectionObserver() {
   const observerOptions = {
-    root: handoutContainer,
+    root: document.body,
     rootMargin: "50%",
     threshold: [0],
   };
@@ -461,8 +572,9 @@ function updateScaling() {
     handoutSlides.style.left = null;
     handoutSlides.style.translate = null;
   }
-  if (centralSlide)
+  if (centralSlide) {
     centralSlide.scrollIntoView({ behavior: "instant", block: "center" });
+  }
 }
 
 /* return slide scaling factor */
@@ -485,19 +597,23 @@ function onWindowKeydown(event) {
 
   switch (event.key) {
     case "ArrowUp":
+    case "ArrowLeft":
       handoutContainer.scrollBy(0, -slideHeight);
       break;
 
     case "ArrowDown":
+    case "ArrowRight":
       handoutContainer.scrollBy(0, slideHeight);
       break;
 
     case "PageUp":
-      handoutContainer.scrollBy(0, -pageHeight);
+      document.body.scrollBy({ left: 0, top: -pageHeight, behavior: "smooth" });
+      event.preventDefault();
       break;
 
     case "PageDown":
-      handoutContainer.scrollBy(0, pageHeight);
+      document.body.scrollBy({ left: 0, top: pageHeight, behavior: "smooth" });
+      event.preventDefault();
       break;
 
     case "Home":
@@ -567,20 +683,6 @@ function toggleHandoutMode() {
   } else {
     disassembleHandoutMode();
   }
-  if (handoutSlideMode) {
-    Decker.flash.message(localization.handout_mode_on);
-  } else {
-    Decker.flash.message(localization.handout_mode_off);
-  }
-}
-
-function attachAnimatedIcon(button) {
-  const first = document.createElement("div");
-  first.className = "top-anim-rect";
-  const second = document.createElement("div");
-  second.className = "bottom-anim-rect";
-  button.appendChild(first);
-  button.appendChild(second);
 }
 
 /**
@@ -593,11 +695,11 @@ function createButtons() {
   if (menu && !!menu.addPluginButton) {
     pluginButton = menu.addPluginButton(
       "menu-handout-button",
-      "animated-button",
+      "handout-button",
       localization.activate_handout_mode,
       toggleHandoutMode
     );
-    attachAnimatedIcon(pluginButton);
+    pluginButton.ariaPressed = "false";
   }
 
   // add zoom in/out buttons
@@ -621,8 +723,8 @@ function createButtons() {
       userScale *= 1.25;
       updateScaling();
     };
-    anchors.placeButton(buttonMinus, "TOP_RIGHT");
-    anchors.placeButton(buttonPlus, "TOP_RIGHT");
+    anchors.placeButton(buttonMinus, "TOP_LEFT");
+    anchors.placeButton(buttonPlus, "TOP_LEFT");
   }
 }
 
@@ -632,6 +734,8 @@ const handout = /handout/gi.test(window.location.search);
 const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
+  currentSlide: () => centralSlide,
+  toggle: toggleHandoutMode,
   init: (reveal) => {
     Reveal = reveal;
     createButtons();
@@ -650,9 +754,13 @@ const Plugin = {
         key: "H",
         description: "Toggle Handout Mode (Triple Click)",
       },
-
       Decker.tripleClick(() => {
         toggleHandoutMode();
+        Decker.flashMessage(
+          handoutSlideMode
+            ? localization.handout_mode_on
+            : localization.handout_mode_off
+        );
       })
     );
     if (a11y || handout) {

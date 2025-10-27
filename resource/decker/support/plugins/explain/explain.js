@@ -42,9 +42,7 @@ let uiState;
 
 let localization;
 
-function transition(name) {
-  return (_) => uiState.transition(name);
-}
+let pluginButton;
 
 // The state of this plugins UI. All possible legal states sre encoded in
 // `uiStates`. Each state has set of possible transition actions together with
@@ -534,8 +532,6 @@ async function getDevices() {
 async function setupRecorder() {
   if (!Decker.isPresenterMode()) {
     Decker.togglePresenterMode();
-    // Decker.flash.message(localization.presenter_mode_error);
-    // return false;
   }
   try {
     stream = null;
@@ -562,13 +558,16 @@ async function setupRecorder() {
     // capture video stream of webcam
     await captureCamera();
 
-    recordButton.disabled = undefined;
-    pauseButton.disabled = true;
-    stopButton.disabled = true;
+    recordButton.ariaDisabled = "false";
+    pauseButton.ariaDisabled = "true";
+    stopButton.ariaDisabled = "true";
 
     // open panel to select camera and mic
     openRecordPanel();
 
+    // disable plugin menu button
+    pluginButton.ariaDisabled = "true";
+    pluginButton.setLabel(localization.invalid_state);
     return true;
   } catch (e) {
     console.error(e);
@@ -773,9 +772,9 @@ async function startRecording() {
   };
 
   recorder.start();
-  recordButton.disabled = true;
-  pauseButton.disabled = undefined;
-  stopButton.disabled = undefined;
+  recordButton.ariaDisabled = "true";
+  pauseButton.ariaDisabled = "false";
+  stopButton.ariaDisabled = "false";
   micSelect.disabled = true;
   camSelect.disabled = true;
   return true;
@@ -783,26 +782,28 @@ async function startRecording() {
 
 function pauseRecording() {
   recorder.pause();
-  recordButton.disabled = true;
-  pauseButton.disabled = undefined;
-  stopButton.disabled = undefined;
+  recordButton.ariaDisabled = "true";
+  pauseButton.ariaDisabled = "false";
+  pauseButton.ariaPressed = "true";
+  stopButton.ariaDisabled = "false";
   return true;
 }
 
 function resumeRecording() {
   recorder.resume();
-  recordButton.disabled = true;
-  pauseButton.disabled = undefined;
-  stopButton.disabled = undefined;
+  recordButton.ariaDisabled = "true";
+  pauseButton.ariaDisabled = "false";
+  pauseButton.ariaPressed = "false";
+  stopButton.ariaDisabled = "false";
   return true;
 }
 
 function stopRecording() {
   recorder.stop();
   stream.getTracks().forEach((s) => s.stop());
-  recordButton.disabled = undefined;
-  pauseButton.disabled = true;
-  stopButton.disabled = true;
+  recordButton.ariaDisabled = "false";
+  pauseButton.ariaDisabled = "true";
+  stopButton.ariaDisabled = "true";
   micSelect.disabled = undefined;
   camSelect.disabled = undefined;
 
@@ -892,7 +893,7 @@ function createPlayerGUI() {
     id: "explain-play",
     classes: "explain fa-button fas fa-play",
     title: "Play video recording",
-    onclick: transition("play"),
+    onclick: () => uiState.transition("play"),
   });
 
   if (Reveal.hasPlugin("ui-anchors")) {
@@ -936,35 +937,44 @@ function createPlayerGUI() {
       doubleClick: false,
       // our keyboard shortcuts
       hotkeys: function (event) {
-        event.stopPropagation();
-        event.preventDefault();
-
         switch (event.code) {
           // space or k: play/pause
           case "Space":
           case "KeyK":
+            event.stopPropagation();
+            event.preventDefault();
             if (this.paused()) this.play();
             else this.pause();
             break;
 
-          // left/right: skip slides
+          // Page Up/Page Down: skip slides
           case "PageUp":
+            event.stopPropagation();
+            event.preventDefault();
             prev();
             break;
           case "PageDown":
+            event.stopPropagation();
+            event.preventDefault();
             next();
             break;
 
           // up/down: increase/decrease volume by 5%
           case "ArrowUp":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.min(1.0, this.volume() + 0.05));
             break;
           case "ArrowDown":
+            event.stopPropagation();
+            event.preventDefault();
             this.volume(Math.max(0.0, this.volume() - 0.05));
             break;
 
           // c: toggle captions
           case "KeyC":
+            event.stopPropagation();
+            event.preventDefault();
             let tracks = player.textTracks();
             for (let i = 0; i < tracks.length; i++) {
               if (tracks[i].kind === "captions") {
@@ -977,20 +987,28 @@ function createPlayerGUI() {
           // left/right or j/l: jump backward/forward by 10sec
           case "ArrowLeft":
           case "KeyJ":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() - 10);
             break;
           case "ArrowRight":
           case "KeyL":
+            event.stopPropagation();
+            event.preventDefault();
             player.currentTime(player.currentTime() + 10);
             break;
 
           // m: mute/unmute
           case "KeyM":
+            event.stopPropagation();
+            event.preventDefault();
             this.muted(!this.muted());
             break;
 
           // esc: stop and hide video
           case "Escape":
+            event.stopPropagation();
+            event.preventDefault();
             uiState.transition("stop");
             break;
         }
@@ -1020,7 +1038,7 @@ function createPlayerGUI() {
     lastTap = now;
   });
 
-  player.on("ended", transition("stop"));
+  player.on("ended", () => uiState.transition("stop"));
 
   player.on("error", (_) => {
     console.error(
@@ -1311,26 +1329,43 @@ async function createRecordingGUI() {
 
   recordButton = createElement({
     type: "button",
-    classes: "explain record-button fas fa-play-circle",
+    classes: "explain record-button fas fa-play-circle fa-button",
     title: "Start recording",
     parent: row,
-    onclick: transition("record"),
+    onclick: () => {
+      console.log("start");
+      if (recordButton.ariaDisabled === "true") {
+        console.log("cancel");
+        return;
+      }
+      uiState.transition("record");
+    },
   });
 
   pauseButton = createElement({
     type: "button",
-    classes: "explain pause-button fas fa-pause-circle",
+    classes: "explain pause-button fas fa-pause-circle fa-button",
     title: "Pause/resume recording",
     parent: row,
-    onclick: transition("pause"),
+    onclick: () => {
+      if (pauseButton.ariaDisabled === "true") {
+        return;
+      }
+      uiState.transition("pause");
+    },
   });
 
   stopButton = createElement({
     type: "button",
-    classes: "explain stop-button fas fa-stop-circle",
+    classes: "explain stop-button fas fa-stop-circle fa-button",
     title: "Stop recording",
     parent: row,
-    onclick: transition("stop"),
+    onclick: () => {
+      if (stopButton.ariaDisabled === "true") {
+        return;
+      }
+      uiState.transition("stop");
+    },
   });
 
   /* inert everything but the toggle button */
@@ -1722,6 +1757,10 @@ async function setupPlayer() {
 
       updatePlayButton();
 
+      // ayy1 mode?
+      const a11yPlugin = Reveal.getPlugin("a11y");
+      const a11y = !!(a11yPlugin && a11yPlugin.a11yMode());
+
       let vtt;
 
       // "old" version of VTT w/o language specifier
@@ -1733,7 +1772,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
-            default: false,
+            default: a11y,
           },
           false
         );
@@ -1743,7 +1782,7 @@ async function setupPlayer() {
       vtt = deckUrlBase() + "-recording-en.vtt";
       if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt, default: false },
+          { kind: "captions", srclang: "en", src: vtt, default: a11y },
           false
         );
       }
@@ -1754,7 +1793,7 @@ async function setupPlayer() {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
           player.addRemoteTextTrack(
-            { kind: "captions", srclang: lang, src: vtt, default: false },
+            { kind: "captions", srclang: lang, src: vtt, default: a11y },
             false
           );
         }
@@ -1923,25 +1962,43 @@ const Plugin = {
       };
     }
     deck.addEventListener("ready", () => {
+      Decker.addPresenterModeListener((mode) => {
+        if (pluginButton) {
+          if (
+            mode &&
+            uiState.name() !== "RECORDER_READY" &&
+            uiState.name() !== "RECORDING" &&
+            uiState.name() !== "RECORDER_PAUSED"
+          ) {
+            pluginButton.ariaDisabled = "false";
+          } else {
+            pluginButton.ariaDisabled = "true";
+          }
+        }
+      });
       const menuPlugin = deck.getPlugin("decker-menu");
       if (menuPlugin && !!menuPlugin.addPluginButton) {
-        menuPlugin.addPluginButton(
+        pluginButton = menuPlugin.addPluginButton(
           "decker-menu-recording-button",
-          "fa-video",
+          "fas fa-video",
           localization.init_recording,
           () => {
+            if (pluginButton.ariaDisabled === "true") {
+              return;
+            }
             switch (uiState.name()) {
               case "INIT":
               case "PLAYER_READY":
                 uiState.transition("setupRecorder");
                 break;
               default:
-                Decker.flash.message(
+                Decker.flashMessage(
                   `<span>${localization.invalid_state}</span>`
                 );
             }
           }
         );
+        pluginButton.ariaDisabled = "true";
       }
     });
   },

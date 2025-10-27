@@ -276,6 +276,18 @@ div.grid-layout {
   display: none;
 }
 
+.reveal h1:has(.sr-only:only-child) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* section headers */
 .reveal section.section h1,
 .reveal section h1:only-child {
@@ -1196,35 +1208,6 @@ section#title-slide .decker-link:hover {
   border: none;
 }
 
-.reveal button.fs-button {
-  z-index: 100;
-  display: inline-block;
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  cursor: pointer;
-  outline: none;
-  font-size: 20px;
-  width: 24px;
-  height: 24px;
-  padding: 2px;
-  border: none;
-  border-radius: 4px;
-  opacity: 0;
-  color: var(--icon-inactive-color);
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-.reveal div.fs-container:hover > button.fs-button {
-  opacity: 0.5;
-}
-
-.reveal div.fs-container > button.fs-button:hover {
-  opacity: 1;
-  color: var(--icon-active-color);
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
 /*********************************************
  * bibliography
  *********************************************/
@@ -1354,7 +1337,7 @@ section#title-slide .decker-link:hover {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;
@@ -1500,7 +1483,7 @@ section#title-slide .decker-link:hover {
   font-variant: normal;
   text-rendering: auto;
   font-weight: 900;
-  font-family: "Font Awesome 5 Free";
+  font-family: "Font Awesome 7 Free";
   content: var(--quiz-icon);
   position: absolute;
   font-size: 15px;
@@ -1611,16 +1594,6 @@ section#title-slide .decker-link:hover {
 * various hacks
 *********************************************/
 
-.decker-anchor > button.fa-button {
-  border-radius: 999px;
-  transition: background-color 0.1s;
-  background-color: transparent;
-}
-.decker-anchor > button.fa-button:hover,
-.decker-anchor > button.fa-button:focus {
-  background-color: var(--background-color);
-}
-
 /* get higher contrast for hovered elements in menu */
 #decker-menu ul.slide-list > li:hover > a {
   color: white;
@@ -1670,20 +1643,4 @@ html.a11y .reveal a:hover {
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);
   transform: scale(1.05);
-}
-
-/* make focus more visible */
-a,
-button,
-input,
-select {
-  transition: outline-offset 0.1s ease !important;
-  outline-offset: 30px;
-  &:focus-visible {
-    outline: solid 3px var(--orangeish) !important;
-    outline-offset: -1px !important;
-  }
-  &:active {
-    outline-offset: -3px !important;
-  }
 }
