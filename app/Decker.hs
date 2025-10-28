@@ -216,7 +216,7 @@ deckerRules = do
                 need [src]
                 let url = serverUrl </> makeRelative publicDir src
                 putInfo $ "# chrome started ... (for " <> out <> ")"
-                liftIO $ exportPdf url out "localhost" 9222
+                liftIO $ exportPdf url out "127.0.0.1" 9222
                 putInfo $ "# chrome finished (for " <> out <> ")"
 
         {- publicDir <//> "*-deck.pdf" %> \out -> do
