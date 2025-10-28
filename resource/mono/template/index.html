@@ -113,6 +113,20 @@
     <p class="date">$date$</p>
     $endif$
   </header>
+
+  $if(chatty.index)$
+  <details class="chatty" name="index-details">
+    <summary>
+      <span class="german">Frag Prof. Bot</span>
+    </summary>
+    <div id="chatty"></div>
+  </details>
+  <script type="module">
+    import setup from "./$decker-support-dir$/chatty/chatty.js";
+    setup(document.getElementById("chatty"));
+  </script>
+  $endif$
+
   $endif$
 $body$
   $for(include-after)$

@@ -16,36 +16,38 @@
   import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
   import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
   import quizzerPlugin from './$decker-support-dir$/plugins/quizzer/quizzer.js';
+  import chattyPlugin from './$decker-support-dir$/plugins/chatty/chatty.js';
 
-  let revealConfig = { 
+  let revealConfig = {
     // reveal configuration (see https://revealjs.com/config/)
     ...Decker.meta.reveal,
 
     // plugin configuration
-    math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
+    math: {mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math},
     chart: Decker.meta.chart,
     menu: Decker.meta.menu,
     explain: Decker.meta.explain,
     whiteboard: Decker.meta.whiteboard,
-    
+
     // list of plugins
     plugins: [
-       deckerPlugin,
-       uiAnchorsPlugin,
-       mathPlugin,
-       chartsPlugin,
-       whiteboardPlugin,
-       searchPlugin,
-       printPlugin,
-       explainPlugin,
-       examinerPlugin,
-       menuPlugin,
-       a11yPlugin,
-       handoutPlugin,
-       quizzerPlugin
+      deckerPlugin,
+      uiAnchorsPlugin,
+      mathPlugin,
+      chartsPlugin,
+      whiteboardPlugin,
+      searchPlugin,
+      printPlugin,
+      explainPlugin,
+      examinerPlugin,
+      menuPlugin,
+      chattyPlugin,
+      a11yPlugin,
+      handoutPlugin,
+      quizzerPlugin
     ]
   };
-  
+
   Reveal.initialize(revealConfig);
   window.Reveal = Reveal;
 </script>
