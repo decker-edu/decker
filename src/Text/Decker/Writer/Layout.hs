@@ -86,9 +86,6 @@ markdownToHtml disp meta getTemplate markdownFile out = do
             writerCiteMethod = Citeproc
           }
   writePandocFile options out pandoc
-  -- let chattyWriteMarkdown = lookupMeta "chatty.write-markdown" meta :: Maybe Bool
-  -- when (chattyWriteMarkdown == Just True) $
-  --   writeMarkdownFile (out <.> "md" ) pandoc
 
 writeMarkdownFile out pandoc@(Pandoc meta blocks) = do
   let relSupportDir = relativeSupportDir (takeDirectory out)
