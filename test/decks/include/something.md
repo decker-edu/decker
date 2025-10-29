@@ -1,11 +1,8 @@
----
-chatty:
-  write-markdown: true
----
+------------------------------------------------------------------------
 
 # Included
 
-## From `include/something-deck.md`
+## From `include/something.md`
 
 Inclusion is supposed to be transitive with respect to resolution of
 relative resource and include pathes.

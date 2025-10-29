@@ -1,10 +1,8 @@
 ---
 title: Include
-chatty:
-  write-markdown: true
 ---
 
-[:include](include/something-deck.md)
+[:include](include/something.md)
 
 # The buck stops here!
 

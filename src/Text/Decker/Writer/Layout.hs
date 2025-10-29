@@ -86,25 +86,13 @@ markdownToHtml disp meta getTemplate markdownFile out = do
             writerCiteMethod = Citeproc
           }
   writePandocFile options out pandoc
-  -- let chattyWriteMarkdown = lookupMeta "chatty.write-markdown" meta :: Maybe Bool
-  -- when (chattyWriteMarkdown == Just True) $
-  --   writeMarkdownFile (out <.> "md" ) pandoc
+  let chattyWriteMarkdown = lookupMeta "chatty.write-markdown" meta :: Maybe Bool
+  when (chattyWriteMarkdown == Just True) $
+    writeMarkdownFile options (out <.> "md" ) pandoc
 
-writeMarkdownFile out pandoc@(Pandoc meta blocks) = do
-  let relSupportDir = relativeSupportDir (takeDirectory out)
-  let options =
-        pandocWriterOpts
-          { writerVariables =
-              Context
-                $ fromList
-                  [ ( "decker-support-dir",
-                      SimpleVal $ Text.DocTemplates.Text 0 $ toText relSupportDir
-                    )
-                  ],
-            writerCiteMethod = Citeproc
-          }
+writeMarkdownFile options out pandoc@(Pandoc meta blocks) = do
   liftIO
-    $ runIO (setVerbosity ERROR >> writeMarkdown options pandoc)
+    $ runIO (setVerbosity ERROR >> writeMarkdown def pandoc)
     >>= handleError
     >>= Text.writeFile out
   
