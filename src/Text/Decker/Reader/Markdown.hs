@@ -95,18 +95,22 @@ installDefaultCSL meta = do
 -- converted to absolute paths. Additional meta data is read and merged into
 -- the document. Other Markdown files may be transitively included. Throws an
 -- exception if something goes wrong
-readMarkdownFile :: Meta -> FilePath -> Action Pandoc
-readMarkdownFile globalMeta path = do
+readMarkdownFile' :: Meta -> FilePath -> FilePath -> Action Pandoc
+readMarkdownFile' globalMeta top path = do
   let base = takeDirectory path
   putVerbose "readMarkdownFile"
   parseMarkdownFile path
     >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
+    >>= writeForChatty globalMeta top path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
     >>= checkVersion
-    >>= includeMarkdownFiles globalMeta base
+    >>= includeMarkdownFiles globalMeta top base
     >>= addPathInfo base
+
+readMarkdownFile :: Meta -> FilePath -> Action Pandoc
+readMarkdownFile globalMeta path = readMarkdownFile' globalMeta path path
 
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
 addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) =
@@ -151,15 +155,24 @@ parseMarkdownWithOpts text opts = runIOorExplode (readMarkdown opts text)
 writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
 writeBack meta path pandoc@(Pandoc docMeta _) = do
   let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "write-back.enable" meta) "write-back.enable" docMeta
-  when writeBack $ writeToMarkdownFile path pandoc
+  when writeBack $ writeToMarkdownFile "" "" path pandoc
   return pandoc
 
+-- | Writes a Pandoc document to a file in Markdown format. Throws an exception
+-- if something goes wrong
+writeForChatty :: Meta -> FilePath -> FilePath -> Pandoc -> Action Pandoc
+writeForChatty meta top path pandoc@(Pandoc docMeta _) = do
+  let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "chatty.write-markdown" meta) "chatty.write-markdown" docMeta
+  when writeBack $ do
+    writeToMarkdownFile top "chatty" path pandoc
+  return pandoc
+  
 checkVersion :: Pandoc -> Action Pandoc
 checkVersion = return
 
 -- | Traverses the pandoc AST and transitively embeds included Markdown files.
-includeMarkdownFiles :: Meta -> FilePath -> Pandoc -> Action Pandoc
-includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
+includeMarkdownFiles :: Meta -> FilePath -> FilePath -> Pandoc -> Action Pandoc
+includeMarkdownFiles globalMeta top docBase (Pandoc docMeta content) =
   Pandoc docMeta <$> processBlocks content
   where
     processBlocks :: [Block] -> Action [Block]
@@ -169,7 +182,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
       let path = makeProjectPath docBase (toString url)
       -- putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
       need [path]
-      Pandoc _ includedBlocks <- readMarkdownFile globalMeta path
+      Pandoc _ includedBlocks <- readMarkdownFile' globalMeta top path
       return $ includedBlocks : document
     include document block = return $ [block] : document
 
@@ -249,15 +262,25 @@ writeToMarkdown pandoc@(Pandoc pmeta _) = do
   runIO (writeMarkdown options pandoc) >>= handleError
 
 -- | Writes a pandoc document atomically to a markdown file.
-writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
-writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
-  putNormal $ "# write back markdown (" <> filepath <> ")"
-  markdown <- liftIO $ writeToMarkdown pandoc
-  fileContent <- liftIO $ Text.readFile filepath
-  when (markdown /= fileContent)
-    $ withTempFile
-      (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)
-
+writeToMarkdownFile :: FilePath -> FilePath -> FilePath -> Pandoc -> Action ()
+writeToMarkdownFile top base filepath pandoc@(Pandoc pmeta blocks) = do
+  absProjectDir <- liftIO $ Dir.makeAbsolute projectDir
+  canonFile <- liftIO $ (makeRelative absProjectDir <$> Dir.canonicalizePath filepath)
+  canonTop <- liftIO $ (makeRelative absProjectDir <$> Dir.canonicalizePath top)
+  let path = base </> canonFile
+  let meta0 = addMetaKeyValue "chatty.filepath" canonFile pmeta
+  let meta1 = if canonFile /= canonTop
+                then addMetaKeyValue "chatty.url-path" (canonTop -<.> "html") $ addMetaKeyValue "chatty.included-from" top meta0
+                else addMetaKeyValue "chatty.url-path" (canonFile -<.> "html") meta0
+  liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
+  putNormal $ "# write back markdown (" <> path <> ")"
+  markdown <- liftIO $ writeToMarkdown (Pandoc meta1 (addSlideUrl (toText $ canonTop -<.> "html") blocks))
+  writeFileChanged path (toString markdown) 
+  where
+    addSlideUrl deckUrl = walk (add deckUrl)
+    add deckUrl (Header 1 (id, cls, kvs) inlines) = Header 1 (id, cls, ("url", deckUrl <> "#" <> id):kvs) inlines 
+    add deckUrl block = block
+    
 formatStdin :: IO ()
 formatStdin = do
   let opts =

@@ -168,6 +168,7 @@ async function send() {
   // insert current slide deck and slide into the input
   if (Reveal) {
     const url = location.pathname;
+    const fragment = location.hash;
     const filename = url.split("\\").pop().split("/").pop().split(".")[0];
     const deck = filename.replace("deck.html", "deck.md");
     const slide = Reveal.getCurrentSlide();
@@ -178,7 +179,7 @@ async function send() {
       input = [
         {
           role: "developer",
-          content: `The user is watching slide deck "${deck}". The current slide has the title "${title}"`,
+          content: `The user is watching slide deck "${deck}". The current slide has the title "${title}"` ++ (fragment ? ` and fragment identifier ${fragment}.` : "."),
         },
         {
           role: "user",
