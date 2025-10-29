@@ -9,4 +9,7 @@ title: Chatty Test
 
 # Test it here
 
-# One more
+# Image with caption
+
+![Captions must prevail!](include/06-metal.png)
+
