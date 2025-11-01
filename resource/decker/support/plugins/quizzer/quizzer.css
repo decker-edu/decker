@@ -1,5 +1,6 @@
 .quizzer :is(textarea, select, input, button) {
   font: inherit;
+  color: inherit;
   letter-spacing: inherit;
   word-spacing: inherit;
   position: relative;
