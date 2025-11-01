@@ -222,33 +222,40 @@ div.block[popup="center-down"] {
   text-decoration: none;
 }
 
-div.decker-flash-panel {
-  z-index: 1000;
+#decker-flash-panel {
+  pointer-events: none;
   position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translateX(-50%) translateY(-50%);
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
-}
 
-/* This is not display: none so screen readers have time to actually read out the content */
-div.decker-flash-panel:not(.flashing) {
-  opacity: 0;
-}
+  &:popover-open {
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+  }
 
-div.decker-flash-panel div.content {
-  font-size: 2rem;
-  background-color: var(--shade1);
-  color: var(--shade6);
-  border: solid 0.1em var(--primary-color);
-  border-radius: var(--block-border-radius);
-  padding: 0.25em 0.5em;
+  &:not(:popover-open) {
+    /* Do not use `display:none` to give screen readers time to read out the content. */
+    display: block !important;
+
+    /* Settings below are copied from .sr-only. */
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    border-width: 0;
+  }
+
+  & div.content {
+    font-size: 2rem;
+    background-color: var(--shade1);
+    color: var(--shade6);
+    border: solid 0.1em var(--primary-color);
+    border-radius: var(--block-border-radius);
+    padding: 0.25em;
+    width: max-content;
+    box-shadow: 2px 2px 4px 1px rgba(0, 0, 0, 0.3);
+  }
 }
 
 div#continue-dialog {
