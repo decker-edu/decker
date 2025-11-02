@@ -12,6 +12,7 @@ import Data.Aeson.Types
 import Data.ByteString.Base64 as B64
 import Data.ByteString.Char8 qualified as BS8
 import Data.ByteString.Lazy (ByteString)
+import Data.ByteString.Lazy.UTF8 (fromString)
 import Data.Functor ((<&>))
 import Data.Maybe
 import Data.Text (Text, unpack)
@@ -46,7 +47,7 @@ app check conn = do
 waitForMessage :: (WS.WebSocketsData a, Show a) => (a -> Maybe b) -> WS.ClientApp b
 waitForMessage check conn = do
     msg <- WS.receiveData conn
-    liftIO $ print msg
+    -- liftIO $ print msg
     case check msg of
         Nothing -> waitForMessage check conn
         Just x -> return x
@@ -78,25 +79,27 @@ exportPdf url out chromeHost chromePort = do
             pdfData <- withSocketsDo $ WS.runClient chromeHost chromePort ("/devtools/page/" ++ x) $ exportPdfWebsocketHandler url x
             liftIO $ putStrLn $ "Websocket communication finished for '" ++ url ++ "'!"
             case pdfData of
-                Just pdfData -> case B64.decode (BS8.pack pdfData) of
-                    Left x -> do
-                        liftIO $ putStrLn $ "Write PDF to file '" ++ out ++ "'!"
-                        writeFile out x
-                    Right x -> return ()
-                Nothing -> return ()
+                Just pdfData -> do
+                    let byteData = B64.decodeLenient (BS8.pack pdfData)
+                    liftIO $ putStrLn $ "Write PDF to file '" ++ out ++ "'!"
+                    writeFile out $ BS8.unpack byteData
+                Nothing -> do
+                    liftIO $ putStrLn $ "Error while connecting to websocket for url " ++ url ++ "!"
+                    return ()
         Nothing -> return ()
 
 exportPdfWebsocketHandler :: String -> String -> WS.ClientApp (Maybe String)
 exportPdfWebsocketHandler url targetID conn = do
     liftIO $ putStrLn "Websocket connected!"
-    let mId = 1
-    connectionData <- establishConnection targetID mId conn
+    let initMId = 1
+    connectionData <- establishConnection targetID initMId conn
     case connectionData of
         Just (sessionId, mId) -> do
+            let mId = 2
             mId <- navigateToSite url sessionId mId conn
-
+            let mId = 3
             mId <- waitForPdfReady sessionId mId conn
-
+            let mId = 4
             websocketRequestPdf sessionId mId conn
         _ -> return Nothing
 
@@ -108,7 +111,12 @@ establishConnection targetID mId conn = do
     -- waitForMessage (messageResponse mId) conn
     -- let mId = mId + 1
 
-    let discover = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= targetID, "flatten" .= True], "id" .= mId]
+    let discover1 = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= targetID, "flatten" .= True], "id" .= mId]
+    liftIO $ putStrLn "Write first!"
+    let discover2 = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= targetID, "flatten" .= True], "id" .= mId]
+    liftIO $ putStrLn $ "Second!" ++ show discover1
+    let discover :: ByteString = fromString $ "{\"method\":\"Target.attachToTarget\",\"params\":{\"targetId\":\"" ++ targetID ++ "\",\"flatten\": true},\"id\": " ++ show mId ++ "}"
+    liftIO $ putStrLn $ "Third" ++ show discover
     WS.sendTextData conn discover
 
     sessionId <- waitForMessage (sessionIdResponse mId) conn
@@ -160,7 +168,7 @@ decodeWebsocketResult obj = do
 
 navigateToSite :: String -> String -> Int -> WS.ClientApp Int
 navigateToSite url sessionId mId conn = do
-    liftIO $ putStrLn $ "Navigate to side '" ++ url ++ "'!"
+    liftIO $ putStrLn $ "Navigate to side '" ++ url ++ "'!" ++ show sessionId ++ ";" ++ "ahjdskfgkjashdfhjluiaskhgjfkdlskfdjhgsjlkdffdghjgdhjhjkfdskfjudhstzugkerwuzbgkcrewzbugtkrcesbzugkcsrednuizcrenhjkcresnjkhcesrjhncreshjkncrehjnkcrweizuewcrzujncewrjhcrewjhnkcsfrezuicwerhjncewrnj"
     let discover = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= ("" :: String), "flatten" .= True], "id" .= mId]
     liftIO $ putStrLn $ "Navigate to side '" ++ show discover ++ "'!"
     let jsonMessage = AE.encode (object ["method" .= ("Page.navigate" :: String), "params" .= object ["url" .= url], "id" .= mId, "sessionId" .= sessionId])
@@ -177,11 +185,11 @@ waitForPdfReady :: String -> Int -> WS.ClientApp Int
 waitForPdfReady sessionId requestCounter conn = do
     liftIO $ putStrLn "Waiting for side to become ready for pdf export"
     let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { const reveal = document.querySelector(\".reveal\"); reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
-    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= Number 3, "arguments" .= object [], "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
+    let jsonMessage = AE.encode (object ["method" .= ("Runtime.evaluate" :: String), "params" .= object ["expression" .= jsWaitForReadyFunction, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
 
-    waitForMessage messageReadOne conn
+    -- waitForMessage messageReadOne conn
 
-    waitForMessage messageReadOne conn
+    -- waitForMessage messageReadOne conn
 
     WS.sendTextData conn jsonMessage
 
