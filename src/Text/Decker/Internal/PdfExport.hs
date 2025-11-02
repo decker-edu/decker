@@ -96,11 +96,18 @@ exportPdfWebsocketHandler url targetID conn = do
     case connectionData of
         Just (sessionId, mId) -> do
             let mId = 2
-            mId <- navigateToSite url sessionId mId conn
+            maybeFrameId <- navigateToSite url sessionId mId conn
             let mId = 3
-            mId <- waitForPdfReady sessionId mId conn
-            let mId = 4
-            websocketRequestPdf sessionId mId conn
+            case maybeFrameId of
+                Just frameId -> do
+                    maybeExecutionContext <- createExecutionContext frameId sessionId mId conn
+                    let mId = 4
+                    case maybeExecutionContext of
+                        Just executionContextId -> do
+                            waitForPdfReady executionContextId sessionId mId conn
+                            let mId = 5
+                            websocketRequestPdf sessionId mId conn
+                _ -> return Nothing
         _ -> return Nothing
 
 establishConnection :: String -> Int -> WS.ClientApp (Maybe (String, Int))
@@ -111,12 +118,8 @@ establishConnection targetID mId conn = do
     -- waitForMessage (messageResponse mId) conn
     -- let mId = mId + 1
 
-    let discover1 = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= targetID, "flatten" .= True], "id" .= mId]
-    liftIO $ putStrLn "Write first!"
-    let discover2 = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= targetID, "flatten" .= True], "id" .= mId]
-    liftIO $ putStrLn $ "Second!" ++ show discover1
-    let discover :: ByteString = fromString $ "{\"method\":\"Target.attachToTarget\",\"params\":{\"targetId\":\"" ++ targetID ++ "\",\"flatten\": true},\"id\": " ++ show mId ++ "}"
-    liftIO $ putStrLn $ "Third" ++ show discover
+    let discover = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= targetID, "flatten" .= True], "id" .= mId]
+    -- let discover :: ByteString = fromString $ "{\"method\":\"Target.attachToTarget\",\"params\":{\"targetId\":\"" ++ targetID ++ "\",\"flatten\": true},\"id\": " ++ show mId ++ "}"
     WS.sendTextData conn discover
 
     sessionId <- waitForMessage (sessionIdResponse mId) conn
@@ -166,26 +169,33 @@ decodeWebsocketResult obj = do
     sessionId <- obj .: "sessionId"
     return (WebsocketResult{mId = mId, result = result, sessionId = sessionId})
 
-navigateToSite :: String -> String -> Int -> WS.ClientApp Int
+navigateToSite :: String -> String -> Int -> WS.ClientApp (Maybe String)
 navigateToSite url sessionId mId conn = do
-    liftIO $ putStrLn $ "Navigate to side '" ++ url ++ "'!" ++ show sessionId ++ ";" ++ "ahjdskfgkjashdfhjluiaskhgjfkdlskfdjhgsjlkdffdghjgdhjhjkfdskfjudhstzugkerwuzbgkcrewzbugtkrcesbzugkcsrednuizcrenhjkcresnjkhcesrjhncreshjkncrehjnkcrweizuewcrzujncewrjhcrewjhnkcsfrezuicwerhjncewrnj"
-    let discover = AE.encode $ object ["method" .= ("Target.attachToTarget" :: String), "params" .= object ["targetId" .= ("" :: String), "flatten" .= True], "id" .= mId]
-    liftIO $ putStrLn $ "Navigate to side '" ++ show discover ++ "'!"
     let jsonMessage = AE.encode (object ["method" .= ("Page.navigate" :: String), "params" .= object ["url" .= url], "id" .= mId, "sessionId" .= sessionId])
 
-    liftIO $ putStrLn $ "Sending message: '" ++ show jsonMessage ++ "'!"
     WS.sendTextData conn jsonMessage
 
-    liftIO $ putStrLn "Wait for confirmation!"
+    frameMessage <- waitForMessage (messageResponse mId) conn
 
-    waitForMessage (messageResponse mId) conn
-    return $ mId + 1
+    let frameId = parseMaybe (.: "frameId") $ result frameMessage
+    return frameId
 
-waitForPdfReady :: String -> Int -> WS.ClientApp Int
-waitForPdfReady sessionId requestCounter conn = do
+createExecutionContext :: String -> String -> Int -> WS.ClientApp (Maybe String)
+createExecutionContext frameId sessionId mId conn = do
+    let jsonMessage = AE.encode (object ["method" .= ("Page.createIsolatedWorld" :: String), "params" .= object ["frameId" .= frameId, "grantUniveralAccess" .= True], "id" .= mId, "sessionId" .= sessionId])
+
+    WS.sendTextData conn jsonMessage
+
+    contextCreationResponse <- waitForMessage (messageResponse mId) conn
+
+    let contextId = parseMaybe (.: "executionContextId") $ result contextCreationResponse
+    return contextId
+
+waitForPdfReady :: String -> String -> Int -> WS.ClientApp Int
+waitForPdfReady executionContextId sessionId requestCounter conn = do
     liftIO $ putStrLn "Waiting for side to become ready for pdf export"
     let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { const reveal = document.querySelector(\".reveal\"); reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
-    let jsonMessage = AE.encode (object ["method" .= ("Runtime.evaluate" :: String), "params" .= object ["expression" .= jsWaitForReadyFunction, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
+    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["expression" .= jsWaitForReadyFunction, "executionContextId" .= executionContextId, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
 
     -- waitForMessage messageReadOne conn
 
@@ -195,9 +205,9 @@ waitForPdfReady sessionId requestCounter conn = do
 
     liftIO $ putStrLn "Wait message send, now waiting"
 
-    waitForMessage (messageResponse requestCounter) conn
+    response <- waitForMessage (messageResponse requestCounter) conn
 
-    liftIO $ putStrLn "Side ready for pdf export!"
+    liftIO $ putStrLn $ "Side ready for pdf export!" ++ show response
 
     return $ requestCounter + 1
 
@@ -210,23 +220,27 @@ pdfResponsePdfParser obj = obj .: "data"
 websocketRequestPdf :: String -> Int -> WS.ClientApp (Maybe String)
 websocketRequestPdf sessionId requestCounter conn = do
     liftIO $ putStrLn "Requesting PDF"
-    let pagePrintPdf = AE.encode (object ["method" .= ("Page.printToPDF" :: String), "params" .= object ["transferMode" .= ("ReturnAsStream" :: String), "landscape" .= False, "displayHeaderFooter" .= False, "headerTemplate" .= ("" :: String), "footerTemplate" .= ("" :: String), "printBackground" .= False, "scale" .= Number 1, "paperWidth" .= Number 8.5, "paperHeight" .= Number 11, "marginTop" .= Number 0, "marginBottom" .= Number 0, "marginLeft" .= Number 0, "marginRight" .= Number 0, "pageRanges" .= ("" :: String), "preferCSSPageSize" .= True, "generateTaggedPDF" .= True, "generateDocumentOutline" .= False], "id" .= requestCounter, "sessionId" .= sessionId])
+    let pagePrintPdf = AE.encode (object ["method" .= ("Page.printToPDF" :: String), "params" .= object ["displayHeaderFooter" .= False, "preferCSSPageSize" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
     WS.sendTextData conn pagePrintPdf
 
     pdfResponse <- waitForMessage (messageResponse requestCounter) conn
-    let streamId = parseMaybe pdfResponseDataParser $ result pdfResponse
+    -- liftIO $ putStrLn $ "PDF RESPONSE: " ++ show pdfResponse
+    let pdfData = parseMaybe pdfResponsePdfParser $ result pdfResponse
 
-    liftIO $ putStrLn $ "PDF ready using streamId: " ++ (show streamId)
+    return pdfData
 
-    case streamId of
-        Just sId -> do
-            let pageGetPdf = AE.encode (object ["method" .= ("IO.read" :: String), "params" .= object ["handle" .= sId], "id" .= (requestCounter + 1), "sessionId" .= sessionId])
-            WS.sendTextData conn pageGetPdf
+-- liftIO $ putStrLn $ "PDF ready using streamId: " ++ show streamId
 
-            pdfResponse <- waitForMessage (messageResponse $ requestCounter + 1) conn
-            let pdfData = parseMaybe pdfResponsePdfParser (result pdfResponse)
-            return pdfData
-        Nothing -> return Nothing
+{- case streamId of
+    Just sId -> do
+
+        let pageGetPdf = AE.encode (object ["method" .= ("IO.read" :: String), "params" .= object ["handle" .= sId], "id" .= (requestCounter + 1), "sessionId" .= sessionId])
+        WS.sendTextData conn pageGetPdf
+
+        pdfResponse <- waitForMessage (messageResponse $ requestCounter + 1) conn
+        let pdfData = parseMaybe pdfResponsePdfParser (result pdfResponse)
+        return pdfData
+    Nothing -> return Nothing -}
 
 messageResponse :: Int -> ByteString -> Maybe WebsocketResult
 messageResponse requestId message = do
@@ -234,6 +248,3 @@ messageResponse requestId message = do
     case result of
         Just x -> if mId x == requestId then Just x else Nothing
         Nothing -> Nothing
-
-messageReadOne :: ByteString -> Maybe ()
-messageReadOne message = Nothing
