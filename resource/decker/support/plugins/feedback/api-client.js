@@ -52,6 +52,9 @@ class RESTClient {
       /* Need to use put, because server does not accept data in
              request body of GET. */
       method: "PUT",
+      //      headers: {
+      //        "Content-Type": "application/json",
+      //      },
       mode: this.cors ? "cors" : "same-origin",
       cache: "no-store",
       body: JSON.stringify(data),
