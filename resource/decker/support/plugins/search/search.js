@@ -51,6 +51,23 @@ const Plugin = () => {
   let searchboxDirty;
   let hilitor;
 
+  /* New Highlight API that does not have to cut text nodes apart. */
+  /* We had 5 different colors and each highlight has its own style. */
+  const highlight0 = new Highlight();
+  const highlight1 = new Highlight();
+  const highlight2 = new Highlight();
+  const highlight3 = new Highlight();
+  const highlight4 = new Highlight();
+
+  /* Collection of all different highlight colors. */
+  const highlights = [
+    highlight0,
+    highlight1,
+    highlight2,
+    highlight3,
+    highlight4,
+  ];
+
   function render() {
     searchElement = document.createElement("div");
     searchElement.id = "searchbox";
@@ -241,7 +258,6 @@ const Plugin = () => {
     var targetNode = document.querySelector(selector) || document.body;
     var hiliteTag = tag || "EM";
     var skipTags = new RegExp("^(?:" + hiliteTag + "|SCRIPT|FORM)$");
-    var colors = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
     var wordColor = [];
     var colorIdx = 0;
     var matchRegex = "";
@@ -249,7 +265,7 @@ const Plugin = () => {
 
     this.setRegex = function (input) {
       input = input.replace(/^[^\w]+|[^\w]+$/g, "").replace(/[^\w'-]+/g, "|");
-      matchRegex = new RegExp("(" + input + ")", "i");
+      matchRegex = new RegExp("(" + input + ")", "ig");
     };
 
     this.getRegex = function () {
@@ -273,55 +289,49 @@ const Plugin = () => {
       if (node.nodeType == 3) {
         // NODE_TEXT
         var nv, regs;
-        if ((nv = node.nodeValue) && (regs = matchRegex.exec(nv))) {
-          //find the slide's section element and save it in our list of matching slides
-          var secnode = node;
-          while (secnode != null && secnode.nodeName != "SECTION") {
-            secnode = secnode.parentNode;
-          }
-
-          var slideIndex = deck.getIndices(secnode);
-          var slidelen = matchingSlides.length;
-          var alreadyAdded = false;
-          for (var i = 0; i < slidelen; i++) {
-            if (
-              matchingSlides[i].h === slideIndex.h &&
-              matchingSlides[i].v === slideIndex.v
-            ) {
-              alreadyAdded = true;
+        if ((nv = node.nodeValue)) {
+          const matches = [...nv.matchAll(matchRegex)];
+          for (const match of matches) {
+            //find the slide's section element and save it in our list of matching slides
+            var secnode = node;
+            while (secnode != null && secnode.nodeName != "SECTION") {
+              secnode = secnode.parentNode;
             }
-          }
-          if (!alreadyAdded) {
-            matchingSlides.push(slideIndex);
-          }
 
-          if (!wordColor[regs[0].toLowerCase()]) {
-            wordColor[regs[0].toLowerCase()] =
-              colors[colorIdx++ % colors.length];
+            var slideIndex = deck.getIndices(secnode);
+            var slidelen = matchingSlides.length;
+            var alreadyAdded = false;
+            for (var i = 0; i < slidelen; i++) {
+              if (
+                matchingSlides[i].h === slideIndex.h &&
+                matchingSlides[i].v === slideIndex.v
+              ) {
+                alreadyAdded = true;
+              }
+            }
+            if (!alreadyAdded) {
+              matchingSlides.push(slideIndex);
+            }
+
+            const word = match[0].toLowerCase();
+            if (wordColor[word] === undefined) {
+              wordColor[word] = colorIdx++ % highlights.length;
+            }
+
+            const range = new Range();
+            range.setStart(node, match.index);
+            range.setEnd(node, match.index + match[0].length);
+
+            highlights[wordColor[word]].add(range);
           }
-
-          var match = document.createElement(hiliteTag);
-          match.appendChild(document.createTextNode(regs[0]));
-          match.style.backgroundColor = wordColor[regs[0].toLowerCase()];
-          match.style.fontStyle = "inherit";
-          match.style.color = "#000";
-
-          var after = node.splitText(regs.index);
-          after.nodeValue = after.nodeValue.substring(regs[0].length);
-          node.parentNode.insertBefore(match, after);
         }
       }
     };
 
     // remove highlighting
     this.remove = function () {
-      var arr = document.getElementsByTagName(hiliteTag);
-      var el;
-      // destroy hiliteTag span elements and re-merge the text nodes
-      while (arr.length && (el = arr[0])) {
-        const parent = el.parentNode;
-        parent.replaceChild(el.firstChild, el);
-        parent.normalize();
+      for (const highlight of highlights) {
+        highlight.clear();
       }
     };
 
@@ -340,7 +350,12 @@ const Plugin = () => {
 
     init: (reveal) => {
       deck = reveal;
-
+      // Register all different highlights: Is there a more elegant way?
+      CSS.highlights.set("search-plugin-highlight-0", highlight0);
+      CSS.highlights.set("search-plugin-highlight-1", highlight1);
+      CSS.highlights.set("search-plugin-highlight-2", highlight2);
+      CSS.highlights.set("search-plugin-highlight-3", highlight3);
+      CSS.highlights.set("search-plugin-highlight-4", highlight4);
       // MARIO: CTRL/CMD + F (instead of CTRL+SHIFT+F)
       deck.registerKeyboardShortcut("CTRL + F", "Search");
       document.addEventListener(
