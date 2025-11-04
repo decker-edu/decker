@@ -55,7 +55,7 @@ import Text.Pandoc.Shared hiding (toString, toText)
 
 -- TODO: extract this value from global meta data.
 replaceLists :: [[Text]]
-replaceLists = [["math", "macros"], ["palette", "colors"], ["publish", "rsync", "options"], ["external-tools"]]
+replaceLists = [["math", "macros"], ["palette", "colors"], ["publish", "rsync", "options"], ["index", "links"],["external-tools"]]
 
 shouldMerge :: [Text] -> Bool
 -- shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists

@@ -1,3 +1,5 @@
+@import url("./colors.css");
+
 :root {
   /* These are for internal calculations */
   --list-indent: 1.5em;
