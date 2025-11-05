@@ -18,7 +18,7 @@ import Text.Decker.Filter.Util (oneImagePerLine, single)
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
-import Development.Shake (Action, need)
+import Development.Shake (Action, need, putVerbose)
 import Text.Decker.Internal.Meta
 import System.FilePath (takeDirectory)
 import Text.Decker.Filter.Media (compileImage, compileCodeBlock, compileBlockQuote, compileLineBlock)
@@ -135,7 +135,8 @@ unprocessed (_, cls, _) = "processed" `notElem` cls
 
 -- |  Runs the new decker media filter.
 deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
-deckerMediaFilter dispo docPath pandoc@(Pandoc meta _) =
+deckerMediaFilter dispo docPath pandoc@(Pandoc meta _) = do
+  putVerbose "deckerMediaFilter"
   runDeckerFilter (mediaFilter2 dispo) docPath pandoc
  
 -- | Runs a filter on a Pandoc document. The options are used to rewrite document
@@ -157,6 +158,7 @@ runFilter2 dispo filter pandoc@(Pandoc meta _) = do
 
 runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runNewFilter dispo filter docPath pandoc@(Pandoc docMeta blocks) = do
+  putVerbose "runNewFilter"
   let deckerMeta =
         setMetaValue "decker.doc-path" docPath
           $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta

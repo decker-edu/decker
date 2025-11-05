@@ -113,7 +113,6 @@ function toggleAccessibility() {
     for (const audio of audios) {
       modifyMedia(audio);
     }
-    Decker.flash.message(localization.accessible_colors_on);
     if (window.MathJax) {
       window.MathJax.startup.document.menu.options.settings.enrich = true;
       window.MathJax.startup.document.menu.setEnrichment(true);
@@ -131,7 +130,6 @@ function toggleAccessibility() {
     for (const audio of audios) {
       restoreMedia(audio);
     }
-    Decker.flash.message(localization.accessible_colors_off);
     if (window.MathJax) {
       window.MathJax.startup.document.menu.options.settings.enrich = false;
       window.MathJax.startup.document.menu.setEnrichment(false);
@@ -176,18 +174,25 @@ const Plugin = {
         key: "A",
         description: "Toggle Decker Accessibility Adjustments (Triple Click)",
       },
-
-      Decker.tripleClick(toggleAccessibility)
+      Decker.tripleClick(() => {
+        toggleAccessibility();
+        Decker.flashMessage(
+          a11yMode
+            ? localization.accessible_colors_on
+            : localization.accessible_colors_off
+        );
+      })
     );
     reveal.addEventListener("ready", () => {
       const menuPlugin = reveal.getPlugin("decker-menu");
       if (!!menuPlugin && !!menuPlugin.addPluginButton) {
         pluginButton = menuPlugin.addPluginButton(
           "decker-menu-a11y-button",
-          "fa-universal-access",
+          "fas fa-universal-access",
           localization.activate_accessibility,
           toggleAccessibility
         );
+        pluginButton.ariaPressed = "false";
       }
     });
     if (a11y) {

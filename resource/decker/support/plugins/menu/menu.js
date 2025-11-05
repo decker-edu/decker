@@ -595,10 +595,10 @@ class SlideMenu {
     }
   }
 
-  addPluginButton(id, icon, title, callback) {
+  addPluginButton(id, classes, title, callback) {
     const button = document.createElement("button");
     button.id = id;
-    button.classList.add("fa-button", "fas", icon);
+    button.classList.add("fa-button", ...classes.split(" "));
     button.title = title;
     button.setAttribute("aria-label", title);
     button.setAttribute("role", "menuitem");

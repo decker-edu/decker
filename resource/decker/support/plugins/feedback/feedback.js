@@ -722,10 +722,7 @@ class Feedback {
   createInterface() {
     let text = this.localization.interface;
     let button_string = String.raw`<button class="fa-button open-button" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
-      <div class="icon-combo">
-        <span class="fas fa-message"></span>
-        <span class="fas fa-question"></span>
-      </div>
+      <span class="feedback-button"></span>
       <div class="feedback-badge"></div>
     </button>`;
 

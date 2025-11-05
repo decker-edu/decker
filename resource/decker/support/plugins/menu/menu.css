@@ -11,6 +11,8 @@
 }
 
 .menu-header {
+  --icon-inactive-color: var(--shade2);
+
   display: grid;
   box-sizing: border-box;
   width: 100%;
@@ -31,6 +33,7 @@
   display: grid;
   grid-template-columns: subgrid;
   justify-items: center;
+  align-items: center;
   &:has(:focus-visible) {
     outline: solid 2px var(--focus-color) !important;
     outline-offset: 2px;
@@ -38,36 +41,11 @@
 }
 
 .menu-header button {
-  box-sizing: border-box;
-  background: none;
   color: var(--menu-header-text-color);
-  border-radius: 100%;
 }
 
 #decker-menu-close-button {
   grid-column: 1 / 1;
-}
-
-.menu-header button:hover {
-  color: var(--icon-hover-color);
-}
-
-.menu-header button:active {
-  color: var(--icon-active-color);
-}
-
-.menu-header button[aria-pressed="true"] {
-  background-color: var(--accent3);
-  border: 1px solid var(--menu-text-header-color);
-}
-
-.menu-header button[aria-pressed="true"]:hover {
-  color: var(--foreground-color);
-}
-
-.menu-header button[aria-disabled="true"] {
-  cursor: default;
-  color: var(--shade4);
 }
 
 ul.slide-list {

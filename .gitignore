@@ -22,6 +22,7 @@ decker.cabal
 node_modules
 public/
 private/
+chatty/
 stack.yaml.lock
 test/decks/*.svg
 index.md.generated

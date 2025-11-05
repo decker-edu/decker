@@ -175,7 +175,7 @@ sourceRegexes :: [String] =
     "\\`(^_).*\\.scss\\'"
   ]
 
-alwaysExclude = [publicDir, "dist", ".git", ".vscode", ".stack-work"]
+alwaysExclude = [publicDir, "chatty", "dist", ".git", ".vscode", ".stack-work"]
 
 questSuffix = "-quest.yaml"
 

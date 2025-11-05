@@ -1,6 +1,8 @@
+@import url("./colors.css");
+
 :root {
   /* variable font setting for Recursive*/
-  --casl: 0.3;
+  --casl: 0.2;
 
   /* Icon settings */
   --icon-size: 1rem;
@@ -74,6 +76,7 @@
   --icon-hover-color: var(--hover-color);
   --icon-background-color: rgba(0, 0, 0, 0);
   --icon-border-radius: 0.2em;
+  --icon-shadow-color: var(--foreground-color);
 
   --whiteboard-background-color: var(--shade1);
   --whiteboard-border-color: var(--shade2);
@@ -112,4 +115,8 @@
 
   /* default maximum code block height */
   --code-block-max-height: 800px;
+}
+
+.dark {
+  --icon-shadow-color: var(--background-color);
 }

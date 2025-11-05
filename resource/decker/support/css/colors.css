@@ -1,0 +1,121 @@
+/*
+ * This file contains all the mixed color variables from the color palette.
+ * Values for --contrast, --shadeX, --accentX and --base0X are still inserted by Haskell
+ * in the css-declarations style tag in the head of the templates.
+ */
+
+:root {
+  --base00-fg: color-mix(in srgb-linear, var(--base00), var(--foreground-color) var(--contrast));
+  --base00-ffg: color-mix(in srgb-linear, var(--base00), var(--foreground-color) calc(2 * var(--contrast)));
+  --base00-bg: color-mix(in srgb-linear, var(--base00), var(--background-color) var(--contrast));
+  --base00-bbg: color-mix(in srgb-linear, var(--base00), var(--background-color) calc(2 * var(--contrast)));
+
+  --base01-fg: color-mix(in srgb-linear, var(--base01), var(--foreground-color) var(--contrast));
+  --base01-ffg: color-mix(in srgb-linear, var(--base01), var(--foreground-color) calc(2 * var(--contrast)));
+  --base01-bg: color-mix(in srgb-linear, var(--base01), var(--background-color) var(--contrast));
+  --base01-bbg: color-mix(in srgb-linear, var(--base01), var(--background-color) calc(2 * var(--contrast)));
+
+  --base02-fg: color-mix(in srgb-linear, var(--base02), var(--foreground-color) var(--contrast));
+  --base02-ffg: color-mix(in srgb-linear, var(--base02), var(--foreground-color) calc(2 * var(--contrast)));
+  --base02-bg: color-mix(in srgb-linear, var(--base02), var(--background-color) var(--contrast));
+  --base02-bbg: color-mix(in srgb-linear, var(--base02), var(--background-color) calc(2 * var(--contrast)));
+
+  --base03-fg: color-mix(in srgb-linear, var(--base03), var(--foreground-color) var(--contrast));
+  --base03-ffg: color-mix(in srgb-linear, var(--base03), var(--foreground-color) calc(2 * var(--contrast)));
+  --base03-bg: color-mix(in srgb-linear, var(--base03), var(--background-color) var(--contrast));
+  --base03-bbg: color-mix(in srgb-linear, var(--base03), var(--background-color) calc(2 * var(--contrast)));
+
+  --base04-fg: color-mix(in srgb-linear, var(--base04), var(--foreground-color) var(--contrast));
+  --base04-ffg: color-mix(in srgb-linear, var(--base04), var(--foreground-color) calc(2 * var(--contrast)));
+  --base04-bg: color-mix(in srgb-linear, var(--base04), var(--background-color) var(--contrast));
+  --base04-bbg: color-mix(in srgb-linear, var(--base04), var(--background-color) calc(2 * var(--contrast)));
+
+  --base05-fg: color-mix(in srgb-linear, var(--base05), var(--foreground-color) var(--contrast));
+  --base05-ffg: color-mix(in srgb-linear, var(--base05), var(--foreground-color) calc(2 * var(--contrast)));
+  --base05-bg: color-mix(in srgb-linear, var(--base05), var(--background-color) var(--contrast));
+  --base05-bbg: color-mix(in srgb-linear, var(--base05), var(--background-color) calc(2 * var(--contrast)));
+
+  --base06-fg: color-mix(in srgb-linear, var(--base06), var(--foreground-color) var(--contrast));
+  --base06-ffg: color-mix(in srgb-linear, var(--base06), var(--foreground-color) calc(2 * var(--contrast)));
+  --base06-bg: color-mix(in srgb-linear, var(--base06), var(--background-color) var(--contrast));
+  --base06-bbg: color-mix(in srgb-linear, var(--base06), var(--background-color) calc(2 * var(--contrast)));
+
+  --base07-fg: color-mix(in srgb-linear, var(--base07), var(--foreground-color) var(--contrast));
+  --base07-ffg: color-mix(in srgb-linear, var(--base07), var(--foreground-color) calc(2 * var(--contrast)));
+  --base07-bg: color-mix(in srgb-linear, var(--base07), var(--background-color) var(--contrast));
+  --base07-bbg: color-mix(in srgb-linear, var(--base07), var(--background-color) calc(2 * var(--contrast)));
+
+  --base08-fg: color-mix(in srgb-linear, var(--base08), var(--foreground-color) var(--contrast));
+  --base08-ffg: color-mix(in srgb-linear, var(--base08), var(--foreground-color) calc(2 * var(--contrast)));
+  --base08-bg: color-mix(in srgb-linear, var(--base08), var(--background-color) var(--contrast));
+  --base08-bbg: color-mix(in srgb-linear, var(--base08), var(--background-color) calc(2 * var(--contrast)));
+
+  --base09-fg: color-mix(in srgb-linear, var(--base09), var(--foreground-color) var(--contrast));
+  --base09-ffg: color-mix(in srgb-linear, var(--base09), var(--foreground-color) calc(2 * var(--contrast)));
+  --base09-bg: color-mix(in srgb-linear, var(--base09), var(--background-color) var(--contrast));
+  --base09-bbg: color-mix(in srgb-linear, var(--base09), var(--background-color) calc(2 * var(--contrast)));
+
+  --base0A-fg: color-mix(in srgb-linear, var(--base0A), var(--foreground-color) var(--contrast));
+  --base0A-ffg: color-mix(in srgb-linear, var(--base0A), var(--foreground-color) calc(2 * var(--contrast)));
+  --base0A-bg: color-mix(in srgb-linear, var(--base0A), var(--background-color) var(--contrast));
+  --base0A-bbg: color-mix(in srgb-linear, var(--base0A), var(--background-color) calc(2 * var(--contrast)));
+
+  --base0B-fg: color-mix(in srgb-linear, var(--base0B), var(--foreground-color) var(--contrast));
+  --base0B-ffg: color-mix(in srgb-linear, var(--base0B), var(--foreground-color) calc(2 * var(--contrast)));
+  --base0B-bg: color-mix(in srgb-linear, var(--base0B), var(--background-color) var(--contrast));
+  --base0B-bbg: color-mix(in srgb-linear, var(--base0B), var(--background-color) calc(2 * var(--contrast)));
+
+  --base0C-fg: color-mix(in srgb-linear, var(--base0C), var(--foreground-color) var(--contrast));
+  --base0C-ffg: color-mix(in srgb-linear, var(--base0C), var(--foreground-color) calc(2 * var(--contrast)));
+  --base0C-bg: color-mix(in srgb-linear, var(--base0C), var(--background-color) var(--contrast));
+  --base0C-bbg: color-mix(in srgb-linear, var(--base0C), var(--background-color) calc(2 * var(--contrast)));
+
+  --base0D-fg: color-mix(in srgb-linear, var(--base0D), var(--foreground-color) var(--contrast));
+  --base0D-ffg: color-mix(in srgb-linear, var(--base0D), var(--foreground-color) calc(2 * var(--contrast)));
+  --base0D-bg: color-mix(in srgb-linear, var(--base0D), var(--background-color) var(--contrast));
+  --base0D-bbg: color-mix(in srgb-linear, var(--base0D), var(--background-color) calc(2 * var(--contrast)));
+
+  --base0E-fg: color-mix(in srgb-linear, var(--base0E), var(--foreground-color) var(--contrast));
+  --base0E-ffg: color-mix(in srgb-linear, var(--base0E), var(--foreground-color) calc(2 * var(--contrast)));
+  --base0E-bg: color-mix(in srgb-linear, var(--base0E), var(--background-color) var(--contrast));
+  --base0E-bbg: color-mix(in srgb-linear, var(--base0E), var(--background-color) calc(2 * var(--contrast)));
+
+  --base0F-fg: color-mix(in srgb-linear, var(--base0F), var(--foreground-color) var(--contrast));
+  --base0F-ffg: color-mix(in srgb-linear, var(--base0F), var(--foreground-color) calc(2 * var(--contrast)));
+  --base0F-bg: color-mix(in srgb-linear, var(--base0F), var(--background-color) var(--contrast));
+  --base0F-bbg: color-mix(in srgb-linear, var(--base0F), var(--background-color) calc(2 * var(--contrast)));
+
+  --accent0-bg: color-mix(in srgb-linear, var(--accent0), var(--background-color) var(--contrast));
+  --accent0-bbg: color-mix(in srgb-linear, var(--accent0), var(--background-color) calc(2 * var(--contrast)));
+  --accent1-bg: color-mix(in srgb-linear, var(--accent1), var(--background-color) var(--contrast));
+  --accent1-bbg: color-mix(in srgb-linear, var(--accent1), var(--background-color) calc(2 * var(--contrast)));
+  --accent2-bg: color-mix(in srgb-linear, var(--accent2), var(--background-color) var(--contrast));
+  --accent2-bbg: color-mix(in srgb-linear, var(--accent2), var(--background-color) calc(2 * var(--contrast)));
+  --accent3-bg: color-mix(in srgb-linear, var(--accent3), var(--background-color) var(--contrast));
+  --accent3-bbg: color-mix(in srgb-linear, var(--accent3), var(--background-color) calc(2 * var(--contrast)));
+  --accent4-bg: color-mix(in srgb-linear, var(--accent4), var(--background-color) var(--contrast));
+  --accent4-bbg: color-mix(in srgb-linear, var(--accent4), var(--background-color) calc(2 * var(--contrast)));
+  --accent5-bg: color-mix(in srgb-linear, var(--accent5), var(--background-color) var(--contrast));
+  --accent5-bbg: color-mix(in srgb-linear, var(--accent5), var(--background-color) calc(2 * var(--contrast)));
+  --accent6-bg: color-mix(in srgb-linear, var(--accent6), var(--background-color) var(--contrast));
+  --accent6-bbg: color-mix(in srgb-linear, var(--accent6), var(--background-color) calc(2 * var(--contrast)));
+  --accent7-bg: color-mix(in srgb-linear, var(--accent7), var(--background-color) var(--contrast));
+  --accent7-bbg: color-mix(in srgb-linear, var(--accent7), var(--background-color) calc(2 * var(--contrast)));
+  
+  --accent0-fg: color-mix(in srgb-linear, var(--accent0), var(--foreground-color) var(--contrast));
+  --accent0-ffg: color-mix(in srgb-linear, var(--accent0), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent1-fg: color-mix(in srgb-linear, var(--accent1), var(--foreground-color) var(--contrast));
+  --accent1-ffg: color-mix(in srgb-linear, var(--accent1), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent2-fg: color-mix(in srgb-linear, var(--accent2), var(--foreground-color) var(--contrast));
+  --accent2-ffg: color-mix(in srgb-linear, var(--accent2), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent3-fg: color-mix(in srgb-linear, var(--accent3), var(--foreground-color) var(--contrast));
+  --accent3-ffg: color-mix(in srgb-linear, var(--accent3), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent4-fg: color-mix(in srgb-linear, var(--accent4), var(--foreground-color) var(--contrast));
+  --accent4-ffg: color-mix(in srgb-linear, var(--accent4), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent5-fg: color-mix(in srgb-linear, var(--accent5), var(--foreground-color) var(--contrast));
+  --accent5-ffg: color-mix(in srgb-linear, var(--accent5), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent6-fg: color-mix(in srgb-linear, var(--accent6), var(--foreground-color) var(--contrast));
+  --accent6-ffg: color-mix(in srgb-linear, var(--accent6), var(--foreground-color) calc(2 * var(--contrast)));
+  --accent7-fg: color-mix(in srgb-linear, var(--accent7), var(--foreground-color) var(--contrast));
+  --accent7-ffg: color-mix(in srgb-linear, var(--accent7), var(--foreground-color) calc(2 * var(--contrast)));
+}

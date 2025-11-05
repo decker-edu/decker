@@ -1,3 +1,5 @@
+@import url("./colors.css");
+
 :root {
   /* These are for internal calculations */
   --list-indent: 1.5em;
@@ -55,6 +57,7 @@
   --icon-hover-color: var(--hover-color);
   --icon-background-color: rgba(0, 0, 0, 0);
   --icon-border-radius: 0.2em;
+  --icon-shadow-color: var(--foreground-color);
 
   --whiteboard-background-color: var(--shade1);
   --whiteboard-border-color: var(--shade2);
@@ -89,4 +92,8 @@
 
   /* make Henrik's style nicer */
   --list-indent: 0.5em;
+}
+
+.dark {
+    --icon-shadow-color: var(--background-color);
 }
