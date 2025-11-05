@@ -28,6 +28,7 @@ function pollSession({
   };
 
   return new Promise((resolve, error) => {
+    //    console.log("[Examiner]: Creating Websocket for:", serverUrl);
     session.socket = new WebSocket(serverUrl);
     session.heartbeat = null;
 
@@ -36,11 +37,13 @@ function pollSession({
         session.socket.send(
           JSON.stringify({ tag: "ClientCss", clientCss: clientCss })
         );
-      session.heartbeat = setInterval(() => { session.socket.send(JSON.stringify({ tag: "Beat" })) }, 10000);
+      session.heartbeat = setInterval(() => {
+        session.socket.send(JSON.stringify({ tag: "Beat" }));
+      }, 10000);
     });
 
     session.socket.addEventListener("error", (e) => {
-      console.error("Poll:", "Cannot connect to ", serverUrl);
+      console.error("[Examiner][Poll]", "Cannot connect to ", serverUrl);
       if (session.heartbeat) {
         clearInterval(session.heartbeat);
         session.heartbeat = null;
@@ -48,7 +51,7 @@ function pollSession({
     });
 
     session.socket.addEventListener("close", (e) => {
-      console.error("Poll:", "Server went away.");
+      console.error("[Examiner][Poll]", "Server went away.");
       if (session.onClose) session.onClose();
       if (session.heartbeat) {
         clearInterval(session.heartbeat);
@@ -57,9 +60,15 @@ function pollSession({
     });
 
     session.socket.addEventListener("message", (e) => {
-      let message = JSON.parse(e.data);
+      let message = undefined;
+      try {
+        let message = JSON.parse(e.data);
+      } catch (error) {
+        console.error("[Examiner][Poll] Unable to parse message:\n", e.data);
+        return;
+      }
       if (message.error) {
-        console.error("Poll:", "Server error:", message.error);
+        console.error("[Examiner][Poll]", "Server error:", message.error);
       } else if (message.key != null) {
         session.id = message.key;
         session.clientUrl = clientBaseUrl
@@ -151,7 +160,10 @@ function pollSession({
             break;
 
           default:
-            console.error("Received unknown message: ", message);
+            console.error(
+              "[Examiner][Poll] Received unknown message: ",
+              message
+            );
         }
       }
     });

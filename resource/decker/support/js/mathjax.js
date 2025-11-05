@@ -96,23 +96,24 @@ export function configureMathJax() {
       tags: "ams",
       packages: { "[+]": ["action", "color"] },
       macros: macros,
+      inlineMath: { "[+]": [["$", "$"]] },
     },
     options: {
       // skipHtmlTags: { "[+]": ["details"] },
       enableMenu: a11y,
-      enableExplorer: a11y,
+      //      enableExplorer: a11y,
       menuOptions: {
         settings: {
           enrich: a11y, // true to enable semantic-enrichment
-          collapsible: false, // true to enable collapsible math
-          speech: a11y, // true to enable speech generation
-          braille: a11y, // true to enable Braille generation
-          assistiveMml: false, // true if hidden assistive MathML should be generated for screen readers
+          //          collapsible: false, // true to enable collapsible math
+          //          speech: a11y, // true to enable speech generation
+          //          braille: a11y, // true to enable Braille generation
+          //          assistiveMml: false, // true if hidden assistive MathML should be generated for screen readers
         },
       },
       a11y: {
-        speech: a11y, // true to enable speech generation
-        braille: a11y, // true to enable Braille generation
+        //        speech: a11y, // true to enable speech generation
+        //        braille: a11y, // true to enable Braille generation
       },
       sre: {
         locale: language === "de" ? "de" : "en",
@@ -123,7 +124,7 @@ export function configureMathJax() {
 
 export function loadMathJax() {
   const mathjax = Decker.meta.supportPath + "/vendor/mathjax/";
-  const url = mathjax + "tex-svg-nofont.js";
+  const url = mathjax + `tex-svg-nofont.js`;
   const script = document.createElement("script");
   script.src = url;
   document.head.appendChild(script);

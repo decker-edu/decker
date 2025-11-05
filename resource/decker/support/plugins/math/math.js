@@ -115,11 +115,11 @@ const Plugin = {
       configureMathJax();
 
       window.MathJax.startup.ready = () => {
-        const startTime = Date.now();
+        const startTime = performance.now();
         console.log("MathJax start");
         MathJax.startup.defaultReady();
         MathJax.startup.promise.then(() => {
-          const endTime = Date.now();
+          const endTime = performance.now();
           const timeTaken = endTime - startTime;
           console.log(`mathjax took ${timeTaken} milliseconds`);
           resolve();
