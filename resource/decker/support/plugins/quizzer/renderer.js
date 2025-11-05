@@ -485,6 +485,8 @@ export default {
                 "aria-description",
                 l10n.correct + " " + option.reason
               );
+            } else {
+              input.setAttribute("aria-description", l10n.correct);
             }
             break;
           } else if (option.reason) {

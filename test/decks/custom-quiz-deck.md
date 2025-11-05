@@ -1,5 +1,6 @@
 ---
 title: Custom Quizzes
+resource-pack: exe:tudo
 quizzer:
   url: 'https://quiz.jetzt'
   audio:
@@ -20,6 +21,9 @@ Rechne aus: $\frac{1}{3}$
 - [x] 0,3
 - [x] 0,33
 - [x] 0,333
+- [x] 0.3
+- [x] 0.33
+- [x] 0.333
 
 :::
 

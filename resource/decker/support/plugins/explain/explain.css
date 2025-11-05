@@ -72,7 +72,7 @@ div#record-panel:hover {
 div#record-panel.open {
   transform: translate(-50%, 0);
   opacity: 1;
-  background-color: var(--background-color);
+  background-color: var(--menu-background-color);
 }
 
 div#record-panel .toggle-button {
@@ -88,10 +88,6 @@ div#record-panel .toggle-button {
   font-size: 2rem;
   color: var(--foreground-color);
   transition: opacity 1s linear 0, color 0.5s linear 0;
-}
-
-div#record-panel .toggle-button:hover {
-  color: var(--blueish);
 }
 
 div#record-panel[data-uistate="RECORDING"] .toggle-button {
@@ -174,7 +170,8 @@ div#record-panel[data-uistate="RECORDING"].open {
   color: var(--redish);
 }
 
-button.explain[disabled] {
+button.explain[disabled],
+button.explain[aria-disabled="true"] {
   color: var(--shade4);
   opacity: 0.5;
 }
@@ -201,7 +198,7 @@ button.caption-button.captioning {
     button.stop-button,
     button.mute-button,
     button.caption-button
-  ):hover {
+  ):not([aria-disabled="true"]):hover {
   color: var(--light-red);
 }
 
@@ -211,7 +208,7 @@ button.caption-button.captioning {
     button.stop-button,
     button.mute-button,
     button.caption-button
-  ):active {
+  ):not([aria-disabled="true"]):active {
   color: var(--dark-red);
 }
 
