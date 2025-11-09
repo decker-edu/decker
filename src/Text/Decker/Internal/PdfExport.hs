@@ -7,6 +7,7 @@ import Control.Lens ((&), (.~), (^.), (^?))
 import Control.Monad (forever, unless, when)
 import Control.Monad.Trans (liftIO)
 import Data.Aeson as AE
+import Data.Aeson.KeyMap (toList)
 import Data.Aeson.Lens (key, _String)
 import Data.Aeson.Types
 import Data.ByteString.Base64 as B64
@@ -47,7 +48,7 @@ app check conn = do
 waitForMessage :: (WS.WebSocketsData a, Show a) => (a -> Maybe b) -> WS.ClientApp b
 waitForMessage check conn = do
     msg <- WS.receiveData conn
-    -- liftIO $ print msg
+    liftIO $ print msg
     case check msg of
         Nothing -> waitForMessage check conn
         Just x -> return x
@@ -97,16 +98,19 @@ exportPdfWebsocketHandler url targetID conn = do
         Just (sessionId, mId) -> do
             let mId = 2
             maybeFrameId <- navigateToSite url sessionId mId conn
+            liftIO $ putStrLn $ "Frame ID: " ++ show maybeFrameId
             let mId = 3
             case maybeFrameId of
                 Just frameId -> do
                     maybeExecutionContext <- createExecutionContext frameId sessionId mId conn
+                    liftIO $ putStrLn $ "MaybeContenxt: " ++ show maybeExecutionContext
                     let mId = 4
                     case maybeExecutionContext of
                         Just executionContextId -> do
                             waitForPdfReady executionContextId sessionId mId conn
                             let mId = 5
                             websocketRequestPdf sessionId mId conn
+                        _ -> return Nothing
                 _ -> return Nothing
         _ -> return Nothing
 
@@ -177,10 +181,11 @@ navigateToSite url sessionId mId conn = do
 
     frameMessage <- waitForMessage (messageResponse mId) conn
 
+    liftIO $ print frameMessage
     let frameId = parseMaybe (.: "frameId") $ result frameMessage
     return frameId
 
-createExecutionContext :: String -> String -> Int -> WS.ClientApp (Maybe String)
+createExecutionContext :: String -> String -> Int -> WS.ClientApp (Maybe Int)
 createExecutionContext frameId sessionId mId conn = do
     let jsonMessage = AE.encode (object ["method" .= ("Page.createIsolatedWorld" :: String), "params" .= object ["frameId" .= frameId, "grantUniveralAccess" .= True], "id" .= mId, "sessionId" .= sessionId])
 
@@ -188,14 +193,15 @@ createExecutionContext frameId sessionId mId conn = do
 
     contextCreationResponse <- waitForMessage (messageResponse mId) conn
 
+    liftIO $ print contextCreationResponse
     let contextId = parseMaybe (.: "executionContextId") $ result contextCreationResponse
     return contextId
 
-waitForPdfReady :: String -> String -> Int -> WS.ClientApp Int
+waitForPdfReady :: Int -> String -> Int -> WS.ClientApp Int
 waitForPdfReady executionContextId sessionId requestCounter conn = do
     liftIO $ putStrLn "Waiting for side to become ready for pdf export"
     let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { const reveal = document.querySelector(\".reveal\"); reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
-    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["expression" .= jsWaitForReadyFunction, "executionContextId" .= executionContextId, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
+    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= executionContextId, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
 
     -- waitForMessage messageReadOne conn
 
@@ -203,7 +209,7 @@ waitForPdfReady executionContextId sessionId requestCounter conn = do
 
     WS.sendTextData conn jsonMessage
 
-    liftIO $ putStrLn "Wait message send, now waiting"
+    liftIO $ putStrLn $ "Wait message send, now waiting! " ++ show jsonMessage
 
     response <- waitForMessage (messageResponse requestCounter) conn
 
