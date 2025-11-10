@@ -123,6 +123,7 @@ dependencies:
   - zip
   - raw-strings-qq
   - network
+  - port-utils
 
 ghc-options:
   - -Wunused-top-binds

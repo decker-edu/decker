@@ -170,6 +170,19 @@ external-tools:
       - "-pipe"
       # - "${input}"
     help: ""
+  chromeheadless:
+    linux:
+      command: "chrome"
+      arguments:
+        - "--headless"
+        - "--remote-debugging-port=${input}"
+      help: ""
+    macos:
+      command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      arguments:
+        - "--headless"
+        - "--remote-debugging-port=${input}"
+      help: ""
   chrome:
     linux:
       command: "chrome"

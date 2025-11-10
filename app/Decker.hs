@@ -21,6 +21,7 @@ import System.FilePath.Glob qualified as Glob
 
 -- import System.FilePath.Posix
 
+import Network.Socket.Wait (wait)
 import Path (parseRelDir)
 import Path.IO (copyDirRecur)
 import System.Directory (makeRelativeToCurrentDirectory)
@@ -94,20 +95,22 @@ indexFile = publicDir </> "index.html"
 
 run :: IO ()
 run = do
-    --
-    runDecker deckerRules
+    runDecker (deckerRules)
 
 --
 
 runArgs :: [String] -> IO ()
 runArgs args = do
-    runDeckerArgs args deckerRules
+    runDeckerArgs args (deckerRules)
 
 deckerRules = do
     (getGlobalMeta, getDeps, getTemplate) <- prepCaches
     transient <- liftIO transientDir
-    devRun <- liftIO $ isDevelopmentRun
-    -- Creates a headless chrome, serving the debugging interface on port 9222
+    devRun <- liftIO isDevelopmentRun
+
+    -- Create websocket lock to only let one thread at a time open a websocket connection to chrome.
+    -- As for now requesting more pdfs concurrently breaks and all but one pdf generation thread freezes.
+    websocketLock <- liftIO newEmptyMVar
 
     want ["html"]
     addHelpSuffix "Commands:"
@@ -150,14 +153,20 @@ deckerRules = do
             need ["support", "questions"]
             getDeps >>= needTargets' [pages]
     --
-    phony "pdf" $ do
+    phony "pdf-start" $ do
         need ["support"]
         meta <- do getGlobalMeta
-        -- chromeId <- liftIO $ do
-        -- forkIO $ runExternal "chromeheadless" "9222" "" meta
-        -- putStrLn "Started external chrome browser"
-        -- TODO: WHERE TO PUT THIS Kills the chrome thread after pdf exports finished
-        -- killThread chromeId
+
+        -- start chrome in a seperate thread
+        chromeId <- liftIO $ do
+            forkIO $ runExternal "chromeheadless" "9222" "" meta
+        liftIO $ putStrLn "Started external chrome browser"
+        -- Wait for the chrome remote debugging service to become reachable
+        liftIO $ wait "127.0.0.1" 9222
+        -- Save our chrome thread id into our lock to
+        -- later clean it up and signal the pdf generation process,
+        -- that chrome is ready to accept connections
+        liftIO $ putMVar websocketLock chromeId
 
         getDeps >>= needTargets decksPdf
     --
@@ -216,7 +225,7 @@ deckerRules = do
                 need [src]
                 let url = serverUrl </> makeRelative publicDir src
                 putInfo $ "# chrome started ... (for " <> out <> ")"
-                liftIO $ exportPdf url out "127.0.0.1" 9222
+                liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
                 putInfo $ "# chrome finished (for " <> out <> ")"
 
         {- publicDir <//> "*-deck.pdf" %> \out -> do
@@ -361,6 +370,16 @@ deckerRules = do
             let src = makeRelative publicDir out
             putVerbose $ "# copy (for " <> out <> ")"
             copyFile' src out
+    --
+
+    withTargetDocs "Stop chrome remote session" $
+        phony "pdf" $ do
+            need ["pdf-start"]
+
+            -- Stop chrome after all documents are exported using the saved chrome thread id.
+            -- This produces errors in the log but cleans up quite nicely ;)
+            chromeId <- liftIO $ takeMVar websocketLock
+            liftIO $ killThread chromeId
     --
     withTargetDocs "Copy static file to public dir." $
         phony "static-files" $ do
