@@ -26,7 +26,7 @@ import Data.Vector (singleton)
 import Network.Socket (withSocketsDo)
 import Network.WebSockets qualified as WS
 import Network.Wreq
-import Prelude (Bool (..), Either (..), IO, Int, Maybe (..), Show, String, print, putStrLn, return, show, ($), (+), (++), (.), (==), (>>))
+import Prelude (Bool (..), Either (..), IO, Int, Maybe (..), Show, String, print, putStrLn, return, show, ($), (+), (++), (-), (.), (==), (>>))
 
 app :: (ByteString -> Maybe ByteString) -> WS.ClientApp ()
 app check conn = do
@@ -51,7 +51,7 @@ app check conn = do
 waitForMessage :: (WS.WebSocketsData a, Show a) => (a -> Maybe b) -> WS.ClientApp b
 waitForMessage check conn = do
     msg <- WS.receiveData conn
-    liftIO $ print msg
+    --  liftIO $ print msg
     case check msg of
         Nothing -> waitForMessage check conn
         Just x -> return x
@@ -80,7 +80,7 @@ exportPdf url out chromeHost chromePort = do
         Just x -> do
             get ("http://" ++ chromeHost ++ ":" ++ show chromePort ++ "/json/activate/" ++ x)
             liftIO $ putStrLn $ "Connecting to WS at " ++ chromeHost ++ ":" ++ show chromePort ++ "/devtools/page/" ++ x
-            pdfData <- withSocketsDo $ WS.runClient chromeHost chromePort ("/devtools/page/" ++ x) $ exportPdfWebsocketHandler url x
+            pdfData <- withSocketsDo $ WS.runClient chromeHost chromePort ("/devtools/page/" ++ x) $ exportPdfWebsocketHandler (url ++ "?print-pdf#/") x
             liftIO $ putStrLn $ "Websocket communication finished for '" ++ url ++ "'!"
             case pdfData of
                 Just pdfData -> do
@@ -105,13 +105,13 @@ exportPdfWebsocketHandler url targetID conn = do
     case connectionData of
         Just (sessionId, mId) -> do
             let mId = 2
-            maybeFrameId <- navigateToSite url sessionId mId conn
+            maybeFrameId <- getFrameId url sessionId mId conn
             liftIO $ putStrLn $ "Frame ID: " ++ show maybeFrameId
             let mId = 4
             case maybeFrameId of
                 Just frameId -> do
                     maybeExecutionContext <- createExecutionContext frameId sessionId mId conn
-                    navigateToSite url sessionId mId conn
+                    navigateToSite frameId url sessionId mId conn
                     liftIO $ putStrLn $ "MaybeContenxt: " ++ show maybeExecutionContext
                     let mId = 5
                     case maybeExecutionContext of
@@ -182,8 +182,8 @@ decodeWebsocketResult obj = do
     sessionId <- obj .: "sessionId"
     return (WebsocketResult{mId = mId, result = result, sessionId = sessionId})
 
-navigateToSite :: String -> String -> Int -> WS.ClientApp (Maybe String)
-navigateToSite url sessionId mId conn = do
+getFrameId :: String -> String -> Int -> WS.ClientApp (Maybe String)
+getFrameId url sessionId mId conn = do
     let runtimeEnable = AE.encode (object ["method" .= ("Runtime.enable" :: String), "id" .= mId, "sessionId" .= sessionId])
     WS.sendTextData conn runtimeEnable
     waitForMessage (messageResponse (mId)) conn
@@ -194,6 +194,11 @@ navigateToSite url sessionId mId conn = do
 
     frameMessage <- waitForMessage (messageResponse (mId + 1)) conn
 
+    let enableScriptExecution = AE.encode (object ["method" .= ("Emulation.setScriptExecutionDisabled" :: String), "params" .= object ["value" .= False], "id" .= (mId + 2), "sessionId" .= sessionId])
+
+    WS.sendTextData conn enableScriptExecution
+
+    waitForMessage (messageResponse (mId + 2)) conn
     -- let runIfWaitForDebuggerMessage = AE.encode (object ["method" .= ("Runtime.runIfWaitingForDebugger" :: String), "id" .= (mId + 2), "sessionId" .= sessionId])
     -- WS.sendTextData conn runIfWaitForDebuggerMessage
     -- waitForMessage (messageResponse (mId + 2)) conn
@@ -201,6 +206,12 @@ navigateToSite url sessionId mId conn = do
     liftIO $ print frameMessage
     let frameId = parseMaybe (.: "frameId") $ result frameMessage
     return frameId
+
+navigateToSite :: String -> String -> String -> Int -> WS.ClientApp ()
+navigateToSite frameId url sessionId mId conn = do
+    let jsonMessage = AE.encode (object ["method" .= ("Page.navigate" :: String), "params" .= object ["url" .= url, "frameId" .= frameId], "id" .= (mId), "sessionId" .= sessionId])
+    WS.sendTextData conn jsonMessage
+    return ()
 
 createExecutionContext :: String -> String -> Int -> WS.ClientApp (Maybe Int)
 createExecutionContext frameId sessionId mId conn = do
@@ -218,7 +229,7 @@ waitForPdfReady :: Int -> String -> Int -> WS.ClientApp Int
 waitForPdfReady executionContextId sessionId requestCounter conn = do
     liftIO $ putStrLn "Waiting for side to become ready for pdf export"
     let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { const reveal = document.querySelector(\".reveal\"); reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
-    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= (executionContextId + 1), "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
+    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= (executionContextId - 1), "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
 
     -- waitForMessage messageReadOne conn
 
@@ -232,10 +243,10 @@ waitForPdfReady executionContextId sessionId requestCounter conn = do
 
     liftIO $ putStrLn $ "Side ready for pdf export!" ++ show response
 
-    liftIO $ putStrLn $ "Check fonts ready"
+    liftIO $ putStrLn "Check fonts ready"
 
     let jsWaitForFontsFunction :: String = "() => { return document.fonts.ready; }"
-    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForFontsFunction, "executionContextId" .= (executionContextId + 1), "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= (requestCounter + 1), "sessionId" .= sessionId])
+    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForFontsFunction, "executionContextId" .= (executionContextId - 1), "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= (requestCounter + 1), "sessionId" .= sessionId])
 
     WS.sendTextData conn jsonMessage
     response <- waitForMessage (messageResponse (requestCounter + 1)) conn
