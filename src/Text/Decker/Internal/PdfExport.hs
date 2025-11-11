@@ -3,7 +3,7 @@
 
 module Text.Decker.Internal.PdfExport where
 
-import Control.Concurrent (MVar, ThreadId, forkIO, putMVar, takeMVar)
+import Control.Concurrent (MVar, ThreadId, forkIO, putMVar, takeMVar, threadDelay)
 import Control.Lens ((&), (.~), (^.), (^?))
 import Control.Monad (forever, join, unless, when)
 import Control.Monad.Trans (liftIO)
@@ -26,7 +26,7 @@ import Data.Vector (singleton)
 import Network.Socket (withSocketsDo)
 import Network.WebSockets qualified as WS
 import Network.Wreq
-import Prelude (Bool (..), Either (..), IO, Int, Maybe (..), Show, String, print, putStrLn, return, show, ($), (+), (++), (-), (.), (/=), (==), (>>))
+import Prelude (Bool (..), Either (..), IO, Int, Maybe (..), Show, String, print, putStrLn, return, show, ($), (&&), (+), (++), (-), (.), (/=), (==), (>>))
 
 app :: (ByteString -> Maybe ByteString) -> WS.ClientApp ()
 app check conn = do
@@ -51,7 +51,7 @@ app check conn = do
 waitForMessage :: (WS.WebSocketsData a, Show a) => (a -> Maybe b) -> WS.ClientApp b
 waitForMessage check conn = do
     msg <- WS.receiveData conn
-    -- liftIO $ print msg
+    liftIO $ print msg
     case check msg of
         Nothing -> waitForMessage check conn
         Just x -> return x
@@ -59,10 +59,14 @@ waitForMessage check conn = do
 waitForMessageEither :: (WS.WebSocketsData a, Show a) => (a -> c -> Either b c) -> c -> WS.ClientApp b
 waitForMessageEither check last conn = do
     msg <- WS.receiveData conn
-    liftIO $ print msg
+    liftIO $ putStrLn $ "EITHER: " ++ show msg
     case check msg last of
-        Left x -> return x
-        Right x -> waitForMessageEither check x conn
+        Left x -> do
+            liftIO $ putStrLn $ "Either finished: "
+            return x
+        Right x -> do
+            liftIO $ putStrLn $ "Either fin message not recieved: "
+            waitForMessageEither check x conn
 
 checkMessage :: ByteString -> Maybe ByteString
 checkMessage message = if message == "Hi" then Just "Hi" else Nothing
@@ -70,26 +74,35 @@ checkMessage message = if message == "Hi" then Just "Hi" else Nothing
 runSocket :: IO ()
 runSocket = withSocketsDo $ WS.runClient "127.0.0.1" 8888 "/" (app checkMessage)
 
+-- This method exports the given revealJS page found at baseUrl to a file specified by out.
+-- For the exporting a connection to a chrome remote debugging port at chromeHost:chromePort is used.
+-- With the websocketLock given to this function multithreading can be disabled while communicating with the chrome instance
+-- to allow easier debugging.
 exportPdf :: String -> String -> String -> Int -> MVar ThreadId -> IO ()
-exportPdf url out chromeHost chromePort websocketLock = do
+exportPdf baseUrl out chromeHost chromePort websocketLock = do
+    -- Uncommend if you don't want multithreaded pdf loading (note there are two more lines in this method ;)):
     chromeId <- takeMVar websocketLock
-    putStrLn $ "Creating new tab for \"" ++ url ++ "\""
+    let url = baseUrl ++ "?print-pdf#/"
+    putStrLn $ "[PDF-Export] [" ++ url ++ "] Creating new tab!"
     creationResponse <- put ("http://" ++ chromeHost ++ ":" ++ show chromePort ++ "/json/new?" ++ url) (toJSON (object []))
     let id = creationResponse ^? responseBody . key "id" . _String <&> Data.Text.unpack
-    liftIO $ putStrLn $ "Recieved response for url creation: " ++ show id
     case id of
         Just x -> do
             get ("http://" ++ chromeHost ++ ":" ++ show chromePort ++ "/json/activate/" ++ x)
 
-            liftIO $ putStrLn $ "Connecting to WS at " ++ chromeHost ++ ":" ++ show chromePort ++ "/devtools/page/" ++ x
+            putStrLn $ "[PDF-Export] [" ++ url ++ "] Open websocket connection at '" ++ chromeHost ++ ":" ++ show chromePort ++ "/devtools/page/" ++ x ++ "'!"
             pdfData <- withSocketsDo $ WS.runClient chromeHost chromePort ("/devtools/page/" ++ x) $ exportPdfWebsocketHandler (url ++ "?print-pdf#/") x
-            liftIO $ putStrLn $ "Websocket communication finished for '" ++ url ++ "'!"
+            putStrLn $ "[PDF-Export] [" ++ url ++ "] Closing websocket connection at '" ++ chromeHost ++ ":" ++ show chromePort ++ "/devtools/page/" ++ x ++ "'!"
 
+            get ("http://" ++ chromeHost ++ ":" ++ show chromePort ++ "/json/close/" ++ x)
+            -- Uncommend if you don't want multithreaded pdf loading:
             putMVar websocketLock chromeId
             case pdfData of
                 Just pdfData -> do
+                    putStrLn $ "[PDF-Export] [" ++ url ++ "] Writing PDF to '" ++ out ++ "'!"
                     let byteData = B64.decodeLenient (BS8.pack pdfData)
-                    writeFile out $ byteData
+                    writeFile out byteData
+                    putStrLn $ "[PDF-Export] [" ++ url ++ "] Finished PDF export!"
                 {-case byteData of
                     Left err -> do
                         liftIO $ putStrLn $ "Invalid data: " ++ err
@@ -97,9 +110,13 @@ exportPdf url out chromeHost chromePort websocketLock = do
                         liftIO $ putStrLn $ "Write PDF to file '" ++ out ++ "'!"
                         writeFile out $ outData-}
                 Nothing -> do
+                    liftIO $ putStrLn $ "Websocket communication finished for '" ++ url ++ "'!"
                     liftIO $ putStrLn $ "Error while connecting to websocket for url " ++ url ++ "!"
                     return ()
-        Nothing -> return ()
+        Nothing -> do
+            -- Uncommend if you don't want multithreaded pdf loading:
+            putMVar websocketLock chromeId
+            return ()
 
 exportPdfWebsocketHandler :: String -> String -> WS.ClientApp (Maybe String)
 exportPdfWebsocketHandler url targetID conn = do
@@ -109,17 +126,17 @@ exportPdfWebsocketHandler url targetID conn = do
     case connectionData of
         Just (sessionId, frameId, mId) -> do
             let mId = 2
-            maybeFrameId <- getFrameId url sessionId mId conn
+            executionContexts <- getFrameId url sessionId mId conn
             -- liftIO $ putStrLn $ "Frame ID: " ++ show maybeFrameId
             let mId = 4
             -- case maybeFrameId of
             -- Just (_, _) -> do
             -- maybeExecutionContext <- createExecutionContext frameId sessionId mId conn
-            (executionContextId, _) <- navigateToSite frameId url sessionId mId conn
+            nextExecContext <- navigateToSite frameId url sessionId mId conn
             let mId = 5
             -- case maybeExecutionContext of
             -- Just executionContextId -> do
-            waitForPdfReady executionContextId sessionId mId conn
+            waitForPdfReady (nextExecContext : executionContexts) sessionId mId conn
             let mId = 7
             websocketRequestPdf sessionId mId conn
 
@@ -187,7 +204,7 @@ decodeWebsocketResult obj = do
     sessionId <- obj .: "sessionId"
     return (WebsocketResult{mId = mId, result = result, sessionId = sessionId})
 
-getFrameId :: String -> String -> Int -> WS.ClientApp (Maybe (Int, String))
+getFrameId :: String -> String -> Int -> WS.ClientApp [(Int, String)]
 getFrameId url sessionId mId conn = do
     let runtimeEnable = AE.encode (object ["method" .= ("Runtime.enable" :: String), "id" .= mId, "sessionId" .= sessionId])
     WS.sendTextData conn runtimeEnable
@@ -195,10 +212,19 @@ getFrameId url sessionId mId conn = do
     {- As at least one execution context should exists as we                -
      - opened this connection on a specific browser page we will always get -
      - at least one Runtime.executionContextCreated message.                -}
-    executionContextMessage <- waitForMessage (executionContextCreatedMessage sessionId Nothing) conn
+    -- executionContextMessage <- waitForMessage (executionContextCreatedMessage sessionId Nothing) conn
 
+    (executionContextMessage1, resultMessage) <- waitForMessageEither (executionContextCreatedMessageOnStart mId sessionId) [] conn
+
+    let cacheDisable = AE.encode (object ["method" .= ("Network.setCacheDisabled" :: String), "params" .= object ["cacheDisabled" .= True], "id" .= (mId + 1), "sessionId" .= sessionId])
+    WS.sendTextData conn cacheDisable
+    waitForMessage (messageResponse (mId + 1)) conn
+
+    let pageReportingEnabled = AE.encode (object ["method" .= ("Page.enable" :: String), "id" .= (mId + 2), "sessionId" .= sessionId])
+    WS.sendTextData conn pageReportingEnabled
+    waitForMessage (messageResponse (mId + 2)) conn
     -- Wait for event to finish
-    waitForMessage (messageResponse mId) conn
+    -- waitForMessage (messageResponse mId) conn
 
     {- let jsonMessage = AE.encode (object ["method" .= ("Page.navigate" :: String), "params" .= object ["url" .= url], "id" .= (mId + 1), "sessionId" .= sessionId])
 
@@ -206,16 +232,16 @@ getFrameId url sessionId mId conn = do
 
     frameMessage <- waitForMessage (messageResponse (mId + 1)) conn-}
 
-    let enableScriptExecution = AE.encode (object ["method" .= ("Emulation.setScriptExecutionDisabled" :: String), "params" .= object ["value" .= False], "id" .= (mId + 2), "sessionId" .= sessionId])
+    -- let enableScriptExecution = AE.encode (object ["method" .= ("Emulation.setScriptExecutionDisabled" :: String), "params" .= object ["value" .= False], "id" .= (mId + 2), "sessionId" .= sessionId])
 
-    WS.sendTextData conn enableScriptExecution
+    -- WS.sendTextData conn enableScriptExecution
 
-    waitForMessage (messageResponse (mId + 2)) conn
+    -- waitForMessage (messageResponse (mId + 2)) conn
     -- let runIfWaitForDebuggerMessage = AE.encode (object ["method" .= ("Runtime.runIfWaitingForDebugger" :: String), "id" .= (mId + 2), "sessionId" .= sessionId])
     -- WS.sendTextData conn runIfWaitForDebuggerMessage
     -- waitForMessage (messageResponse (mId + 2)) conn
 
-    return $ Just executionContextMessage
+    return $ executionContextMessage1
 
 navigateToSite :: String -> String -> String -> Int -> WS.ClientApp (Int, String)
 navigateToSite frameId url sessionId mId conn = do
@@ -225,7 +251,9 @@ navigateToSite frameId url sessionId mId conn = do
     {- Every page navigation will create a new executionContextId.          -
      - We therefore get a new Runtime.executionContextCreated event from    -
      - which we can read the new executionContext and frameId.              -}
-    waitForMessage (executionContextCreatedMessage sessionId (Just frameId)) conn
+    newContext <- waitForMessage (executionContextCreatedMessage sessionId (Just frameId)) conn
+    waitForMessage (loadEventFired sessionId) conn
+    return newContext
 
 createExecutionContext :: String -> String -> Int -> WS.ClientApp (Maybe Int)
 createExecutionContext frameId sessionId mId conn = do
@@ -239,23 +267,25 @@ createExecutionContext frameId sessionId mId conn = do
     let contextId = parseMaybe (.: "executionContextId") $ result contextCreationResponse
     return contextId
 
-waitForPdfReady :: Int -> String -> Int -> WS.ClientApp Int
+waitForPdfReady :: [(Int, String)] -> String -> Int -> WS.ClientApp Int
 waitForPdfReady executionContextId sessionId requestCounter conn = do
     liftIO $ putStrLn "Waiting for side to become ready for pdf export"
-    let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { const reveal = document.querySelector(\".reveal\"); reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
-    let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= executionContextId, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
 
+    -- let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { let reveal = document.querySelector(\".reveal\"); while(reveal === null) {reveal = document.querySelector(\".reveal\")}; reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
+    -- let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= executionContextId, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= requestCounter, "sessionId" .= sessionId])
+
+    -- WS.sendTextData conn jsonMessage
     -- waitForMessage messageReadOne conn
 
     -- waitForMessage messageReadOne conn
+    messagesSend <- sendWaitForReadyMessage executionContextId sessionId requestCounter conn
 
-    WS.sendTextData conn jsonMessage
+    liftIO $ putStrLn $ "Wait messages send, now waiting!" ++ show messagesSend
 
-    liftIO $ putStrLn $ "Wait message send, now waiting! " ++ show jsonMessage
+    -- liftIO $ threadDelay 1000
+    (expectedId, executionContextId, frameId, message) <- waitForMessage (messageResponses messagesSend) conn
 
-    response <- waitForMessage (messageResponse requestCounter) conn
-
-    liftIO $ putStrLn $ "Side ready for pdf export!" ++ show response
+    liftIO $ putStrLn $ "Side ready for pdf export!" ++ show executionContextId
 
     liftIO $ putStrLn "Check fonts ready"
 
@@ -268,6 +298,17 @@ waitForPdfReady executionContextId sessionId requestCounter conn = do
     liftIO $ putStrLn $ "Fonts ready" ++ show response
 
     return $ requestCounter + 1
+  where
+    sendWaitForReadyMessage :: [(Int, String)] -> String -> Int -> WS.ClientApp [(Int, Int, String)]
+    sendWaitForReadyMessage ((executionContextId, frameId) : remainder) sessionId mId conn = do
+        let jsWaitForReadyFunction :: String = "() => { return new Promise((resolve) => { let reveal = document.querySelector(\".reveal\"); while(reveal === null) {reveal = document.querySelector(\".reveal\")}; reveal.addEventListener(\"pdf-ready\", () => { resolve(); }); }); }"
+        let jsonMessage = AE.encode (object ["method" .= ("Runtime.callFunctionOn" :: String), "params" .= object ["functionDeclaration" .= jsWaitForReadyFunction, "executionContextId" .= executionContextId, "returnByValue" .= True, "awaitPromise" .= True, "userGesture" .= True], "id" .= mId, "sessionId" .= sessionId])
+
+        WS.sendTextData conn jsonMessage
+
+        remainding <- sendWaitForReadyMessage remainder sessionId (mId + 1) conn
+        return $ (mId, executionContextId, frameId) : remainding
+    sendWaitForReadyMessage _ _ _ _ = return []
 
 pdfResponseDataParser :: Object -> Parser String
 pdfResponseDataParser obj = obj .: "stream"
@@ -310,6 +351,19 @@ attachedToTargetExtractFrameId message = do
     result <- AE.decode message :: Maybe Object
     join $ parseMaybe getTargetId result
 
+loadEventFired :: String -> ByteString -> Maybe ()
+loadEventFired sessionId message = do
+    result <- AE.decode message :: Maybe Object
+    join $ parseMaybe (checkLoadEventFired sessionId) result
+  where
+    checkLoadEventFired :: String -> Object -> Parser (Maybe ())
+    checkLoadEventFired testSessionId obj = do
+        sessionId <- obj .: "sessionId"
+        method <- obj .: "method"
+        if sessionId == testSessionId && method == ("Page.loadEventFired" :: String)
+            then return $ Just ()
+            else return Nothing
+
 getContextAndFrameIdFromContextCreationMessage :: String -> Maybe String -> Object -> Parser (Maybe (Int, String))
 getContextAndFrameIdFromContextCreationMessage testSessionId testFrameId obj = do
     sessionId <- obj .: "sessionId"
@@ -331,9 +385,32 @@ executionContextCreatedMessage testSessionId frameId message = do
     result <- AE.decode message :: Maybe Object
     join $ parseMaybe (getContextAndFrameIdFromContextCreationMessage testSessionId frameId) result
 
+executionContextCreatedMessageOnStart :: Int -> String -> ByteString -> [(Int, String)] -> Either ([(Int, String)], WebsocketResult) [(Int, String)]
+executionContextCreatedMessageOnStart messageToWaitFor sessionId message prevData = do
+    case AE.decode message :: Maybe Object of
+        Just result ->
+            case join $ parseMaybe (getContextAndFrameIdFromContextCreationMessage sessionId Nothing) result of
+                Just messageData -> Right $ messageData : prevData
+                Nothing -> case parseMaybe decodeWebsocketResult result of
+                    Just resultData -> if mId resultData == messageToWaitFor then Left (prevData, resultData) else Right prevData
+                    Nothing -> Right prevData
+        Nothing -> Right prevData
+
 messageResponse :: Int -> ByteString -> Maybe WebsocketResult
 messageResponse requestId message = do
     let result = AE.decode message :: Maybe WebsocketResult
     case result of
         Just x -> if mId x == requestId then Just x else Nothing
         Nothing -> Nothing
+
+messageResponses :: [(Int, Int, String)] -> ByteString -> Maybe (Int, Int, String, WebsocketResult)
+messageResponses messagesToExpect message = do
+    result <- AE.decode message :: Maybe WebsocketResult
+    isResultToMessage result messagesToExpect
+  where
+    isResultToMessage :: WebsocketResult -> [(Int, Int, String)] -> Maybe (Int, Int, String, WebsocketResult)
+    isResultToMessage message ((expectedId, executionContextId, frameId) : remainding) =
+        if mId message == expectedId
+            then Just (expectedId, executionContextId, frameId, message)
+            else isResultToMessage message remainding
+    isResultToMessage _ _ = Nothing

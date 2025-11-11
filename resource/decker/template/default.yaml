@@ -176,6 +176,7 @@ external-tools:
       arguments:
         - "--headless"
         - "--remote-debugging-port=${input}"
+        # If you want to see whats going on replace this with the headless flag `- "--user-data-dir=./user-data-dir"`
       help: ""
     macos:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
