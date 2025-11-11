@@ -62,7 +62,7 @@ function pollSession({
     session.socket.addEventListener("message", (e) => {
       let message = undefined;
       try {
-        let message = JSON.parse(e.data);
+        message = JSON.parse(e.data);
       } catch (error) {
         console.error("[Examiner][Poll] Unable to parse message:\n", e.data);
         return;

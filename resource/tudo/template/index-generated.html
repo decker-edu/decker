@@ -95,8 +95,9 @@ $endif$
     <main class="content">
 
       $if(index.manual)$
-      $manual.html()$
+        $manual.html()$
       $endif$
+
       $if(index.search)$
         <div id="index-search"></div>
         <script type="module">
@@ -105,6 +106,20 @@ $endif$
             let searchBox = document.getElementById("index-search");
             setupSearch(searchBox, 0.5, $index.searchShowsDeckTitle$, $index.searchShowsDeckSubtitle$);
           });
+        </script>
+      $endif$
+
+      $if(chatty)$
+        <details class="chatty">
+          <summary>
+            <span class="english">Ask Prof. Bot<del>sch</del></span>
+            <span class="german">Frag Prof. Bot<del>sch</del></span>
+          </summary>
+          <div id="chatty"></div>
+        </details>
+        <script type="module">
+          import setup from "./$decker-support-dir$/chatty/chatty.js";
+          setup(document.getElementById("chatty"));
         </script>
       $endif$
 

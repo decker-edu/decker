@@ -103,13 +103,27 @@ $endif$
       $endif$
 
       $if(index.search)$
-        <div id="index-search"></div>
+        <div id="index-search" name="index-details"></div>
         <script type="module">
           import setupSearch from "./$decker-support-dir$/fuzzySearch/search.js";
           window.addEventListener("load", () => {
             let searchBox = document.getElementById("index-search");
             setupSearch(searchBox, 0.5, $index.searchShowsDeckTitle$, $index.searchShowsDeckSubtitle$);
           });
+        </script>
+      $endif$
+
+      $if(chatty)$
+        <details class="chatty" name="index-details">
+          <summary>
+            <span class="english">Ask Prof. Bot<del>sch</del></span>
+            <span class="german">Frag Prof. Bot<del>sch</del></span>
+          </summary>
+          <div id="chatty"></div>
+        </details>
+        <script type="module">
+          import setup from "./$decker-support-dir$/chatty/chatty.js";
+          setup(document.getElementById("chatty"));
         </script>
       $endif$
 

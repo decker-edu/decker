@@ -1,199 +1,177 @@
-<details class="howto">
+<details class="howto" name="index-details">
+
   <summary>
     <span class="english">How to use Decker</span>
     <span class="german">Anleitung für Decker</span>
   </summary>
+
   <select class="howto-lang-select" onchange='this.parentElement.setAttribute("lang", this.selectedOptions[0].value); blur();'>
       <option value="en">🇺🇸</option>
       <option value="de">🇩🇪</option>
   </select>
+
   <script>
-const scripts = document.querySelectorAll("script");
-const thisScript = scripts[scripts.length - 1]; // The currently executed script is always the one loaded most recently (unless deferred)
-const detail = thisScript.closest("details");
-const langSelect = detail.querySelector(".howto-lang-select");
-if(langSelect) {
-  const lang = document.documentElement.lang || window?.Decker?.meta?.lang;
-  const select = langSelect.querySelector("option[value="+lang+"]");
-  select.setAttribute("selected", "selected");
-}
+    const langSelect = document.querySelector(".howto-lang-select");
+    if (langSelect) {
+      const lang = document.documentElement.lang || window?.Decker?.meta?.lang;
+      const option = langSelect.querySelector("option[value="+lang+"]");
+      if (option) option.setAttribute("selected", "selected");
+    }
   </script>
+
   <div class="german">
-    <h2 id="navigation">Navigation</h2>
-    <p>Die Oberfläche eines Foliensatzes erlaubt folgende Grundaktionen:</p>
+    <h2>Navigation und Interaktion</h2>
+    <p>Die Oberfläche eines Foliensatzes ermöglicht folgende Aktionen:</p>
     <ul>
-      <li>Mit <strong>Cursor-links</strong> und <strong>Cursor-rechts</strong> können Sie durch die Folien blättern.</li>
-      <li>Mit <strong>Cursor-runter</strong> und <strong>Cursor-hoch</strong> können Sie — falls vorhanden — Unterfolien zur aktuellen Folie aufsuchen.</li>
-      <li>Die <span class="sr-only">Burger-Menu</span><i class="fas fa-bars" alt="Burger-Menu"></i> Schaltfläche (links oben) öffnet das Navigationsmenü.</li>
-      <li>Die <span class="sr-only">Fragezeichen</span><span style="display: inline-grid; grid-template-areas: &quot;icons&quot;; justify-items: center; align-items: center;" alt="Fragezeichensprechblase"><i class="fas fa-message" style="grid-area: icons;"></i><i class="fas fa-question" style="grid-area: icons; color: var(--background-color); font-size: 60%;"></i></span> Schaltfläche (rechts oben) öffnet das Menu zum Stellen von Fragen zur aktuellen Folie.</li>
-      <li>Die <span class="sr-only">Abspielen</span><i class="fas fa-play" alt="Abspielen"></i> Schaltfläche (rechts oben) startet — wenn vorhanden — die Präsentationsaufzeichnung bei der aktuellen Folie.</li>
-      <li>Mit <strong>STRG-F</strong> oder <strong>CMD-F</strong> können Sie den den Suchdialog öffnen.</li>
-      <li>Mit mit <strong>ESC</strong> können Sie aktive Menus und Dialoge schließen.</li>
+      <li>Mit den Tasten <strong>Cursor-links</strong> und <strong>Cursor-rechts</strong> kann man durch die Folien blättern.</li>
+      <li>Mit den Tasten <strong>Cursor-runter</strong> und <strong>Cursor-hoch</strong> kann man — falls vorhanden — Unterfolien zur aktuellen Folie aufrufen.</li>
+      <li>Die Taste <strong>f</strong> schaltet in den Vollbildmodus. Dieser kann mit der Taste <strong>Esc</strong> verlassen werden.</li>
+      <li>Mit der Taste <strong>?</strong> wird eine Liste aller Tastenkürzel angezeigt.</li>
+      <li>Der <span class="sr-only">Burger-Menu-</span>Button <i class="fas fa-bars"></i> (links oben) öffnet das Navigationspanel.</li>
+      <li>Der <span class="sr-only">Fragezeichen-</span>Button <span class="feedback-button"></span> (rechts oben) öffnet das Feedback-Panel, wo zur aktuellen Folie (anonym) Fragen gestellt und Kommentare gegeben werden können.</li>
+      <li>Der <span class="sr-only">Play-</span>Button <i class="fas fa-play"></i> (rechts oben) startet — wenn vorhanden — die Videoaufzeichnung bei der aktuellen Folie.</li>
+      <li>Einzelne Elemente (z.B. Bilder) können per <strong>Doppel-</strong>, <strong>Dreifach-</strong> oder <strong>Alt-Klick</strong> herangezoomt werden (je nach Konfiguration).</li>
+      <li>Bei Folien mit angehängten Whiteboard-Seiten blinkt der untere Rand beim Folienwechsel. <strong>Runter-scrollen</strong>, um diese Inhalte zu sehen.</li>
+      <li>Eingebettete Demos können mit dem <span class="sr-only">Expandieren-</span>Button <i class="fas fas fa-up-right-and-down-left-from-center"></i> (rechts oben) in den Vollbildmodus geschaltet werden.</li>
     </ul>
-    <h2 id="interaktion">Interaktion</h2>
-    <p>Innerhalb der Folien gibt es verschiedene interaktive und graphische Elemente. Sie können folgendermaßen mit diesen interagieren:</p>
-    <ul>
-      <li>Sie können auf ein Element auf den Folien <strong>doppelklicken</strong>, um an dieses heranzuzoomen.</li>
-      <li>Wenn zu einer Folie zusätzliche Whiteboardseiten existieren blinkt der untere Rand. Sie können den Folieninhalt in diesem Fall <strong>scrollen</strong>.</li>
-      <li>Eingebettete Demos und Webseiten können Sie mit der <span class="sr-only">Expandieren</span> <i class="fas fa-expand-arrows-alt" alt="Expandieren"></i> Schaltfläche in den Vollbildmodus versetzen.</li>
-    </ul>
-    <h2 id="navigationsmenu">Navigationsmenu</h2>
-    <p>Im Navigationsmenu können Sie folgende Aktionen ausführen:</p>
+
+    <h2>Navigationspanel</h2>
+    <p>Im Navigationspanel können folgende Aktionen ausführt werden:</p>
     <ul>
       <li>Zu einer beliebigen Folie springen.</li>
-      <li>Den Suchdialog öffnen (Tastaturkürzel <strong>STRG+F</strong>).</li>
-      <li>Die Folien in Druckansicht neu öffnen.</li>
-      <li>Zwischen heller und dunkler Darstellung wechseln.</li>
-      <li>Die Folienansicht in den Handout-Modus versetzen (Tastaturkürzel <strong>H-H-H</strong>).</li>
-      <li>Den Präsentationsmodus für Vorträge umschalten (Tastaturkürzel <strong>P-P-P</strong>).</li>
-      <li>Die Videoaufnahme starten (Tastaturkürzel <strong>R</strong>).</li>
-      <li>Die Farbansicht kontrastreicher machen (Tastaturkürzel <strong>A-A-A</strong>).</li>
+      <li>Der <span class="sr-only">Home-</span>Button <i class="fas fa-home"></i> verlässt den Foliensatz und navigiert zurück zur Übersichtsseite.</li>
+      <li>Der <span class="sr-only">Such-</span>Button <i class="fas fa-search"></i> öffnet einen Suchdialog (Tastaturkürzel: <strong>Strg-f</strong> oder <strong>Cmd-f</strong>).</li>
+      <li>Der <span class="sr-only">Drucken-</span>Button <i class="fas fa-print"></i> schaltet in die Druck-Ansicht, wo die Präsentation als PDF exportiert werden kann.</li>
+      <li>Die <span class="sr-only">Hell/Dunkel-</span>Buttons <i class="fas fa-sun"></i> und <i class="fas fa-moon"></i> wechseln zwischen Light-Mode und Dark-Mode.</li>
+      <li>Der <span class="sr-only">Handout-</span>Button <span class="handout-button"></span> wechselt zwischen Folien- und Handout-Ansicht (Tastaturkürzel: <strong>h-h-h</strong>).</li>
+      <li>Der <span class="sr-only">Präsentations-</span>Button <i class="fas fa-chalkboard-teacher"></i> schaltet den Präsentationsmodus an/aus (Tastaturkürzel: <strong>p-p-p</strong>).</li>
+      <li>Der <span class="sr-only">Aufnahme-</span>Button <i class="fas fa-video"></i> initialisiert die Videoaufnahme (Tastaturkürzel: <strong>r</strong>).</li>
+      <li>Der <span class="sr-only">Barrierefreiheit-</span>Button <i class="fas fa-universal-access"></i> schaltet Kontrastfarben und andere Barrierefreiheitsfunktionalitäten an/aus (Tastaturkürzel: <strong>a-a-a</strong>).</li>
     </ul>
-    <h2 id="feedback-menu">Feedback-Menu</h2>
-    <p>Im Fragen- und Feedback-Menu können Sie Fragen und Anmerkungen zur aktuell geöffneten Folie stellen und einsehen:</p>
+
+    <h2>Feedback-Panel</h2>
+    <p>Im Feedback-Panel können Fragen/Anmerkungen zur aktuellen Folie gestellt/gemacht werden:</p>
     <ul>
-      <li>Sie können Fragen im Eingabefeld mit <strong>Umschalt + Eingabe</strong> oder der <span class="sr-only">Senden</span> <span class="fas fa-paper-plane" alt="Senden"></span>-Schaltfläche absenden.</li>
-      <li>Sie können Fragen, die Sie beantwortet sehen wollen mit der <span class="sr-only">Daumen Hoch</span> <span class="fas fa-thumbs-up" alt="Daumen Hoch"></span>-Schaltfläche befürworten.</li>
-      <li>Sie können Fragen, die Sie selbst gestellt haben mit der <span class="sr-only">Bearbeiten</span> <span class="fas fa-edit" alt="Bearbeiten"></span>-Schaltfläche bearbeiten.</li>
-      <li>Sie können Fragen, die Sie selbst gestellt haben mit der <span class="sr-only">Mülltonnen</span> <span class="fas fa-trash" alt="Mülltonne"></span>-Schaltfläche löschen.</li>
+      <li>Fragen/Anmerkungen können unten links eingegeben und mit <strong>Shift-Enter</strong> oder dem <span class="sr-only">Senden-</span>Button <i class="fas fa-paper-plane"></i> abgeschickt werden.</li>
+      <li>Sie können Fragen, die Sie beantwortet sehen wollen, mit dem <span class="sr-only">Daumen-hoch-</span>-Button <i class="fas fa-thumbs-up"></i> befürworten.</li>
+      <li>Eigene Fragen können mit dem <span class="sr-only">Bearbeiten-</span>Button <i class="fas fa-edit"></i> bearbeitet werden.</li>
+      <li>Eigene Fragen können mit dem <span class="sr-only">Mülltonnen-</span>Button <span class="fas fa-trash"></span> gelöscht werden.</li>
     </ul>
-    <h2 id="sonstige-tastaturkürzel">Sonstige Tastaturkürzel</h2>
-    <p>Es gibt noch viele weitere Tastaturkürzel, die in den Folien zur Verfügung stehen:</p>
+
+    <h2>Videoaufzeichnungen</h2>
+    <p>Beim Abspielen der Videoaufzeichnung können folgende Tastaturkürzel verwenden werden:</p>
     <ul>
-      <li>Mit <strong>F</strong> können Sie den Vollbild-Modus anschalten und mit <strong>ESC</strong> diesen wieder verlassen</li>
-      <li>Mit <strong>?</strong> können Sie eine Übersicht aller Tastaturkürzel anzeigen lassen.</li>
+      <li><strong>Esc</strong>: Video schließen und zu den Folien zurückkehren.</li>
+      <li><strong>Leertaste</strong>/<strong>k</strong>: Video pausieren.</li>
+      <li><strong>Cursor-links</strong>/<strong>Cursor-rechts</strong> oder <strong>j</strong>/<strong>l</strong>: Im Video um 10 Sekunden zurück/vorwärts springen.</li>
+      <li><strong>Page-Up</strong>/<strong>Page-Down</strong>: Im Video zur vorheringen/nächsten Folie springen.</li>
+      <li><strong>Cursor-hoch</strong>/<strong>Cursor-runter</strong>: Lautstärke um 5% erhöhen/verringern.</li>
+      <li><strong>m</strong>: Video stummschalten.</li>
+      <li>Auf Touch-Geräten: <strong>Doppel-Tippen</strong> am linken/rechten Bildschirmrand springt 10 Sekunden zurück/vor.</li>
+      <li>Auf Touch-Geräten: <strong>Doppel-Tippen</strong> in der Mitte pausiert das Video.</li>
     </ul>
-    <h2 id="tastaturkürzel-im-vorlesungsvideo">Tastaturkürzel im Vorlesungsvideo</h2>
-    <p>Ist das Vortragsvideo im Vordergrund können Sie folgende Tastaturkürzel verwenden:</p>
+
+    <h2>Zusätzliche Hinweise für seh-eingeschränkte Personen</h2>
+    <p>Für Nutzer von Screen-Readern sind folgende Hinweise hilfreich:</p>
     <ul>
-      <li><strong>ESC</strong>: Video schließen und zu den Folien zurückkehren.</li>
-      <li><strong>Leertaste</strong>/<strong>K</strong>: Video pausieren.</li>
-      <li><strong>J</strong>/<strong>L</strong>: Im Video um 10 Sekunden zurück bzw. vorwärts springen.</li>
-      <li><strong>Cursor-links</strong>/<strong>Cursor-rechts</strong>: Im Video zur nächsten oder vorherigen Folie springen.</li>
-      <li><strong>Cursor-hoch</strong>/<strong>Cursor-runter</strong>: Lautstärke um 5% erhöhen bzw. verringern.</li>
-      <li><strong>M</strong>: Video stummschalten.</li>
-    </ul>
-    <p>Smartphone- und Tabletnutzer können zudem folgende Gesten verwenden:</p>
-    <ul>
-      <li><strong>Doppelt Tippen</strong> am linken oder rechten Rand: 10 Sekunden zurück bzw. vorwärts springen.</li>
-      <li><strong>Doppelt Tippen</strong> in den Mitte: Video pausieren.</li>
-    </ul>
-    <h2 id="zusätzliche-navigationshinweise-für-seheingeschränkte-personen">Zusätzliche Navigationshinweise für seheingeschränkte Personen</h2>
-    <p>Für Nutzer von Screen-Readern sind folgende Hinweise gegeben:</p>
-    <ul>
-      <li>Das Navigationsmenu ist das erste interaktive Element auf den Folien.</li>
-      <li>Die Schaltflächen für vorherige und nächste Folie sind die letzten interaktiven Elemente auf den Folien.</li>
-      <li>Die Seitennummer zwischen den Vor- und Zurückschaltflächen ist ein Link ohne weitere Funktion.</li>
-      <li>Im Navigationsmenu sind die Schließenschaltfläche, die Aktionsschaltflächen und die Folienliste eigene TAB-Gruppen, innerhalb derer Sie mit den <strong>Cursor</strong>-Tasten navigieren können.</li>
-      <li>Im Fragemenu ist die Frageliste eine eigene TAB-Gruppe neben den Eingabeelementen.
+      <li>Das Navigationspanel ist das erste interaktive Element auf den Folien.</li>
+      <li>Die Buttons für vorherige und nächste Folie sind die letzten interaktiven Elemente auf den Folien.</li>
+      <li>Die Seitennummer zwischen den Vor- und Zurück-Buttons ist ein Link ohne weitere Funktion, der verwendet werden kann, um schnell zu den Navigationsbuttons zu springen.</li>
+      <li>Im Navigationspanel sind der Schließen-Button, die Aktions-Buttons und die Folienliste eigene Tab-Gruppen, innerhalb derer mit den <strong>Cursor-Tasten</strong> navigiert werden kann.</li>
+      <li>Im Feedback-Panel ist die Fragenliste eine eigene Tab-Gruppe:
         <ul>
-          <li>Sie können innerhalb der Frageliste mit den <strong>Cursor</strong>-Tasten navigieren.</li>
+          <li>Sie können innerhalb der Fragenliste mit den <strong>Cursor</strong>-Taste navigieren.</li>
           <li>Sie können mit einer selektierten Frage mit der <strong>Eingabe</strong>-Taste interagieren.</li>
-          <li>Sie können eine selektierte Frage mit der <strong>ESC</strong>-Taste wieder abwählen.</li>
+          <li>Sie können eine selektierte Frage mit der <strong>Esc</strong>-Taste wieder abwählen.</li>
         </ul>
       </li>
-      <li>Im Suchdialog können Sie mit <strong>Eingabe</strong> durch die Folien navigieren, in denen der eingegebe Begriff gefunden wurde.</li>
-      <li>Matheformeln werden mit MathJax dargestellt und können mit TAB selektiert werden:
+      <li>Im Suchdialog können Sie mit <strong>Eingabe</strong> durch die Folien navigieren, in denen der Such-Begriff gefunden wurde.</li>
+      <li>Matheformeln werden mit MathJax dargestellt und können mit <strong>Tab</strong> selektiert werden:
         <ul>
           <li><strong>Leertaste</strong> öffnet ein Menu zum Einstellen der assistiven Darstellung der Formeln.</li>
-          <li><strong>Eingabe</strong> öffnet einen Untersuchungsdialog, in dem Sie mit den <strong>Cursor</strong>-Tasten die Formel näher untersuchen können.</li>
+          <li><strong>Eingabe</strong> öffnet einen Untersuchungsdialog, in dem die Formel mit den <strong>Cursor</strong>-Tasten näher untersucht werden kann.</li>
         </ul>
       </li>
     </ul>
-    <p>Grundsätzlich ist die Betrachtung der Folien im Handout-Modus zu empfehlen:</p>
-    <ul>
-      <li>Im Präsentationsmodus ist nur die aktuell sichtbare Folie von assistiver Technologie untersuchbar.</li>
-      <li>Im Handout-Modus ist die gesamte Präsentation für assistive Technologie untersuchbar. Insbesondere können Sie die Überschriften der Folien als Sprungmarken verwenden.</li>
-    </ul>
+    <p>Grundsätzlich ist die Betrachtung der Folien im Handout-Modus zu empfehlen. Im Präsentationsmodus ist nur die aktuelle Folie von assistiver Technologie untersuchbar. Im Handout-Modus ist die gesamte Präsentation für assistive Technologie untersuchbar. Insbesondere können Sie die Überschriften der Folien als Sprungmarken verwenden.</p>
   </div>
+
+
   <div class="english">
-    <h2 id="navigation">Navigation</h2>
+
+    <h2>Navigation and Interaction</h2>
     <p>The basic slide interface allows the following actions:</p>
     <ul>
-      <li>The <strong>cursor-left-</strong> and <strong>cursor-right-</strong>keys can be used to move through the slides.</li>
-      <li>The <stong>cursor-up-</stong> and <strong>cursor-down-</strong>keys can be used to navigate to subslides, if available.</li>
-      <li>Click on the <span class="sr-only">Burger-Menu</span><i class="fas fa-bars" alt="Burger-Menu"></i>-button (top left) to open the navigation menu</li>
-      <li>Click on the <span class="sr-only">Questionmark</span><span style="display: inline-grid; grid-template-areas: &quot;icons&quot;; justify-items: center; align-items: center;" alt="Questionmark"><i class="fas fa-message" style="grid-area: icons;"></i><i class="fas fa-question" style="grid-area: icons; color: var(--background-color); font-size: 75%;"></i></span> button (top right) to ask questions and give feedback about the current slide.</li>
-      <li>Click on the <span class="sr-only">Play</span><i class="fas fa-play" alt="Play"></i> button (top right) to start the video recording of the presentation on the current slide, if available.</li>
-      <li><strong>CTRL+F</strong> or <strong>CMD+F</strong> opens a search dialog.</li>
-      <li>You can close all open menus, dialogs or videos with the <strong>ESC</strong> key.</li>
+      <li>The keys <strong>cursor-left</strong> and <strong>cursor-right</strong> can be used to navigate through the slides.</li>
+      <li>The keys <strong>cursor-up</strong> and <strong>cursor-down</strong> can be used to navigate to sub-slides, if available.</li>
+      <li>The key <strong>f</strong> activates fullscreen mode. You can leave it with key <strong>Esc</strong>.</li>
+      <li>The key <strong>?</strong> shows a cheat sheet listing all keyboard shortcuts.</li>
+      <li>The <span class="sr-only">burger-menu</span> button <i class="fas fa-bars" alt="Burger Menu"></i> (top left) opens the navigation panel.</li>
+      <li>The <span class="sr-only">question-mark</span> button <span class="feedback-button" alt="Question Mark"></span> (top right) opens the feedback panel, where you can (anonymously) ask questions and give feedback about the current slide.</li>
+      <li>The <span class="sr-only">play</span> button <i class="fas fa-play" alt="Play"></i> (top right) starts the video recording at the current slide (if available).</li>
+      <li>You can zoom in on each element by <strong>double-</strong>, <strong>triple-</strong>, or <strong>alt-clicking</strong> (depending on the current configuration).</li>
+      <li>A slide with additional whiteboard pages will have a blinking bottom border. <strong>Scroll down</strong> on these slides to see the whiteboard annotations.</li>
+      <li>Embedded demos and websites can be expanded to fullscreen mode with the <span class="sr-only">expand</span> button <i class="fas fas fa-up-right-and-down-left-from-center" alt="Expand"></i> (top right).</li>
     </ul>
-    <h2 id="interaction">Interaction</h2>
-    <p>Within the slides you may encounter interactive elements. You can interact with them in the following ways:</p>
-    <ul>
-      <li>You can zoom in on each element by <strong>double-</strong>, <strong>tripple-</strong> or <strong>alt-clicking</strong>, depending on the slide's settings.</li>
-      <li>A slide with additional whiteboard-pages will have a blinking bottom border. You can <strong>scroll</strong> down on these slides to view the additional content.</li>
-      <li>Eingebettete Demos und Webseiten können Sie mit der <span class="sr-only">Expandieren</span> <i class="fas fa-expand-arrows-alt" alt="Expandieren"></i> Schaltfläche in den Vollbildmodus versetzen.</li>
-      <li>Embedded demos and websites can be expanded to fullscreen with the <span class="sr-only">Expand</span> <i class="fas fa-expand-arrows-alt" alt="Expand"></i> button.</li>
-    </ul>
-    <h2 id="navigation-menu">Navigation Menu</h2>
+
+    <h2>Navigation Panel</h2>
     <p>The navigation menu contains the following features:</p>
     <ul>
-      <li>Jump to any slide.</li>
-      <li>Open the search dialog (keyboard shortcut <strong>CTRL+F</strong>).</li>
-      <li>Open slides in print view.</li>
-      <li>Switch between light- and dark-mode.</li>
-      <li>Toggle the Handout-View of the slides (keyboard shortcut <strong>H-H-H</strong>).</li>
-      <li>Toggle the Presenter-Mode of the slides (keyboard shortcut <strong>P-P-P</strong>).</li>
-      <li>Initialize the video recording (keyboard shortcut <strong>R</strong>).</li>
-      <li>Toggle contrast colors and other accessibility features (keyboard shortcut <strong>A-A-A</strong>).</li>
+      <li>Jump to any slide by selecting it in the list.</li>
+      <li>The <span class="sr-only">home</span> button <i class="fas fa-home"></i> leaves the slide deck and navigates to the index page.</li>
+      <li>The <span class="sr-only">search</span> button <i class="fas fa-search"></i> opens the search dialog (keyboard shortcut <strong>Ctrl-f</strong> or <strong>Cmd-f</strong>).</li>
+      <li>The <span class="sr-only">print</span> button <i class="fas fa-print"></i> opens the print view, from where you can export the slides as PDF.</li>
+      <li>The <span class="sr-only">light/dark</span> buttons <i class="fas fa-sun"></i> and <i class="fas fa-moon"></i> switch between light mode and dark mode.</li>
+      <li>The <span class="sr-only">handout</span> button <span class="handout-button"></span> switches between handout mode and slide mode (keyboard shortcut <strong>h-h-h</strong>).</li>
+      <li>The <span class="sr-only">presenter mode</span> button <i class="fas fa-chalkboard-teacher"></i> toggles the presenter mode (keyboard shortcut <strong>p-p-p</strong>).</li>
+      <li>The <span class="sr-only">recording</span> button <i class="fas fa-video"></i> initialize the video recording (keyboard shortcut <strong>r</strong>).</li>
+      <li>The <span class="sr-only">accessibility</span> button <i class="fas fa-universal-access"></i> toggles contrast colors and other accessibility features (keyboard shortcut <strong>a-a-a</strong>).</li>
     </ul>
-    <h2 id="feedback-menu">Feedback Menu</h2>
-    <p>The questions and feeback menu can be used to comment on the current slides:</p>
+
+    <h2>Feedback Panel</h2>
+    <p>The feedback panel can be used to post questions and comments for the current slide:</p>
     <ul>
-      <li>You can submit your entered questions by pressing <strong>Shift + Enter</strong> or by pressing the <span class="sr-only">Send</span> <span class="fas fa-paper-plane" alt="Send"></span> button.</li>
-      <li>Sie können Fragen, die Sie beantwortet sehen wollen mit der <span class="sr-only">Daumen Hoch</span> <span class="fas fa-thumbs-up" alt="Daumen Hoch"></span>-Schaltfläche befürworten.</li>
-      <li>You can up-vote questions that you want to see answered with the <span class="sr-only">Thumbs Up</span> <span class="fas fa-thumbs-up" alt="Thumbs Up"></span> button.</li>
-      <li>You can edit your own questions with the <span class="sr-only">Edit</span> <span class="fas fa-edit" alt="Edit"></span> button.</li>
-      <li>You can delete your own questions with the <span class="sr-only">Trashcan</span> <span class="fas fa-trash" alt="Trashcan"></span> button.</li>
+      <li>Enter question/comment in the input form and submit it with either <strong>Shift-Enter</strong> or the <span class="sr-only">send</span> button <span class="fas fa-paper-plane"></span>.</li>
+      <li>Up-vote questions that you want to see answered with the <span class="sr-only">thumbs-up</span> button <span class="fas fa-thumbs-up"></span>.</li>
+      <li>Edit your own question with the <span class="sr-only">edit</span> button <span class="fas fa-edit"></span>.</li>
+      <li>Delete your own question with the <span class="sr-only">trashcan</span> button <span class="fas fa-trash"></span>.</li>
     </ul>
-    <h2 id="other-keyboard-shortcuts">Other keyboard shortcuts</h2>
-    <p>There are even more keyboard shortcuts that you can use while browsing the slides:</p>
+
+    <h2>Playback of Video Recordings</h2>
+    <p>When you are watching the embedded video recording you can use the following controls:</p>
     <ul>
-      <li>The <strong>F</strong> key activates fullscreen mode. You can leave it with the <strong>ESC</strong> key.</li>
-      <li>The <strong>?</strong> key opens a cheatsheet for all available keyboard-shortcuts.</li>
+      <li>Key <strong>Esc</strong> closes the video and navigates to the slide currently visible in the video.</li>
+      <li>Keys <strong>Space</strong>/<strong>k</strong> pauses the video.</li>
+      <li>Keys <strong>Cursor-left</strong>/<strong>Cursor-right</strong> or <strong>j</strong>/<strong>l</strong> jump backward/forward by ten seconds.</li>
+      <li>Keys <strong>Page-Up</strong>/<strong>Page-Down</strong> jump backward/forward by one slide.</li>
+      <li>Keys <strong>Cursor-up</strong>/<strong>Cursor-down</strong> increase/decrease audio volume.</li>
+      <li>Key <strong>m</strong>: Mute/unmute.</li>
+      <li>On touch devices: <strong>Double tap</strong> at the left/right screen boundary jumps backward/forward by ten seconds.</li>
+      <li>On touch devices: <strong>Double tap</strong> at the center of the screen pauses the video.</li>
     </ul>
-    <h2 id="keyboard-shortcuts-during-playback">Keyboard shortcuts during recording playback</h2>
-    <p>When you are viewing the presentation's recording you can use the following keyboard shortcuts:</p>
-    <ul>
-      <li><strong>ESC</strong>: Closes the video and moves to the slide currently visible in the video.</li>
-      <li><strong>Space</strong>/<strong>K</strong>: Pauses the video.</li>
-      <li><strong>J</strong>/<strong>L</strong>: Jump 10 seconds back or ahead.</li>
-      <li><strong>Cursor-left</strong>/<strong>Cursor-right</strong>: Jump to the previous or next slide in the video.</li>
-      <li><strong>Cursor-up</strong>/<strong>Cursor-down</strong>: Increase or decrease volume.</li>
-      <li><strong>M</strong>: Mute/unmute.</li>
-    </ul>
-    <p>On Smartphone or Tablet:</p>
-    <ul>
-      <li><strong>Double Tap</strong> the left or right edge of the screen: Jump 10 seconds back or ahead.</li>
-      <li><strong>Double Tap</strong> the center of the screen: Pauses the video.</li>
-    </ul>
-    <h2 id="additional-information-for-visually-impaired">Additional information for visually impaired users</h2>
-    <p>The following hints may be useful for users of screenreaders:</p>
+
+    <h2>Additional information for visually impaired users</h2>
+    <p>The following hints may be useful for users of screen readers:</p>
     <ul>
       <li>The first element in tab-order is the navigation menu.</li>
       <li>The last elements in tab-order are the buttons to navigate to the previous or next slide.</li>
-      <li>The slide-number between the previous and next buttons is a link without further function, so it can be used to quickly navigate to these buttons.</li>
+      <li>The slide number between the previous and next buttons is a link without further function, so it can be used to quickly navigate to these buttons.</li>
       <li>The navigation menu has three tab-groups: The close button, the action buttons and the slide list. Within these groups you can select different elements with the <strong>cursor</strong> keys.</li>
-      <li>Within the feedback menu, if there are questions available, you can tab into the list of questions and navigate withing the questions with the following keys:
+      <li>In the feedback panel, if there are questions available, you can tab-navigate into the list of questions and navigate within the questions with the following keys:
         <ul>
           <li>Navigate between questions with the <strong>cursor</strong> keys.</li>
           <li>Interact with a question with the <strong>Enter</strong> key.</li>
-          <li>Return to the question list with the <strong>ESC</strong> key.</li>
+          <li>Return to the question list with the <strong>Esc</strong> key.</li>
         </ul>
       </li>
       <li>Within the search dialog you can press <strong>Enter</strong> to jump to the slides the entered keyword was found.</li>
       <li>Math formulas are rendered using the MathJax library. You can interact with them with the following keys when the accessibility features are enabled:
         <ul>
           <li><strong>Space</strong> opens a menu to change the settings of your assistive view.</li>
-          <li><strong>Enter</strong> opens a dialog that can help you navigate through complex fomulas and equations with the <strong>cursor</strong> keys.</li>
+          <li><strong>Enter</strong> opens a dialog that can help you navigate through complex formulas and equations with the <strong>cursor</strong> keys.</li>
         </ul>
       </li>
     </ul>
-    <p>If using a screen reader we recommend the usage of the handout mode:</p>
-    <ul>
-      <li>The usual presentation view only allows assistive technology to see the current slide.</li>
-      <li>The handout view allows assistive technology to see the entire contents of the slides at once. You can especially use the headings of slide titles for navigation.</li>
-    </ul>
+    <p>For using a screen reader we recommend navigating the slides in handout mode. The usual presentation view allows assistive technology to see the current slide only, while the handout mode allows assistive technology to see the entire contents of the presentation. You can then in particular use the slide headings for navigation.</p>
   </div>
 </details>

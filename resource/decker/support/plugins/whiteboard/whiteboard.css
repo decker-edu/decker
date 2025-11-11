@@ -91,29 +91,6 @@
   transition: opacity 0.5s linear 2s;
 }
 
-button.whiteboard {
-  color: var(--icon-inactive-color);
-}
-button.whiteboard[data-active="true"] {
-  color: var(--icon-active-color);
-}
-
-button.whiteboard.checkbox {
-  border-radius: 15%;
-}
-button.whiteboard.radiobutton {
-  border-radius: 100%;
-}
-
-/* button.whiteboard.checkbox[data-active="false"],
-button.whiteboard.radiobutton[data-active="false"] {
-  border: 2px solid var(--icon-inactive-color);
-} */
-button.whiteboard.checkbox[data-active="true"],
-button.whiteboard.radiobutton[data-active="true"] {
-  border: 2px solid var(--icon-active-color);
-}
-
 /* container for whiteboard tools */
 #whiteboardButtons {
   padding: 2px;
@@ -124,15 +101,16 @@ button.whiteboard.radiobutton[data-active="true"] {
   background: transparent;
   display: flex;
   flex-direction: column;
-}
-
-#whiteboardButtons.active.visible {
-  background: var(--whiteboard-background-color);
-  border: 1px solid var(--whiteboard-border-color);
+  align-items: center;
 }
 
 html.print-pdf #whiteboardButtons {
   display: none;
+}
+
+#whiteboardButtons.active.showMenu {
+  background-color: var(--menu-background-color);
+  border: 1px solid var(--icon-active-color);
 }
 
 /* toggle whiteboard buttons with .whiteboardActive on container */
@@ -142,32 +120,18 @@ html.print-pdf #whiteboardButtons {
   cursor: pointer;
 }
 
-#whiteboardButtons.active.visible > button {
+#whiteboardButtons.active.showMenu > button {
   display: inline-block;
 }
 
 #whiteboardButtons:not(.active) > #whiteboardButton {
-  border-color: transparent;
   display: inline-block;
 }
 
-#whiteboardButtons.active.visible > #whiteboardButton {
+#whiteboardButtons.active:not(.showMenu) > button[aria-checked="true"] {
   display: inline-block;
-  border: 2px solid var(--icon-active-color);
-  color: var(--icon-active-color);
-  opacity: 1;
-}
-
-#whiteboardButtons.active.visible > #whiteboardButton:hover {
-  color: var(--icon-hover-color);
-}
-
-#whiteboardButtons.active.visible > .whiteboard:hover {
-  color: var(--icon-hover-color);
-}
-
-#whiteboardButtons.active > button.radiobutton[data-active="true"] {
-  display: inline-block;
+  background: transparent;
+  box-shadow: inset 0px 0px 2px 1px rgb(from currentColor r g b / 0.3);
 }
 
 /* container for color picker */
@@ -180,10 +144,11 @@ html.print-pdf #whiteboardButtons {
   padding: 5px;
   margin: 0;
   z-index: 40;
-  border: 1px solid var(--whiteboard-border-color);
   border-radius: calc(var(--icon-size) * 0.5);
-  background: var(--whiteboard-background-color);
+  border: 1px solid var(--icon-active-color);
+  background-color: var(--menu-background-color);
   display: grid;
+  gap: 2px;
   grid-template-columns: repeat(8, 1fr);
   visibility: hidden;
   transform: translateY(-50%);
@@ -198,7 +163,7 @@ html.print-pdf #whiteboardButtons {
   padding: 0;
   text-align: center;
   vertical-align: middle;
-  color: var(--shade6);
+  /*  color: var(--shade6); */
   background: transparent;
   width: calc(var(--icon-size) * 2);
   height: calc(var(--icon-size) * 2);

@@ -1,7 +1,6 @@
 import { pollSession } from "./poll.js";
 
 export async function preparePolls(reveal) {
-  
   // Only when reveal is ready we can find the elements we need.
   let color = Decker.meta["css-light-colors"];
 
@@ -14,14 +13,14 @@ export async function preparePolls(reveal) {
       clientCss: clientCssTemplate(color),
     });
   } catch (err) {
-    Decker.flash.message("Connection to poll server failed.");
+    Decker.flashMessage("Connection to poll server failed.");
     return {
-      close: () => { },
+      close: () => {},
     };
   }
 
   let { id, url } = session.sessionId();
-  Decker.flash.message(
+  Decker.flashMessage(
     `Connected to poll session <strong style="color:var(--accent6)">${id}</strong>`
   );
 
@@ -102,28 +101,34 @@ export async function preparePolls(reveal) {
     // Wire the Poll button that starts the poll.
     const poll = (e) => {
       let restoreStop = stopButton.textContent;
-      session.poll(choices, solution, nvotes, {
-        onActive: (participants, votes, complete) => {
-          displayVotes(votes, voteMap);
-          showVotes(voteBlocks, true);
-          const voted = Object.values(votes).reduce((t, v) => t + v, 0);
-          stopButton.textContent = ` ${complete}/${participants} `;
-          stopButton.removeAttribute("disabled");
-          pollButton.setAttribute("disabled", false);
-          reveal.on("slidechanged", abort);
+      session.poll(
+        choices,
+        solution,
+        nvotes,
+        {
+          onActive: (participants, votes, complete) => {
+            displayVotes(votes, voteMap);
+            showVotes(voteBlocks, true);
+            const voted = Object.values(votes).reduce((t, v) => t + v, 0);
+            stopButton.textContent = ` ${complete}/${participants} `;
+            stopButton.removeAttribute("disabled");
+            pollButton.setAttribute("disabled", false);
+            reveal.on("slidechanged", abort);
+          },
+          onFinished: (participants, votes, complete) => {
+            displayVotes(votes, voteMap);
+            showVotes(voteBlocks, false);
+            saveVotes(title, lectureId, topicId, votes, polls);
+            uploadPolls(id, polls);
+            const voted = Object.values(votes).reduce((t, v) => t + v, 0);
+            stopButton.textContent = restoreStop;
+            stopButton.setAttribute("disabled", false);
+            pollButton.removeAttribute("disabled");
+            reveal.off("slidechanged", abort);
+          },
         },
-        onFinished: (participants, votes, complete) => {
-          displayVotes(votes, voteMap);
-          showVotes(voteBlocks, false);
-          saveVotes(title, lectureId, topicId, votes, polls);
-          uploadPolls(id, polls);
-          const voted = Object.values(votes).reduce((t, v) => t + v, 0);
-          stopButton.textContent = restoreStop;
-          stopButton.setAttribute("disabled", false);
-          pollButton.removeAttribute("disabled");
-          reveal.off("slidechanged", abort);
-        },
-      }, "Random");
+        "Random"
+      );
     };
     pollButton.addEventListener("click", poll);
     callbackLog.push({ button: pollButton, event: "click", callback: poll });
@@ -158,7 +163,6 @@ function showVotes(voteMap, show) {
     else vote.classList.remove("polling");
 }
 
-
 function saveVotes(title, lectureId, topicId, votes, polls) {
   if (Decker.meta["save-polls"])
     polls.push({ title, lectureId, topicId, votes });
@@ -168,7 +172,7 @@ function uploadPolls(id, polls) {
   if (Decker.meta["save-polls"]) {
     let path = location.pathname;
     let base = path.substring(0, path.lastIndexOf("-"));
-    let url = base + `-${id}-poll.json`
+    let url = base + `-${id}-poll.json`;
     fetch(url, { method: "PUT", body: JSON.stringify(polls) })
       .then((r) => console.log("[] poll data uploaded to:", url))
       .catch((e) => {

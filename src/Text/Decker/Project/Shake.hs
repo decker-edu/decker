@@ -431,6 +431,8 @@ runClean totally = do
   tryRemoveDirectory publicDir
   putStrLn $ "# Removing " <> privateDir
   tryRemoveDirectory privateDir
+  putStrLn $ "# Removing " <> "chatty"
+  tryRemoveDirectory "chatty"
   when totally
     $ do
       transient <- transientDir

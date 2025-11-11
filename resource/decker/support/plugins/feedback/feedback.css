@@ -23,22 +23,6 @@
   visibility: hidden;
 }
 
-.open-button .icon-combo {
-  display: grid;
-  grid-template-areas: "icons";
-  justify-items: center;
-}
-
-.open-button .icon-combo span {
-  grid-area: icons;
-}
-
-.open-button .icon-combo .fa-question {
-  font-size: 60%;
-  line-height: 1.5;
-  color: var(--background-color);
-}
-
 .open-button .feedback-badge {
   font-size: 50%;
 }
@@ -74,6 +58,8 @@ div.feedback-menu.authorized button.feedback-lock {
 }
 
 div.feedback-header {
+  --icon-inactive-color: var(--shade2);
+
   flex: 0 1 content;
 
   display: flex;
@@ -128,25 +114,25 @@ div.feedback-header input[type="password"] {
 
 div.feedback-header button {
   /* flex: 0 1; */
-  color: var(--menu-header-text-color);
+  /* color: var(--menu-header-text-color); */
 }
 
 div.feedback-footer button {
   flex: 0 1;
-  color: var(--feedback-footer-text-color);
+  /* color: var(--feedback-footer-text-color); */
 }
 
-div.feedback-menu button {
+ul.feedback-list button {
   cursor: pointer;
   border: none;
   background-color: var(--icon-background-color);
 }
 
-div.feedback-menu button:hover {
+ul.feedback-list button:hover {
   color: var(--icon-hover-color);
 }
 
-div.feedback-menu button:active {
+ul.feedback-list button:active {
   color: var(--icon-active-color);
 }
 

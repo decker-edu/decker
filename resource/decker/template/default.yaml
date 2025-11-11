@@ -195,6 +195,8 @@ external-tools:
       command: "chrome"
       arguments:
         - "--headless"
+        - "--disable-gpu"
+        - "--virtual-time-budget=10000"
         - "--no-pdf-header-footer"
         - "--run-all-compositor-stages-before-draw"
         - "--virtual-time-budget=1000000"
@@ -206,6 +208,8 @@ external-tools:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       arguments:
         - "--headless"
+        - "--disable-gpu"
+        - "--virtual-time-budget=10000"
         - "--no-pdf-header-footer"
         - "--run-all-compositor-stages-before-draw"
         - "--virtual-time-budget=1000000"
