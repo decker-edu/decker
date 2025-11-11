@@ -184,6 +184,12 @@ external-tools:
         - "--headless"
         - "--remote-debugging-port=${input}"
       help: ""
+    windows: # May not be working as not tested
+      command: "START msedge"
+      arguments:
+        - "--headless"
+        - "--remote-debugging-port=${input}"
+      help: ""
   chrome:
     linux:
       command: "chrome"
