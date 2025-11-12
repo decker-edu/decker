@@ -103,12 +103,12 @@ exportPdfWebsocketHandler url targetID conn = do
             putStrLn $ "[PDF-Export] [" ++ url ++ "] Chrome executionContexts detected!"
             let mId = 5
             nextExecContext <- navigateToSite frameId url sessionId mId conn -- one message
-            putStrLn $ "[PDF-Export] [" ++ url ++ "] Chrome navigated to side!"
+            putStrLn $ "[PDF-Export] [" ++ url ++ "] Chrome navigated to site!"
             let mId = 6
             nextMessageId <- waitForPdfReady (nextExecContext : executionContexts) sessionId mId conn
             putStrLn $ "[PDF-Export] [" ++ url ++ "] Side ready for pdf export!"
             result <- websocketRequestPdf sessionId nextMessageId conn
-            putStrLn $ "[PDF-Export] [" ++ url ++ "] PDF data recieved!"
+            putStrLn $ "[PDF-Export] [" ++ url ++ "] PDF data received!"
             return result
         _ -> return Nothing
 

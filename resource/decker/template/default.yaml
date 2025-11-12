@@ -184,12 +184,12 @@ external-tools:
         - "--headless"
         - "--remote-debugging-port=${input}"
       help: ""
-    windows: # May not be working as not tested
-      command: "START msedge"
+    windows: # Still an issue with cleaning up the edge process but works for usage!
+      command: "msedge"
       arguments:
         - "--headless"
         - "--remote-debugging-port=${input}"
-      help: ""
+      help: "MS edge must be on the path! Please add `C:\\Program Files (x86)\\Microsoft\\Edge\\Application` to your path!"
   chrome:
     linux:
       command: "chrome"
