@@ -138,7 +138,7 @@ async function populateCards(chaptersPromise) {
                             </div>
                         </div>
                         <div class="lecture-description">${material.description || 'No description available'}</div>
-                        <span class="tooltip">${material.description}</span>
+                        <div class="tooltip">${material.description}</div>
                     </div>
                     <div class="lecture-footer">
                         <p class="lecture-date">${material.date}</p>

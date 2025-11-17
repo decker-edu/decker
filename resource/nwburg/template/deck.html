@@ -10,8 +10,8 @@ $endfor$
 $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$">
 $endif$
-$if(index.keywords)$
-  <meta name="keywords" content="$for(index.keywords)$$index.keywords$$sep$, $endfor$">
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
 $if(title)$
 $if(subtitle)$
@@ -19,80 +19,6 @@ $if(subtitle)$
 $else$
   <title>$title$</title>
 $endif$
-
-<!-- add the meta-json from pandoc as meta info to access the compile time data with the js below. The meta json does contain quote symbols and it needs to be escaped -->
-
-<!-- $if(meta-json)$
-  <script type="application/json" id="pandoc-meta">
-    $meta-json$
-$endif$ -->
-
-
-
-<link rel="apple-touch-icon" sizes="57x57" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-57x57.png">
-<link rel="apple-touch-icon" sizes="60x60" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-60x60.png">
-<link rel="apple-touch-icon" sizes="72x72" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-72x72.png">
-<link rel="apple-touch-icon" sizes="76x76" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-76x76.png">
-<link rel="apple-touch-icon" sizes="114x114" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-114x114.png">
-<link rel="apple-touch-icon" sizes="120x120" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-120x120.png">
-<link rel="apple-touch-icon" sizes="144x144" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-144x144.png">
-<link rel="apple-touch-icon" sizes="152x152" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-152x152.png">
-<link rel="apple-touch-icon" sizes="180x180" href="$decker-support-dir$/support/vendor/images/favicon/apple-icon-180x180.png">
-<link rel="icon" type="image/png" sizes="192x192"  href="$decker-support-dir$/support/vendor/images/favicon/android-icon-192x192.png">
-<link rel="icon" type="image/png" sizes="32x32" href="$decker-support-dir$/support/vendor/images/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="96x96" href="$decker-support-dir$/support/vendor/images/favicon/favicon-96x96.png">
-<link rel="icon" type="image/png" sizes="16x16" href="$decker-support-dir$/support/vendor/images/favicon/favicon-16x16.png">
-<link rel="manifest" href="$decker-support-dir$/support/vendor/images/favicon/manifest.json">
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="$decker-support-dir$/support/vendor/images/favicon//ms-icon-144x144.png">
-<meta name="theme-color" content="#ffffff">
-
-<!-- Start of Index Information -->
-$if(index.chapter)$
-<meta name="chapter" content="$index.chapter$" />
-$endif$
-$if(index.section)$
-<meta name="section" content="$index.section$" />
-$endif$
-$if(index.subsection)$
-<meta name="subsection" content="$index.subsection$" />
-$endif$
-$if(index.subsubsection)$
-<meta name="subsubsection" content="$index.subsubsection$" />
-$endif$
-$if(index.description)$
-  <meta name="description" content="$index.description$" />
-$endif$
-$if(template.teaser-image)$
-  <meta name="teaser-image" content="$template.teaser-image$">
-$else$
-  $if(template.title-page.teaser-img)$
-    <meta name="teaser-image" content="$template.title-page.teaser-img$">
-  $else$
-    <meta name="teaser-image" content="https://hci.uni-wuerzburg.de/assets/images/640/general/hci-logo-red.png">
-  $endif$
-$endif$
-$if(index.visible)$
-  <meta name="visible" content="$index.visible$">
-  <!-- index visibility was set to true -->
-$else$
-  $if(template.index-page.default-visibility)$
-    <meta name="visible" content="$template.index-page.default-visibility$">
-    <!-- default visibility was set to true -->
-  $else$
-    <meta name="visible" content="false">
-    <!-- no visibility specified or explicitly set to false -->
-  $endif$
-$endif$
-
-$if(index.supplimentals)$
-  $for(index.supplimentals)$
-    <meta name="supplimental" content="title: $index.supplimentals.title$, link: $index.supplimentals.link$, icon: $index.supplimentals.icon$">
-  $endfor$
-$endif$
-
-<!-- End of Index Information -->
-
 $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -102,101 +28,7 @@ $if(template.favicon)$
   <link rel="shortcut icon" href="$template.favicon$">
 $endif$
 
-  <!-- Default values for CSS variables can live here. They can be overridden by
-  meta data values. -->
-  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
-  <!-- <link rel="stylesheet" href="support/css/wburg.css"> -->
-  <link rel="stylesheet" href="$decker-support-dir$/css/wburg.css">
-
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
-  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
-  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
-
-
-  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
-  into a style sheet. Default values can come from `variables.css`. -->
-  <style class="css-declarations">
-    :root {
-      $for(css-light-colors/pairs)$
-        --light-$it.key$: $it.value$;
-      $endfor$
-      $for(css-dark-colors/pairs)$
-        --dark-$it.key$: $it.value$;
-      $endfor$
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        $for(css-light-color-declarations)$
-          $css-light-color-declarations$
-        $endfor$
-      }
-
-     :root.dark {
-       $for(css-dark-color-declarations)$
-         $css-dark-color-declarations$
-       $endfor$
-     }
-   }
-   @media (prefers-color-scheme: dark) {
-     :root {
-       $for(css-dark-color-declarations)$
-         $css-dark-color-declarations$
-       $endfor$
-     }
-
-      :root.light {
-        $for(css-light-color-declarations)$
-          $css-light-color-declarations$
-        $endfor$
-      }
-    }
-    :root {
-      $for(css-declarations)$
-        $css-declarations$
-      $endfor$
-    }
-  </style>
-
-  <!-- Any CSS variables set in the CSS files below, cannot be overridden by
-  meta data values. -->
-  <link rel="stylesheet" href="$decker-support-dir$/components/components.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
-  <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
-  $if(live-captions)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
-  $endif$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
-$if(poll)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
-$endif$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
-
-$if(highlightjs)$
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
-$endif$
-
-<!-- Syntax highlighting CSS inserted by Pandoc's built-in syntax highlighting.
--->
-$if(highlighting-css)$
-  <style>
-$highlighting-css$
-  </style>
-$endif$
-
-<!-- This is the template's very own css  -->
-<link rel="stylesheet" href="$decker-support-dir$/css/wburg.css">
-
-$for(template.css)$
-  <link rel="stylesheet" href="$template.css$"/>
-$endfor$
-
+$deck-styles.html()$
 
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
@@ -206,6 +38,8 @@ $endfor$
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script src="$decker-support-dir$/vendor/chartjs/chart.umd.js"></script>
+  <script src="$decker-support-dir$/plugins/quizzer/wordcloud2.js"></script>
+  <script src="$decker-support-dir$/plugins/quizzer/d3-sankey.min.js"></script>
 </head>
 
 <body class="deck">
@@ -226,93 +60,34 @@ $endif$
 $body$
 
     </div>
+  </div>  
+  $if(watermark)$
+  <div class="watermark">
+    $watermark$
   </div>
+  $endif$
 
-  <script type="module">
-    // import Reveal and all plugins 
-    import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
-    import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
-    import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js';
-    import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
-    import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
-    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
-    import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
-    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
-    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
-    import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
-$if(poll)$
-    import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
-$endif$
-    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
-    import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
-    import examinerPlugin from "./$decker-support-dir$/plugins/examiner/examiner.js";
-    import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
-    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
-    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
-$if(highlightjs)$
-    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
-$endif$
-    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
-$if(live-captions)$
-    import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
-$endif$
-    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
-
-    let revealConfig = { 
-      // reveal configuration (see https://revealjs.com/config/)
-      ...Decker.meta.reveal,
-
-      // plugin configuration
-      math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
-      chart: Decker.meta.chart,
-      menu: Decker.meta.menu,
-      explain: Decker.meta.explain,
-      feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
-      jingles: Decker.meta.jingles,
-      whiteboard: Decker.meta.whiteboard,
-      // list of plugins
-      plugins: [
-         deckerPlugin,
-         uiAnchorsPlugin,
-         mathPlugin,
-         chartsPlugin,
-         whiteboardPlugin,
-         searchPlugin,
-         printPlugin,
-         jinglesPlugin,
-         quizPlugin,
-         quizWuePlugin,
-         explainPlugin,
-         examinerPlugin,
-         menuPlugin,
-         feedbackPlugin,
-$if(highlightjs)$
-         highlightPlugin,
-$endif$
-         notesPlugin,
-$if(live-captions)$
-         captionPlugin,
-$endif$
-         a11yPlugin,
-$if(poll)$
-         pollPlugin
-$endif$
-      ]
-    };
-
-    Reveal.initialize(revealConfig);
-
-   window.Reveal = Reveal;
-  </script>
-
-</body>
+$deck-plugins.html()$
 
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
+<script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+<script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js"></script>
+
 $for(template.js)$
   <script type="module" src="$template.js$"></script>
 $endfor$
-
-<script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+$for(template.js-module)$
+  <script type="module" src="$template.js-module$"></script>
+$endfor$  
+$for(template.deck.js)$
+  <script src="$template.deck.js$"></script>
+$endfor$
+$for(template.deck.js-module)$
+  <script type="module" src="$template.deck.js-module$"></script>
+$endfor$
+$if(codapi.server)$
+<codapi-settings $if(codapi.server)$url="$codapi.server$"$endif$> </codapi-settings>
+$endif$
 
 <!--  Injection of own code for reveal's highlight.js is not as trivial as it seems. A good overview
 is found in this issue: https://github.com/hakimel/reveal.js/issues/2761
@@ -329,4 +104,5 @@ comment here is just a reminder of where this was left of... -->
 
 <!-- <script src="$decker-support-dir$/js/highlightjs-6502acme.js"></script> -->
 
+</body>
 </html>

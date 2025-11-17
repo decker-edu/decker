@@ -212,7 +212,7 @@ figure>figcaption {
 }
 
 @media(min-width: 740px) {
-  .page-header {
+  .page-header, .menu-container {
     width:720px
   }
   .page-body {
@@ -220,7 +220,7 @@ figure>figcaption {
   }
 }
 @media(min-width: 980px) {
-  .page-header {
+  .page-header, .menu-container {
     width:960px
   }
   .page-body {
@@ -228,7 +228,7 @@ figure>figcaption {
   }
 }
 @media(min-width: 1180px) {
-  .page-header {
+  .page-header, .menu-container {
     width:1140px
   }
   .page-body {

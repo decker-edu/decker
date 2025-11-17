@@ -1,6 +1,11 @@
 /* General Reset and Typography */
-html, body {
+html {    
+  margin: auto 2em;
+}
+body {
     margin: 0;
+}
+html, body {
     padding: 0;
     font-family: "Roboto", sans-serif;
     font-size: 14px;
@@ -18,38 +23,20 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: normal;
 }
 
-/* Grid Layout
 .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
-    justify-content: center;
-    align-items: start;
-    background-color: #ffffff;
-} */
-
-
-.card-grid {
-    /* display: flex; */
     flex-direction: column;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    padding: 20px;
     padding-top: 0px;
     justify-content: center;
     align-items: start;
     width: 100%;
     margin: 0 auto;
-    /* background-color: #f4f7f7; */
 }
 
 .card-grid .grid-item {
     width: 100%;
     height: auto; 
-    /* border: 1px solid #ddd; */
-    /* overflow: hidden; */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-   /*  transition: transform 0.1s ease, box-shadow 0.1s ease;*/
 }
 
 .card-footer-container {
@@ -73,12 +60,6 @@ a.card-title {
     margin-bottom: 5px;
 }
 
-
-/* .card-grid .grid-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-} */
-
 /* Card Structure */
 .card {
     justify-content: space-between;
@@ -100,7 +81,6 @@ a.card-title {
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-   /*  transition: transform 0.6s ease-in-out;*/
 }
 
 .card .front {
@@ -200,7 +180,12 @@ a.card-title {
     color: #555;
 }
 
-
+.course-info h3,
+.contact h3 {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #004a8f;
+}
 
 .file-links {
     display: flex;
@@ -233,8 +218,6 @@ a.card-title {
 }
 
 
-/*  */
-
 /* Filter Buttons */
 .filter-buttons {
     display: flex;
@@ -261,6 +244,9 @@ a.card-title {
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
+    html {
+        margin: 0;
+    }
     .card-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     }
@@ -418,7 +404,7 @@ ul.bannerSlider{
     flex-direction: row;
     flex-wrap: wrap;
     border-top: 2px solid #004a8f;
-    margin: 0 20px 10px 0;
+    margin: 10px;
     background: white;
     padding: 10px;
 }
@@ -455,6 +441,12 @@ ul.bannerSlider{
     justify-content: space-between;
     width: 100%;
 }
+div.lecture-card:last-child {
+  margin-bottom: 10px;
+}
+/* :is(h1, p, div, ul, ol, table):last-child {
+  margin-bottom: 0;
+} */
 .lecture-date {    
     color: rgba(0,0,0,.38);
     margin-bottom: 0;
@@ -544,16 +536,16 @@ ul.bannerSlider{
 /* Tooltip styling */
 .tooltip {
     position: relative;
-    left: 13em;
-    bottom: 11em;
+    left: 13.5em;
+    bottom: 5em;
     transform: translateX(-50%);
     width: 100%;
     padding: 10px;
     background: slategrey;
     color: white;
+    visibility: hidden;
     font-size: 12px;
     border-radius: 5px;
-    visibility: hidden;
     opacity: 0;
     transition: opacity 0.3s ease;
     text-align: left;
@@ -567,27 +559,49 @@ ul.bannerSlider{
     opacity: 1;
 }
 
+
 @media (max-width: 768px) {
     .lecture-card{
-        margin: 20px 0;
-        max-width:max-content
+        margin: 0;
+        max-width: 100%;
+        max-width: -moz-available;          /* WebKit-based browsers will ignore this. */
+        max-width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+        max-width: stretch;
      }
-    .lecture-cards-wrapper{
-        display: block;
+     .lecture-img-container {
+        display: none;
+     }
+    #tileContainer .lecture-container {
+        padding: 0;
+        background-color: inherit;
     }
-
+    #about .lecture-container {
+        padding: 5px;
+    }
+    .slick-dotted.slick-slider, .bannerSlider .slide__image img {
+        height: auto;
+    }
+    .course-description {
+        margin: 5px;
+    }
 }
 
-
-@media (min-width: 769px) and (max-width: 1024px) {
-
+@media (min-width: 769px) and (max-width: 1023px) {
+    .index .page-body,
+    .page-header,
+    .page-footer {
+        width: 100%;
+    }
     .lecture-card {
         flex: 1 1 calc(50% - 20px); 
-        max-width: fit-content;
+        max-width: calc(50% - 20px);
+    }
+    .slick-dotted.slick-slider, .bannerSlider .slide__image img {
+        height: auto;
     }
 }
 
-@media (min-width: 1025px) and (max-width: 1179px) {
+@media (min-width: 1024px) and (max-width: 1179px) {
     .lecture-card {
         flex: 1 1 calc(50% - 20px); 
         max-width: fit-content;
