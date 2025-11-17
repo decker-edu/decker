@@ -1247,9 +1247,7 @@ section#title-slide .decker-link:hover {
 
 /* possibility to hide quizzes */
 .hide-quizzes .reveal .quiz,
-.hide-quizzes .reveal .quiz *,
-.hide-quizzes .reveal .quizzer,
-.hide-quizzes .reveal .quizzer * {
+.hide-quizzes .reveal .quiz * {
   visibility: hidden;
 }
 
