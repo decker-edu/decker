@@ -27,7 +27,9 @@ $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$">
 $endif$
 $if(template.favicon)$
-    <link rel="shortcut icon" href="$template.favicon$">
+  <link rel="shortcut icon" href="$template.favicon$">
+$else$
+  <link rel="shortcut icon" href="$decker-support-dir$/assets/favicon.ico">
 $endif$
     <title>$if(title-prefix)$$title-prefix$ – $endif$Decker: Inhaltsverzeichnis</title>
 
