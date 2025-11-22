@@ -118,6 +118,7 @@ function toggleAccessibility() {
       window.MathJax.startup.document.menu.setEnrichment(true);
       window.MathJax.startup.document.options.enableMenu = true;
     }
+    window.Decker.addURLSearchParameter("a11y");
   } else {
     pluginButton.ariaPressed = false;
     pluginButton.setLabel(localization.activate_accessibility);
@@ -135,6 +136,7 @@ function toggleAccessibility() {
       window.MathJax.startup.document.menu.setEnrichment(false);
       window.MathJax.startup.document.options.enableMenu = false;
     }
+    window.Decker.removeURLSearchParameter("a11y");
   }
 }
 
