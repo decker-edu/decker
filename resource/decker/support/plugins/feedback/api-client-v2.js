@@ -162,14 +162,12 @@ class RESTClient {
   }
 
   async deleteAnswer(key, token) {
-    let data = { key, token };
     return fetch(this.base + `/answers/${key}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
       },
       mode: this.cors ? "cors" : "same-origin",
-      body: JSON.stringify(data),
     });
   }
 }
