@@ -64,6 +64,9 @@ body.index div.search table.search {
 body.index div.search.results table.search {
   display: table;
 }
+body.index input.search {
+  margin-top: 0.4em;
+}
 
 header .index-page-banner img {
    margin-bottom: 1rem;
