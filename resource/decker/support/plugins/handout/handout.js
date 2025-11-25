@@ -214,7 +214,7 @@ function activateHandoutMode() {
               const container = document.createElement("div");
               container.className = "handout-feedback-container";
               slide.appendChild(container);
-              const heading = document.createElement("h4");
+              const heading = document.createElement("h2");
               heading.innerText = localization.comment_header;
               container.appendChild(heading);
               const commentWrapper = document.createElement("div");

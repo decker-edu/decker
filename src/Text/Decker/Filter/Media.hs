@@ -369,6 +369,7 @@ iframeBlock uri title caption = do
     takeData
     injectStyles innerSizes
     injectAria title caption
+    injectTitle title caption
     extractAttr
   figureAttr <- do
     takeUsual
