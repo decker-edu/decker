@@ -283,7 +283,7 @@ function updateProgress(slide) {
     const percentBefore = localStorage.getItem(key);
     if (percent > percentBefore) {
       localStorage.setItem(key, percent);
-      console.log("progress:", percent);
+      // console.log("progress:", percent);
     }
   }
 }
