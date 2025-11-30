@@ -404,3 +404,14 @@ injectAria aria caption = do
     (Just caption, Nothing) -> injectAttribute ("aria-label", caption)
     (Nothing, Just aria) -> injectAttribute ("aria-label", aria)
     (Nothing, Nothing) -> return ()
+
+-- According to WCAG, iframes should have a title. Use either aria or caption as title.
+injectTitle :: Text -> [Inline] -> Attrib ()
+injectTitle aria caption = do
+  let caption_ = if null caption then Nothing else Just $ stringify caption
+  let aria_ = if Text.null aria then Nothing else Just aria
+  case (caption_, aria_) of
+    (Just caption, Just aria) -> injectAttribute ("title", aria)
+    (Just caption, Nothing) -> injectAttribute ("title", caption)
+    (Nothing, Just aria) -> injectAttribute ("title", aria)
+    (Nothing, Nothing) -> return ()

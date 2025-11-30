@@ -264,7 +264,7 @@
 
 .category .items .answer {
   min-width: 128px;
-  box-shadow: 0px 0px 4px var(--blueish);
+  /* box-shadow: 0px 0px 4px var(--blueish); */
   overflow: hidden;
 }
 
@@ -433,7 +433,7 @@ button[hidden] {
   z-index: 1024;
 
   background-color: var(--background-color);
-  box-shadow: 2px 2px 2px var(--foreground-color);
+  /* box-shadow: 2px 2px 2px var(--foreground-color); */
   border: 2px solid var(--accent5);
 
   resize: both;
@@ -454,6 +454,7 @@ button[hidden] {
   right: 0;
   margin: 0;
   padding: 0;
+  z-index: 1;
   background-color: transparent;
   color: var(--icon-inactive-color);
   &:hover {
@@ -604,4 +605,28 @@ span.fa-span[hidden] {
   border-right: none;
   border-bottom-left-radius: 0.5rem;
   border-top-left-radius: 0.5rem;
+}
+
+/* hide quizzer slides */
+.hide-quizzes .reveal section:has([class~="quizzer"]) {
+  & * {
+    visibility: hidden;
+  }
+  & h1 {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    rotate: -30deg;
+    & * {
+      display: none;
+    }
+    &::before {
+      visibility: visible;
+      content: "Secret Quiz";
+    }
+  }
+}
+[lang="de"] .hide-quizzes .reveal section:has([class~="quizzer"]) h1::before {
+  content: "Geheimes Quiz";
 }

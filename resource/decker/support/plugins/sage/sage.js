@@ -112,6 +112,7 @@ function prepareSAGE() {
     // it be lazy-loaded by Reveal
     let iframe = document.createElement("iframe");
     iframe.sandbox = "allow-scripts allow-same-origin";
+    iframe.title = "Interactive demo with SAGE";
     iframe.setAttribute("data-src", url);
 
     // construct enclosing div.media and figure

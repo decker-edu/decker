@@ -68,10 +68,17 @@ async function setupModeLinks(container, url) {
     pdfLink.title = pdfLink.ariaLabel =
       lang === "de" ? "Als PDF exportieren" : "export as PDF";
     container.appendChild(pdfLink);
-    pdfLink.disabled = true;
-    pdfLink.disabled = !(await resourceExists(
+
+    const pdfExists = await resourceExists(
       url.pathname.replace(".html", ".pdf")
-    ));
+    );
+    pdfLink.setAttribute("aria-disabled", !pdfExists);
+    // pdfLink.setAttribute("aria-disabled", "true");
+    // resourceExists(url.pathname.replace(".html", ".pdf")).then((exists) => {
+    //   if (exists) {
+    //     pdfLink.removeAttribute("aria-disabled");
+    //   }
+    // });
   }
 }
 

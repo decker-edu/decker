@@ -283,7 +283,7 @@ function updateProgress(slide) {
     const percentBefore = localStorage.getItem(key);
     if (percent > percentBefore) {
       localStorage.setItem(key, percent);
-      console.log("progress:", percent);
+      // console.log("progress:", percent);
     }
   }
 }
@@ -541,6 +541,9 @@ const Plugin = {
   id: "decker",
   init: (reveal) => {
     Reveal = reveal;
+    if (Decker) {
+      Decker.Reveal = reveal;
+    }
     return new Promise((resolve) => {
       onStart();
       resolve();
