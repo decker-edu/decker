@@ -41,8 +41,11 @@ const englishLocalization = {
     I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
     **But be aware that my answers might be wrong.**`,
 };
+
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
+
+const useFirst = Decker?.meta?.chatty["use-first-annotation-page"] || false;
 
 function setup(anchor, reveal) {
   // are we running in a slide deck?
@@ -301,7 +304,8 @@ async function combineUserInputAndSlideInfo(userInput) {
   const annot = slide.querySelector("svg.whiteboard");
   const annotWidth = annot.clientWidth;
   const annotHeight = annot.clientHeight;
-  const numAnnotPages = Math.ceil(annotHeight / pageHeight) - 1;
+  const numAnnotPages =
+    Math.ceil(annotHeight / pageHeight) - (useFirst ? 0 : 1);
 
   // does this slide have extra whiteboard pages?
   if (numAnnotPages > 0) {
@@ -381,11 +385,12 @@ async function svgToPng(svgElement, bbox) {
       // but subtract the first page (as it is no extra whiteboard page).
       // then also adjust width/height of PNG.
       if (!bbox) {
+        const pageSkip = useFirst ? 0 : pageHeight;
         bbox = {
           x: 0,
-          y: pageHeight,
+          y: pageSkip,
           width: svgElement.clientWidth,
-          height: svgElement.clientHeight - pageHeight,
+          height: svgElement.clientHeight - pageSkip,
         };
         width = bbox.width / 2;
         height = bbox.height / 2;
@@ -397,7 +402,7 @@ async function svgToPng(svgElement, bbox) {
       // inject viewbox
       svg.setAttribute(
         "viewBox",
-        `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`
+        `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`,
       );
 
       // inject style, since CSS not known within SVG
