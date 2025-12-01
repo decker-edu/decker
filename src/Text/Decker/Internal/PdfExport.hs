@@ -3,7 +3,9 @@
 
 module Text.Decker.Internal.PdfExport where
 
-import Control.Concurrent (MVar, ThreadId) -- Uncommend if you want to not request data multithreaded: , putMVar, takeMVar)
+-- import Control.Concurrent (MVar, ThreadId) -- multi-threaded version
+import Control.Concurrent (MVar, ThreadId, putMVar, takeMVar) -- single-threaded version
+
 import Control.Lens ((^?))
 import Control.Monad (join)
 import Control.Monad.Trans (liftIO)
@@ -55,7 +57,7 @@ waitForMessageEither check last conn = do
 exportPdf :: String -> String -> String -> Int -> MVar ThreadId -> IO ()
 exportPdf baseUrl out chromeHost chromePort websocketLock = do
     -- Uncommend if you don't want multithreaded pdf loading (note there are two more lines in this method ;)):
-    -- chromeId <- takeMVar websocketLock
+    chromeId <- takeMVar websocketLock
     let url = baseUrl ++ "?print-pdf#/"
     putStrLn $ "[PDF-Export] [" ++ url ++ "] Creating new tab!"
     -- Create a new chrome tab with page `about:blank` loaded.
@@ -74,7 +76,7 @@ exportPdf baseUrl out chromeHost chromePort websocketLock = do
 
             get ("http://" ++ chromeHost ++ ":" ++ show chromePort ++ "/json/close/" ++ id)
             -- Uncommend if you don't want multithreaded pdf loading:
-            -- putMVar websocketLock chromeId
+            putMVar websocketLock chromeId
             case pdfData of
                 Just pdfData -> do
                     putStrLn $ "[PDF-Export] [" ++ url ++ "] Writing PDF to '" ++ out ++ "'!"
@@ -86,7 +88,7 @@ exportPdf baseUrl out chromeHost chromePort websocketLock = do
                     return ()
         Nothing -> do
             -- Uncommend if you don't want multithreaded pdf loading:
-            -- putMVar websocketLock chromeId
+            putMVar websocketLock chromeId
             return ()
 
 -- Chrome remote debugging websocket pdf export connection handling function.

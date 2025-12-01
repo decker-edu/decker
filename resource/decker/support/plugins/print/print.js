@@ -53,7 +53,7 @@ function checkHeight() {
           slideNumber() +
           " is " +
           (scrollHeight - configHeight) +
-          "px too high",
+          "px too high"
       );
       slide.style.border = "1px dashed red";
     } else {
@@ -78,7 +78,7 @@ function slideNumber() {
  */
 function setupIframes() {
   for (let e of document.querySelectorAll(
-    ".reveal section .media .print iframe[data-src]",
+    ".reveal section .media .print iframe[data-src]"
   )) {
     e.src = e.getAttribute("data-src");
   }
@@ -86,15 +86,13 @@ function setupIframes() {
 
 /*
  * Remove controls from videos, since they mess up printing.
- * If we have >5 videos and are printing from headless Chrome,
- * this will stall due a Chrome bug. Hence we disable videos
- * from the sixth video on in this configuration.
+ * Show video frame at t=1s to avoid black frames at t=0s.
  */
-function setupVideos() {
+async function setupVideos() {
   const headless =
     /HeadlessChrome/.test(window.navigator.userAgent) || navigator.webdriver;
   let numVideos = 0;
-  const maxVideos = 7; // headless Chrome might stall for too many videos
+  const maxVideos = 99; // headless Chrome might stall for too many videos
 
   // go through all slides
   for (let slide of document.getElementsByTagName("section")) {
@@ -124,9 +122,7 @@ function setupVideos() {
           video.src = "";
           // video.style.border = "3px solid red";
         } else {
-          let src = video.getAttribute("data-src");
-          if (!src.includes("#t=")) src = src + "#t=1.0";
-          video.src = src;
+          await showPosterFrame(video);
           // video.style.border = "3px solid lightgreen";
         }
       }
@@ -137,6 +133,19 @@ function setupVideos() {
       numVideos++;
     }
   }
+}
+
+function showPosterFrame(video) {
+  return new Promise((resolve, reject) => {
+    try {
+      let src = video.getAttribute("data-src");
+      if (!src.includes("#t=")) src = src + "#t=1.0";
+      video.oncanplay = resolve;
+      video.src = src;
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 // set title, such that the exported PDF has the same filename
@@ -195,35 +204,31 @@ function correctColorMode() {
 const Plugin = {
   id: "print",
 
-  init: (deck) => {
+  init: async function (deck) {
     Reveal = deck;
 
-    return new Promise(function (resolve) {
-      Reveal.addEventListener("ready", fixFooters);
-      Reveal.addEventListener("ready", setHeight);
-      if (Reveal.getConfig().checkOverflow) {
-        Reveal.addEventListener("slidechanged", checkHeight);
+    Reveal.addEventListener("ready", fixFooters);
+    Reveal.addEventListener("ready", setHeight);
+    if (Reveal.getConfig().checkOverflow) {
+      Reveal.addEventListener("slidechanged", checkHeight);
+    }
+
+    /* are we exporting a PDF? */
+    var pdf = !!window.location.search.match(/print-pdf/gi);
+    if (pdf) {
+      setupIframes();
+      await setupVideos();
+      setupTitle();
+      setupMargin();
+      correctColorMode();
+
+      // automatically press the print button when not in headless mode
+      if (!navigator.webdriver && !Decker.isElectron()) {
+        Reveal.addEventListener("pdf-ready", function () {
+          setTimeout(window.print, 2000);
+        });
       }
-
-      /* are we exporting a PDF? */
-      var pdf = !!window.location.search.match(/print-pdf/gi);
-      if (pdf) {
-        setupIframes();
-        setupVideos();
-        setupTitle();
-        setupMargin();
-        correctColorMode();
-
-        // automatically press the print button when not in headless mode
-        if (!navigator.webdriver && !Decker.isElectron()) {
-          Reveal.addEventListener("pdf-ready", function () {
-            setTimeout(window.print, 2000);
-          });
-        }
-      }
-
-      resolve();
-    });
+    }
   },
 };
 
