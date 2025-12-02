@@ -185,7 +185,7 @@ external-tools:
         - "--remote-debugging-port=${input}"
       help: ""
     windows: # Still an issue with cleaning up the edge process but works for usage!
-      command: "msedge"
+      command: "C:\\PROGRA~2\\Microsoft\\Edge\\Application\\msedge.exe"
       arguments:
         - "--headless"
         - "--remote-debugging-port=${input}"
