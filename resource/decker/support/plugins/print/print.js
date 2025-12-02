@@ -53,7 +53,7 @@ function checkHeight() {
           slideNumber() +
           " is " +
           (scrollHeight - configHeight) +
-          "px too high"
+          "px too high",
       );
       slide.style.border = "1px dashed red";
     } else {
@@ -78,7 +78,7 @@ function slideNumber() {
  */
 function setupIframes() {
   for (let e of document.querySelectorAll(
-    ".reveal section .media .print iframe[data-src]"
+    ".reveal section .media .print iframe[data-src]",
   )) {
     e.src = e.getAttribute("data-src");
   }
@@ -92,6 +92,7 @@ async function setupVideos() {
   const headless =
     /HeadlessChrome/.test(window.navigator.userAgent) || navigator.webdriver;
   let numVideos = 0;
+  // TODO: IS THIS NEEDED ANYMORE?
   const maxVideos = 99; // headless Chrome might stall for too many videos
 
   // go through all slides
@@ -140,8 +141,21 @@ function showPosterFrame(video) {
     try {
       let src = video.getAttribute("data-src");
       if (!src.includes("#t=")) src = src + "#t=1.0";
-      video.oncanplay = resolve;
+
+      // Check if the video is not already ready, than we can skip the rest.
+      if (video.readyState >= video.HAVE_FUTURE_DATA) {
+        resolve();
+        return;
+      }
+
+      // Wait for the video to render the thumbnail at 1.0 seconds by checking if it's ready to play
+      video.oncanplay = () => {
+        resolve();
+      };
       video.src = src;
+
+      // If the video takes longer than two seconds to load, their might be an error in the video so we should skip it!
+      setTimeout(resolve, 2000);
     } catch (err) {
       reject(err);
     }
