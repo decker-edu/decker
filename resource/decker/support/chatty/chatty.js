@@ -45,7 +45,9 @@ const englishLocalization = {
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
 
-const useFirst = Decker?.meta?.chatty["use-first-annotation-page"] || false;
+const useFirst = Decker?.meta?.chatty
+  ? Decker.meta.chatty["use-first-annotation-page"]
+  : false;
 
 function setup(anchor, reveal) {
   // are we running in a slide deck?
@@ -402,7 +404,7 @@ async function svgToPng(svgElement, bbox) {
       // inject viewbox
       svg.setAttribute(
         "viewBox",
-        `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`,
+        `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`
       );
 
       // inject style, since CSS not known within SVG
