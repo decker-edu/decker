@@ -301,62 +301,69 @@ async function combineUserInputAndSlideInfo(userInput) {
       (fragment ? ` and fragment identifier ${fragment}.` : "."),
   });
 
-  // get page and whiteboard dimensions
-  const pageHeight = parseInt(Reveal.getConfig().height);
+  // do we have whiteboard annotations?
+  let slideHasAnnotations = false;
   const annot = slide.querySelector("svg.whiteboard");
-  const annotWidth = annot.clientWidth;
-  const annotHeight = annot.clientHeight;
-  const numAnnotPages =
-    Math.ceil(annotHeight / pageHeight) - (useFirst ? 0 : 1);
+  if (annot) {
+    // get page and whiteboard dimensions
+    const pageHeight = parseInt(Reveal.getConfig().height);
+    const annotHeight = annot.clientHeight;
+    const numAnnotPages =
+      Math.ceil(annotHeight / pageHeight) - (useFirst ? 0 : 1);
 
-  // does this slide have extra whiteboard pages?
-  if (numAnnotPages > 0) {
-    // did we not send annotations already?
-    if (slide != currentAnnotationSlide) {
-      // remember slide, so we don't send slide annotations again
-      currentAnnotationSlide = slide;
+    // does this slide have extra whiteboard pages?
+    if (numAnnotPages > 0) {
+      slideHasAnnotations = true;
+      // did we not send annotations already?
+      if (slide != currentAnnotationSlide) {
+        // remember slide, so we don't send slide annotations again
+        currentAnnotationSlide = slide;
 
-      // construct annotation info per page (I think this is not needed)
-      // let content = [
-      //   {
-      //     type: "input_text",
-      //     text:
-      //       `In addition to the content from ${deck} the current slide also contains ${numAnnotPages} ` +
-      //       (numAnnotPages > 1 ? "pages " : "page ") +
-      //       "of hand-written annotations or drawings that are provided in the following image.",
-      //   },
-      // ];
-      // for (let top = pageHeight; top < annotHeight; top += pageHeight) {
-      //   const bbox = { x: 0, y: top, width: annotWidth, height: pageHeight };
-      //   const png = await svgToPng(annot, bbox);
-      //   content.push({
-      //     type: "input_image",
-      //     image_url: png,
-      //   });
-      // }
+        // construct annotation info per page (I think this is not needed)
+        // let content = [
+        //   {
+        //     type: "input_text",
+        //     text:
+        //       `In addition to the content from ${deck} the current slide also contains ${numAnnotPages} ` +
+        //       (numAnnotPages > 1 ? "pages " : "page ") +
+        //       "of hand-written annotations or drawings that are provided in the following image.",
+        //   },
+        // ];
+        // const annotWidth = annot.clientWidth;
+        // for (let top = pageHeight; top < annotHeight; top += pageHeight) {
+        //   const bbox = { x: 0, y: top, width: annotWidth, height: pageHeight };
+        //   const png = await svgToPng(annot, bbox);
+        //   content.push({
+        //     type: "input_image",
+        //     image_url: png,
+        //   });
+        // }
 
-      // Render as one big image (alternative to the code above).
-      // Number of tokens is computed as follows (with integer division):
-      //   (width+32-1)/32 * (height+32-1)/32
-      // Since we render at half resolution, a whiteboard page at 1280x720
-      // corresponds to 20*12=240 tokens. Images get scaled down if above 1536 tokens,
-      // which would be 6 whiteboard pages.
-      const png = await svgToPng(annot);
-      let content = [
-        {
-          type: "input_text",
-          text: `In addition to the content from ${deck} the current slide also contains additional hand-written annotations or drawings that are provided in the following image.`,
-        },
-        { type: "input_image", image_url: png },
-      ];
+        // Render as one big image (alternative to the code above).
+        // Number of tokens is computed as follows (with integer division):
+        //   (width+32-1)/32 * (height+32-1)/32
+        // Since we render at half resolution, a whiteboard page at 1280x720
+        // corresponds to 20*12=240 tokens. Images get scaled down if above 1536 tokens,
+        // which would be 6 whiteboard pages.
+        const png = await svgToPng(annot);
+        let content = [
+          {
+            type: "input_text",
+            text: `In addition to the content from ${deck} the current slide also contains additional hand-written annotations or drawings that are provided in the following image.`,
+          },
+          { type: "input_image", image_url: png },
+        ];
 
-      // add annot content to input array
-      input.push({
-        role: "user",
-        content: content,
-      });
+        // add annot content to input array
+        input.push({
+          role: "user",
+          content: content,
+        });
+      }
     }
-  } else {
+  }
+
+  if (!slideHasAnnotations) {
     input.push({
       role: "user",
       content: "The current slide does not contain hand-written annotations.",
