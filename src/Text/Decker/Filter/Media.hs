@@ -226,7 +226,12 @@ compileCodeBlock attr@(id, classes, _) code caption = do
                 putStrLn $ "# write (" <> path <> ")"
           )
       uri <- lift $ URI.mkURI (toText path)
-      renderCodeBlock uri "" caption
+      if "embed" `elem` classes
+      then do
+        renderCodeBlockEmbed uri "" caption
+      else do
+        renderCodeBlock uri "" caption
+      
 
 compileBlockQuote :: [Block] -> [Inline] -> Filter Block
 compileBlockQuote quote caption =
@@ -253,6 +258,7 @@ imageCompilers =
       (AudioT, audioBlock),
       (CodeT, includeCodeBlock),
       (RenderT, renderCodeBlock),
+      (RenderEmbedT, renderCodeBlockEmbed),
       (JavascriptT, javascriptBlock)
     ]
 
@@ -569,8 +575,8 @@ renderCodeBlock uri title caption = do
 
 -- embed SVG as object tag, since then a CSS file can be injected
 -- currently doesn't work on Safari...
-renderCodeBlockTEST :: (Container c) => URI -> Text -> [Inline] -> Attrib c
-renderCodeBlockTEST uri title caption = do
+renderCodeBlockEmbed :: (Container c) => URI -> Text -> [Inline] -> Attrib c
+renderCodeBlockEmbed uri title caption = do
   turi <- lift $ transformUri uri "svg"
   let turl = renderUriDecode turi
   (innerSizes, outerSizes) <- calcImageSizes
