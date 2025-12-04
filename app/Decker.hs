@@ -99,6 +99,7 @@ deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   transient <- liftIO transientDir
   devRun <- liftIO $ isDevelopmentRun
+  chromeResource <- newResource "Chrome" 1
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
@@ -195,10 +196,11 @@ deckerRules = do
       when exists $ need [annot]
       need [src]
       let url = serverUrl </> makeRelative publicDir src 
-      putInfo $ "# chrome started ... (for " <> out <> ")"
       meta <- getGlobalMeta
-      liftIO $ runExternal "chrome" url out meta
-      putInfo $ "# chrome finished (for " <> out <> ")"
+      withResource chromeResource 1 $ do
+        putInfo $ "# chrome started ... (for " <> out <> ")"
+        liftIO $ runExternal "chrome" url out meta
+        putInfo $ "# chrome finished (for " <> out <> ")"
     --
     publicDir <//> "*-handout.html" %> \out -> do
       src <- lookupSource handouts out <$> getDeps
@@ -314,8 +316,6 @@ deckerRules = do
       let pdf = src -<.> ".pdf"
       let dir = takeDirectory src
       need [src]
-      -- pdflatex ["-output-directory", dir, src] Nothing
-      -- pdf2svg [pdf, out] (Just out)
       meta <- getGlobalMeta
       liftIO $ runExternal "pdflatex" src dir meta
       liftIO $ runExternalForSVG "pdf2svg" pdf out meta
