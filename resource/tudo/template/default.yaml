@@ -67,6 +67,9 @@ speech-recognition-language: de-DE
 # show decker link on title slide
 showDeckerLink: true
 
+zoom:
+  trigger: "tripleClick"
+
 # progress bar on index page
 index:
   progress: true

@@ -6,7 +6,7 @@ const german = {
     "Die gespeicherten Sitzungsdaten waren ungültig.\nNavigieren Sie auf eine andere Folie, um eine neue Verbindung zu starten.",
   unknownError:
     "Es ist ein unbekannter Fehler bei der Datenübertragung aufgetreten.",
-  placeholder: "Eingabe bestätigen mit ↵",
+  placeholder: "Antworten, dann ↵",
   checkSolution: "Lösung überprüfen",
   errorMissingQuestion: "Fehler: Dieses Quiz besitzt keinen Fragetext.",
   errorMultipleAssignments:

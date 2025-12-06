@@ -214,7 +214,7 @@ function activateHandoutMode() {
               const container = document.createElement("div");
               container.className = "handout-feedback-container";
               slide.appendChild(container);
-              const heading = document.createElement("h4");
+              const heading = document.createElement("h2");
               heading.innerText = localization.comment_header;
               container.appendChild(heading);
               const commentWrapper = document.createElement("div");
@@ -258,7 +258,10 @@ function activateHandoutMode() {
     .forEach(makeWhiteboardVisible);
 
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
-  currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
+  currentSlide.scrollIntoView({ behavior: "instant", block: "center" });
+
+  /* adjust URL search parameter */
+  window.Decker.addURLSearchParameter("handout");
 
   /* patch Reveal functions for slide navigation */
   bak_getCurrentSlide = Reveal.getCurrentSlide;
@@ -333,6 +336,9 @@ function disassembleHandoutMode() {
 
   /* Remove the fake container from the DOM */
   handoutContainer.remove();
+
+  /* adjust URL search parameter */
+  window.Decker.removeURLSearchParameter("handout");
 
   /* Force reveal to do recalculations on returned slides */
   Reveal.sync();

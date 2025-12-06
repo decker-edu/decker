@@ -238,7 +238,7 @@ div.block[popup="center-down"] {
 
     /* Settings below are copied from .sr-only. */
     left: 0;
-    right: 0;
+    top: 0;
     width: 1px;
     height: 1px;
     opacity: 0;

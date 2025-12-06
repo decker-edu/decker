@@ -70,6 +70,7 @@ function initializeDecker(metaUrl) {
         1
       );
     },
+
     tripleClick: (callback) => {
       let pushCount = 0;
       let lastPush = null;
@@ -88,6 +89,17 @@ function initializeDecker(metaUrl) {
           callback();
         }
       };
+    },
+
+    addURLSearchParameter: (mode) => {
+      const url = new URL(window.location);
+      url.searchParams.set(mode, "1");
+      history.replaceState(null, null, url);
+    },
+    removeURLSearchParameter: (mode) => {
+      const url = new URL(window.location);
+      url.searchParams.delete(mode);
+      history.replaceState(null, null, url);
     },
   };
 

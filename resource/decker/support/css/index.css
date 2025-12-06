@@ -159,6 +159,7 @@ a:hover {
 
 a[aria-disabled="true"] {
   color: var(--shade2);
+  pointer-events: none;
 }
 
 /*********************************************

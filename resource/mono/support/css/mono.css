@@ -655,3 +655,11 @@ span.document-path {
   font-size: 50%;
   color: var(--shade2);
 }
+
+body.deck div#chatty-dialog {
+  font-size: 1.6vw;
+
+  & :is(input, select, textarea, button) {
+    font-size: 1.6vw;
+  }
+}

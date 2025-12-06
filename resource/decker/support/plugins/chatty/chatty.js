@@ -32,6 +32,21 @@ function createGUI(deck) {
   } else {
     Reveal.getPlugin("ui-anchors").placeButton(button, "TOP_RIGHT");
   }
+
+  // toggle chatty with key c
+  Reveal.addKeyBinding(
+    {
+      keyCode: 67,
+      key: "C",
+      description:
+        navigator.language === "de"
+          ? "Chatte mit Prof. Bot"
+          : "Chat with Prof. Bot",
+    },
+    () => {
+      dialog.togglePopover();
+    }
+  );
 }
 
 const Plugin = {

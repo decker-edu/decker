@@ -1247,9 +1247,7 @@ section#title-slide .decker-link:hover {
 
 /* possibility to hide quizzes */
 .hide-quizzes .reveal .quiz,
-.hide-quizzes .reveal .quiz *,
-.hide-quizzes .reveal .quizzer,
-.hide-quizzes .reveal .quizzer * {
+.hide-quizzes .reveal .quiz * {
   visibility: hidden;
 }
 
@@ -1633,7 +1631,7 @@ html.a11y {
 }
 
 html.a11y .reveal a {
-  color: var(--blueish);
+  /* color: var(--blueish); */
   text-decoration: underline;
   transition: transform 0.1s ease-out 0s;
 }
