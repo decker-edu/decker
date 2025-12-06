@@ -111,6 +111,8 @@ deckerRules = do
     -- Create websocket lock to only let one thread at a time open a websocket connection to chrome.
     -- As for now requesting more pdfs concurrently breaks and all but one pdf generation thread freezes.
     websocketLock <- liftIO newEmptyMVar
+    
+    chromeResource <- newResource "Chrome" 1
 
     want ["html"]
     addHelpSuffix "Commands:"
@@ -224,9 +226,10 @@ deckerRules = do
                 when exists $ need [annot]
                 need [src]
                 let url = serverUrl </> makeRelative publicDir src
-                putInfo $ "# chrome started ... (for " <> out <> ")"
-                liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
-                putInfo $ "# chrome finished (for " <> out <> ")"
+                withResource chromeResource 1 $ do
+                    putInfo $ "# chrome started ... (for " <> out <> ")"
+                    liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
+                    putInfo $ "# chrome finished (for " <> out <> ")"
 
         {- publicDir <//> "*-deck.pdf" %> \out -> do
             let src = replaceSuffix "-deck.pdf" "-deck.html" out
@@ -356,8 +359,6 @@ deckerRules = do
             let pdf = src -<.> ".pdf"
             let dir = takeDirectory src
             need [src]
-            -- pdflatex ["-output-directory", dir, src] Nothing
-            -- pdf2svg [pdf, out] (Just out)
             meta <- getGlobalMeta
             liftIO $ runExternal "pdflatex" src dir meta
             liftIO $ runExternalForSVG "pdf2svg" pdf out meta

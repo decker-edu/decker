@@ -252,6 +252,13 @@ external-tools:
   d2:
     command: d2
     arguments:
+      - "--pad"
+      - "10"
+      - "--sketch"
+      - "--theme"
+      - "7"
+      - "--dark-theme"
+      - "200"
       - "${input}"
       - "${output}"
     help: https://d2lang.com/
