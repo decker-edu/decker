@@ -53,7 +53,7 @@ function checkHeight() {
           slideNumber() +
           " is " +
           (scrollHeight - configHeight) +
-          "px too high",
+          "px too high"
       );
       slide.style.border = "1px dashed red";
     } else {
@@ -78,7 +78,7 @@ function slideNumber() {
  */
 function setupIframes() {
   for (let e of document.querySelectorAll(
-    ".reveal section .media .print iframe[data-src]",
+    ".reveal section .media .print iframe[data-src]"
   )) {
     e.src = e.getAttribute("data-src");
   }
