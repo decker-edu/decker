@@ -387,33 +387,17 @@ textarea {
 }
 #searchprev,
 #searchnext {
+  color: var(--icon-active-color);
+}
+#searchprev[aria-disabled="true"],
+#searchnext[aria-disabled="true"] {
   color: var(--icon-disabled-color);
 }
 #searchclose {
   color: var(--icon-active-color);
 }
 
-::highlight(search-plugin-highlight-0) {
+::highlight(search-plugin-highlight) {
   background-color: #ff6;
-  color: black;
-}
-
-::highlight(search-plugin-highlight-1) {
-  background-color: #a0ffff;
-  color: black;
-}
-
-::highlight(search-plugin-highlight-2) {
-  background-color: #9f9;
-  color: black;
-}
-
-::highlight(search-plugin-highlight-3) {
-  background-color: #f99;
-  color: black;
-}
-
-::highlight(search-plugin-highlight-4) {
-  background-color: #f6f;
   color: black;
 }
