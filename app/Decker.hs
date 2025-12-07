@@ -18,7 +18,13 @@ import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
 import System.FilePath.Glob qualified as Glob
+
 -- import System.FilePath.Posix
+
+import Network.Socket.Wait (wait)
+import Path (parseRelDir)
+import Path.IO (copyDirRecur)
+import System.Directory (makeRelativeToCurrentDirectory)
 import System.FilePath
 import System.IO
 import Text.Decker.Exam.Question
@@ -27,10 +33,13 @@ import Text.Decker.Exam.Xml
 import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.External
-    ( runExternal, runExternalForSVG )
+import Text.Decker.Internal.External (
+    runExternal,
+    runExternalForSVG,
+ )
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.PdfExport
 import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
@@ -40,9 +49,6 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
 import Text.Decker.Writer.Layout
 import Text.Groom
-import System.Directory (makeRelativeToCurrentDirectory)
-import Path (parseRelDir)
-import Path.IO (copyDirRecur)
 
 main :: IO ()
 main = do
@@ -89,17 +95,25 @@ indexFile = publicDir </> "index.html"
 
 run :: IO ()
 run = do
-  runDecker deckerRules
+  runDecker (deckerRules)
+
+--
 
 runArgs :: [String] -> IO ()
 runArgs args = do
-  runDeckerArgs args deckerRules
+  runDeckerArgs args (deckerRules)
 
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   transient <- liftIO transientDir
-  devRun <- liftIO $ isDevelopmentRun
+  devRun <- liftIO isDevelopmentRun
+
+  -- Create websocket lock to only let one thread at a time open a websocket connection to chrome.
+  -- As for now requesting more pdfs concurrently breaks and all but one pdf generation thread freezes.
+  websocketLock <- liftIO newEmptyMVar
+
   chromeResource <- newResource "Chrome" 1
+
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
@@ -141,9 +155,24 @@ deckerRules = do
       need ["support", "questions"]
       getDeps >>= needTargets' [pages]
   --
-  phony "pdf" $ do
+  phony "pdf-start" $ do
     need ["support"]
+    meta <- do getGlobalMeta
+
+    -- start chrome in a seperate thread
+    chromeId <- liftIO $ do
+      forkIO $ runExternal "chromeheadless" "9222" "" meta
+    liftIO $ putStrLn "Started external chrome browser"
+    -- Wait for the chrome remote debugging service to become reachable
+    liftIO $ wait "127.0.0.1" 9222
+    -- Save our chrome thread id into our lock to
+    -- later clean it up and signal the pdf generation process,
+    -- that chrome is ready to accept connections
+    liftIO $ putMVar websocketLock chromeId
+
     getDeps >>= needTargets decksPdf
+  --
+
   --
   withTargetDocs "Compile global search index." $
     phony "search-index" $ do
@@ -162,7 +191,7 @@ deckerRules = do
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
   --
-  when (not devRun) $ do
+  unless devRun $ do
     priority 5 $ do
       (supportDir </> deckerGitCommitId) %> \out -> do
         meta <- getGlobalMeta
@@ -172,7 +201,7 @@ deckerRules = do
           (Resources dr pr) <- deckerResources meta
           extractFast dr
           extractFast pr
-  --
+
   priority 4 $ do
     publicDir <//> "*-deck.html" %> \out -> do
       src <- lookupSource decks out <$> getDeps
@@ -187,20 +216,34 @@ deckerRules = do
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
       needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
-    publicDir <//> "*-deck.pdf" %> \out -> do
-      let src = replaceSuffix "-deck.pdf" "-deck.html" out
-      let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
-      -- This is the right way to depend on an optional file. Just check for the
-      -- files existence with the Shake function `doesFileExist`.
-      exists <- doesFileExist annot
-      when exists $ need [annot]
-      need [src]
-      let url = serverUrl </> makeRelative publicDir src 
-      meta <- getGlobalMeta
-      withResource chromeResource 1 $ do
+    publicDir <//> "*-deck.pdf" %> \out ->
+      do
+        let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
+        -- This is the right way to depend on an optional file. Just check for the
+        -- files existence with the Shake function `doesFileExist`.
+        exists <- doesFileExist annot
+        when exists $ need [annot]
+        need [src]
+        let url = serverUrl </> makeRelative publicDir src
+        withResource chromeResource 1 $ do
+          putInfo $ "# chrome started ... (for " <> out <> ")"
+          liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
+          putInfo $ "# chrome finished (for " <> out <> ")"
+
+    {- publicDir <//> "*-deck.pdf" %> \out -> do
+        let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
+        -- This is the right way to depend on an optional file. Just check for the
+        -- files existence with the Shake function `doesFileExist`.
+        exists <- doesFileExist annot
+        when exists $ need [annot]
+        need [src]
+        let url = serverUrl </> makeRelative publicDir src
         putInfo $ "# chrome started ... (for " <> out <> ")"
+        meta <- getGlobalMeta
         liftIO $ runExternal "chrome" url out meta
-        putInfo $ "# chrome finished (for " <> out <> ")"
+        putInfo $ "# chrome finished (for " <> out <> ")" -}
     --
     publicDir <//> "*-handout.html" %> \out -> do
       src <- lookupSource handouts out <$> getDeps
@@ -278,7 +321,7 @@ deckerRules = do
       putInfo $ "# plantuml (for " <> out <> ")"
       meta <- getGlobalMeta
       liftIO $ runExternalForSVG "plantuml" src out meta
-      -- liftIO $ Dir.renameFile (src -<.> "svg") out
+    -- liftIO $ Dir.renameFile (src -<.> "svg") out
     --
     "**/*.mmd.svg" %> \out -> do
       let src = dropExtension out
@@ -329,6 +372,16 @@ deckerRules = do
       putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
   --
+
+  withTargetDocs "Stop chrome remote session" $
+    phony "pdf" $ do
+      need ["pdf-start"]
+
+      -- Stop chrome after all documents are exported using the saved chrome thread id.
+      -- This produces errors in the log but cleans up quite nicely ;)
+      chromeId <- liftIO $ takeMVar websocketLock
+      liftIO $ killThread chromeId
+  --
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
       deps <- getDeps
@@ -371,7 +424,7 @@ deckerRules = do
       -- Now use a version file containing the commit hash.
       -- need $ Map.keys (deps ^. resources)
       -- putNormal $ "needing: " <> (supportDir </> deckerGitCommitId)
-      when (not devRun) $ need [supportDir </> deckerGitCommitId]
+      unless devRun $ need [supportDir </> deckerGitCommitId]
   --
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
     phony "publish" $ do
@@ -435,10 +488,10 @@ waitForYes = do
 
 extractFast (DeckerExecutable path) = do
   putStrLn $ "extractFast: extracting from executable: " <> path
-  extractResourceEntries (path </> "support") supportDir  
+  extractResourceEntries (path </> "support") supportDir
 extractFast (LocalDir path) = do
   putStrLn $ "extractFast: extracting from local dir: " <> path
   from <- parseRelDir (path </> "support")
   to <- parseRelDir supportDir
-  copyDirRecur from to  
-extractFast source = putStrLn $ "extractFast: saw: " <> show source  
+  copyDirRecur from to
+extractFast source = putStrLn $ "extractFast: saw: " <> show source

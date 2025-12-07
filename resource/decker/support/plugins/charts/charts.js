@@ -227,6 +227,12 @@ function createChart(canvas, CSV, comments) {
     };
   }
 
+  // inject pixel ratio (to be sure)
+  chartOptions.devicePixelRatio = pixelRatio;
+
+  // don't animate (to be sure)
+  if (printMode) chartOptions.animation = false;
+
   // DEBUG: output final data and options
   // console.log(chartData);
   // console.log(chartOptions);
@@ -388,35 +394,32 @@ function adjustPixelRatio() {
 const Plugin = {
   id: "charts",
   init: (deck) => {
-    Reveal = deck;
+    return new Promise((resolve) => {
+      Reveal = deck;
 
-    // check if chart option is given or not
-    chartConfig = Reveal.getConfig().chart || {};
+      chartConfig = Reveal.getConfig().chart || {};
+      let config = chartConfig["defaults"];
+      if (config) mergeRecursive(Chart.defaults, config);
 
-    // set global chart options
-    let config = chartConfig["defaults"];
-    if (config) {
-      mergeRecursive(Chart.defaults, config);
-    }
-
-    Reveal.addEventListener("ready", function () {
-      // MARIO: when in print mode, set animation duration to zero
-      // otherwise we might get half-ready charts in exported PDF
       if (printMode) Chart.defaults.animation = false;
-
       adjustPixelRatio();
       initializeCharts();
 
-      Reveal.addEventListener("slidechanged", function () {
-        let canvases =
-          Reveal.getCurrentSlide().querySelectorAll("canvas[data-chart]");
-        for (let i = 0; i < canvases.length; i++) {
-          if (canvases[i].chart && canvases[i].chart.options.animation)
-            recreateChart(canvases[i]);
-        }
+      Reveal.addEventListener("ready", function () {
+        Reveal.addEventListener("slidechanged", function () {
+          let canvases =
+            Reveal.getCurrentSlide().querySelectorAll("canvas[data-chart]");
+          for (let i = 0; i < canvases.length; i++) {
+            if (canvases[i].chart && canvases[i].chart.options.animation)
+              recreateChart(canvases[i]);
+          }
+        });
+
+        Reveal.addEventListener("resize", adjustPixelRatio);
       });
 
-      Reveal.addEventListener("resize", adjustPixelRatio);
+      if (printMode) setTimeout(resolve, 1000);
+      else resolve();
     });
   },
 };

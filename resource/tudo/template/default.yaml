@@ -70,6 +70,15 @@ showDeckerLink: true
 zoom:
   trigger: "tripleClick"
 
+# quiz server at TU Dortmund
+quizzer:
+  url: https://quiz.jetzt/
+  audio:
+    start: 'default'
+    loop: 'default'
+    end: 'default'
+    volume: 0.2
+
 # progress bar on index page
 index:
   progress: true
