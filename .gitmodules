@@ -7,3 +7,6 @@
 [submodule "third-party/codejar"]
 	path = third-party/codejar
 	url = https://github.com/decker-edu/codejar.git
+[submodule "third-party/reveal.js"]
+	path = third-party/reveal.js
+	url = https://github.com/decker-edu/reveal.js.git
