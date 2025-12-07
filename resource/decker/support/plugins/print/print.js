@@ -86,15 +86,14 @@ function setupIframes() {
 
 /*
  * Remove controls from videos, since they mess up printing.
- * If we have >5 videos and are printing from headless Chrome,
- * this will stall due a Chrome bug. Hence we disable videos
- * from the sixth video on in this configuration.
+ * Show video frame at t=1s to avoid black frames at t=0s.
  */
-function setupVideos() {
+async function setupVideos() {
   const headless =
     /HeadlessChrome/.test(window.navigator.userAgent) || navigator.webdriver;
   let numVideos = 0;
-  const maxVideos = 7; // headless Chrome might stall for too many videos
+  // TODO: IS THIS NEEDED ANYMORE?
+  const maxVideos = 99; // headless Chrome might stall for too many videos
 
   // go through all slides
   for (let slide of document.getElementsByTagName("section")) {
@@ -124,9 +123,7 @@ function setupVideos() {
           video.src = "";
           // video.style.border = "3px solid red";
         } else {
-          let src = video.getAttribute("data-src");
-          if (!src.includes("#t=")) src = src + "#t=1.0";
-          video.src = src;
+          await showPosterFrame(video);
           // video.style.border = "3px solid lightgreen";
         }
       }
@@ -137,6 +134,32 @@ function setupVideos() {
       numVideos++;
     }
   }
+}
+
+function showPosterFrame(video) {
+  return new Promise((resolve, reject) => {
+    try {
+      let src = video.getAttribute("data-src");
+      if (!src.includes("#t=")) src = src + "#t=1.0";
+
+      // Check if the video is not already ready, than we can skip the rest.
+      if (video.readyState >= video.HAVE_FUTURE_DATA) {
+        resolve();
+        return;
+      }
+
+      // Wait for the video to render the thumbnail at 1.0 seconds by checking if it's ready to play
+      video.oncanplay = () => {
+        resolve();
+      };
+      video.src = src;
+
+      // If the video takes longer than two seconds to load, their might be an error in the video so we should skip it!
+      setTimeout(resolve, 2000);
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 // set title, such that the exported PDF has the same filename
@@ -178,38 +201,48 @@ function setupMargin() {
   Reveal.configure({ margin: 0.0 });
 }
 
+// Corrects the color mode for pdf export by applying the correct classes to the document.
+function correctColorMode() {
+  if (sessionStorage.getItem("color-mode") == "dark") {
+    document.documentElement.classList.remove("light");
+    document.documentElement.classList.add("dark");
+    sessionStorage.setItem("color-mode", "dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+    sessionStorage.setItem("color-mode", "light");
+  }
+}
+
 // export the plugin
 const Plugin = {
   id: "print",
 
-  init: (deck) => {
+  init: async function (deck) {
     Reveal = deck;
 
-    return new Promise(function (resolve) {
-      Reveal.addEventListener("ready", fixFooters);
-      Reveal.addEventListener("ready", setHeight);
-      if (Reveal.getConfig().checkOverflow) {
-        Reveal.addEventListener("slidechanged", checkHeight);
+    Reveal.addEventListener("ready", fixFooters);
+    Reveal.addEventListener("ready", setHeight);
+    if (Reveal.getConfig().checkOverflow) {
+      Reveal.addEventListener("slidechanged", checkHeight);
+    }
+
+    /* are we exporting a PDF? */
+    var pdf = !!window.location.search.match(/print-pdf/gi);
+    if (pdf) {
+      setupIframes();
+      await setupVideos();
+      setupTitle();
+      setupMargin();
+      correctColorMode();
+
+      // automatically press the print button when not in headless mode
+      if (!navigator.webdriver && !Decker.isElectron()) {
+        Reveal.addEventListener("pdf-ready", function () {
+          setTimeout(window.print, 2000);
+        });
       }
-
-      /* are we exporting a PDF? */
-      var pdf = !!window.location.search.match(/print-pdf/gi);
-      if (pdf) {
-        setupIframes();
-        setupVideos();
-        setupTitle();
-        setupMargin();
-
-        // automatically press the print button when not in headless mode
-        if (!navigator.webdriver && !Decker.isElectron()) {
-          Reveal.addEventListener("pdf-ready", function () {
-            setTimeout(window.print, 2000);
-          });
-        }
-      }
-
-      resolve();
-    });
+    }
   },
 };
 
