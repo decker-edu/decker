@@ -30,6 +30,7 @@ import Text.Decker.Internal.Common (transientDir, pandocWriterOpts)
 import Text.Decker.Filter.Util (randomId)
 import Development.Shake (Action)
 import qualified Data.Text.IO as T
+import Control.Monad (liftM2)
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)

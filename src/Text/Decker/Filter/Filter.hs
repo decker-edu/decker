@@ -37,6 +37,7 @@ import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Filter
 import Text.Pandoc.Lens
+import Text.Pandoc.Lua
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
@@ -48,7 +49,9 @@ runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
   let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
   if not $ null filters
-    then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
+    then liftIO $ do
+      engine <- getEngine
+      runIOorExplode $ applyFilters engine env filters ["html"] pandoc
     else return pandoc
   where
     env = Environment pandocReaderOpts pandocWriterOpts

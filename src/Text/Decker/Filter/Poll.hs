@@ -103,7 +103,7 @@ handlePolls pandoc@(Pandoc meta blocks) =
         pm = buildPollMeta $ getYaml blocks
         ti = if timed pm then T.pack "timed" else ""
         timer = Div ("", ["countdown", ti], [("data-seconds", T.pack $ seconds pm)]) []
-        chart = renderCanvas (findQuestions $ head blocks) pm
+        chart = renderCanvas (findQuestions blocks) pm
     parseBlocks bl = bl
     parsePolls :: Block -> Block
     parsePolls (Header 1 a title) =
@@ -111,11 +111,11 @@ handlePolls pandoc@(Pandoc meta blocks) =
     parsePolls b = b
 
 -- recursively search for questions to build answers for results chart
-findQuestions :: Block -> [String]
-findQuestions (Div (_, tgs, _) divs)
+findQuestions :: [Block] -> [String]
+findQuestions ((Div (_, tgs, _) divs):_)
   | any (`elem` tgs) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
     concatMap parseQuestions divs
-  | otherwise = concatMap findQuestions divs
+  | otherwise = findQuestions divs
   where
     parseQuestions :: Block -> [String]
     parseQuestions (BulletList ans) = map parseAnswers ans
@@ -130,7 +130,7 @@ findQuestions (Div (_, tgs, _) divs)
         Str a -> T.unpack a
         Space -> " "
         a -> []
-findQuestions d = []
+findQuestions _ = []
 
 buildPollMeta :: Maybe Meta -> PollMeta
 buildPollMeta meta = case meta of

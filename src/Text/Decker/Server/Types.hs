@@ -18,10 +18,6 @@ type Client = (Int, Connection)
 
 type Error = Text
 
-instance ScottyError Text where
-  stringError = toText
-  showError = toLazy
-
 data ServerState = ServerState
   { _clients :: [Client],
     _observed :: Set.Set FilePath
@@ -46,9 +42,9 @@ data Server = Server
   }
   deriving (Eq)
 
-type AppScottyM a = ScottyT Text (ReaderT Server IO) a
+type AppScottyM a = ScottyT (ReaderT Server IO) a
 
-type AppActionM a = ActionT Text (ReaderT Server IO) a
+type AppActionM a = ActionT (ReaderT Server IO) a
 
 requestPathText :: AppActionM Text
 requestPathText = Text.intercalate "/" . pathInfo <$> request

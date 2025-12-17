@@ -1,10 +1,12 @@
+-- {-# OPTIONS_GHC -Wno-ambiguous-fields #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedRecordUpdate #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -Wno-ambiguous-fields #-}
 
 module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo) where
 
@@ -21,9 +23,10 @@ import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Relude
 import System.FilePath
+import Text.Decker.Exam.Question
 import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Util (hash9String)
-import Text.Decker.Internal.Common (publicDir, privateDir)
+import Text.Decker.Internal.Common (privateDir, publicDir)
 import Text.Decker.Internal.Helper (makeRelativeTo)
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
@@ -35,7 +38,6 @@ import Text.DocLayout (render)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Decker.Exam.Question
 
 -- For lookup use: http://glench.github.io/fuzzyset.js/
 
@@ -107,7 +109,7 @@ readQuestInfo globalMeta (target, src) = do
   let questTopicId = topicId
   let questTitle = title
   let questComment = comment
-  return $ QuestInfo { questSrc ,questUrl ,questLectureId ,questTopicId ,questTitle ,questComment }
+  return $ QuestInfo {questSrc, questUrl, questLectureId, questTopicId, questTitle, questComment}
 
 -- Extracts all searchable words from an inline
 extractInlineWords :: Inline -> [Text]
@@ -188,7 +190,7 @@ data SlideInfo = SlideInfo
   { slideUrl :: SlideUrl,
     slideId :: Text,
     slideTitle :: Text,
-    deckUrl :: DeckUrl
+    slideDeckUrl :: DeckUrl
   }
   deriving (Generic, Show)
 
@@ -232,7 +234,7 @@ invertIndex =
                                 { slideUrl,
                                   slideId,
                                   slideTitle,
-                                  deckUrl
+                                  slideDeckUrl = deckUrl
                                 }
                               slideMap
                           )
@@ -303,9 +305,9 @@ addTargetInfo targets meta = do
           $ setMetaValue "pages.by-id" (toListSortedBy deckId pagesInfo) withDecks
   let withPagesDecksAndQuests =
         setMetaValue "quests.by-title" (toQuestListSortedBy questTitle questInfo)
-        $ setMetaValue "quests.by-url" (toQuestListSortedBy questUrl questInfo)
-        $ setMetaValue "quests.by-lecture-id" (toQuestListSortedBy questLectureId questInfo)
-        $ setMetaValue "quests.by-topic-id" (toQuestListSortedBy questTopicId questInfo) withPagesAndDecks
+          $ setMetaValue "quests.by-url" (toQuestListSortedBy questUrl questInfo)
+          $ setMetaValue "quests.by-lecture-id" (toQuestListSortedBy questLectureId questInfo)
+          $ setMetaValue "quests.by-topic-id" (toQuestListSortedBy questTopicId questInfo) withPagesAndDecks
   return withPagesDecksAndQuests
   where
     toQuestListSortedBy by info = MetaList $ map toQuestMeta $ sortInfo by info
