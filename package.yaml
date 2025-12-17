@@ -4,9 +4,7 @@ license: GPL-3.0-or-later
 author: "Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 maintainer: "henrik.tramberend@bht-berlin.de"
 copyright: "2023 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
-
 build-type: Custom
-
 custom-setup:
   dependencies:
     - base >= 4.7 && < 5
@@ -19,18 +17,14 @@ custom-setup:
     - filepath
     - Glob
     - zip
-
 extra-source-files:
   - readme.md
   - Dockerfile
   - makefile
   - third-party/makefile
-
 synopsis: A markdown based tool for slide deck creation
 category: Tool
-
 description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
-
 dependencies:
   - aeson
   - aeson-pretty
@@ -83,6 +77,7 @@ dependencies:
   - neat-interpolation
   - network-uri
   - pandoc
+  - pandoc-lua-engine
   - pandoc-types
   - path-io
   - path
@@ -124,18 +119,15 @@ dependencies:
   - raw-strings-qq
   - network
   - port-utils
-
 ghc-options:
   - -Wunused-top-binds
   - -Wunused-local-binds
   - -Wincomplete-patterns
   - -fwarn-unused-imports
   # - -Wunused-matches
-
 library:
   source-dirs:
     - src
-
 executables:
   decker:
     main: Decker
@@ -146,16 +138,13 @@ executables:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
-
 tests:
   decker-test:
     main: Spec.hs
     source-dirs: test
     dependencies:
       - decker
-
 language: GHC2021
-
 default-extensions:
   - OverloadedStrings
   - QuasiQuotes

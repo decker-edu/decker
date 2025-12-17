@@ -121,7 +121,7 @@ runHttpServer context = do
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
-    
+
     Scotty.get "/" $ redirect "index.html"
     Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
     -- when (context ^. devRun) $
@@ -137,8 +137,8 @@ resourceMiddleware prefix source =
   case source of
     (LocalDir base) -> middleware $ staticPolicy (noDots >-> hasPrefix prefix >-> addBase base)
     _ -> middleware $ nullMiddleware
-    
-nullMiddleware app req respond = app req respond
+
+nullMiddleware app = app
 
 --       route
 --         [ ("/reload", runWebSocketsSnap $ reloader state),

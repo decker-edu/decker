@@ -308,7 +308,8 @@ parseMetaValueArg arg =
 isMetaName :: String -> Bool
 isMetaName str = all check $ List.splitOn "." str
   where
-    check s = length s > 1 && isAlpha (List.head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (List.tail s)
+    check [] = False
+    check (s:sx) = isAlpha s && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) sx
 
 addMetaFlags :: [Flags] -> Meta -> Meta
 addMetaFlags flags meta =
