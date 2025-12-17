@@ -322,6 +322,7 @@ external-tools:
       - "-acodec"
       - "aac"
       - "${output}"
+    help: ""
   tomp4-transcode:
     command: "ffmpeg"
     arguments:
@@ -352,6 +353,7 @@ external-tools:
       - "-metadata"
       - "comment=decker-crunched"
       - "${output}"
+    help: ""
   tomp4-concat:
     command: "ffmpeg"
     arguments:
@@ -370,3 +372,4 @@ external-tools:
       - "-acodec"
       - "aac"
       - "${output}"
+    help: ""
