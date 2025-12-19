@@ -51,7 +51,7 @@ palette:
   contrast: 0.3
 
 reveal:
-  reveal:
+  scrollActivationWidth: null
   backgroundTransition: "slide"
   center: true
   controls: true
