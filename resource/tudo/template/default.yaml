@@ -8,6 +8,7 @@
 includeTULogo: true
 
 reveal:
+  scrollActivationWidth: null
   backgroundTransition: "none"
   center: false
   controls: true
