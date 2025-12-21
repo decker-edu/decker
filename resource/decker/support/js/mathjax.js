@@ -57,9 +57,6 @@ export function configureMathJax() {
   const options = Decker?.meta?.math;
   if (!options) console.error("MathJax not configured. Should not happen.");
 
-  // from where to load mathjax
-  const mathjax = Decker.meta.supportPath + "/vendor/mathjax/";
-
   // is initial a11y mode requested?
   const a11y = /a11y/gi.test(window.location.search);
 
@@ -76,6 +73,9 @@ export function configureMathJax() {
   window.MathJax = {
     loader: {
       load: ["[tex]/action", "[tex]/color"],
+      paths: {
+        fonts: Decker.meta.supportPath + "/vendor/mathjax-fonts/",
+      },
     },
     startup: {
       ready: () => {
@@ -87,7 +87,6 @@ export function configureMathJax() {
     },
     output: {
       font: "mathjax-" + (options.font || "newcm"),
-      fontPath: mathjax + "/fonts/%%FONT%%-font",
       scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
       mtextInheritFont: true, // true to make mtext elements use surrounding font
       merrorInheritFont: true, // true to make merror text use surrounding font
