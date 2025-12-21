@@ -1109,7 +1109,7 @@ section#title-slide .decker-link:hover {
  *********************************************/
 
 /* hide checkbox */
-.reveal ul.task-list li > input[type="checkbox"] {
+.reveal ul.task-list > li > label > input[type="checkbox"] {
   display: none;
 }
 /* hide item bullets */

@@ -151,7 +151,7 @@ function slideChanged() {
     // is this a quiz slide? -> find answers
     const slide = Reveal.getCurrentSlide();
     const inputElements = slide.querySelectorAll(
-      '.reveal .quiz ul>li>input[type="checkbox"]'
+      '.reveal .quiz ul>li>label>input[type="checkbox"]'
     );
     numAnswers = inputElements.length;
     const choices = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -325,7 +325,7 @@ function switchPollState() {
 
 function prepareQuizzes() {
   document
-    .querySelectorAll('.reveal .quiz ul>li>input[type="checkbox"]')
+    .querySelectorAll('.reveal .quiz ul>li>label>input[type="checkbox"]')
     .forEach((input) => {
       let li = input.parentElement;
 
