@@ -183,6 +183,8 @@ external-tools:
       command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       arguments:
         - "--headless"
+        - "--log-level=3"
+        - "--disable-gpu"
         - "--remote-debugging-port=${input}"
       help: ""
     windows: # Still an issue with cleaning up the edge process but works for usage!
