@@ -15,7 +15,6 @@ module Text.Decker.Project.Project
     excludeGlob,
     static,
     sources,
-    resources,
     decks,
     decksPdf,
     pages,
@@ -69,7 +68,6 @@ type Dependencies = Map FilePath FilePath
 
 data Targets = Targets
   { _sources :: [FilePath],
-    _resources :: Map FilePath Source,
     _static :: Dependencies,
     _decks :: Dependencies,
     _decksPdf :: Dependencies,
@@ -226,7 +224,6 @@ scanTargets meta = do
   return
     Targets
       { _sources = sort srcs,
-        _resources = supportFiles,
         _static = Map.fromList $ map publicDep staticSrc,
         _decks = calcTargets deckSuffix deckHTMLSuffix srcs,
         _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs,
