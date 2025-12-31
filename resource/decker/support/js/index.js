@@ -62,23 +62,22 @@ async function setupModeLinks(container, url) {
 
   // pdf export
   if (links.includes("pdf")) {
+    const pdf = url.pathname.replace(".html", ".pdf");
     const pdfLink = document.createElement("a");
-    pdfLink.href = url.pathname.replace(".html", ".pdf");
+    pdfLink.href = pdf;
     pdfLink.classList.add("fas", "fa-file-pdf");
     pdfLink.title = pdfLink.ariaLabel =
       lang === "de" ? "Als PDF exportieren" : "export as PDF";
     container.appendChild(pdfLink);
 
-    const pdfExists = await resourceExists(
-      url.pathname.replace(".html", ".pdf")
-    );
-    pdfLink.setAttribute("aria-disabled", !pdfExists);
-    // pdfLink.setAttribute("aria-disabled", "true");
-    // resourceExists(url.pathname.replace(".html", ".pdf")).then((exists) => {
-    //   if (exists) {
-    //     pdfLink.removeAttribute("aria-disabled");
-    //   }
-    // });
+    pdfLink.setAttribute("aria-disabled", true);
+    resourceExists(pdf).then((pdfExists) => {
+      pdfLink.setAttribute("aria-disabled", !pdfExists);
+    });
+    // const pdfExists = await resourceExists(
+    //   url.pathname.replace(".html", ".pdf")
+    // );
+    // pdfLink.setAttribute("aria-disabled", !pdfExists);
   }
 }
 
@@ -227,14 +226,18 @@ function setupProgressIndicator(container, url) {
   progress.setValue = function (percent) {
     this.dataset.value = percent;
     this.style = `--progress: ${percent}%`;
-    this.title =
-      lang === "de"
-        ? `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`
-        : `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
+    if (percent < 0) {
+      this.title = lang === "de" ? `Neuer Foliensatz` : `New slide deck.`;
+    } else {
+      this.title =
+        lang === "de"
+          ? `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`
+          : `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
+    }
   };
 
   progress.update = function () {
-    let percent = localStorage.getItem(this.key) || 0;
+    let percent = localStorage.getItem(this.key) || -1;
     percent = Number(percent);
     if (isNaN(percent) || percent === Infinity || percent > 100) percent = 0;
     this.setValue(percent);
@@ -247,7 +250,7 @@ function setupProgressIndicator(container, url) {
   };
 
   progress.onclick = function () {
-    this.toggle();
+    if (this.dataset.value >= 0) this.toggle();
   };
   progress.onkeyup = function (event) {
     if (event.code === "Enter") {

@@ -10,6 +10,9 @@ const presenterStartup = /presenter/gi.test(window.location.search);
 // view menu button
 let pluginButton = undefined;
 
+// number of slides for computing percentage of progress
+let totalSlides;
+
 // Fix some decker-specific things when slides are loaded
 function onStart() {
   fixAutoplayWithStart();
@@ -19,29 +22,50 @@ function onStart() {
   prepareFullscreenIframes();
 
   Reveal.addEventListener("ready", () => {
-    if (!printMode) {
-      totalSlides = Reveal.getTotalSlides();
-      continueWhereYouLeftOff();
-    }
-
     prepareFullscreenIframes();
     prepareFlashPanel();
     preparePresenterMode();
 
-    const menuPlugin = Reveal.getPlugin("decker-menu");
-    if (!!menuPlugin && !!menuPlugin.addPluginButton) {
-      pluginButton = menuPlugin.addPluginButton(
-        "decker-menu-presenter-button",
-        "fas fa-chalkboard-teacher",
-        localization.activate_presenter_mode,
-        togglePresenterMode
+    if (!printMode) {
+      /* update deck progress on slide change (and now!)*/
+      totalSlides = Reveal.getTotalSlides(); // has to be done here!
+      Reveal.addEventListener("slidechanged", (event) =>
+        updateProgress(event.currentSlide)
       );
-      pluginButton.setAttribute("aria-pressed", "false");
-    }
+      updateProgress();
 
-    Decker.addPresenterModeListener(onPresenterMode);
-    if (presenterStartup) {
-      togglePresenterMode();
+      continueWhereYouLeftOff();
+
+      // add presenter mode button to menu
+      if (Reveal.hasPlugin("decker-menu")) {
+        const menuPlugin = Reveal.getPlugin("decker-menu");
+        if (!!menuPlugin.addPluginButton) {
+          pluginButton = menuPlugin.addPluginButton(
+            "decker-menu-presenter-button",
+            "fas fa-chalkboard-teacher",
+            localization.activate_presenter_mode,
+            togglePresenterMode
+          );
+          pluginButton.setAttribute("aria-pressed", "false");
+        }
+      }
+
+      // more presenter mode...
+      Decker.addPresenterModeListener(onPresenterMode);
+      if (presenterStartup) {
+        togglePresenterMode();
+      }
+
+      /* stop video before exiting presentation, which 
+        triggers slide change, which triggers progress update */
+      if (Reveal.hasPlugin("explain")) {
+        window.addEventListener("beforeunload", () => {
+          const explainPlugin = Reveal.getPlugin("explain");
+          if (explainPlugin.isVideoPlaying()) {
+            explainPlugin.stopVideo();
+          }
+        });
+      }
     }
   });
 }
@@ -266,19 +290,22 @@ function createElement({
   return e;
 }
 
-let totalSlides;
-
 function updateProgress(slide) {
   // store current slide index in localStorage
+  if (!slide) slide = Reveal.getCurrentSlide();
   const slideIndex = Reveal.getIndices(slide);
-  if (slideIndex && slideIndex.h != 0) {
-    // store current slide index (h- and v-index and fragment)
-    localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
-    // store percentage of slides visited
+  if (slideIndex) {
+    // store current slide index (when not on first page)
+    if (slideIndex.h > 0)
+      localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
+
+    // compute percentage of slides visited
     const idx = slideIndex.h + 1; // starts at 0
     const percent = Math.round((100.0 * idx) / totalSlides);
     const key = deckPathname + "-percentage";
-    const percentBefore = localStorage.getItem(key);
+
+    // store percentage
+    const percentBefore = localStorage.getItem(key) || 0.0;
     if (percent > percentBefore) {
       localStorage.setItem(key, percent);
       // console.log("progress:", percent);
@@ -291,105 +318,92 @@ function continueWhereYouLeftOff() {
   // and if user has visited this slide decks before,
   // then ask user whether to jump to slide where he/she left off
 
-  if (localStorage) {
-    Reveal.addEventListener("slidechanged", (event) =>
-      updateProgress(event.currentSlide)
-    );
-    window.addEventListener("beforeunload", () => {
-      if (Reveal.hasPlugin("explain")) {
-        const explainPlugin = Reveal.getPlugin("explain");
-        // if explain video is playing, stop it to switch to current slide
-        if (explainPlugin.isVideoPlaying()) {
-          explainPlugin.stopVideo();
+  if (!localStorage) return;
+
+  // if we are on the first slide
+  const slideIndex = Reveal.getIndices();
+  if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
+    // ...and previous slide index is stored (and not title slide)
+    const storedIndex = JSON.parse(localStorage.getItem(deckPathname));
+    if (storedIndex && storedIndex.h != 0) {
+      // ...ask to jump to that slide
+
+      const slideNumber = storedIndex.h + 1;
+
+      // German or non-German?
+      const lang = document.documentElement.lang;
+      const german = lang == "de";
+
+      let reveal = document.querySelector(".reveal");
+
+      let dialog = createElement({
+        type: "div",
+        id: "continue-dialog",
+        parent: document.body,
+      });
+      //        dialog.setAttribute("aria-hidden", "true");
+
+      let hideDialog = () => {
+        dialog.style.display = "none";
+      };
+
+      let label = createElement({
+        type: "span",
+        id: "continue-label",
+        parent: dialog,
+        text: german
+          ? "Bei Folie " + slideNumber + " weitermachen?"
+          : "Continue on slide " + slideNumber + "?",
+      });
+
+      let yes = createElement({
+        type: "button",
+        id: "continue-yes",
+        parent: dialog,
+        css: "font:inherit;",
+        text: german ? "Ja" : "Yes",
+        onclick: () => {
+          Reveal.slide(storedIndex.h, storedIndex.v);
+          hideDialog();
+        },
+      });
+
+      let no = createElement({
+        type: "button",
+        id: "continue-no",
+        parent: dialog,
+        css: "font:inherit;",
+        text: german ? "Nein" : "No",
+        onclick: hideDialog,
+      });
+
+      yes.setAttribute("aria-describedby", "continue-label");
+      no.setAttribute("aria-describedby", "continue-label");
+
+      yes.addEventListener("keydown", (event) => {
+        if (event.code === "Tab") {
+          event.preventDefault();
+          event.stopPropagation();
+          no.focus();
         }
-      }
-    });
+      });
 
-    // if we are on the first slide
-    const slideIndex = Reveal.getIndices();
-    if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
-      // ...and previous slide index is stored (and not title slide)
-      const storedIndex = JSON.parse(localStorage.getItem(deckPathname));
-      if (storedIndex && storedIndex.h != 0) {
-        // ...ask to jump to that slide
+      no.addEventListener("keydown", (event) => {
+        if (event.code === "Tab") {
+          event.preventDefault();
+          event.stopPropagation();
+          yes.focus();
+        }
+      });
 
-        const slideNumber = storedIndex.h + 1;
+      dialog.addEventListener("focusout", (event) => {
+        if (!dialog.contains(event.relatedTarget)) {
+          hideDialog();
+        }
+      });
 
-        // German or non-German?
-        const lang = document.documentElement.lang;
-        const german = lang == "de";
-
-        let reveal = document.querySelector(".reveal");
-
-        let dialog = createElement({
-          type: "div",
-          id: "continue-dialog",
-          parent: document.body,
-        });
-        //        dialog.setAttribute("aria-hidden", "true");
-
-        let hideDialog = () => {
-          dialog.style.display = "none";
-        };
-
-        let label = createElement({
-          type: "span",
-          id: "continue-label",
-          parent: dialog,
-          text: german
-            ? "Bei Folie " + slideNumber + " weitermachen?"
-            : "Continue on slide " + slideNumber + "?",
-        });
-
-        let yes = createElement({
-          type: "button",
-          id: "continue-yes",
-          parent: dialog,
-          css: "font:inherit;",
-          text: german ? "Ja" : "Yes",
-          onclick: () => {
-            Reveal.slide(storedIndex.h, storedIndex.v);
-            hideDialog();
-          },
-        });
-
-        let no = createElement({
-          type: "button",
-          id: "continue-no",
-          parent: dialog,
-          css: "font:inherit;",
-          text: german ? "Nein" : "No",
-          onclick: hideDialog,
-        });
-
-        yes.setAttribute("aria-describedby", "continue-label");
-        no.setAttribute("aria-describedby", "continue-label");
-
-        yes.addEventListener("keydown", (event) => {
-          if (event.code === "Tab") {
-            event.preventDefault();
-            event.stopPropagation();
-            no.focus();
-          }
-        });
-
-        no.addEventListener("keydown", (event) => {
-          if (event.code === "Tab") {
-            event.preventDefault();
-            event.stopPropagation();
-            yes.focus();
-          }
-        });
-
-        dialog.addEventListener("focusout", (event) => {
-          if (!dialog.contains(event.relatedTarget)) {
-            hideDialog();
-          }
-        });
-
-        yes.focus();
-        Reveal.addEventListener("slidechanged", hideDialog);
-      }
+      yes.focus();
+      Reveal.addEventListener("slidechanged", hideDialog);
     }
   }
 }
