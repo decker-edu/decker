@@ -795,14 +795,13 @@ figure > :is(pre, img, video, div.sourceCode) {
 }
 
 /* a figure that is stretched to maximum width/height */
+/* currently does not work with handout mode :-( 
 figure.stretch {
-  /* all parents of figure have to be full size */
   section .decker :has(&) {
     width: 100% !important;
     height: 100% !important;
   }
 
-  /* enclosing .alignment should be flex column, .layout should grow */
   section .alignment:has(&) {
     display: flex !important;
     flex-flow: column nowrap;
@@ -811,7 +810,6 @@ figure.stretch {
     }
   }
 
-  /* figure should be full size, flex column, everything but caption should not grow */
   width: 100%;
   height: 100%;
   display: flex;
@@ -821,17 +819,16 @@ figure.stretch {
     flex-grow: 1;
   }
 
-  /* for iframes, the fullscreen container has to be full size */
   .fs-container {
     width: 100% !important;
     height: 100% !important;
   }
 
-  /* iframes without width/height have aspect ratio 16/9. remove this */
   iframe {
     aspect-ratio: unset !important;
   }
 }
+*/
 
 /*********************************************
  * image sequence (old style)
