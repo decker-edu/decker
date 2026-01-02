@@ -226,14 +226,16 @@ function setupProgressIndicator(container, url) {
   progress.setValue = function (percent) {
     this.dataset.value = percent;
     this.style = `--progress: ${percent}%`;
-    if (percent < 0) {
-      this.title = lang === "de" ? `Neuer Foliensatz` : `New slide deck.`;
-    } else {
+    if (percent < 0)
+      this.title =
+        lang === "de"
+          ? `Neuer Foliensatz.\n0% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`
+          : `New slide deck.\n0% watched.\nClick to toggle\nbetween 100% and 0%.`;
+    else
       this.title =
         lang === "de"
           ? `${percent}% betrachtet.\nKlicken zum Wechseln\nzwischen 100% und 0%.`
           : `${percent}% watched.\nClick to toggle\nbetween 100% and 0%.`;
-    }
   };
 
   progress.update = function () {
@@ -244,13 +246,14 @@ function setupProgressIndicator(container, url) {
   };
 
   progress.toggle = function () {
-    const percent = this.dataset.value == 100 ? 0 : 100;
+    const percent =
+      this.dataset.value < 0 ? 0 : this.dataset.value == 100 ? 0 : 100;
     this.setValue(percent);
     localStorage.setItem(this.key, percent);
   };
 
   progress.onclick = function () {
-    if (this.dataset.value >= 0) this.toggle();
+    this.toggle();
   };
   progress.onkeyup = function (event) {
     if (event.code === "Enter") {
