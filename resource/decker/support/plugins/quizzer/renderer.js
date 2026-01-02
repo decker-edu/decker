@@ -474,7 +474,9 @@ export default {
       checkmark.classList.add("fa-times");
       input.setAttribute("aria-description", l10n.wrong);
       for (const option of choices.options) {
-        if (option.label === input.value) {
+        if (
+          option.label.trim().toLowerCase() === input.value.trim().toLowerCase()
+        ) {
           if (option.correct === true) {
             wrapper.classList.remove("wrong");
             wrapper.classList.add("correct");

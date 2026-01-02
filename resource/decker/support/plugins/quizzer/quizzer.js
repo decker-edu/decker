@@ -265,14 +265,14 @@ function parseQuizzes(reveal) {
           }
           /* ... cleanup ... */
           const checkbox = item.querySelector(":scope input[type='checkbox']");
-          /* ... and set its correctness based on if it was cheked or not. */
+          /* ... and set its correctness based on if it was checked or not. */
           if (checkbox) {
             answerObject.correct = !!checkbox.checked;
             checkbox.remove();
           }
           /* ... add the the html of the item as its label (without the checkbox) ... */
-          const label = item.innerHTML;
-          answerObject.label = label;
+          const label = item.querySelector(":scope > label"); // new pandoc wraps item within label
+          answerObject.label = label ? label.innerHTML : item.innerHTML;
           choiceObject.options.push(answerObject);
         }
         /* ... if there is more than one correct choice the amount of votes is equal to the amount of possible answers. */
