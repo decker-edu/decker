@@ -79,11 +79,6 @@ html.handout .reveal .slides section .decker {
   height: unset;
 }
 
-/* enforce full height for figure.strech; have to set height, not just min-height */
-html.handout .reveal .slides section .decker:has(figure.stretch) {
-  height: var(--slide-height);
-}
-
 html.handout .reveal .slides section .whiteboard {
   grid-area: common;
   position: relative;

@@ -794,51 +794,6 @@ figure > :is(pre, img, video, div.sourceCode) {
   width: auto;
 }
 
-/* a figure that is stretched to maximum width/height */
-figure.stretch {
-  section .decker :has(&) {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  section .alignment:has(&) {
-    display: flex !important;
-    flex-flow: column nowrap;
-    .layout {
-      flex-grow: 1;
-    }
-  }
-
-  /* center figure within .media */
-  section .media:has(&) {
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* have some margin for scroll handlers */
-  width: 95% !important;
-  height: 95% !important;
-
-  /* figure is column layout, caption does not grow */
-  display: flex;
-  flex-flow: column nowrap;
-  align-items: center;
-  :not(figcaption) {
-    flex-grow: 1;
-  }
-
-  /* also enfore full size on fullscreen container */
-  .fs-container {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  /* undo this default setting of decker */
-  iframe {
-    aspect-ratio: unset !important;
-  }
-}
-
 /*********************************************
  * image sequence (old style)
  *********************************************/
