@@ -304,10 +304,6 @@ function disassembleHandoutMode() {
   document.documentElement.classList.remove("handout");
   handoutSlideMode = false;
 
-  let revealContainer = Reveal.getRevealElement();
-  let slides = handoutSlides.childNodes;
-  // Create a 2nd list to iterate over because we will be removing elements from the childNodes list
-  let iterate = [...slides];
   let revealSlidesElement = Reveal.getSlidesElement();
 
   // Restore audio/video (if not also locked by a11y-mode)
@@ -321,13 +317,8 @@ function disassembleHandoutMode() {
   });
 
   // Reattach slides to original slides container
-  for (const slide of iterate) {
-    revealSlidesElement.appendChild(slide);
-  }
-  handoutContainer.parentElement.insertBefore(
-    revealContainer,
-    handoutContainer.nextSibling
-  );
+  revealSlidesElement.append(...handoutSlides.childNodes);
+
   detachWindowEventListeners();
 
   // delete intersection observers

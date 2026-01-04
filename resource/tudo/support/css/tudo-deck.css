@@ -795,7 +795,6 @@ figure > :is(pre, img, video, div.sourceCode) {
 }
 
 /* a figure that is stretched to maximum width/height */
-/* currently does not work with handout mode :-( 
 figure.stretch {
   section .decker :has(&) {
     width: 100% !important;
@@ -810,8 +809,17 @@ figure.stretch {
     }
   }
 
-  width: 100%;
-  height: 100%;
+  /* center figure within .media */
+  section .media:has(&) {
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* have some margin for scroll handlers */
+  width: 95% !important;
+  height: 95% !important;
+
+  /* figure is column layout, caption does not grow */
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
@@ -819,16 +827,17 @@ figure.stretch {
     flex-grow: 1;
   }
 
+  /* also enfore full size on fullscreen container */
   .fs-container {
     width: 100% !important;
     height: 100% !important;
   }
 
+  /* undo this default setting of decker */
   iframe {
     aspect-ratio: unset !important;
   }
 }
-*/
 
 /*********************************************
  * image sequence (old style)
@@ -897,7 +906,11 @@ span.sequence {
 /* hide non-active stack items 
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
-  .reveal .slides section .stack .fragment:not(.current-fragment) {
+  .reveal
+    .slides
+    section
+    .stack:has(.current-fragment)
+    .fragment:not(.current-fragment) {
     visibility: hidden;
   }
 }
