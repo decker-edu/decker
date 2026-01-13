@@ -22,6 +22,7 @@ jobs:
           tag: latest
 
   build-all-platforms:
+    needs: remove-old-release
     runs-on: ${{ matrix.os }}
     env:
       ATTACH_RESOURCE_ZIP: "1"
