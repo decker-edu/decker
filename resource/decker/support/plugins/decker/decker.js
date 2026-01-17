@@ -30,7 +30,7 @@ function onStart() {
       /* update deck progress on slide change (and now!)*/
       totalSlides = Reveal.getTotalSlides(); // has to be done here!
       Reveal.addEventListener("slidechanged", (event) =>
-        updateProgress(event.currentSlide)
+        updateProgress(event.currentSlide),
       );
       updateProgress();
 
@@ -44,7 +44,7 @@ function onStart() {
             "decker-menu-presenter-button",
             "fas fa-chalkboard-teacher",
             localization.activate_presenter_mode,
-            togglePresenterMode
+            togglePresenterMode,
           );
           pluginButton.setAttribute("aria-pressed", "false");
         }
@@ -176,10 +176,12 @@ function currentDate() {
 
 function prepareTaskLists() {
   for (let cb of document.querySelectorAll(
-    '.reveal ul.task-list>li>label>input[type="checkbox"]'
+    '.reveal ul>li>label>input[type="checkbox"]',
   )) {
     const li = cb.parentElement.parentElement;
     li.classList.add(cb.checked ? "task-yes" : "task-no");
+    const ul = li.parentElement;
+    ul.classList.add("task-list");
   }
 }
 
@@ -192,7 +194,7 @@ function prepareTaskLists() {
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
   for (let iframe of document.querySelectorAll(
-    ":not(.fs-container)>figure.iframe>iframe"
+    ":not(.fs-container)>figure.iframe>iframe",
   )) {
     // wrap div around iframe
     var parent = iframe.parentElement;
@@ -449,7 +451,7 @@ function prepareFlashPanel() {
     Decker.flashMessage = update;
   } else {
     console.error(
-      "Element is missing: getRevealElement (This is seriously wrong)"
+      "Element is missing: getRevealElement (This is seriously wrong)",
     );
     Decker.flashMessage = console.log;
   }
@@ -527,9 +529,9 @@ function preparePresenterMode() {
       Decker.flashMessage(
         Decker.isPresenterMode()
           ? localization.presenter_mode_on
-          : localization.presenter_mode_off
+          : localization.presenter_mode_off,
       );
-    })
+    }),
   );
 }
 
