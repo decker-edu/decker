@@ -84,6 +84,11 @@ progress: true
 
 lang: "de"
 
+# Editor Links
+
+editor:
+  link-prefix: "zed://file"
+
 # Language dictionary. Currently for quiz elements
 dictionary:
   de:
