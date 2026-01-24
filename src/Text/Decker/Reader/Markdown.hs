@@ -71,7 +71,7 @@ processMeta (Pandoc meta blocks) = do
 processCites :: Pandoc -> Action Pandoc
 processCites pandoc@(Pandoc meta blocks) = do
   putVerbose "processCites"
-  liftIO $ 
+  liftIO $
     if
       | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
           runIOorExplode $ processCitations pandoc
@@ -113,19 +113,22 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = readMarkdownFile' globalMeta path path
 
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
-addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) =
+addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) = do
+  absDocumentPath <- liftIO $ Dir.makeAbsolute documentPath
+  let editor = lookupMetaOrElse "zed://file" "editor.link-prefix" meta
+  let documentUrl = toText $ editor ++ absDocumentPath;
   return
     $ if not (lookupMetaOrElse False "lecture.publish" globalMeta)
       && lookupMetaOrElse False "experiments.add-document-path" globalMeta
-      then walk addToHeader1 pandoc
+      then walk (addToHeader1 documentUrl) pandoc
       else pandoc
   where
-    addToHeader1 (Header 1 (id, cls, kvs) content) =
+    addToHeader1 documentUrl (Header 1 (id, cls, kvs) content) =
       Header
         1
         (id, cls, addPath kvs)
-        (content <> [Span ("", ["document-path"], []) [Space, Str $ toText documentPath]])
-    addToHeader1 block = block
+        (content <> [Link ("", ["document-url"], [])[Span nullAttr [Space, Str $ toText documentPath]] (documentUrl, "")])
+    addToHeader1 _ block = block
     addPath kvs = ("data-source-path", toText documentPath) : kvs
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
@@ -166,7 +169,7 @@ writeForChatty meta top path pandoc@(Pandoc docMeta _) = do
   when writeBack $ do
     writeToMarkdownFile top "chatty" path pandoc
   return pandoc
-  
+
 checkVersion :: Pandoc -> Action Pandoc
 checkVersion = return
 
@@ -275,12 +278,12 @@ writeToMarkdownFile top base filepath pandoc@(Pandoc pmeta blocks) = do
   liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
   putNormal $ "# write back markdown (" <> path <> ")"
   markdown <- liftIO $ writeToMarkdown (Pandoc meta1 (addSlideUrl (toText $ canonTop -<.> "html") blocks))
-  writeFileChanged path (toString markdown) 
+  writeFileChanged path (toString markdown)
   where
     addSlideUrl deckUrl = walk (add deckUrl)
-    add deckUrl (Header 1 (id, cls, kvs) inlines) = Header 1 (id, cls, ("url", deckUrl <> "#" <> id):kvs) inlines 
+    add deckUrl (Header 1 (id, cls, kvs) inlines) = Header 1 (id, cls, ("url", deckUrl <> "#" <> id):kvs) inlines
     add deckUrl block = block
-    
+
 formatStdin :: IO ()
 formatStdin = do
   let opts =
