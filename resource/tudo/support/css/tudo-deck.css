@@ -1045,6 +1045,8 @@ section#title-slide .decker-link:hover {
   padding: 0.5em;
   border-radius: 0.25em;
   font-weight: bold;
+  text-wrap: balance;
+  text-align: center;
 }
 
 /* A centered block. This is very clever. */
