@@ -19,12 +19,12 @@ function onStart() {
   fixLinks();
   currentDate();
   prepareTaskLists();
-  prepareFullscreenIframes();
 
   Reveal.addEventListener("ready", () => {
     prepareFullscreenIframes();
     prepareFlashPanel();
     preparePresenterMode();
+    prepareImageCompare();
 
     if (!printMode) {
       /* update deck progress on slide change (and now!)*/
@@ -565,5 +565,33 @@ const Plugin = {
   },
   updateProgress: updateProgress,
 };
+
+function prepareImageCompare() {
+  function adjustWidth(evt) {
+    // get container and its width
+    const container = this;
+    const containerWidth = container.offsetWidth;
+
+    // get relative pointer position
+    const mouseX = evt.offsetX;
+    const newWidth = (mouseX * 100) / containerWidth;
+
+    // adjust width of left image
+    const leftImage = container.querySelector(".media:first-child");
+    if (leftImage && mouseX > 15 && mouseX < containerWidth - 20) {
+      leftImage.style.width = newWidth + "%";
+    }
+
+    // prevent triggering slide change through finger swipe
+    evt.preventDefault();
+    evt.stopPropagation();
+    return false;
+  }
+
+  document.querySelectorAll(".image-compare").forEach((container) => {
+    container.addEventListener("pointerdown", adjustWidth, true);
+    container.addEventListener("pointermove", adjustWidth, true);
+  });
+}
 
 export default Plugin;
