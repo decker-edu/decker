@@ -29,10 +29,10 @@ class SlideMenu {
       color_button: undefined,
       close_button: undefined,
       fullscreen_button: undefined,
-      slide_list: undefined,
+      slide_list: undefined
     };
     this.plugin_buttons = {
-      container: undefined,
+      container: undefined
     };
     this.glass = undefined;
     this.position = position;
@@ -124,7 +124,7 @@ class SlideMenu {
       document.querySelector(".decker-menu [aria-current]")?.scrollIntoView({
         block: "center",
         behavior: "instant",
-        container: "nearest",
+        container: "nearest"
       });
     }
   }
@@ -178,19 +178,19 @@ class SlideMenu {
    * Reopens the tab with ?print-pdf to allow PDF printing.
    */
   printPDF() {
-    if (window.electronApp) {
-      let url = location.protocol + "//" + location.host + location.pathname;
-      window.electronApp.printPDF(url);
-    } else {
-      if (confirm(this.localization.print_confirmation)) {
-        let url =
-          location.protocol +
-          "//" +
-          location.host +
-          location.pathname +
-          "?print-pdf";
-        window.open(url, "_self");
-      }
+    if (window.Decker.isElectron()) {
+      alert("Cannot export PDF in DeckerApp");
+      return;
+    }
+
+    if (confirm(this.localization.print_confirmation)) {
+      let url =
+        location.protocol +
+        "//" +
+        location.host +
+        location.pathname +
+        "?print-pdf";
+      window.open(url, "_self");
     }
   }
 
@@ -503,16 +503,15 @@ class SlideMenu {
     this.menu.search_button.addEventListener("click", (event) =>
       this.toggleSearchbar()
     );
-    this.menu.print_button.addEventListener("click", (event) =>
-      this.printPDF()
-    );
+    this.menu.print_button.addEventListener("click", (event) => {
+      if (this.menu.print_button.ariaDisabled === "true") return;
+      this.printPDF();
+    });
     this.menu.print_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
     this.menu.color_button.addEventListener("click", (event) => {
-      if (this.menu.color_button.ariaDisabled === "true") {
-        return;
-      }
+      if (this.menu.color_button.ariaDisabled === "true") return;
       colorScheme.toggleColor();
     });
     this.menu.fullscreen_button.addEventListener("click", (event) => {
@@ -529,6 +528,9 @@ class SlideMenu {
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
+
+    if (window.Decker.isElectron())
+      this.menu.print_button.ariaDisabled = "true";
 
     const colorSetting = window.Decker?.meta?.colorscheme;
     if (colorSetting == "light" || colorSetting == "dark")
@@ -679,7 +681,7 @@ const plugin = () => {
         print_confirmation: "Leave presentation to export it to PDF?",
         index_confirmation: "Go back to index page?",
         navigationmenu_label: "Navigation Menu",
-        navigation_list_label: "Slide List",
+        navigation_list_label: "Slide List"
       };
 
       let lang = navigator.language;
@@ -698,7 +700,7 @@ const plugin = () => {
           print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
           index_confirmation: "Zurück zur Index-Seite gehen?",
           navigationmenu_label: "Navigationsmenu",
-          navigation_list_label: "Folienliste",
+          navigation_list_label: "Folienliste"
         };
       }
 
@@ -746,7 +748,7 @@ const plugin = () => {
       reveal.addEventListener("ready", () => {
         this.updateCurrentSlideMark();
       });
-    },
+    }
   };
 };
 
