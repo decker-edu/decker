@@ -20,3 +20,15 @@ resolver: lts-20.26
 #   "$locals": -fhide-source-paths -Wno-missing-home-modules
 #   "$everything": -haddock
 
+nix:
+  enable: true
+  pure: true
+  packages:
+    - zlib
+    - cmake
+    - ninja
+    - libGLU
+    - pkg-config
+    - bzip2
+  path:
+    - "nixpkgs=https://github.com/NixOS/nixpkgs/archive/205fd4226592cc83fd4c0885a3e4c9c400efabb5.tar.gz"
