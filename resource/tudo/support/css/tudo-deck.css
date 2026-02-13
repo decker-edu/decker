@@ -55,13 +55,17 @@ body.reveal-viewport {
   max-width: 100%;
 }
 
-/* WITH centering */
-.reveal .slides section.center > .decker {
-  align-items: center;
-  justify-content: center;
-}
-.reveal .slides section.center > .decker > .alignment {
-  width: auto;
+/* WITH centering (also for section titles) */
+.reveal .slides section.center,
+.reveal .slides section.section,
+.reveal section:has(h1:only-child) {
+  & > .decker {
+    align-items: center;
+    justify-content: center;
+    & > .alignment {
+      width: auto;
+    }
+  }
 }
 
 /* WITH centering, but VERTICAL centering disabled */
@@ -104,7 +108,7 @@ del {
 }
 
 /*********************************************
- * frame box 
+ * frame box
  *********************************************/
 
 .reveal .boxed {
@@ -574,7 +578,7 @@ pre.line-numbers code > span > a:first-child::before {
   color: var(--shade3);
 }
 
-/* MacOS only shows scrollbars when they are used, which is not a 
+/* MacOS only shows scrollbars when they are used, which is not a
    good idea for code blocks. The following settings show the scrollbar.
    Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
 .reveal pre::-webkit-scrollbar {
@@ -858,7 +862,7 @@ span.sequence {
   visibility: inherit !important;
 }
 
-/* hide non-active stack items 
+/* hide non-active stack items
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
   .reveal
