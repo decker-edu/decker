@@ -41,7 +41,6 @@ const englishLocalization = {
     I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
     **But be aware that my answers might be wrong.**`
 };
-
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
 
@@ -114,7 +113,13 @@ function setup(anchor, reveal) {
   }
 
   // post initial bot message
-  newMessage("bot").add(Reveal ? l10n.greetingDeck : l10n.greeting);
+  newMessage("bot").add(
+    Reveal
+      ? window.Decker?.meta?.chatty?.greetingDeck ||
+          window.Decker?.meta?.chatty?.greeting ||
+          l10n.greetingDeck
+      : window.Decker?.meta?.chatty?.greeting || l10n.greeting
+  );
 }
 
 function newMessage(role) {
