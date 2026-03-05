@@ -480,7 +480,9 @@ div.align-right > p {
   padding: 0.5em;
   font-style: italic;
   border: 1px solid var(--shade1);
-  box-shadow: 2px 2px 4px var(--shade1);
+  @media not print {
+    box-shadow: 2px 2px 4px var(--shade1);
+  }
   width: auto;
 }
 
@@ -1041,7 +1043,10 @@ section#title-slide .decker-link:hover {
 [popup] {
   display: block;
   position: absolute;
-  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  @media not print {
+    box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  }
+  border: 2px solid var(--accent3-fg);
   z-index: 3000;
   background: var(--accent3);
   color: white;
