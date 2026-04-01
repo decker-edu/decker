@@ -1128,25 +1128,9 @@ html.dark
 }
 
 #page-color-button {
-  font-size: var(--icon-size);
-  font-family: "Font Awesome 7 Free";
-  font-weight: 900;
   position: absolute;
-  top: 0.5em;
-  right: 0.5em;
-  width: 2em;
-  height: 2em;
-  border: none;
-  border-radius: 999px;
-  transition: background-color 0.1s;
-  color: var(--foreground-color);
-  background-color: transparent;
-
-  &:hover,
-  &:focus {
-    color: var(--icon-hover-color);
-    background-color: var(--background-color);
-  }
+  top: 0.25em;
+  right: 0.25em;
 }
 
 html.dark #page-color-button::before {
