@@ -403,7 +403,6 @@ div.align-right > p {
 
 .reveal :is(ul, ol, dl) li {
   margin-bottom: 0.5em;
-  margin-left: 1em;
   padding-left: 0.2em;
 }
 
@@ -420,7 +419,6 @@ div.align-right > p {
   display: block;
   margin-top: 0.3em;
   font-size: 0.8em;
-  margin-left: 0.5em;
 }
 
 .reveal :is(ul, ol) li :is(ul, ol) li {
