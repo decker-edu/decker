@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -88,6 +89,24 @@ $( deriveJSON
        }
      ''Targets
  )
+
+instance ToMetaValue Targets where
+  toMetaValue (Targets {..}) =
+    MetaMap $
+      Map.fromList
+        [ ("sources", toMetaValue $ map toText _sources),
+          ("static", depsToMeta _static),
+          ("decks", depsToMeta _decks),
+          ("decksPdf", depsToMeta _decksPdf),
+          ("pages", depsToMeta _pages),
+          ("pagesPdf", depsToMeta _pagesPdf),
+          ("handouts", depsToMeta _handouts),
+          ("handoutsPdf", depsToMeta _handoutsPdf),
+          ("questions", depsToMeta _questions)
+        ]
+    where
+      depsToMeta :: Dependencies -> MetaValue
+      depsToMeta = MetaMap . Map.mapKeys toText . Map.map (toMetaValue . toText)
 
 readTargetsFile :: FilePath -> Action Targets
 readTargetsFile targetFile = do
