@@ -211,3 +211,112 @@ div.chart-container > canvas {
 div.chart-container {
   overflow: hidden;
 }
+
+/* container for left/right comparison of two images */
+.image-compare {
+  --boundary-color: var(--base02);
+
+  display: grid;
+  cursor: grab;
+  width: fit-content;
+  margin: auto;
+  border: 1px solid var(--boundary-color);
+  touch-action: none;
+
+  & > p {
+    display: contents;
+  }
+
+  .media {
+    grid-area: 1/1;
+    box-sizing: border-box;
+    position: relative;
+    margin: 0;
+    width: fit-content;
+    height: fit-content;
+  }
+
+  .media figure,
+  .media .figure {
+    position: relative;
+    overflow: hidden;
+    width: fit-content;
+    height: fit-content;
+
+    img {
+      max-width: unset;
+    }
+
+    /* caption overlay */
+    .figcaption,
+    figcaption {
+      display: block;
+      min-width: max-content;
+      position: absolute;
+      margin: 0;
+      padding: 0.2em 0.4em;
+      background: var(--base06);
+      color: var(--base01);
+      font-style: normal;
+    }
+  }
+
+  .media:first-child {
+    justify-self: start;
+    width: 50%;
+
+    /* separating vertical line */
+    &:before {
+      content: " ";
+      position: absolute;
+      left: 100%;
+      top: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--base00);
+      border-left: 1px solid var(--boundary-color);
+      border-right: 1px solid var(--boundary-color);
+    }
+
+    /* left-right handle */
+    &:after {
+      content: "\f07e";
+      font-style: normal;
+      font-variant: normal;
+      text-rendering: auto;
+      font-weight: 900;
+      font-family: "Font Awesome 7 Free";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      translate: calc(50% + 3px) -50%;
+      font-size: 0.4em;
+      width: 2em;
+      height: 2em;
+      line-height: 2;
+      margin: auto;
+      text-align: center;
+      vertical-align: middle;
+      background: var(--background-color);
+      border: 1px solid var(--boundary-color);
+      border-radius: 100%;
+    }
+
+    .figcaption,
+    figcaption {
+      bottom: 0;
+      left: 0;
+      border-top-right-radius: 0.3em;
+    }
+  }
+
+  .media:last-child {
+    z-index: -1;
+    .figcaption,
+    figcaption {
+      bottom: 0;
+      right: 0;
+      border-top-left-radius: 0.3em;
+    }
+  }
+}

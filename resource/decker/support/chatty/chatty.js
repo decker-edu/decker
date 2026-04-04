@@ -29,7 +29,7 @@ const germanLocalization = {
     "Ich bin **Prof. Bot**, dein KI-basierter Tutor. Du kannst mir Fragen zu den Vorlesungsinhalten stellen. *Aber Vorsicht: Meine Antworten können auch falsch sein.*",
   greetingDeck: `Ich bin **Prof. Bot**, dein KI-basierter Tutor. Du kannst mir Fragen zu den Vorlesungsinhalten stellen.<br>
     Ich weiß, auf welcher Folie du gerade bist, so dass du mich zur aktuellen Folie befragen kannst. Wenn die aktuelle Folie extra Whiteboard-Seiten mit Annotationen enthält, kannst du mich auch zu diesen fragen.<br>
-    **Aber Vorsicht: Meine Antworten können auch falsch sein.**`,
+    **Aber Vorsicht: Meine Antworten können auch falsch sein.**`
 };
 const englishLocalization = {
   send: "Send",
@@ -39,9 +39,8 @@ const englishLocalization = {
     "I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material. *But be aware that my answers might be wrong.*",
   greetingDeck: `I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material.<br>
     I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
-    **But be aware that my answers might be wrong.**`,
+    **But be aware that my answers might be wrong.**`
 };
-
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
 
@@ -114,7 +113,13 @@ function setup(anchor, reveal) {
   }
 
   // post initial bot message
-  newMessage("bot").add(Reveal ? l10n.greetingDeck : l10n.greeting);
+  newMessage("bot").add(
+    Reveal
+      ? window.Decker?.meta?.chatty?.greetingDeck ||
+          window.Decker?.meta?.chatty?.greeting ||
+          l10n.greetingDeck
+      : window.Decker?.meta?.chatty?.greeting || l10n.greeting
+  );
 }
 
 function newMessage(role) {
@@ -145,7 +150,7 @@ async function addToMessage(msg, text) {
   // convert markdown text to html
   let html = marked.parse(protectedText, {
     mangle: false,
-    headerIds: false,
+    headerIds: false
   });
 
   // restore math content
@@ -199,9 +204,9 @@ async function send() {
         prompt: { id: prompt },
         input: input,
         previous_response_id: previous_response_id,
-        stream: true,
+        stream: true
       }),
-      signal: abortController.signal,
+      signal: abortController.signal
     });
 
     if (!response.ok || !response.body) {
@@ -298,7 +303,7 @@ async function combineUserInputAndSlideInfo(userInput) {
     role: "user",
     content:
       `I am watching slide deck "${deck}". The current slide has the title "${title}"` +
-      (fragment ? ` and fragment identifier ${fragment}.` : "."),
+      (fragment ? ` and fragment identifier ${fragment}.` : ".")
   });
 
   // do we have whiteboard annotations?
@@ -349,15 +354,15 @@ async function combineUserInputAndSlideInfo(userInput) {
         let content = [
           {
             type: "input_text",
-            text: `In addition to the content from ${deck} the current slide also contains additional hand-written annotations or drawings that are provided in the following image.`,
+            text: `In addition to the content from ${deck} the current slide also contains additional hand-written annotations or drawings that are provided in the following image.`
           },
-          { type: "input_image", image_url: png },
+          { type: "input_image", image_url: png }
         ];
 
         // add annot content to input array
         input.push({
           role: "user",
-          content: content,
+          content: content
         });
       }
     }
@@ -366,14 +371,14 @@ async function combineUserInputAndSlideInfo(userInput) {
   if (!slideHasAnnotations) {
     input.push({
       role: "user",
-      content: "The current slide does not contain hand-written annotations.",
+      content: "The current slide does not contain hand-written annotations."
     });
   }
 
   // add user input
   input.push({
     role: "user",
-    content: userInput,
+    content: userInput
   });
 
   // return input array
@@ -399,7 +404,7 @@ async function svgToPng(svgElement, bbox) {
           x: 0,
           y: pageSkip,
           width: svgElement.clientWidth,
-          height: svgElement.clientHeight - pageSkip,
+          height: svgElement.clientHeight - pageSkip
         };
         width = bbox.width / 2;
         height = bbox.height / 2;
@@ -423,7 +428,7 @@ async function svgToPng(svgElement, bbox) {
       // svg to data url
       const svgString = new XMLSerializer().serializeToString(svg);
       const blob = new Blob([svgString], {
-        type: "image/svg+xml;charset=utf-8",
+        type: "image/svg+xml;charset=utf-8"
       });
       const url = URL.createObjectURL(blob);
 

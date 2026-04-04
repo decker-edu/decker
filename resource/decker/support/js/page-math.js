@@ -23,14 +23,22 @@ export function init() {
     configureMathJax();
 
     window.MathJax.startup.ready = () => {
+      const preEvent = new Event("mathjax-pre");
+      window.dispatchEvent(preEvent);
+
       const startTime = Date.now();
       console.log("mathjax: start");
+
       MathJax.startup.defaultReady();
       MathJax.startup.promise.then(() => {
         enableTypesetDetails();
+
         const endTime = Date.now();
         const timeTaken = endTime - startTime;
         console.log(`mathjax: done (took ${timeTaken} ms)`);
+
+        const postEvent = new Event("mathjax-post");
+        window.dispatchEvent(postEvent);
       });
     };
     window.MathJax.options.skipHtmlTags = { "[+]": ["details"] };

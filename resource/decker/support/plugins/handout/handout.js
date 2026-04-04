@@ -91,7 +91,7 @@ handoutSlides.addEventListener(
       }
     }
   },
-  true
+  true,
 );
 
 function activateHandoutMode() {
@@ -101,11 +101,11 @@ function activateHandoutMode() {
     storedMetaViewport = meta.getAttribute("content");
     const scalable = storedMetaViewport.replace(
       /user-scalable=no/,
-      "user-scalable=yes"
+      "user-scalable=yes",
     );
     const unlimited = scalable.replace(
       /\s*maximum-scale=([0-9]|\.)*\s*,?\s*/,
-      " "
+      " ",
     );
     meta.setAttribute("content", unlimited);
   }
@@ -285,7 +285,7 @@ function disassembleHandoutMode() {
   }
 
   const commentContainers = document.querySelectorAll(
-    ".handout-feedback-container"
+    ".handout-feedback-container",
   );
   for (const container of commentContainers) {
     container.remove();
@@ -473,7 +473,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
-    visibilityObserverOptions
+    visibilityObserverOptions,
   );
 
   // Observe all actual sections, not the container sections of vertical stacks
@@ -496,7 +496,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
 function createSRCIntersectionObserver() {
   const observerOptions = {
     root: document.body,
-    rootMargin: "50%",
+    rootMargin: "10%",
     threshold: [0],
   };
 
@@ -524,7 +524,7 @@ function createSRCIntersectionObserver() {
 
   srcIntersectionObserver = new IntersectionObserver(
     toggleSrc,
-    observerOptions
+    observerOptions,
   );
 
   handoutContainer
@@ -589,7 +589,7 @@ function onWindowKeydown(event) {
   const slideHeight = Reveal.getConfig().height * scaling();
   const pageHeight = Math.max(
     Math.floor(viewportHeight / slideHeight) * slideHeight,
-    slideHeight
+    slideHeight,
   );
 
   switch (event.key) {
@@ -694,7 +694,7 @@ function createButtons() {
       "menu-handout-button",
       "handout-button",
       localization.activate_handout_mode,
-      toggleHandoutMode
+      toggleHandoutMode,
     );
     pluginButton.ariaPressed = "false";
   }
@@ -756,9 +756,9 @@ const Plugin = {
         Decker.flashMessage(
           handoutSlideMode
             ? localization.handout_mode_on
-            : localization.handout_mode_off
+            : localization.handout_mode_off,
         );
-      })
+      }),
     );
     if (a11y || handout) {
       Reveal.addEventListener("ready", () => {

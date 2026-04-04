@@ -16,7 +16,7 @@ const l10n_de = {
   thslide: "Folie",
   thcount: "Treffer",
   unknownDeck: "Unbekannter Foliensatztitel",
-  unknownSlide: "Unbekannter Folientitel",
+  unknownSlide: "Unbekannter Folientitel"
 };
 
 const l10n_en = {
@@ -32,7 +32,7 @@ const l10n_en = {
   thslide: "Slide",
   thcount: "Hits",
   unknownDeck: "Unknown deck title",
-  unknownSlide: "Unknown slide title",
+  unknownSlide: "Unknown slide title"
 };
 
 const lang = Decker.meta.lang || navigator.language;
@@ -141,7 +141,7 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
         const url = slide.slide;
         const count = slide.count;
         const sInfo = index.slides[url];
-        const dInfo = index.decks[sInfo.deckUrl];
+        const dInfo = index.decks[sInfo.slideDeckUrl];
 
         let deck = "";
         if (showDeckTitles && dInfo.deckTitle) {

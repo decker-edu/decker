@@ -19,18 +19,19 @@ function onStart() {
   fixLinks();
   currentDate();
   prepareTaskLists();
-  prepareFullscreenIframes();
+  prepareCodeHighlighting();
 
   Reveal.addEventListener("ready", () => {
     prepareFullscreenIframes();
     prepareFlashPanel();
     preparePresenterMode();
+    prepareImageCompare();
 
     if (!printMode) {
       /* update deck progress on slide change (and now!)*/
       totalSlides = Reveal.getTotalSlides(); // has to be done here!
       Reveal.addEventListener("slidechanged", (event) =>
-        updateProgress(event.currentSlide),
+        updateProgress(event.currentSlide)
       );
       updateProgress();
 
@@ -44,7 +45,7 @@ function onStart() {
             "decker-menu-presenter-button",
             "fas fa-chalkboard-teacher",
             localization.activate_presenter_mode,
-            togglePresenterMode,
+            togglePresenterMode
           );
           pluginButton.setAttribute("aria-pressed", "false");
         }
@@ -176,7 +177,7 @@ function currentDate() {
 
 function prepareTaskLists() {
   for (let cb of document.querySelectorAll(
-    '.reveal ul>li>label>input[type="checkbox"]',
+    '.reveal ul>li>label>input[type="checkbox"]'
   )) {
     const li = cb.parentElement.parentElement;
     li.classList.add(cb.checked ? "task-yes" : "task-no");
@@ -194,7 +195,7 @@ function prepareTaskLists() {
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
   for (let iframe of document.querySelectorAll(
-    ":not(.fs-container)>figure.iframe>iframe",
+    ":not(.fs-container)>figure.iframe>iframe"
   )) {
     // wrap div around iframe
     var parent = iframe.parentElement;
@@ -280,7 +281,7 @@ function createElement({
   css,
   text,
   parent,
-  onclick = null,
+  onclick = null
 }) {
   let e = document.createElement(type);
   if (id) e.id = id;
@@ -341,7 +342,7 @@ function continueWhereYouLeftOff() {
       let dialog = createElement({
         type: "div",
         id: "continue-dialog",
-        parent: document.body,
+        parent: document.body
       });
       //        dialog.setAttribute("aria-hidden", "true");
 
@@ -355,7 +356,7 @@ function continueWhereYouLeftOff() {
         parent: dialog,
         text: german
           ? "Bei Folie " + slideNumber + " weitermachen?"
-          : "Continue on slide " + slideNumber + "?",
+          : "Continue on slide " + slideNumber + "?"
       });
 
       let yes = createElement({
@@ -367,7 +368,7 @@ function continueWhereYouLeftOff() {
         onclick: () => {
           Reveal.slide(storedIndex.h, storedIndex.v);
           hideDialog();
-        },
+        }
       });
 
       let no = createElement({
@@ -376,7 +377,7 @@ function continueWhereYouLeftOff() {
         parent: dialog,
         css: "font:inherit;",
         text: german ? "Nein" : "No",
-        onclick: hideDialog,
+        onclick: hideDialog
       });
 
       yes.setAttribute("aria-describedby", "continue-label");
@@ -451,7 +452,7 @@ function prepareFlashPanel() {
     Decker.flashMessage = update;
   } else {
     console.error(
-      "Element is missing: getRevealElement (This is seriously wrong)",
+      "Element is missing: getRevealElement (This is seriously wrong)"
     );
     Decker.flashMessage = console.log;
   }
@@ -521,7 +522,7 @@ function preparePresenterMode() {
     {
       keyCode: 80,
       key: "P",
-      description: "Toggle Decker Presenter Mode (Triple Click)",
+      description: "Toggle Decker Presenter Mode (Triple Click)"
     },
 
     Decker.tripleClick(() => {
@@ -529,9 +530,9 @@ function preparePresenterMode() {
       Decker.flashMessage(
         Decker.isPresenterMode()
           ? localization.presenter_mode_on
-          : localization.presenter_mode_off,
+          : localization.presenter_mode_off
       );
-    }),
+    })
   );
 }
 
@@ -539,7 +540,7 @@ const localization = {
   activate_presenter_mode: "Activate Presenter Mode (P,P,P)",
   deactivate_presenter_mode: "Deactivate Presenter Mode (P,P,P)",
   presenter_mode_on: `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
-  presenter_mode_off: `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
+  presenter_mode_off: `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
 };
 
 if (navigator.language === "de") {
@@ -563,7 +564,69 @@ const Plugin = {
       resolve();
     });
   },
-  updateProgress: updateProgress,
+  updateProgress: updateProgress
 };
+
+function prepareImageCompare() {
+  function adjustWidth(evt) {
+    // get container and its width
+    const container = this;
+    const containerWidth = container.offsetWidth;
+
+    // get relative pointer position
+    const mouseX = evt.offsetX;
+    const newWidth = (mouseX * 100) / containerWidth;
+
+    // adjust width of left image
+    const leftImage = container.querySelector(".media:first-child");
+    if (leftImage && mouseX > 15 && mouseX < containerWidth - 20) {
+      leftImage.style.width = newWidth + "%";
+    }
+
+    // prevent triggering slide change through finger swipe
+    evt.preventDefault();
+    evt.stopPropagation();
+    return false;
+  }
+
+  document.querySelectorAll(".image-compare").forEach((container) => {
+    container.addEventListener("pointerdown", adjustWidth, true);
+    container.addEventListener("pointermove", adjustWidth, true);
+  });
+}
+
+function prepareCodeHighlighting() {
+  for (let code of document.querySelectorAll("pre>code")) {
+    var pre = code.parentElement;
+
+    // if line numbers to be highlighted are specified...
+    if (pre.hasAttribute("data-line-numbers")) {
+      // ...copy them from <pre> to <code>
+      code.setAttribute(
+        "data-line-numbers",
+        pre.getAttribute("data-line-numbers")
+      );
+    }
+    // otherwise, if we specified .line-numbers...
+    else if (pre.classList.contains("line-numbers")) {
+      // ...set empty attribute data-line-numbers,
+      // so reveal adds line numbers w/o highlighting
+      code.setAttribute("data-line-numbers", "");
+    }
+
+    // construct caption
+    if (pre.hasAttribute("data-caption")) {
+      var parent = pre.parentElement;
+      var figure = document.createElement("figure");
+      var caption = document.createElement("figcaption");
+      var content = pre.getAttribute("data-caption");
+
+      parent.insertBefore(figure, pre);
+      figure.appendChild(pre);
+      figure.appendChild(caption);
+      caption.innerHTML = content.trim();
+    }
+  }
+}
 
 export default Plugin;

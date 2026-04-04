@@ -106,7 +106,7 @@ function readConfig() {
     "var(--base0C)",
     "var(--base0D)",
     "var(--base0E)",
-    "var(--base0F)",
+    "var(--base0F)"
   ];
 
   // reveal setting wrt slide dimension
@@ -161,8 +161,8 @@ const germanLocalization = {
     color: "Whiteboard: Farbe ",
     radius2: "Whiteboard: Stiftgröße Radius 2",
     radius4: "Whiteboard: Stiftgröße Radius 4",
-    radius6: "Whiteboard: Stiftgröße Radius 6",
-  },
+    radius6: "Whiteboard: Stiftgröße Radius 6"
+  }
 };
 
 const englishLocalization = {
@@ -187,8 +187,8 @@ const englishLocalization = {
     color: "Whiteboard: Color ",
     radius2: "Whiteboard: Pen radius 2",
     radius4: "Whiteboard: Pen radius 4",
-    radius6: "Whiteboard: Pen radius 6",
-  },
+    radius6: "Whiteboard: Pen radius 6"
+  }
 };
 
 let l10n;
@@ -982,17 +982,6 @@ function undo() {
  */
 function loadAnnotationsFromURL() {
   return new Promise(function (resolve) {
-    // electron? try to load annotation from local file
-    if (window.electronApp) {
-      window.electronApp.loadAnnotation(annotationURL()).then((storage) => {
-        if (storage) {
-          parseAnnotations(storage);
-          resolve();
-          return;
-        }
-      });
-    }
-
     // determine scribble filename
     let filename = annotationURL();
 
@@ -1126,7 +1115,7 @@ function annotationData() {
     if (svg.children.length) {
       storage.annotations.push({
         slide: svg.parentElement.id,
-        svg: svg.innerHTML,
+        svg: svg.innerHTML
       });
     }
   });
@@ -1139,7 +1128,7 @@ function annotationData() {
  */
 function annotationBlob() {
   return new Blob([JSON.stringify(annotationData())], {
-    type: "application/json",
+    type: "application/json"
   });
 }
 
@@ -1147,17 +1136,11 @@ function annotationBlob() {
  * save annotations to decker server
  */
 function saveAnnotations() {
+  // cannot save annotations in electron app
+  if (window.Decker.isElectron()) return;
+
   // clear remaining laser strokes
   clearLaserStrokes();
-
-  // electron app? then save to file and return
-  if (window.electronApp) {
-    if (window.electronApp.saveAnnotation(annotationData(), annotationURL())) {
-      console.log("whiteboard annotations saved to local file");
-      needToSave(false);
-    }
-    return;
-  }
 
   // also save to downloads folder (just to be save(r))
   let a = document.createElement("a");
@@ -1289,7 +1272,7 @@ function startStroke(evt) {
   // add point, convert to Bezier spline
   points = [
     [mouseX, mouseY],
-    [mouseX, mouseY],
+    [mouseX, mouseY]
   ];
   renderStroke(points, stroke);
 
@@ -1731,7 +1714,7 @@ function setupKeyBindings() {
       {
         keyCode: 49 + i,
         key: String.fromCharCode(49 + i),
-        description: l10n.keybinds.color + i,
+        description: l10n.keybinds.color + i
       },
       () => {
         selectPenColor(penColors[i === 0 ? 0 : i + 8]);
@@ -1819,7 +1802,7 @@ const Plugin = {
     return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
   },
 
-  saveAnnotations: saveAnnotations,
+  saveAnnotations: saveAnnotations
 };
 
 export default Plugin;
