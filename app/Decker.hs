@@ -204,9 +204,10 @@ deckerRules = do
 
   priority 4 $ do
     publicDir <//> "*-deck.html" %> \out -> do
-      src <- lookupSource decks out <$> getDeps
+      targets <- getDeps
+      let src = lookupSource decks out targets
       need [src]
-      meta <- getGlobalMeta
+      meta <- addMetaValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src

@@ -646,7 +646,7 @@ span:is(.red, .green, .blue, .black) {
   margin-right: -0.2em;
 }
 
-span.document-path {
+a.document-url {
   display: block;
   position: fixed;
   left: 0;

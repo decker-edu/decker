@@ -11,37 +11,37 @@ where
 
 import Control.Exception
 import Control.Lens hiding (Choice)
-import qualified Data.HashMap.Strict as HashMap
-import qualified Data.List as List
-import qualified Data.List.NonEmpty as NonEmpty
-import qualified Data.Text.IO as Text
+import Data.HashMap.Strict qualified as HashMap
+import Data.List qualified as List
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
 -- import Text.Groom
 
 import Relude
 import Relude.Extra.Group
 import System.FilePath.Posix
-import qualified Text.Blaze as A
+import Text.Blaze qualified as A
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Pretty
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html5 qualified as H
+import Text.Blaze.Html5.Attributes qualified as A
 import Text.Decker.Exam.Question
+import Text.Decker.Exam.Xml (renderMarkdownFields)
+import Text.Decker.Filter.Decker2 (deckerMediaFilter)
 import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
+import Text.Decker.Writer.Layout
 import Text.Pandoc
 import Text.Pandoc.Walk
-import Text.Decker.Writer.Layout
-import Text.Decker.Exam.Xml (renderMarkdownFields)
-import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
-import Text.Decker.Filter.Decker2 (deckerMediaFilter)
 
 -- import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
 compileQuestionToHtml meta base quest = do
- traverseOf qstTitle render
+  traverseOf qstTitle render
     =<< traverseOf qstQuestion render
     =<< traverseOf qstAnswer (compileAnswerToHtml meta base) quest
   where
@@ -67,7 +67,7 @@ renderSnippetToHtml meta base markdown = do
     mergeDocumentMeta (setMetaValue "decker.use-data-src" False meta) pandoc
       >>= adjustResourcePathsA base
       -- >>= (\p -> print p >> return p)
-        >>= deckerMediaFilter (Disposition Page Html) (base </> "dummy.md")
+      >>= deckerMediaFilter (Disposition Page Html) (base </> "dummy.md")
   liftIO $ handleError $ runPure $ writeHtml45String options meta $ walk dropPara filtered
 
 -- | Drops a leading Para block wrapper for a Plain wrapper.
@@ -106,19 +106,20 @@ hn 5 = H.h5
 hn 6 = H.h6
 hn n = throw $ InternalException $ "Haha, good one: H" <> show n
 
-renderQuestionToHtml :: Int -> Text -> Question -> Html
-renderQuestionToHtml h id quest = do
+renderQuestionToHtml :: Int -> Text -> Meta -> Question -> Html
+renderQuestionToHtml h id meta quest = do
+  let editor :: String = lookupMetaOrElse "zed://file" "editor.link-prefix" meta
   H.div
     ! A.class_ "question"
     ! A.id (toValue id)
     $ do
       hn h $ do
         preEscapedText $ quest ^. qstTitle
-        H.small $
-          H.a
-            ! A.class_ "vscode"
-            ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
-            $ "(Edit)"
+        H.small
+          $ H.a
+          ! A.class_ "editor-link"
+          ! A.href (toValue (editor <> toString (quest ^. qstFilePath)))
+          $ "(Edit)"
       H.div ! A.class_ "closed" $ do
         H.p $ preEscapedText $ quest ^. qstQuestion
         hn (h + 1) "Answer"
@@ -135,51 +136,53 @@ renderQuestionToHtml h id quest = do
             H.td $ toHtml (quest ^. qstExam)
           H.tr $ do
             H.th "path"
-            H.td $
-              H.code $
-                H.a
-                  ! A.class_ "vscode"
-                  ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
-                  $ toHtml (quest ^. qstFilePath)
+            H.td
+              $ H.code
+              $ H.a
+              ! A.class_ "editor-link"
+              ! A.href (toValue (editor <> toString (quest ^. qstFilePath)))
+              $ toHtml (quest ^. qstFilePath)
 
 renderQuestionDocument :: Meta -> FilePath -> Question -> Action Text
 renderQuestionDocument meta base quest = do
   -- htmlQuest <- compileQuestionToHtml meta base quest
   htmlQuest <- renderMarkdownFields quest
-  let html = renderQuestionToHtml 2 "" htmlQuest
-  return $
-    toText $
-      renderHtml $
-        H.html $ do
-          H.head $ do
-            H.meta ! A.charset "utf-8"
-            H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/quest.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/css/quest.css"
-            H.title (preEscapedText $ quest ^. qstTitle)
-          H.body html
+  let html = renderQuestionToHtml 2 "" meta htmlQuest
+  return
+    $ toText
+    $ renderHtml
+    $ H.html
+    $ do
+      H.head $ do
+        H.meta ! A.charset "utf-8"
+        H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
+        H.script ! A.src "/support/js/quest.js" $ ""
+        H.link ! A.rel "stylesheet" ! A.href "/support/css/quest.css"
+        H.title (preEscapedText $ quest ^. qstTitle)
+      H.body html
 
 renderQuestionBrowser :: FilePath -> [Question] -> Action Text
 renderQuestionBrowser base questions = do
-  return $
-    toText $
-      renderHtml $
-        H.html $ do
-          H.head $ do
-            H.meta ! A.charset "utf-8"
-            H.title "Question Catalog"
-            H.script ! A.type_ "module" ! A.src "/support/js/catalog.js" $ ""
-            H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/reload.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/css/catalog.css"
-          H.body $ do
-            H.header $ do
-              H.h1 ("Question Browser (" <> show (length questions) <> ")")
-              H.div ! A.class_ "panel" $ do
-                H.div ! A.class_ "lectures" $ lectureIds
-                H.div ! A.class_ "topics" $ topicIds
-                H.div ! A.class_ "questions" $ topicQuests
-                H.iframe ! A.class_ "questions" ! A.src "" $ ""
+  return
+    $ toText
+    $ renderHtml
+    $ H.html
+    $ do
+      H.head $ do
+        H.meta ! A.charset "utf-8"
+        H.title "Question Catalog"
+        H.script ! A.type_ "module" ! A.src "/support/js/catalog.js" $ ""
+        H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
+        H.script ! A.src "/support/js/reload.js" $ ""
+        H.link ! A.rel "stylesheet" ! A.href "/support/css/catalog.css"
+      H.body $ do
+        H.header $ do
+          H.h1 ("Question Browser (" <> show (length questions) <> ")")
+          H.div ! A.class_ "panel" $ do
+            H.div ! A.class_ "lectures" $ lectureIds
+            H.div ! A.class_ "topics" $ topicIds
+            H.div ! A.class_ "questions" $ topicQuests
+            H.iframe ! A.class_ "questions" ! A.src "" $ ""
   where
     grouped = groupQuestions questions
     lectureIds = toHtml $ map (lectureButton . fst) grouped
@@ -201,10 +204,12 @@ renderQuestionBrowser base questions = do
         ! A.type_ "radio"
         ! A.name "question"
         ! A.dataAttribute "src" (toValue $ quest ^. qstTitle)
-        $ toHtml $ quest ^. qstTitle
+        $ toHtml
+        $ quest
+        ^. qstTitle
     topicQuests =
-      toHtml $
-        concatMap
+      toHtml
+        $ concatMap
           ( \(lid, topics) ->
               map (questTitles lid) topics
           )
@@ -212,12 +217,14 @@ renderQuestionBrowser base questions = do
     lectureTopics (lid, topics) =
       H.div
         ! A.dataAttribute "lecture" (toValue lid)
-        $ toHtml $ map (topicButton . fst) topics
+        $ toHtml
+        $ map (topicButton . fst) topics
     questTitles lid (tid, quests) =
       H.div
         ! A.dataAttribute "lecture" (toValue lid)
         ! A.dataAttribute "topic" (toValue tid)
-        $ toHtml $ map questButton quests
+        $ toHtml
+        $ map questButton quests
 
 groupQuestions :: [Question] -> [(Text, [(Text, [Question])])]
 groupQuestions questions = sorted
@@ -226,28 +233,28 @@ groupQuestions questions = sorted
     grouped = HashMap.map (groupBy _qstTopicId) (groupBy _qstLectureId questions)
     sorted :: [(Text, [(Text, [Question])])]
     sorted =
-      List.sortOn fst $
-        map
+      List.sortOn fst
+        $ map
           ( \(k, v) ->
               ( k,
-                List.sortOn fst $
-                  map
+                List.sortOn fst
+                  $ map
                     ( \(k, v) ->
                         (k, List.sortOn _qstTitle $ NonEmpty.toList v)
                     )
-                    $ HashMap.toList v
+                  $ HashMap.toList v
               )
           )
-          $ HashMap.toList grouped
+        $ HashMap.toList grouped
 
-instance ToMarkup a => ToMarkup (NonEmpty a) where
+instance (ToMarkup a) => ToMarkup (NonEmpty a) where
   toMarkup = toHtml . map toMarkup . toList
 
 renderQuestion :: Meta -> FilePath -> FilePath -> Action ()
 renderQuestion meta src out =
   do
     let base = takeDirectory src
-    putInfo $ "# render ('" <> src <>"' for '" <> out <> "' with base '" <> base <> "')"
+    putInfo $ "# render ('" <> src <> "' for '" <> out <> "' with base '" <> base <> "')"
     liftIO (readQuestion src)
       >>= renderQuestionDocument meta base
       >>= (liftIO . Text.writeFile out)
