@@ -29,7 +29,8 @@ const germanLocalization = {
     "Ich bin **Prof. Bot**, dein KI-basierter Tutor. Du kannst mir Fragen zu den Vorlesungsinhalten stellen. *Aber Vorsicht: Meine Antworten können auch falsch sein.*",
   greetingDeck: `Ich bin **Prof. Bot**, dein KI-basierter Tutor. Du kannst mir Fragen zu den Vorlesungsinhalten stellen.<br>
     Ich weiß, auf welcher Folie du gerade bist, so dass du mich zur aktuellen Folie befragen kannst. Wenn die aktuelle Folie extra Whiteboard-Seiten mit Annotationen enthält, kannst du mich auch zu diesen fragen.<br>
-    **Aber Vorsicht: Meine Antworten können auch falsch sein.**`
+    **Aber Vorsicht: Meine Antworten können auch falsch sein.**`,
+  sources: "**Relevante Quellen**"
 };
 const englishLocalization = {
   send: "Send",
@@ -39,7 +40,8 @@ const englishLocalization = {
     "I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material. *But be aware that my answers might be wrong.*",
   greetingDeck: `I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material.<br>
     I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
-    **But be aware that my answers might be wrong.**`
+    **But be aware that my answers might be wrong.**`,
+  sources: "**Relevant Sources**"
 };
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
@@ -156,11 +158,6 @@ async function addToMessage(msg, text) {
   // restore math content
   html = html.replace(/@@MATH_(\d+)@@/g, (_, i) => tokens[Number(i)]);
 
-  // replace links to decks with proper hrefs
-  html = html.replace(/(\S*?)deck\.md\b/g, (match, basename) => {
-    return `<a href="${basename}deck.html">${basename}deck.html</a>`;
-  });
-
   // add to DOM element
   msg.innerHTML = html;
 
@@ -238,7 +235,9 @@ async function send() {
 
         try {
           const evt = JSON.parse(data);
+          // console.log(evt);
 
+          // we get more text
           if (
             evt.type === "response.output_text.delta" &&
             typeof evt.delta === "string"
@@ -246,6 +245,43 @@ async function send() {
             mdText += evt.delta;
             await botMsg.add(mdText);
             chatEl.scrollTop = chatEl.scrollHeight;
+          }
+
+          // collect and print searched files
+          if (evt.type === "response.completed") {
+            // collect searched files
+            let files = new Set();
+            if (evt.response.output)
+              for (const output of evt.response.output)
+                if (output.type == "message")
+                  if (output.content)
+                    for (const content of output.content)
+                      if (content.annotations)
+                        for (const annot of content.annotations)
+                          files.add(annot.filename);
+
+            if (files.size) {
+              // path to project root and array of source files
+              const meta = window.Decker.meta;
+              const projectPath = meta.projectPath || "";
+              const sources = meta.targets[0].sources;
+
+              mdText += "\n\n" + l10n.sources + "\n";
+              files.forEach((file) => {
+                let path;
+                if (file.endsWith("-deck.md") || file.endsWith("-page.md")) {
+                  const source = sources.find((s) => s.endsWith(file));
+                  if (source) {
+                    path = projectPath + source.replace(".md", ".html");
+                    file = file.replace(".md", ".html");
+                  }
+                }
+                mdText += path ? `- [${file}](${path})\n` : `- ${file}\n`;
+              });
+
+              await botMsg.add(mdText);
+              chatEl.scrollTop = chatEl.scrollHeight;
+            }
           }
 
           // remember response ID

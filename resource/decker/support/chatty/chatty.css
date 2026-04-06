@@ -1,8 +1,7 @@
 #chatty-popover {
   position: fixed;
-  width: 70ch;
-  max-width: 80vw;
-  /* max-height: 80vh; */
+  width: 100ch;
+  max-width: 90%;
   inset: 0;
   margin: auto;
   padding: 0.25em;
@@ -101,7 +100,7 @@
   & .bubble {
     color: var(--foreground-color);
     border-radius: var(--radius);
-    max-width: 75%;
+    max-width: min(calc(100% - 7em), 80ch);
     padding: 10px 14px;
     line-height: 1.4;
     overflow-x: visible;
