@@ -247,15 +247,17 @@ deckerRules = do
         putInfo $ "# chrome finished (for " <> out <> ")" -}
     --
     publicDir <//> "*-handout.html" %> \out -> do
-      src <- lookupSource handouts out <$> getDeps
+      targets <- getDeps
+      let src = lookupSource handouts out targets
       need [src]
-      meta <- getGlobalMeta
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlHandout meta getTemplate src out
     --
     publicDir <//> "*-page.html" %> \out -> do
-      src <- lookupSource pages out <$> getDeps
+      targets <- getDeps
+      let src = lookupSource pages out targets
       need [src]
-      meta <- getGlobalMeta
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlPage meta getTemplate src out
     --
     publicDir <//> "*.css" %> \out -> do
@@ -292,19 +294,19 @@ deckerRules = do
       need ["private/quest-catalog.xml"]
     --
     indexFile %> \out -> do
-      meta <- getGlobalMeta
-      deps <- getDeps
+      targets <- getDeps
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       exists <- doesFileExist indexSource
       if exists
         then do
           need [indexSource]
-          targetMeta <- addTargetInfo deps meta
+          targetMeta <- addTargetInfo targets meta
           markdownToHtml htmlIndex targetMeta getTemplate indexSource out
           template <- getTemplate "template/index-generated.html"
-          renderIndex template meta deps generatedIndex
+          renderIndex template meta targets generatedIndex
         else do
           template <- getTemplate "template/index-generated.html"
-          renderIndex template meta deps out
+          renderIndex template meta targets out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do
