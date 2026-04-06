@@ -207,7 +207,7 @@ deckerRules = do
       targets <- getDeps
       let src = lookupSource decks out targets
       need [src]
-      meta <- addMetaValue "targets" targets <$> getGlobalMeta
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
