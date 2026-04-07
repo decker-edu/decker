@@ -167,26 +167,38 @@
     }
   }
 
-  & .bot .bubble:has(.content:empty):after {
-    display: none;
+  & .bot .bubble:has(.content:empty) {
+    &:before {
+      animation-name: fa-fade;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+    }
+    &:after {
+      display: none;
+    }
   }
 
   & .bot .bubble .content:empty {
     font-style: italic;
     color: var(--shade4);
-    &:before {
-      content: "thinking...";
-    }
   }
 }
 
-[lang="de"] #chatty-dialog .bot .bubble .content:empty:before {
-  content: "nachdenken...";
+#chatty-dialog .bot .bubble .content:empty {
+  &:before {
+    content: "thinking...";
+  }
+  [lang="de"] &:before {
+    content: "nachdenken...";
+  }
 }
 
-#chatty-dialog .bot .bubble:has(.content:empty)::before {
-  animation-name: fa-fade;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+#chatty-dialog .bot .bubble .content.file_search:empty {
+  &:before {
+    content: "checking sources...";
+  }
+  [lang="de"] &:before {
+    content: "Quellen durchsuchen...";
+  }
 }

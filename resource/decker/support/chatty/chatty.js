@@ -173,6 +173,10 @@ async function addToMessage(msg, text) {
   }
 }
 
+function waitForRedraw() {
+  return new Promise((resolve) => requestAnimationFrame(resolve));
+}
+
 async function send() {
   // user input from prompt element (and optional slide info)
   const userInput = promptEl.value.trim();
@@ -237,50 +241,64 @@ async function send() {
           const evt = JSON.parse(data);
           // console.log(evt);
 
-          // we get more text
-          if (
-            evt.type === "response.output_text.delta" &&
-            typeof evt.delta === "string"
-          ) {
-            mdText += evt.delta;
-            await botMsg.add(mdText);
-            chatEl.scrollTop = chatEl.scrollHeight;
-          }
+          switch (evt.type) {
+            // receive more text
+            case "response.output_text.delta": {
+              if (typeof evt.delta === "string") {
+                mdText += evt.delta;
+                await botMsg.add(mdText);
+                chatEl.scrollTop = chatEl.scrollHeight;
+              }
+              break;
+            }
 
-          // collect and print searched files
-          if (evt.type === "response.completed") {
-            // collect searched files
-            let files = new Set();
-            if (evt.response.output)
-              for (const output of evt.response.output)
-                if (output.type == "message")
-                  if (output.content)
-                    for (const content of output.content)
-                      if (content.annotations)
-                        for (const annot of content.annotations)
-                          files.add(annot.filename);
+            // bot is searching source files
+            case "response.file_search_call.in_progress":
+            case "response.file_search_call.searching": {
+              console.log("file search started");
+              botMsg.classList.add("file_search");
+              await waitForRedraw();
+              break;
+            }
 
-            if (files.size) {
-              // path to project root and array of source files
-              const meta = window.Decker.meta;
-              const projectPath = meta.projectPath || "";
-              const sources = meta.targets[0].sources;
+            // response complete: list used source files
+            case "response.completed": {
+              // collect searched files
+              let files = new Set();
+              if (evt.response.output)
+                for (const output of evt.response.output)
+                  if (output.type == "message")
+                    if (output.content)
+                      for (const content of output.content)
+                        if (content.annotations)
+                          for (const annot of content.annotations)
+                            files.add(annot.filename);
 
-              mdText += "\n\n" + l10n.sources + "\n";
-              files.forEach((file) => {
-                let path;
-                if (file.endsWith("-deck.md") || file.endsWith("-page.md")) {
-                  const source = sources.find((s) => s.endsWith(file));
-                  if (source) {
-                    path = projectPath + source.replace(".md", ".html");
-                    file = file.replace(".md", ".html");
+              if (files.size) {
+                // path to project root and array of source files
+                const meta = window.Decker.meta;
+                const sources = meta.targets.sources;
+                let projectPath = meta.projectPath || "";
+                if (!projectPath.endsWith("/")) projectPath += "/";
+
+                mdText += "\n\n" + l10n.sources + "\n";
+                files.forEach((file) => {
+                  let path;
+                  if (file.endsWith("-deck.md") || file.endsWith("-page.md")) {
+                    const source = sources.find((s) => s.endsWith(file));
+                    if (source) {
+                      path = projectPath + source.replace(".md", ".html");
+                      file = file.replace(".md", ".html");
+                    }
                   }
-                }
-                mdText += path ? `- [${file}](${path})\n` : `- ${file}\n`;
-              });
+                  mdText += path ? `- [${file}](${path})\n` : `- ${file}\n`;
+                });
 
-              await botMsg.add(mdText);
-              chatEl.scrollTop = chatEl.scrollHeight;
+                await botMsg.add(mdText);
+                await waitForRedraw();
+                chatEl.scrollTop = chatEl.scrollHeight;
+              }
+              break;
             }
           }
 
