@@ -4,10 +4,22 @@ import {
   solveAssignmentQuiz,
   solveFreeTextQuiz,
   solveSelection,
-  solveSelectionQuiz,
+  solveSelectionQuiz
 } from "./solver.js";
 
 import localization from "./localization.js";
+
+// shoot confetti from center of element
+import "./confetti.min.js";
+function showConfetti(elem, count) {
+  const rect = elem.getBoundingClientRect();
+  const x = rect.x + rect.width / 2;
+  const y = rect.y + rect.height / 2;
+  confetti({
+    position: { x: x, y: y },
+    count: count || 100
+  });
+}
 
 const l10n = localization();
 
@@ -17,7 +29,7 @@ let dropTarget = null;
 
 /**
  * Resets assignment quiz selections so it does not cross
- * slide boundries.
+ * slide boundaries.
  */
 export function resetAssignmentState() {
   if (selectedAnswer) {
@@ -354,8 +366,8 @@ export default {
       areas.push(area);
     }
 
-    container.solver.onclick = () => {
-      solveAssignmentQuiz(objectButtons);
+    container.solver.onclick = (event) => {
+      if (solveAssignmentQuiz(objectButtons)) showConfetti(container.solver);
     };
     parent.appendChild(container);
   },
@@ -391,7 +403,7 @@ export default {
     wrapper.appendChild(popover);
 
     select.addEventListener("change", (event) => {
-      solveSelection(select);
+      if (solveSelection(select)) showConfetti(select);
     });
     return wrapper;
   },
@@ -490,6 +502,7 @@ export default {
             } else {
               input.setAttribute("aria-description", l10n.correct);
             }
+            showConfetti(input);
             break;
           } else if (option.reason) {
             input.setAttribute(
@@ -609,6 +622,7 @@ export default {
               "aria-description",
               `${l10n.correct} ${option.reason ? option.reason : l10n.noReason}`
             );
+            showConfetti(button);
           } else {
             button.classList.add("wrong");
             const checkmark = document.createElement("span");
@@ -720,5 +734,5 @@ export default {
       }
     }
     parent.appendChild(container);
-  },
+  }
 };
