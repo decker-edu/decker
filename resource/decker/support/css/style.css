@@ -79,14 +79,14 @@ li {
 ul {
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
-  margin-left: var(--list-indent);
+  padding-inline-start: var(--list-indent);
   list-style: outside disc;
 }
 
 ol {
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
-  margin-left: var(--list-indent);
+  padding-inline-start: var(--list-indent);
   list-style: outside decimal;
 }
 
