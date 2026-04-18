@@ -33,12 +33,20 @@ function createGUI(deck) {
     Reveal.getPlugin("ui-anchors").placeButton(button, "TOP_RIGHT");
   }
 
-  // toggle chatty with key "?" (both in slide and handout mode)
-  window.addEventListener("keyup", (event) => {
-    if (event.defaultPrevented) return;
-    if (event.key == "?" && !dialog.matches(":popover-open"))
-      dialog.showPopover();
-  });
+  // toggle chatty with key c
+  Reveal.addKeyBinding(
+    {
+      keyCode: 67,
+      key: "C",
+      description:
+        navigator.language === "de"
+          ? "Chatte mit Prof. Bot"
+          : "Chat with Prof. Bot"
+    },
+    () => {
+      dialog.togglePopover();
+    }
+  );
 }
 
 const Plugin = {
