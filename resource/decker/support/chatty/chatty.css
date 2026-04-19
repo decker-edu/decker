@@ -10,7 +10,8 @@
   background: var(--shade1);
   box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
 
-  &:popover-open::backdrop {
+  &:popover-open::backdrop,
+  &::backdrop {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(6px);
   }
