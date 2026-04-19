@@ -185,7 +185,7 @@ html.handout .decker-anchor #handout-minus {
   justify-content: flex-start;
 
   &:before {
-    content: "🙄";
+    content: "🤔";
     font-size: 1.7em;
     position: absolute;
     left: -2em;
@@ -216,7 +216,7 @@ html.handout .decker-anchor #handout-minus {
   justify-content: flex-end;
 
   &:before {
-    content: "🤓";
+    content: "🎓";
     font-size: 1.7em;
     position: absolute;
     right: -2em;
