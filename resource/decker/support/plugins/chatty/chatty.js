@@ -14,6 +14,13 @@ function createGUI(deck) {
   dialog.id = "chatty-popover";
   dialog.setAttribute("closedby", "any");
   document.body.appendChild(dialog);
+  dialog.onclick = (e) => {
+    // workaround for stupid Safari
+    if (e.target === e.currentTarget) {
+      e.stopPropagation();
+      dialog.close();
+    }
+  };
 
   // fill dialog with chatty content
   setup(dialog, Reveal);
