@@ -185,13 +185,12 @@ function waitForRedraw() {
 }
 
 async function send(userInput) {
+  let input;
   if (!userInput) {
     userInput = promptEl.value.trim();
     if (!userInput) return;
-  }
-  const input = Reveal
-    ? await combineUserInputAndSlideInfo(userInput)
-    : userInput;
+    input = Reveal ? await combineUserInputAndSlideInfo(userInput) : userInput;
+  } else input = userInput;
 
   // adjust button states
   sendBtn.disabled = true;
