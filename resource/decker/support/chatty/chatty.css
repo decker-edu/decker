@@ -90,6 +90,25 @@
   & .msg {
     display: flex;
     position: relative;
+    h1 {
+      font-size: 1.5em;
+    }
+    h2 {
+      font-size: 1.3em;
+    }
+    h3 {
+      font-size: 1.2em;
+    }
+    h1,
+    h2,
+    h3 {
+      &:not(:first-child) {
+        margin-top: 1em;
+      }
+      &:not(:last-child) {
+        margin-bottom: 0.5em;
+      }
+    }
   }
   & .msg.user {
     justify-content: flex-end;

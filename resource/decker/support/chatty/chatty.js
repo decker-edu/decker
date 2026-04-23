@@ -30,7 +30,7 @@ const germanLocalization = {
   greetingDeck: `Ich bin **Prof. Bot**, dein KI-basierter Tutor. Du kannst mir Fragen zu den Vorlesungsinhalten stellen.<br>
     Ich weiß, auf welcher Folie du gerade bist, so dass du mich zur aktuellen Folie befragen kannst. Wenn die aktuelle Folie extra Whiteboard-Seiten mit Annotationen enthält, kannst du mich auch zu diesen fragen.<br>
     **Aber Vorsicht: Meine Antworten können auch falsch sein.**`,
-  sources: "**Relevante Quellen**",
+  sources: "Relevante Quellen",
   thisFile: "aktueller Foliensatz"
 };
 const englishLocalization = {
@@ -42,7 +42,7 @@ const englishLocalization = {
   greetingDeck: `I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material.<br>
     I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
     **But be aware that my answers might be wrong.**`,
-  sources: "**Relevant Sources**",
+  sources: "Relevant Sources",
   thisFile: "current slide deck"
 };
 const lang = Decker.meta.lang || navigator.language;
@@ -89,7 +89,7 @@ function setup(anchor, reveal) {
   document.head.appendChild(style);
 
   // button callbacks
-  sendBtn.onclick = send;
+  sendBtn.onclick = () => send();
   stopBtn.onclick = () => abortController?.abort();
 
   // keyboard callbacks
@@ -289,7 +289,7 @@ async function send(userInput) {
                 let projectPath = meta.projectPath || "";
                 if (!projectPath.endsWith("/")) projectPath += "/";
 
-                mdText += "\n\n" + l10n.sources + "\n";
+                mdText += "\n\n## " + l10n.sources + "\n";
                 files.forEach((file) => {
                   let path;
                   let comment = "";
