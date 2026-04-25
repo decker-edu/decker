@@ -618,6 +618,9 @@ span.fa-span[hidden] {
     top: 50%;
     translate: -50% -50%;
     rotate: -30deg;
+    font-size: 2em;
+    color: var(--shade2);
+    text-align: center;
     & * {
       display: none;
     }
@@ -625,8 +628,8 @@ span.fa-span[hidden] {
       visibility: visible;
       content: "Secret Quiz";
     }
+    [lang="de"] &::before {
+      content: "Geheimes Quiz";
+    }
   }
-}
-[lang="de"] .hide-quizzes .reveal section:has([class~="quizzer"]) h1::before {
-  content: "Geheimes Quiz";
 }
