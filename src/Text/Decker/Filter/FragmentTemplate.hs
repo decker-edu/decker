@@ -5,7 +5,7 @@ module Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates) where
 
 import Control.Concurrent.STM (modifyTVar)
 import Control.Exception (throw)
-import Control.Exception.Base (handle)
+import System.Directory (doesFileExist)
 import Data.Aeson qualified as A
 import Data.List qualified as List
 import Data.Map.Strict qualified as Map
@@ -129,52 +129,51 @@ getTemplate filename = do
       return template
     Just template -> return template
 
-readTemplateFileIO :: String -> String -> IO (FilePath, Either String (Template Text))
-readTemplateFileIO base filename = do
-  let path1 = makeProjectPath base filename
-  let path2 = projectDir </> "templates" </> filename
-  -- let path3 = supportDir </> "templates" </> filename
-
-  -- compileTemplateFile throws exceptions if the file data can not be read, and
-  -- returns (Left (Template a)) if the template cannot be compiled. this code
-  -- tries two template locations in order and tries the second one only if the
-  -- first one cannot be found. if the template cannot be found it throws an
-  -- either.
-  handle
-    ( \(SomeException _) ->
-        handle
-          ( \(SomeException err) ->
-              -- handle
-              --   ( \(SomeException err) ->
-                    return $ (filename, Left $ "Cannot find template: " <> filename)
-                -- )
-                -- $ compileTemplate' path3
-          )
-          $ compileTemplate' path2
-    )
-    $ compileTemplate' path1
+-- | Try to compile a template file, distinguishing between "file not found"
+-- (returns Nothing) and "compile error" (returns Just (Left error)).
+tryCompileTemplateFile :: FilePath -> IO (Maybe (Either String (Template Text)))
+tryCompileTemplateFile path = do
+  exists <- doesFileExist path
+  if exists
+    then Just <$> compileTemplateFile path
+    else return Nothing
 
 readTemplateFile :: String -> Filter (Template Text)
 readTemplateFile filename = do
   meta <- gets meta
   let base :: String = lookupMetaOrElse "." "decker.base-dir" meta
-  (path, template) <- liftIO $ readTemplateFileIO base filename
-  case template of
-    Right template -> do
-      needFile path
+  let path1 = makeProjectPath base filename
+  let path2 = projectDir </> "templates" </> filename
+  let searchPaths = [path1, path2]
+
+  -- Try each file path in order. Stop on the first that exists.
+  result <- liftIO $ firstJustM tryCompileTemplateFile searchPaths
+  case result of
+    Just (Right template) -> do
       return template
-    Left err -> do
-      -- can't read file from project, try reading as resource
-      text <- fmap decodeUtf8 <$> liftIO (readResource' ("support/templates" </> filename) meta)
+    Just (Left err) ->
+      throw (ResourceException $ "Cannot compile template '" <> filename <> "': " <> err)
+    Nothing -> do
+      -- File not found in project paths, try reading as a bundled resource
+      let resourcePath = "support/templates" </> filename
+      text <- fmap decodeUtf8 <$> liftIO (readResource' resourcePath meta)
       case text of
         Just text -> do
-          template <- liftIO $ Text.DocTemplates.compileTemplate filename text
-          case template of
+          result <- liftIO $ Text.DocTemplates.compileTemplate filename text
+          case result of
             Right template -> return template
-            Left err -> return $ throw (ResourceException $ "Cannot find compile resource: " <> filename <> ": " <> err)
-        Nothing -> return $ throw (ResourceException $ "Cannot find template resource: " <> filename)
+            Left err ->
+              throw (ResourceException $ "Cannot compile resource template '" <> filename <> "': " <> err)
+        Nothing ->
+          throw (ResourceException $ "Cannot find template '" <> filename <> "'. Searched:\n"
+            <> List.intercalate "\n" (map ("  - " <>) searchPaths)
+            <> "\n  - resource:" <> resourcePath)
 
-compileTemplate' path = do
-  t <- compileTemplateFile path
-  return (path, t)
+firstJustM :: (Monad m) => (a -> m (Maybe b)) -> [a] -> m (Maybe b)
+firstJustM _ [] = return Nothing
+firstJustM f (x : xs) = do
+  result <- f x
+  case result of
+    Just v -> return (Just v)
+    Nothing -> firstJustM f xs
 
