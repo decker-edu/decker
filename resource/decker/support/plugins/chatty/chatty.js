@@ -1,6 +1,7 @@
 import setup from "../../chatty/chatty.js";
 
 let Reveal;
+let dialog;
 
 function createGUI(deck) {
   // first check whether chatty is configured
@@ -9,10 +10,17 @@ function createGUI(deck) {
   if (!server || !prompt) return;
 
   // create dialog
-  let dialog = document.createElement("div");
+  dialog = document.createElement("dialog");
   dialog.id = "chatty-popover";
-  dialog.popover = "auto";
+  dialog.setAttribute("closedby", "any");
   document.body.appendChild(dialog);
+  dialog.onclick = (e) => {
+    // workaround for stupid Safari
+    if (e.target === e.currentTarget) {
+      e.stopPropagation();
+      dialog.close();
+    }
+  };
 
   // fill dialog with chatty content
   setup(dialog, Reveal);
@@ -20,11 +28,12 @@ function createGUI(deck) {
   // create button
   let button = document.createElement("button");
   button.id = "chatty-button";
-  button.popoverTargetElement = dialog;
-  button.popoverTargetAction = "toggle";
   button.title = button.ariaLabel =
     navigator.language === "de" ? "Prof. Bot fragen" : "Ask Prof. Bot";
   button.className = "fa-button fa-solid fa-robot";
+  button.onclick = () => {
+    dialog.showModal();
+  };
 
   // place button
   if (!Reveal.hasPlugin("ui-anchors")) {
@@ -33,12 +42,20 @@ function createGUI(deck) {
     Reveal.getPlugin("ui-anchors").placeButton(button, "TOP_RIGHT");
   }
 
-  // toggle chatty with key "?" (both in slide and handout mode)
-  window.addEventListener("keyup", (event) => {
-    if (event.defaultPrevented) return;
-    if (event.key == "?" && !dialog.matches(":popover-open"))
-      dialog.showPopover();
-  });
+  // toggle chatty with key c
+  Reveal.addKeyBinding(
+    {
+      keyCode: 67,
+      key: "C",
+      description:
+        navigator.language === "de"
+          ? "Chatte mit Prof. Bot"
+          : "Chat with Prof. Bot"
+    },
+    () => {
+      dialog.showModal();
+    }
+  );
 }
 
 const Plugin = {
@@ -46,6 +63,13 @@ const Plugin = {
   init: (deck) => {
     Reveal = deck;
     Reveal.on("ready", createGUI);
+  },
+  send: (input) => {
+    dialog.sendToChatty(input);
+    dialog.showModal();
+  },
+  show: () => {
+    dialog.showModal();
   }
 };
 

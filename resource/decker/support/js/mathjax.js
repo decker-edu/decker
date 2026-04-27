@@ -18,6 +18,11 @@ export function injectMathJaxCSS() {
         pointer-events: none;
     }
 
+    /* new MathJax put display equations into span */
+    span.math.display { 
+      display: block; 
+    }
+
     /* eqn refs have to be clickable */
     mjx-container > svg a, 
     mjx-container > svg a * {
@@ -74,28 +79,35 @@ export function configureMathJax() {
     loader: {
       load: ["[tex]/action", "[tex]/color"],
       paths: {
-        fonts: Decker.meta.supportPath + "/vendor/mathjax-fonts/",
-      },
+        fonts: Decker.meta.supportPath + "/vendor/mathjax-fonts/"
+      }
     },
     startup: {
       ready: () => {
         console.error("override mathjax startup");
-      },
+      }
     },
     svg: {
-      fontCache: "local", // or 'global' or 'none'
+      fontCache: "local" // or 'global' or 'none'
     },
     output: {
       font: "mathjax-" + (options.font || "newcm"),
       scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
       mtextInheritFont: true, // true to make mtext elements use surrounding font
       merrorInheritFont: true, // true to make merror text use surrounding font
+      linebreaks: {
+        // whether to use linebreaks for inline equations
+        inline:
+          window.Decker.meta.math.linebreaks === undefined
+            ? true
+            : window.Decker.meta.math.linebreaks
+      }
     },
     tex: {
       tags: "ams",
       packages: { "[+]": ["action", "color"] },
       macros: macros,
-      inlineMath: { "[+]": [["$", "$"]] },
+      inlineMath: { "[+]": [["$", "$"]] }
     },
     options: {
       skipHtmlTags: { "[+]": ["details"] },
@@ -107,17 +119,17 @@ export function configureMathJax() {
           collapsible: false, // true to enable collapsible math
           speech: a11y, // true to enable speech generation
           braille: a11y, // true to enable Braille generation
-          assistiveMml: false, // true if hidden assistive MathML should be generated for screen readers
-        },
+          assistiveMml: false // true if hidden assistive MathML should be generated for screen readers
+        }
       },
       a11y: {
         speech: a11y, // true to enable speech generation
-        braille: a11y, // true to enable Braille generation
+        braille: a11y // true to enable Braille generation
       },
       sre: {
-        locale: language === "de" ? "de" : "en",
-      },
-    },
+        locale: language === "de" ? "de" : "en"
+      }
+    }
   };
 }
 

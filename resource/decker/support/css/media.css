@@ -158,7 +158,8 @@ div.fs-container > button.fs-button:hover {
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-.fs-container:has(iframe:not([src])[data-src]) {
+/* alt text for PDF export of non-loaded content */
+figure:has(iframe:not([src])[data-src]) {
   position: relative;
   &::before {
     position: absolute;
@@ -171,36 +172,55 @@ div.fs-container > button.fs-button:hover {
     text-align: center;
   }
 }
-
-/* alt text for PDF export of non-loaded content */
-.fs-container:has(iframe:not([src])[data-src])::before {
-  content: "Embedded Content";
+/* general embedded content */
+figure:has(iframe:not([src])[data-src]) {
+  &::before {
+    content: "Embedded Content";
+  }
+  [lang="de"] &::before {
+    content: "Eingebetteter Inhalt";
+  }
 }
-[lang="de"] .fs-container:has(iframe:not([src])[data-src])::before {
-  content: "Eingebetteter Inhalt";
+/* embedded 3D models */
+figure:has(
+  iframe:not([src]):is(
+      [data-src$="mview.html"],
+      [data-src$="model-viewer.html"]
+    )
+) {
+  &::before {
+    content: "3D Model";
+  }
+  [lang="de"] &::before {
+    content: "3D-Model";
+  }
 }
-.fs-container:has(iframe:not([src])[data-src$="mview.html"])::before,
-.fs-container:has(iframe:not([src])[data-src$="model-viewer.html"])::before {
-  content: "3D Model";
+/* embedded Geogebra demos */
+figure:has(iframe:not([src])[data-src$="geogebra.html"]) {
+  &::before {
+    content: "Geogebra Demo";
+  }
+  [lang="de"] &::before {
+    content: "Geogebra-Demo";
+  }
 }
-[lang="de"]
-  .fs-container:has(iframe:not([src])[data-src$="mview.html"])::before,
-[lang="de"]
-  .fs-container:has(iframe:not([src])[data-src$="model-viewer.html"])::before {
-  content: "3D-Model";
+/* general embedded demos (based on Mario's directory structure */
+figure:has(iframe:not([src]):is([data-src^="demos/"], [data-src^="/demos/"])) {
+  &::before {
+    content: "Embedded Demo";
+  }
+  [lang="de"] &::before {
+    content: "Eingebette Demo";
+  }
 }
-.fs-container:has(iframe:not([src])[data-src$="geogebra.html"])::before {
-  content: "Geogebra Demo";
-}
-[lang="de"]
-  .fs-container:has(iframe:not([src])[data-src$="geogebra.html"])::before {
-  content: "Geogebra-Demo";
-}
-.fs-container:has(iframe:not([src])[data-src^="demos/"])::before {
-  content: "Embedded Demo";
-}
-[lang="de"] .fs-container:has(iframe:not([src])[data-src^="demos/"])::before {
-  content: "Eingebette Demo";
+/* youtube video */
+figure:has(iframe:not([src])[data-src^="https://www.youtube.com/embed/"]) {
+  &::before {
+    content: "Youtube Video";
+  }
+  [lang="de"] &::before {
+    content: "Youtube Video";
+  }
 }
 
 /* this prevents responsive charts from continuously resizing */

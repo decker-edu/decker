@@ -87,6 +87,8 @@ index:
   search: true
   searchShowsDeckTitle: true
   searchShowsDeckSubtitle: true
+  listShowsDeckTitle: true
+  listShowsDeckSubtitle: true
   links:
     - a11y
     - handout

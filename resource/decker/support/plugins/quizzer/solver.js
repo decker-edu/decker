@@ -44,6 +44,7 @@ export function solveFreeTextQuiz(replacers, quiz) {
 }
 
 export function solveAssignmentQuiz(objectButtons) {
+  let correct = true;
   for (const answer of objectButtons) {
     answer.classList.remove("correct");
     answer.classList.remove("wrong");
@@ -63,11 +64,14 @@ export function solveAssignmentQuiz(objectButtons) {
     } else {
       answer.classList.add("wrong");
       checkmark.classList.add("fa-times");
+      correct = false;
     }
   }
+  return correct;
 }
 
 export function solveSelection(selection) {
+  let correct = true;
   const wrapper = selection.closest(".input-wrapper");
   let checkmark = wrapper.querySelector(".checkmark");
   if (!checkmark) {
@@ -104,7 +108,8 @@ export function solveSelection(selection) {
     wrapper.classList.add("correct");
     checkmark.classList.remove("fa-times");
     checkmark.classList.add("fa-check");
-  }
+  } else correct = false;
+  return correct;
 }
 
 export function solveSelectionQuiz(selections) {

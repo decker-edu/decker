@@ -350,7 +350,7 @@ function continueWhereYouLeftOff() {
         dialog.style.display = "none";
       };
 
-      let label = createElement({
+      createElement({
         type: "span",
         id: "continue-label",
         parent: dialog,
@@ -388,6 +388,10 @@ function continueWhereYouLeftOff() {
           event.preventDefault();
           event.stopPropagation();
           no.focus();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          hideDialog();
         }
       });
 
@@ -396,14 +400,18 @@ function continueWhereYouLeftOff() {
           event.preventDefault();
           event.stopPropagation();
           yes.focus();
-        }
-      });
-
-      dialog.addEventListener("focusout", (event) => {
-        if (!dialog.contains(event.relatedTarget)) {
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
           hideDialog();
         }
       });
+
+      // dialog.addEventListener("focusout", (event) => {
+      //   if (!dialog.contains(event.relatedTarget)) {
+      //     hideDialog();
+      //   }
+      // });
 
       yes.focus();
       Reveal.addEventListener("slidechanged", hideDialog);

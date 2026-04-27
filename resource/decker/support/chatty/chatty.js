@@ -30,7 +30,8 @@ const germanLocalization = {
   greetingDeck: `Ich bin **Prof. Bot**, dein KI-basierter Tutor. Du kannst mir Fragen zu den Vorlesungsinhalten stellen.<br>
     Ich weiß, auf welcher Folie du gerade bist, so dass du mich zur aktuellen Folie befragen kannst. Wenn die aktuelle Folie extra Whiteboard-Seiten mit Annotationen enthält, kannst du mich auch zu diesen fragen.<br>
     **Aber Vorsicht: Meine Antworten können auch falsch sein.**`,
-  sources: "**Relevante Quellen**"
+  sources: "Relevante Quellen",
+  thisFile: "aktueller Foliensatz"
 };
 const englishLocalization = {
   send: "Send",
@@ -41,7 +42,8 @@ const englishLocalization = {
   greetingDeck: `I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material.<br>
     I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
     **But be aware that my answers might be wrong.**`,
-  sources: "**Relevant Sources**"
+  sources: "Relevant Sources",
+  thisFile: "current slide deck"
 };
 const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
@@ -87,7 +89,7 @@ function setup(anchor, reveal) {
   document.head.appendChild(style);
 
   // button callbacks
-  sendBtn.onclick = send;
+  sendBtn.onclick = () => send();
   stopBtn.onclick = () => abortController?.abort();
 
   // keyboard callbacks
@@ -113,6 +115,11 @@ function setup(anchor, reveal) {
       }
     });
   }
+
+  // global function for asking bot
+  anchor.sendToChatty = (input) => {
+    send(input);
+  };
 
   // post initial bot message
   newMessage("bot").add(
@@ -173,13 +180,17 @@ async function addToMessage(msg, text) {
   }
 }
 
-async function send() {
-  // user input from prompt element (and optional slide info)
-  const userInput = promptEl.value.trim();
-  if (!userInput) return;
-  const input = Reveal
-    ? await combineUserInputAndSlideInfo(userInput)
-    : userInput;
+function waitForRedraw() {
+  return new Promise((resolve) => requestAnimationFrame(resolve));
+}
+
+async function send(userInput) {
+  let input;
+  if (!userInput) {
+    userInput = promptEl.value.trim();
+    if (!userInput) return;
+    input = Reveal ? await combineUserInputAndSlideInfo(userInput) : userInput;
+  } else input = userInput;
 
   // adjust button states
   sendBtn.disabled = true;
@@ -237,50 +248,71 @@ async function send() {
           const evt = JSON.parse(data);
           // console.log(evt);
 
-          // we get more text
-          if (
-            evt.type === "response.output_text.delta" &&
-            typeof evt.delta === "string"
-          ) {
-            mdText += evt.delta;
-            await botMsg.add(mdText);
-            chatEl.scrollTop = chatEl.scrollHeight;
-          }
+          switch (evt.type) {
+            // receive more text
+            case "response.output_text.delta": {
+              if (typeof evt.delta === "string") {
+                mdText += evt.delta;
+                await botMsg.add(mdText);
+                chatEl.scrollTop = chatEl.scrollHeight;
+              }
+              break;
+            }
 
-          // collect and print searched files
-          if (evt.type === "response.completed") {
-            // collect searched files
-            let files = new Set();
-            if (evt.response.output)
-              for (const output of evt.response.output)
-                if (output.type == "message")
-                  if (output.content)
-                    for (const content of output.content)
-                      if (content.annotations)
-                        for (const annot of content.annotations)
-                          files.add(annot.filename);
+            // bot is searching source files
+            case "response.file_search_call.in_progress":
+            case "response.file_search_call.searching": {
+              // console.log("file search started");
+              botMsg.classList.add("file_search");
+              await waitForRedraw();
+              break;
+            }
 
-            if (files.size) {
-              // path to project root and array of source files
-              const meta = window.Decker.meta;
-              const projectPath = meta.projectPath || "";
-              const sources = meta.targets[0].sources;
+            // response complete: list used source files
+            case "response.completed": {
+              // collect searched files
+              let files = new Set();
+              if (evt.response.output)
+                for (const output of evt.response.output)
+                  if (output.type == "message")
+                    if (output.content)
+                      for (const content of output.content)
+                        if (content.annotations)
+                          for (const annot of content.annotations)
+                            files.add(annot.filename);
+              // console.log(files);
 
-              mdText += "\n\n" + l10n.sources + "\n";
-              files.forEach((file) => {
-                let path;
-                if (file.endsWith("-deck.md") || file.endsWith("-page.md")) {
-                  const source = sources.find((s) => s.endsWith(file));
-                  if (source) {
-                    path = projectPath + source.replace(".md", ".html");
-                    file = file.replace(".md", ".html");
+              if (files.size) {
+                // path to project root and array of source files
+                const meta = window.Decker.meta;
+                const sources = meta.targets.sources;
+                let projectPath = meta.projectPath || "";
+                if (!projectPath.endsWith("/")) projectPath += "/";
+
+                mdText += "\n\n## " + l10n.sources + "\n";
+                files.forEach((file) => {
+                  let path;
+                  let comment = "";
+                  if (file.endsWith("-deck.md") || file.endsWith("-page.md")) {
+                    let source = sources.find((s) => s.endsWith(file));
+                    if (source) {
+                      source = source.replace(".md", ".html");
+                      file = file.replace(".md", ".html");
+                      if (window.location.pathname.endsWith(file))
+                        comment = ` (${l10n.thisFile})`;
+                      path = projectPath + source;
+                    }
                   }
-                }
-                mdText += path ? `- [${file}](${path})\n` : `- ${file}\n`;
-              });
+                  mdText += path
+                    ? `- [${file}](${path})${comment}\n`
+                    : `- ${file}${comment}\n`;
+                });
 
-              await botMsg.add(mdText);
-              chatEl.scrollTop = chatEl.scrollHeight;
+                await botMsg.add(mdText);
+                await waitForRedraw();
+                chatEl.scrollTop = chatEl.scrollHeight;
+              }
+              break;
             }
           }
 

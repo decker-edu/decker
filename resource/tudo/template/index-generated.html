@@ -5,13 +5,18 @@
     <meta charset="utf-8">
     <meta name="generator" content="pandoc">
 
+    <!-- prevent caching, since index page changes frequently -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <!-- PWA Kram -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#84b819" />
+    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <link rel="manifest" href="$decker-support-dir$/pwa/manifest.webmanifest" crossorigin="use-credentials" />
 
     <script type="module">
@@ -27,12 +32,15 @@ $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$">
 $endif$
 $if(template.favicon)$
-  <link rel="shortcut icon" href="$template.favicon$">
+    <link rel="shortcut icon" href="$template.favicon$">
 $else$
-  <link rel="shortcut icon" href="$decker-support-dir$/assets/favicon.ico">
+    <link rel="shortcut icon" href="$decker-support-dir$/assets/favicon.ico">
 $endif$
-    <title>$if(title-prefix)$$title-prefix$ – $endif$Decker: Inhaltsverzeichnis</title>
-
+$if(title)$ 
+    <title>$if(title-prefix)$$title-prefix$ – $endif$ $title$</title>
+$else$
+    <title>Decker: Table of Contents</title>
+$endif$
     
     <!-- style sheets ------------------------------------------------------->
 
@@ -54,9 +62,6 @@ $endif$
           $css-declarations$
         $endfor$
       }
-    </style>
-    <style>
-      $style.html()$
     </style>
 
     <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
@@ -85,11 +90,19 @@ $endif$
        <img src=$template.index-page.banner$>
     </div>
     $endif$
+
     $if(title)$
       <h1>$title$</h1>
+      $if(subtitle)$
+        <h2>$subtitle$</h2>
+      $endif$
     $else$
-      <h1>Inhaltsverzeichnis</h1>
+      <h1>
+        <span class="english">Table of Contents</span>
+        <span class="german">Inhaltsverzeichnis</span>
+      </h1>
     $endif$
+
     <button id="index-color-button" class="fa-button"></button>
     </header>
 
@@ -145,7 +158,26 @@ $endif$
           <tbody>
             $for(decks.by-title/pairs)$
             <tr>
-              <td>$if(it.value.title)$$it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td>
+              <!-- <td>$if(it.value.title)$$it.value.title$$else$Unknown Title$endif$$if(it.value.subtitle)$ &mdash; $it.value.subtitle$$endif$</td> -->
+              <td>
+                $if(index.listShowsDeckTitle)$
+                  <span>
+                    $if(it.value.title)$
+                      $it.value.title$
+                    $else$
+                      Unknown Title
+                    $endif$
+                  </span>
+                $endif$
+                <span class="separator">&mdash;</span>
+                $if(index.listShowsDeckSubtitle)$
+                  $if(it.value.subtitle)$ 
+                    <span>
+                      $it.value.subtitle$
+                    </span>
+                  $endif$
+                $endif$
+              </td>
               <td><span class="icons"><a href="$it.value.url$"><i class="fa-brands fa-html5"></i></a></span></td>
             </tr>
             $endfor$
@@ -179,9 +211,17 @@ $endif$
     <footer>
       <p>
         $if(copyright)$ $copyright$ $endif$ 
-        $if(author)$ $author$;&ensp; $endif$
-        $if(affiliation)$ $affiliation$;&ensp; $endif$
-        $if(date)$ $date$ $endif$
+        $if(author)$ 
+          <span>$author$</span>
+        $endif$
+        <span class="separator"> &mdash; </span>
+        $if(affiliation)$ 
+          <span>$affiliation$</span>
+        $endif$
+        <span class="separator"> &mdash; </span>
+        $if(date)$ 
+          <span>$date$</span>
+        $endif$
       </p>
     </footer>
   </body>

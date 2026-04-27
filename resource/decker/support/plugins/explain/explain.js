@@ -297,7 +297,7 @@ class Timing {
     let slideId = Reveal.getCurrentSlide().id;
     this.previousSlide = {
       slideId: slideId,
-      timeIn: time,
+      timeIn: time
     };
 
     this.timeIntervals.push(this.previousSlide);
@@ -309,7 +309,7 @@ class Timing {
     if (this.previousSlide) this.previousSlide.timeOut = this.timeStamp();
     let json = JSON.stringify(this.timeIntervals, null, 4);
     return new Blob([json], {
-      type: "application/json",
+      type: "application/json"
     });
   }
 }
@@ -326,10 +326,10 @@ async function captureScreen() {
       width: recWidth,
       height: recHeight,
       cursor: "always",
-      resizeMode: "crop-and-scale",
+      resizeMode: "crop-and-scale"
     },
     audio: true,
-    selfBrowserSurface: "include",
+    selfBrowserSurface: "include"
   });
 
   let video = desktopStream.getVideoTracks()[0].getSettings();
@@ -359,9 +359,9 @@ async function captureMicrophone() {
       video: false,
       audio: {
         deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
-        echoCancellation: false,
-        noiseSuppression: true,
-      },
+        echoCancellation: true,
+        noiseSuppression: true
+      }
     });
   } catch (error) {
     console.error(error);
@@ -415,9 +415,9 @@ async function captureCamera() {
         deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
         width: camWidth,
         height: camHeight,
-        frameRate: { max: 30 },
+        frameRate: { max: 30 }
       },
-      audio: false,
+      audio: false
     });
   } catch (error) {
     console.error(error);
@@ -466,7 +466,7 @@ async function captureCamera() {
 function mergeStreams() {
   const tracks = [
     ...desktopStream.getVideoTracks(),
-    ...mergeAudioStreams(desktopStream, voiceStream),
+    ...mergeAudioStreams(desktopStream, voiceStream)
   ];
   stream = new MediaStream(tracks);
 
@@ -609,7 +609,7 @@ async function startRecording() {
     let options = [
       { text: localization.append, value: "APPEND" },
       { text: localization.replace, value: "REPLACE" },
-      { text: localization.cancel, value: "CANCEL" },
+      { text: localization.cancel, value: "CANCEL" }
     ];
     let messageElement = document.createElement("div");
     let messageText = document.createElement("p");
@@ -644,7 +644,7 @@ async function startRecording() {
   // setup recorder (let the browser choose the codec)
   recorder = new MediaRecorder(stream, {
     // mimeType: "video/webm; codecs=h264",
-    mimeType: "video/webm",
+    mimeType: "video/webm"
   });
 
   recorder.ondataavailable = (e) => blobs.push(e.data);
@@ -728,12 +728,12 @@ async function startRecording() {
       if (exists && recordingType === "APPEND") {
         appendVideo({
           data: vblob,
-          filename: deckRecordingUrl(),
+          filename: deckRecordingUrl()
         });
       } else {
         replaceVideo({
           data: vblob,
-          filename: deckRecordingUrl(),
+          filename: deckRecordingUrl()
         });
       }
     } catch (e) {
@@ -885,7 +885,7 @@ function createPlayerGUI() {
   playPanel = createElement({
     type: "div",
     id: "explain-panel",
-    parent: document.body,
+    parent: document.body
   });
 
   playButton = createElement({
@@ -893,7 +893,7 @@ function createPlayerGUI() {
     id: "explain-play",
     classes: "explain fa-button fas fa-play",
     title: "Play video recording",
-    onclick: () => uiState.transition("play"),
+    onclick: () => uiState.transition("play")
   });
 
   if (Reveal.hasPlugin("ui-anchors")) {
@@ -906,7 +906,7 @@ function createPlayerGUI() {
     type: "video",
     id: "explain-video",
     classes: "video-js",
-    parent: playPanel,
+    parent: playPanel
   });
 
   // setup video-js
@@ -916,7 +916,7 @@ function createPlayerGUI() {
     controls: true,
     autoplay: false,
     preload: "metadata",
-    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3],
+    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
     playsinline: true,
     html5: { nativeTextTracks: true },
     controlBar: {
@@ -928,7 +928,7 @@ function createPlayerGUI() {
       remainingTimeDisplay: true,
       playbackRateMenuButton: true,
       fullscreenToggle: true,
-      pictureInPictureToggle: false,
+      pictureInPictureToggle: false
     },
     userActions: {
       // mouse click toggles play/pause
@@ -1012,8 +1012,8 @@ function createPlayerGUI() {
             uiState.transition("stop");
             break;
         }
-      },
-    },
+      }
+    }
   });
   // use double tap on left/right part of player to jump backward/forward by 10sec
   let lastTap = null;
@@ -1054,7 +1054,7 @@ function createPlayerGUI() {
       className: "vjs-icon-cancel",
       clickHandler: function () {
         uiState.transition("stop");
-      },
+      }
     },
     0
   );
@@ -1066,7 +1066,7 @@ function createPlayerGUI() {
       className: "vjs-icon-previous-item",
       clickHandler: function () {
         prev();
-      },
+      }
     },
     1
   );
@@ -1078,7 +1078,7 @@ function createPlayerGUI() {
       className: "vjs-icon-next-item",
       clickHandler: function () {
         next();
-      },
+      }
     },
     3
   );
@@ -1129,7 +1129,7 @@ function focusable(element) {
   return [
     ...element.querySelectorAll(
       'button,[href],select,textarea,input:not([type="hidden"]),[tabindex]:not([tabindex="-1"])'
-    ),
+    )
   ];
 }
 
@@ -1137,7 +1137,7 @@ async function createRecordingGUI() {
   recordPanel = createElement({
     type: "div",
     id: "record-panel",
-    parent: document.body,
+    parent: document.body
   });
 
   recordToggle = createElement({
@@ -1147,7 +1147,7 @@ async function createRecordingGUI() {
     parent: recordPanel,
     onclick: (event) => {
       toggleRecordPanel();
-    },
+    }
   });
 
   let row;
@@ -1155,26 +1155,26 @@ async function createRecordingGUI() {
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   recordIndicator = createElement({
     type: "i",
     id: "record-indicator",
     classes: "fas indicator",
-    parent: row,
+    parent: row
   });
 
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   volumeMeter = createElement({
     type: "meter",
     id: "audio-meter",
-    parent: row,
+    parent: row
   });
   volumeMeter.value = -60;
   volumeMeter.min = -60;
@@ -1185,13 +1185,13 @@ async function createRecordingGUI() {
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   voiceIndicator = createElement({
     type: "i",
     classes: "indicator fas fa-microphone",
-    parent: row,
+    parent: row
   });
 
   voiceGainSlider = createElement({
@@ -1199,19 +1199,19 @@ async function createRecordingGUI() {
     id: "voice-gain-slider",
     classes: "gain-slider",
     title: "Microphone Audio Gain",
-    parent: row,
+    parent: row
   });
 
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   desktopIndicator = createElement({
     type: "i",
     classes: "indicator fas fa-tv",
-    parent: row,
+    parent: row
   });
 
   desktopGainSlider = createElement({
@@ -1219,7 +1219,7 @@ async function createRecordingGUI() {
     id: "desktop-gain-slider",
     classes: "gain-slider",
     title: "Desktop Audio Gain",
-    parent: row,
+    parent: row
   });
   setupGainSlider(desktopGain, desktopGainSlider);
 
@@ -1227,14 +1227,14 @@ async function createRecordingGUI() {
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   micIndicator = createElement({
     type: "i",
     classes: "indicator fas fa-microphone",
     title: "Select microphone",
-    parent: row,
+    parent: row
   });
 
   micSelect = createElement({
@@ -1242,7 +1242,7 @@ async function createRecordingGUI() {
     id: "mic-select",
     classes: "input-select",
     title: "Select microphone",
-    parent: row,
+    parent: row
   });
   micSelect.onchange = captureMicrophone;
 
@@ -1250,14 +1250,14 @@ async function createRecordingGUI() {
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   camIndicator = createElement({
     type: "i",
     classes: "indicator fas fa-camera",
     title: "Select camera",
-    parent: row,
+    parent: row
   });
 
   camSelect = createElement({
@@ -1265,66 +1265,66 @@ async function createRecordingGUI() {
     id: "cam-select",
     classes: "input-select",
     title: "Select camera",
-    parent: row,
+    parent: row
   });
   camSelect.onchange = captureCamera;
 
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   createElement({
     type: "i",
     classes: "indicator fas fa-camera",
     title: "Camera capture size",
-    parent: row,
+    parent: row
   });
 
   cameraCaptureSize = createElement({
     type: "span",
     classes: "capture-size",
-    parent: row,
+    parent: row
   });
 
   createElement({
     type: "i",
     classes: "indicator fas fa-tv",
     title: "Screen capture size",
-    parent: row,
+    parent: row
   });
 
   screenCaptureSize = createElement({
     type: "span",
     classes: "capture-size",
-    parent: row,
+    parent: row
   });
 
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   createElement({
     type: "i",
     classes: "indicator fas fa-stopwatch",
     title: "Recording time",
-    parent: row,
+    parent: row
   });
 
   recordingTime = createElement({
     type: "span",
     classes: "capture-size",
     title: "Recording timer",
-    parent: row,
+    parent: row
   });
 
   row = createElement({
     type: "div",
     classes: "controls-row",
-    parent: recordPanel,
+    parent: recordPanel
   });
 
   recordButton = createElement({
@@ -1339,7 +1339,7 @@ async function createRecordingGUI() {
         return;
       }
       uiState.transition("record");
-    },
+    }
   });
 
   pauseButton = createElement({
@@ -1352,7 +1352,7 @@ async function createRecordingGUI() {
         return;
       }
       uiState.transition("pause");
-    },
+    }
   });
 
   stopButton = createElement({
@@ -1365,7 +1365,7 @@ async function createRecordingGUI() {
         return;
       }
       uiState.transition("stop");
-    },
+    }
   });
 
   /* inert everything but the toggle button */
@@ -1391,7 +1391,7 @@ function setupGainSlider(gain, slider) {
 
   slider.output = createElement({
     type: "output",
-    parent: slider.parentElement,
+    parent: slider.parentElement
   });
 
   slider.oninput = function () {
@@ -1411,7 +1411,7 @@ function createCameraGUI() {
     type: "video",
     id: "camera-video",
     classes: "camera-panel",
-    parent: document.body,
+    parent: document.body
   });
   cameraVideo.muted = true; // don't want audio in this stream
 
@@ -1419,7 +1419,7 @@ function createCameraGUI() {
     type: "canvas",
     id: "camera-canvas",
     classes: "camera-panel",
-    parent: document.body,
+    parent: document.body
   });
   if (gsBackground) {
     cameraCanvas.style.backgroundImage = `url('${gsBackground}')`;
@@ -1772,7 +1772,7 @@ async function setupPlayer() {
             kind: "captions",
             srclang: document.documentElement.lang,
             src: vtt,
-            default: a11y,
+            default: a11y
           },
           false
         );
@@ -1878,45 +1878,45 @@ const Plugin = {
         name: "INIT",
         transition: {
           setupPlayer: { action: setupPlayer, next: "PLAYER_READY" },
-          setupRecorder: { action: setupRecorder, next: "RECORDER_READY" },
-        },
+          setupRecorder: { action: setupRecorder, next: "RECORDER_READY" }
+        }
       },
       PLAYER_READY: {
         name: "PLAYER_READY",
         transition: {
           play: { action: play, next: "PLAYING" },
-          setupRecorder: { action: setupRecorder, next: "RECORDER_READY" },
-        },
+          setupRecorder: { action: setupRecorder, next: "RECORDER_READY" }
+        }
       },
       PLAYING: {
         name: "PLAYING",
         transition: {
-          stop: { action: stop, next: "PLAYER_READY" },
-        },
+          stop: { action: stop, next: "PLAYER_READY" }
+        }
       },
       RECORDER_READY: {
         name: "RECORDER_READY",
         transition: {
           // cancel: { action: enableViewButton, next: "INIT" },
-          record: { action: startRecording, next: "RECORDING" },
-        },
+          record: { action: startRecording, next: "RECORDING" }
+        }
       },
       RECORDING: {
         name: "RECORDING",
         transition: {
           cancel: { action: stopRecording, next: "INIT" },
           stop: { action: stopRecording, next: "INIT" },
-          pause: { action: pauseRecording, next: "RECORDER_PAUSED" },
-        },
+          pause: { action: pauseRecording, next: "RECORDER_PAUSED" }
+        }
       },
       RECORDER_PAUSED: {
         name: "RECORDER_PAUSED",
         transition: {
           cancel: { action: stopRecording, next: "INIT" },
           stop: { action: stopRecording, next: "INIT" },
-          pause: { action: resumeRecording, next: "RECORDING" },
-        },
-      },
+          pause: { action: resumeRecording, next: "RECORDING" }
+        }
+      }
     });
     // Try to connect to an existing video.
     uiState.transition("setupPlayer");
@@ -1940,7 +1940,7 @@ const Plugin = {
       accept: "Accept",
       abort: "Abort",
       presenter_mode_error:
-        'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.',
+        'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.'
     };
 
     if (lang === "de") {
@@ -1958,7 +1958,7 @@ const Plugin = {
         accept: "Akzeptieren",
         abort: "Abbrechen",
         presenter_mode_error:
-          'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.',
+          'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.'
       };
     }
     deck.addEventListener("ready", () => {
@@ -2007,7 +2007,7 @@ const Plugin = {
   stopVideo: stop,
   isVideoPlaying: () => {
     return uiState.is("PLAYING");
-  },
+  }
 };
 
 export default Plugin;
