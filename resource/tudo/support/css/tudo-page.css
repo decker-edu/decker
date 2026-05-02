@@ -553,17 +553,20 @@ details.demo summary:hover {
   color: white;
 }
 
-/* links */
-
+/* links in text and equations */
 a {
   color: var(--accent5-fg);
   text-decoration: none;
+  &:hover {
+    text-shadow: none;
+    text-decoration: underline;
+    border: none;
+  }
 }
-
-a:hover {
-  text-shadow: none;
-  text-decoration: underline;
-  border: none;
+mjx-container[jax="SVG"] > svg a {
+  color: var(--accent5-fg);
+  stroke: var(--accent5-fg) !important;
+  fill: var(--accent5-fg) !important;
 }
 
 .qed {
@@ -1107,6 +1110,10 @@ html.dark
   :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+}
+html.dark .media figure figcaption mjx-container svg {
+  background: none !important;
+  filter: none !important;
 }
 
 @media (prefers-color-scheme: dark) {

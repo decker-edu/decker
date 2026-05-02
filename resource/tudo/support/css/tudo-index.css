@@ -28,7 +28,8 @@ header {
   justify-content: center;
   text-align: center;
   background: var(--primary-color);
-  padding: 1em 0.5em;
+  padding: 1em 1em;
+  box-sizing: border-box;
   width: 100%;
 }
 
