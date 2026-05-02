@@ -130,7 +130,7 @@ const quizzerClasses = [
   "quizzer.freetext",
   "quizzer-freetext",
   "quizzer-free-text",
-  "quizzer-ft",
+  "quizzer-ft"
 ];
 
 function selectAllQuizzes(elem) {
@@ -210,7 +210,7 @@ function parseQuizzes(reveal) {
       const quizObject = {
         type: undefined,
         question: undefined,
-        choices: [],
+        choices: []
       };
       let customPlaceholder = quizzer.getAttribute("placeholder");
       if (isAssignmentQuiz(quizzer)) {
@@ -247,7 +247,7 @@ function parseQuizzes(reveal) {
         }
         const choiceObject = {
           votes: 1, // By default you have at least one vote
-          options: [],
+          options: []
         };
         /* ... where each list item is a possible answer ... */
         const items = list.querySelectorAll(":scope > li");
@@ -255,7 +255,7 @@ function parseQuizzes(reveal) {
           const answerObject = {
             label: undefined,
             reason: undefined,
-            correct: false,
+            correct: false
           };
           /* ... with an optional reason written as a nested list item ... */
           const reason = item.querySelector(":scope ul li");
@@ -291,7 +291,7 @@ function parseQuizzes(reveal) {
         for (const defList of defLists) {
           const choiceObject = {
             votes: 1, // By default you have at least one vote
-            options: [],
+            options: []
           };
           let currentCategory = undefined;
           while (defList.firstElementChild) {
@@ -303,7 +303,7 @@ function parseQuizzes(reveal) {
               const answerObject = {
                 label: undefined,
                 reason: undefined,
-                correct: false,
+                correct: false
               };
               answerObject.label = child.innerHTML;
               answerObject.reason =
@@ -335,7 +335,7 @@ function parseQuizzes(reveal) {
           for (const category of uniqueCategories) {
             const object = {
               label: category,
-              number: number++,
+              number: number++
             };
             categoryObjects.push(object);
           }
@@ -543,6 +543,7 @@ function createHostInterface(reveal) {
           loopAudio.play();
         }
         host.sendQuiz(activeQuiz);
+        qrDialog.showModal();
         return;
       }
     });
@@ -692,7 +693,7 @@ function requireHost(callback) {
         scale: 12,
         includetext: true,
         textxalign: "center",
-        eclevel: "L",
+        eclevel: "L"
       });
       const sideCanvases = [qrLeftCanvas, qrRightCanvas];
       for (const sideCanvas of sideCanvases) {
@@ -702,7 +703,7 @@ function requireHost(callback) {
           scale: 4,
           includetext: true,
           textxalign: "center",
-          eclevel: "L",
+          eclevel: "L"
         });
         sideCanvas.dataset["session"] = session;
       }
@@ -801,26 +802,26 @@ function renderResult(result) {
         datasets: [
           {
             data: data,
-            backgroundColor: "#2a9ddf",
-          },
-        ],
+            backgroundColor: "#2a9ddf"
+          }
+        ]
       },
       options: {
         animation: {
-          duration: 3000,
+          duration: 3000
         },
         plugins: {
           title: { display: false },
-          legend: { display: false },
+          legend: { display: false }
         },
         scales: {
           y: {
             min: 0,
             max: 1,
-            ticks: { format: { style: "percent" } },
-          },
-        },
-      },
+            ticks: { format: { style: "percent" } }
+          }
+        }
+      }
     });
   }
   if (awaitingQuiz && awaitingQuiz.type === "freetext") {
@@ -843,7 +844,7 @@ function renderResult(result) {
         gridSize: 8,
         weightFactor: (size) => {
           return (size / most) * 64;
-        },
+        }
       });
     }
   }
@@ -870,26 +871,26 @@ function renderResult(result) {
           datasets: [
             {
               data: data,
-              backgroundColor: "#2a9ddf",
-            },
-          ],
+              backgroundColor: "#2a9ddf"
+            }
+          ]
         },
         options: {
           animation: {
-            duration: 3000,
+            duration: 3000
           },
           plugins: {
             title: { display: false },
-            legend: { display: false },
+            legend: { display: false }
           },
           scales: {
             y: {
               min: 0,
               max: 1,
-              ticks: { format: { style: "percent" } },
-            },
-          },
-        },
+              ticks: { format: { style: "percent" } }
+            }
+          }
+        }
       });
     }
   }
@@ -938,14 +939,14 @@ function renderResult(result) {
     for (const option of options) {
       const node = {
         node: nodes.length,
-        name: option.letter,
+        name: option.letter
       };
       nodes.push(node);
     }
     for (const category of categories) {
       const node = {
         node: nodes.length,
-        name: String(category.number),
+        name: String(category.number)
       };
       nodes.push(node);
     }
@@ -959,7 +960,7 @@ function renderResult(result) {
         const link = {
           source: source.node,
           target: target.node,
-          value: assignment.count,
+          value: assignment.count
         };
         links.push(link);
       }
@@ -967,7 +968,7 @@ function renderResult(result) {
     const json = { nodes: nodes, links: links };
     generator.extent([
       [16, 16],
-      [width - 32, height - 32],
+      [width - 32, height - 32]
     ]);
     var graph = generator(json);
     var link = svg
@@ -1194,7 +1195,7 @@ const Plugin = {
       Decker.addPresenterModeListener(onPresenterMode);
     });
     Reveal = reveal;
-  },
+  }
 };
 
 export default Plugin;
