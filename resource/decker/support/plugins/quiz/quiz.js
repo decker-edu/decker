@@ -58,7 +58,7 @@ function setupGUI() {
     type: "button",
     classes: "fa-button fas fa-qrcode poll-only presenter-only",
     tooltip: "Show QR code",
-    onclick: toggleQR,
+    onclick: toggleQR
   });
   anchors.addBottomCenterButton(qrButton);
 
@@ -66,14 +66,14 @@ function setupGUI() {
     type: "button",
     classes: "fa-button fas fa-poll poll-only presenter-only",
     tooltip: "Start/stop poll",
-    onclick: switchPollState,
+    onclick: switchPollState
   });
   anchors.addBottomCenterButton(pollButton);
 
   votes_div = createElement({
     type: "div",
     id: "poll-votes",
-    classes: "poll-only presenter-only",
+    classes: "poll-only presenter-only"
   });
   anchors.addBottomCenterButton(votes_div);
 
@@ -81,13 +81,13 @@ function setupGUI() {
     type: "div",
     id: "poll-chart",
     classes: "overlay visible",
-    parent: revealElement,
+    parent: revealElement
   });
   chart_div.setAttribute("data-prevent-swipe", "");
 
   chart = createElement({
     type: "canvas",
-    parent: chart_div,
+    parent: chart_div
   });
   chart.width = "400";
   chart.height = "300";
@@ -95,7 +95,7 @@ function setupGUI() {
   qrcode = createElement({
     type: "div",
     id: "qrcode-container",
-    parent: document.body,
+    parent: document.body
   });
   qrcode.addEventListener("click", () => {
     qrcode.classList.remove("show");
@@ -104,7 +104,7 @@ function setupGUI() {
   qrcodeCanvas = createElement({
     type: "canvas",
     id: "qrcode-canvas",
-    parent: qrcode,
+    parent: qrcode
   });
   qrcodeCanvas.addEventListener("click", (evt) => {
     qrcodeCanvas.classList.toggle("smaller");
@@ -114,7 +114,7 @@ function setupGUI() {
   qrcodeLink = createElement({
     type: "a",
     id: "qrcode-link",
-    parent: qrcode,
+    parent: qrcode
   });
 
   const closeButton = createElement({
@@ -125,7 +125,7 @@ function setupGUI() {
     parent: qrcode,
     onclick: () => {
       qrcode.classList.toggle("show");
-    },
+    }
   });
 }
 
@@ -188,7 +188,7 @@ async function startPoll() {
         finalVotes = votes;
         createChart();
         showChart();
-      },
+      }
     },
     winnerSelection
   );
@@ -262,26 +262,26 @@ function createChart() {
       datasets: [
         {
           data: data,
-          backgroundColor: "#2a9ddf",
-        },
-      ],
+          backgroundColor: "#2a9ddf"
+        }
+      ]
     },
     options: {
       animation: {
-        duration: 3000,
+        duration: 3000
       },
       plugins: {
         title: { display: false },
-        legend: { display: false },
+        legend: { display: false }
       },
       scales: {
         y: {
           min: 0,
           max: 1,
-          ticks: { format: { style: "percent" } },
-        },
-      },
-    },
+          ticks: { format: { style: "percent" } }
+        }
+      }
+    }
   });
 }
 
@@ -327,7 +327,7 @@ function prepareQuizzes() {
   document
     .querySelectorAll('.reveal .quiz ul>li>label>input[type="checkbox"]')
     .forEach((input) => {
-      let li = input.parentElement;
+      let li = input.parentElement.parentElement;
 
       // active quizzes
       if (!Decker.meta["disable-quizzes"]) {
@@ -420,7 +420,7 @@ async function startPollingSession() {
       console.log("polling session was closed");
       session = undefined;
       Reveal.off("slidechanged", abortPoll);
-    },
+    }
   });
 
   // create QR code
@@ -440,7 +440,7 @@ const Plugin = {
     if (!Decker.meta["disable-quizzes"]) {
       prepareQuizzes();
     }
-  },
+  }
 };
 
 export default Plugin;
