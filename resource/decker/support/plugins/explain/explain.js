@@ -971,19 +971,6 @@ function createPlayerGUI() {
             this.volume(Math.max(0.0, this.volume() - 0.05));
             break;
 
-          // c: toggle captions
-          case "KeyC":
-            event.stopPropagation();
-            event.preventDefault();
-            let tracks = player.textTracks();
-            for (let i = 0; i < tracks.length; i++) {
-              if (tracks[i].kind === "captions") {
-                tracks[i].mode =
-                  tracks[i].mode === "showing" ? "disabled" : "showing";
-              }
-            }
-            break;
-
           // left/right or j/l: jump backward/forward by 10sec
           case "ArrowLeft":
           case "KeyJ":
@@ -1798,6 +1785,23 @@ async function setupPlayer() {
           );
         }
       }
+
+      // adjust vertical positioning of text tracks
+      player.on(["loadedmetadata", "loadeddata", "texttrackchange"], () => {
+        let tracks = player.textTracks();
+        for (let i = 0; i < tracks.length; i++) {
+          let track = tracks[i];
+          let oldMode = track.mode;
+          track.mode = "hidden";
+          for (const cue of track.cues) {
+            if (window.VTTCue && cue instanceof VTTCue) {
+              cue.snapToLines = true;
+              cue.line = -3;
+            }
+          }
+          track.mode = oldMode;
+        }
+      });
 
       return true;
     } else {
