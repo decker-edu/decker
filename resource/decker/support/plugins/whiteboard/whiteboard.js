@@ -1465,6 +1465,7 @@ function pointermove(evt) {
       return killEvent(evt);
 
     case PEN:
+      hideCursor();
       continueStroke(evt);
       return killEvent(evt);
 
