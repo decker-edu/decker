@@ -10,7 +10,7 @@ decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 .PHONY: build clean test install list dist docs css
 
 build: 
-	stack build -j8
+	ATTACH_RESOURCE_ZIP=1 stack build -j8
 
 clean-build: clean 
 	stack clean
