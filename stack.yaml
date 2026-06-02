@@ -31,4 +31,4 @@ nix:
     - pkg-config
     - bzip2
   path:
-    - "nixpkgs=https://github.com/NixOS/nixpkgs/archive/205fd4226592cc83fd4c0885a3e4c9c400efabb5.tar.gz"
+    - "nixpkgs=https://github.com/NixOS/nixpkgs/archive/b51242d7d43689db2f3be91bd05d5b24fbb469c4.tar.gz"
