@@ -223,9 +223,7 @@
   }
 }
 
-/* for slide decks: 
-   button at bottom for triggering chatty with predefined prompts;
-   glowing border effect by Kevin Powel (https://www.youtube.com/watch?v=JCYo0r67koM) */
+/* for slide decks: button at bottom for triggering chatty with predefined prompts */
 button[askChatty] {
   font-size: calc(0.7 * var(--icon-size));
   position: absolute;
@@ -238,37 +236,31 @@ button[askChatty] {
   border-radius: 100vh;
   padding: 0.6em;
 
-  /* glowing border effect below */
-  --gradient-glow: red, yellow, green, blue, purple, red;
-  --border-width: 2px;
-  --glow-size: 3px;
-  --glow-intensity: 0.2;
+  /* glowing border adapted from Kevin Powel (https://www.youtube.com/watch?v=JCYo0r67koM) */
   isolation: isolate;
-  animation: glow 3s infinite linear;
-
-  &::before {
-    content: "";
-    position: absolute;
-    border-radius: inherit;
-    z-index: -1;
-    background: var(--background-color);
-    inset: 2px;
-    filter: blur(var(--glow-size));
-  }
-
-  &:hover::before {
-    inset: 0px;
-  }
-
   &:after {
     content: "";
     position: absolute;
     border-radius: inherit;
     z-index: -2;
-    inset: -2px;
-    background: conic-gradient(from var(--glow-deg), var(--gradient-glow));
-    filter: blur(var(--glow-size));
-    opacity: var(--glow-intensity);
+    inset: -4px;
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--background-color), var(--background-color)),
+      conic-gradient(
+        from var(--glow-deg),
+        red,
+        yellow,
+        green,
+        blue,
+        purple,
+        red
+      );
+    background-clip: content-box, border-box;
+    background-origin: border-box;
+    filter: blur(1px);
+    opacity: 0.3;
+    animation: glow 3s infinite linear;
   }
 }
 
