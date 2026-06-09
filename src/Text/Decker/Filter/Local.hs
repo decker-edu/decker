@@ -15,6 +15,7 @@ import Text.Blaze.Html.Renderer.Text qualified as Text
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 import Text.Blaze.Internal (Attributable)
+import Text.HTML.TagSoup
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
