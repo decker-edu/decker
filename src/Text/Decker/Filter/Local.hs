@@ -9,6 +9,8 @@ import Control.Monad.Catch
 import Data.Text qualified as Text
 import Data.Text.IO qualified as Text
 import Relude
+import System.Directory (doesFileExist)
+import System.FilePath.Posix (dropDrive, (</>))
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Pretty qualified as Pretty
 import Text.Blaze.Html.Renderer.Text qualified as Text
@@ -268,12 +270,30 @@ transformUri uri ext = do
       if null (uriFilePath uri)
         then return uri
         else do
-          source <- addPathExtension ext uri
-          needFile $ targetFilePath source
-          targetUri base source
+          -- If the path is absolute, check if it exists in the project root.
+          -- If it doesn't exist on disk as a project asset, we assume it's 
+          -- intended to be a domain-absolute root URI (e.g. /site-logo.png).
+          let path = uriFilePath uri
+          isProjectAbsolute <- if isPathAbsoluteURI path
+            then do
+              exists <- liftIO $ doesFileExist (base </> dropDrive path)
+              return exists
+            else return True
+
+          if not isProjectAbsolute
+            then return uri
+            else do
+              source <- addPathExtension ext uri
+              needFile $ targetFilePath source
+              targetUri base source
     _ -> do
       modifyMeta (addMetaValue "decker.filter.links" (URI.render uri))
       return uri
+  where
+    isPathAbsoluteURI p = case p of
+      (x:_) -> x == '/'
+      [] -> False
+
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
