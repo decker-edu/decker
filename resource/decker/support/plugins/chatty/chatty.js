@@ -61,21 +61,23 @@ function createGUI(deck) {
   );
 
   // add test-me-button to last slide
-  let lastSlide = document.querySelector(
-    "div.reveal div.slides section:last-of-type"
-  );
-  if (lastSlide) {
-    const lang = Decker.meta.lang || navigator.language;
-    let button = document.createElement("button");
-    lastSlide.appendChild(button);
-    button.setAttribute(
-      "askChatty",
-      lang === "de" ? "Frag' mich ab!" : "Test me!"
+  if (window.Decker?.meta?.chatty?.testme) {
+    let lastSlide = document.querySelector(
+      "div.reveal div.slides section:last-of-type"
     );
-    button.innerText =
-      lang === "de"
-        ? "Stelle mir 5 Verständnisfragen zu dem aktuellen Foliensatz. Frage nicht zum Literaturverzeichnis. Stelle mir die Fragen nacheinander. Bewerte im Anschluss, wie gut ich den Foliensatz verstanden habe."
-        : "Ask me 5 comprehension questions about the current slide deck. Do not ask about the listed literature. Ask me the questions one at a time. Afterwards, assess how well I understood the slide deck.";
+    if (lastSlide) {
+      const lang = Decker.meta.lang || navigator.language;
+      let button = document.createElement("button");
+      lastSlide.appendChild(button);
+      button.setAttribute(
+        "askChatty",
+        lang === "de" ? "Frag' mich ab!" : "Test me!"
+      );
+      button.innerText =
+        lang === "de"
+          ? "Stelle mir 5 Verständnisfragen zu dem aktuellen Foliensatz. Frage nicht zum Literaturverzeichnis. Stelle mir die Fragen nacheinander. Bewerte im Anschluss, wie gut ich den Foliensatz verstanden habe."
+          : "Ask me 5 comprehension questions about the current slide deck. Do not ask about the listed literature. Ask me the questions one at a time. Afterwards, assess how well I understood the slide deck.";
+    }
   }
 
   // initialize per-slide button for triggering chatty
