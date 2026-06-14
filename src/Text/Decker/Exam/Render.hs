@@ -40,23 +40,23 @@ import Text.Pandoc.Walk
 -- import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
-compileQuestionToHtml meta base quest = do
+compileQuestionToHtml meta _base quest = do
+  let base = dropFileName (quest ^. qstFilePath)
+      render = renderSnippetToHtml meta base
+      compileAnswerToHtml :: Answer -> Action Answer
+      compileAnswerToHtml mc@MultipleChoice {} =
+        traverseOf (answChoices . traverse . choiceTheAnswer) render mc
+      compileAnswerToHtml ma@MultipleAnswers {} =
+        traverseOf (answAnswers . traverse . oneDetail) render
+          =<< traverseOf (answAnswers . traverse . oneCorrect) render ma
+      compileAnswerToHtml ff@FreeForm {} =
+        traverseOf answCorrectAnswer render ff
+      compileAnswerToHtml nu@Numerical {} = return nu
+      compileAnswerToHtml ft@FillText {} =
+        traverseOf (answCorrectWords . traverse) render ft
   traverseOf qstTitle render
     =<< traverseOf qstQuestion render
-    =<< traverseOf qstAnswer (compileAnswerToHtml meta base) quest
-  where
-    render = renderSnippetToHtml meta base
-    compileAnswerToHtml :: Meta -> FilePath -> Answer -> Action Answer
-    compileAnswerToHtml meta base mc@MultipleChoice {} = do
-      traverseOf (answChoices . traverse . choiceTheAnswer) render mc
-    compileAnswerToHtml meta base ma@MultipleAnswers {} = do
-      traverseOf (answAnswers . traverse . oneDetail) render
-        =<< traverseOf (answAnswers . traverse . oneCorrect) render ma
-    compileAnswerToHtml meta base ff@FreeForm {} =
-      traverseOf answCorrectAnswer render ff
-    compileAnswerToHtml meta base nu@Numerical {} = return nu
-    compileAnswerToHtml meta base ft@FillText {} = do
-      traverseOf (answCorrectWords . traverse) render ft
+    =<< traverseOf qstAnswer compileAnswerToHtml quest
 
 -- | Renders a Markdown snippet to HTML applying the full Decker media filter.
 renderSnippetToHtml :: Meta -> FilePath -> Text -> Action Text

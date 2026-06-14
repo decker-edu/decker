@@ -27,6 +27,7 @@ import Path.IO (copyDirRecur)
 import System.Directory (makeRelativeToCurrentDirectory)
 import System.FilePath
 import System.IO
+import Text.Decker.Exam.Exam
 import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render
 import Text.Decker.Exam.Xml
@@ -284,14 +285,24 @@ deckerRules = do
       deps <- getDeps
       let sources = Map.elems (deps ^. questions)
       need sources
-      questions <- liftIO $ mapM readQuestion sources
-      renderXmlCatalog questions out
+      qs <- liftIO $ mapM readQuestion sources
+      renderXmlCatalog _qstExam qs out
+    --
+    privateDir <//> "*-exam.xml" %> \out -> do
+      deps <- getDeps
+      let examSrc = lookupSource exams out deps
+          questionSrcs = Map.elems (deps ^. questions)
+      need (examSrc : questionSrcs)
+      exam <- liftIO $ readExam examSrc
+      qs <- liftIO $ mapM readQuestion questionSrcs
+      renderXmlCatalog (matchesExam exam) qs out
     --
     phony "catalog" $ do
       need ["private/quest-catalog.html"]
     --
     phony "moodle-xml" $ do
-      need ["private/quest-catalog.xml"]
+      deps <- getDeps
+      need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
     --
     indexFile %> \out -> do
       targets <- getDeps

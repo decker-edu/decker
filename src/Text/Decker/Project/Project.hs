@@ -23,6 +23,7 @@ module Text.Decker.Project.Project
     handouts,
     handoutsPdf,
     questions,
+    exams,
     Dependencies,
     Targets (..),
     lookupSource,
@@ -76,7 +77,8 @@ data Targets = Targets
     _pagesPdf :: Dependencies,
     _handouts :: Dependencies,
     _handoutsPdf :: Dependencies,
-    _questions :: Dependencies
+    _questions :: Dependencies,
+    _exams :: Dependencies
   }
   deriving (Show)
 
@@ -102,7 +104,8 @@ instance ToMetaValue Targets where
           ("pagesPdf", depsToMeta _pagesPdf),
           ("handouts", depsToMeta _handouts),
           ("handoutsPdf", depsToMeta _handoutsPdf),
-          ("questions", depsToMeta _questions)
+          ("questions", depsToMeta _questions),
+          ("exams", depsToMeta _exams)
         ]
     where
       depsToMeta :: Dependencies -> MetaValue
@@ -189,6 +192,7 @@ sourceRegexes :: [String] =
     "-page.md\\'",
     "-deck-index.yaml\\'",
     "-quest.yaml\\'",
+    "-exam.yaml\\'",
     "\\`(^_).*\\.scss\\'"
   ]
 
@@ -197,6 +201,10 @@ alwaysExclude = [publicDir, "chatty", "dist", ".git", ".vscode", ".stack-work"]
 questSuffix = "-quest.yaml"
 
 questHTMLSuffix = "-quest.html"
+
+examSuffix = "-exam.yaml"
+
+examXMLSuffix = "-exam.xml"
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
@@ -250,7 +258,8 @@ scanTargets meta = do
         _pagesPdf = calcTargets pageSuffix pagePDFSuffix srcs,
         _handouts = calcTargets deckSuffix handoutHTMLSuffix srcs,
         _handoutsPdf = calcTargets deckSuffix handoutPDFSuffix srcs,
-        _questions = calcPrivateTargets questSuffix questHTMLSuffix srcs
+        _questions = calcPrivateTargets questSuffix questHTMLSuffix srcs,
+        _exams = calcPrivateTargets examSuffix examXMLSuffix srcs
       }
   where
     publicDep src = (publicDir </> src, src)
