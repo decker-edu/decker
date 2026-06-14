@@ -11,20 +11,18 @@ where
 import Control.Concurrent
 -- import Data.List
 
-import Control.Concurrent.STM (modifyTVar)
+import Control.Concurrent.STM (modifyTVar, newTQueueIO, readTQueue, writeTQueue)
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
+import Data.ByteString.Builder (byteString)
 import Data.List (isSuffixOf)
 import Data.Maybe
-import Data.Text qualified as Text
 import Network.HTTP.Types
 -- import Network.Mime
 import Network.Wai.Handler.Warp
-import Network.Wai.Handler.WebSockets (websocketsOr)
 import Network.Wai.Middleware.Static
-import Network.WebSockets
 import Relude
 import System.Directory
 import System.Directory qualified as Dir
@@ -72,10 +70,7 @@ removeClient tvar cid =
 reloadClients :: TVar ServerState -> IO ()
 reloadClients tvar = do
   state <- readTVarIO tvar
-  mapM_ reload (state ^. clients)
-  where
-    reload :: Client -> IO ()
-    reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
+  atomically $ forM_ (state ^. clients) $ \(_, q) -> writeTQueue q "reload!"
 
 aPort :: Flags -> Bool
 aPort (PortFlag _) = True
@@ -106,6 +101,10 @@ runHttpServer context = do
   let server = Server chan state
   let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
   startUpdater state
+  -- Per-process boot id. Sent to clients via SSE event ids; if a client
+  -- reconnects with a Last-Event-ID that does not match, the server has been
+  -- restarted and we tell the browser to reload.
+  bootId <- (show :: Int -> Text) <$> randomIO
   scottyOptsT opts (useState server) $ do
     -- TODO this middleware business is not the right way to do this.
     -- middleware is ecvaluated BEFORE any routes are resolved. so, if
@@ -120,8 +119,8 @@ runHttpServer context = do
       resourceMiddleware "support" deckerSource
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
-    middleware $ websocketsOr defaultConnectionOptions $ reloader state
 
+    Scotty.get "/reload" $ sseReload bootId state
     Scotty.get "/" $ redirect "index.html"
     Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
     -- when (context ^. devRun) $
@@ -154,10 +153,7 @@ tenSeconds = 10 * 10 ^ 6
 pingAll :: TVar ServerState -> IO ()
 pingAll tvar = do
   state <- readTVarIO tvar
-  mapM_ reload (state ^. clients)
-  where
-    reload :: Client -> IO ()
-    reload (_, conn) = sendTextData conn ("ping!" :: Text.Text)
+  atomically $ forM_ (state ^. clients) $ \(_, q) -> writeTQueue q "ping!"
 
 -- Safari times out on web sockets to save energy. Prevent this by sending pings
 -- from the server to all connected browsers. Once every 10 seconds should do
@@ -238,13 +234,36 @@ headDirectory directory = do
 --       setHeader "Expires:" "0"
 --       raw $ toLazy content
 
--- Accepts a request and adds the connection to the client list. Then reads the
--- connection forever. Removes the client from the list on disconnect.
-reloader :: TVar ServerState -> PendingConnection -> IO ()
-reloader state pending = do
-  connection <- acceptRequest pending
-  cid <- randomIO -- Use a random number as client id.
-  flip finally (removeClient state cid) $ do
-    addClient state (cid, connection)
-    handleAll (\_ -> return ()) $
-      forever (receiveData connection :: IO Text)
+-- | Server-Sent Events endpoint. Registers the client, then streams events
+-- pushed to the client's queue as SSE messages until the connection is closed.
+-- Browsers using EventSource will auto-reconnect on disconnect. Every event is
+-- tagged with the server's boot id; if a reconnecting client sends a
+-- Last-Event-ID that does not match, the server has been restarted while the
+-- page was open and we push a reload immediately.
+sseReload :: Text -> TVar ServerState -> AppActionM ()
+sseReload bootId state = do
+  Scotty.setHeader "Content-Type" "text/event-stream"
+  Scotty.setHeader "Cache-Control" "no-store"
+  Scotty.setHeader "Connection" "keep-alive"
+  -- Disable proxy buffering (e.g. nginx) so events are flushed immediately.
+  Scotty.setHeader "X-Accel-Buffering" "no"
+  lastId <- fmap toStrict <$> Scotty.header "Last-Event-ID"
+  cid <- liftIO randomIO
+  queue <- liftIO newTQueueIO
+  liftIO $ addClient state (cid, queue)
+  -- A reconnecting client whose Last-Event-ID does not match the current
+  -- boot id was talking to a previous server process. Tell it to reload.
+  case lastId of
+    Just lid | lid /= bootId -> liftIO $ atomically $ writeTQueue queue "reload!"
+    _ -> pure ()
+  Scotty.stream $ \write flush -> do
+    let send bs = write (byteString bs) >> flush
+        event msg = "id: " <> bootId <> "\ndata: " <> msg <> "\n\n"
+    flip finally (removeClient state cid) $
+      handleAll (\_ -> return ()) $ do
+        -- Priming event with id sets the browser's lastEventId so reconnects
+        -- carry it back to us as Last-Event-ID.
+        send (encodeUtf8 (event "hello"))
+        forever $ do
+          msg <- atomically $ readTQueue queue
+          send (encodeUtf8 (event msg))

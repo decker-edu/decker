@@ -108,8 +108,8 @@ function initializeDecker(metaUrl) {
   let reloadInhibitors = [];
   window.addEventListener("load", () => {
     if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
-      var socket = new WebSocket("ws://" + location.host + "/reload");
-      socket.onmessage = function (event) {
+      var source = new EventSource("/reload");
+      source.onmessage = function (event) {
         if (event.data.startsWith("reload!")) {
           console.log("Reload requested.");
           let reload = reloadInhibitors.reduce((a, p) => a && p(), true);
