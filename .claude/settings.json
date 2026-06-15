@@ -1,0 +1,8 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "allowWrite": ["/tmp"]
+    }
+  }
+}
