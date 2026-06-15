@@ -56,6 +56,7 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
+import Text.Decker.Chatty.Upload (runChatty)
 import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
@@ -84,7 +85,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     otherwise -> do
@@ -230,6 +231,10 @@ runCommand context command rules = do
       runShake context rules
       killThread id
     "format" -> formatStdin
+    "chatty" -> do
+      extractMetaIntoFile (context ^. extra)
+      runShake (context & forceChattyMarkdown .~ True) rules
+      runChatty
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
@@ -345,7 +350,7 @@ initContext extra meta = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
-  return $ ActionContext extra devRun server watch chan public (addMetaFlags extra meta)
+  return $ ActionContext extra devRun server watch chan public (addMetaFlags extra meta) False
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do

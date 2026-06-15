@@ -30,7 +30,9 @@ import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Select (filterSelectedSlides)
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Template (expandTemplateMacros)
+import Control.Lens ((^.))
 import Text.Decker.Internal.Common
+import Text.Decker.Project.ActionContext (actionContext, forceChattyMarkdown)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (expandMeta, mergeDocumentMeta, needMetaTargets)
@@ -165,8 +167,9 @@ writeBack meta path pandoc@(Pandoc docMeta _) = do
 -- if something goes wrong
 writeForChatty :: Meta -> FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeForChatty meta top path pandoc@(Pandoc docMeta _) = do
+  forced <- (^. forceChattyMarkdown) <$> actionContext
   let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "chatty.write-markdown" meta) "chatty.write-markdown" docMeta
-  when writeBack $ do
+  when (writeBack || forced) $ do
     writeToMarkdownFile top "chatty" path pandoc
   return pandoc
 

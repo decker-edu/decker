@@ -42,7 +42,8 @@ data ActionContext = ActionContext
     _watch :: IORef Bool,
     _actionChan :: TChan ActionMsg,
     _publicResource :: Development.Shake.Resource,
-    _globalMeta :: Meta
+    _globalMeta :: Meta,
+    _forceChattyMarkdown :: Bool
   }
   deriving (Typeable)
 

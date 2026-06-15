@@ -127,6 +127,7 @@ deckerRules = do
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
+  addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -387,6 +388,10 @@ deckerRules = do
       copyFile' src out
   --
 
+  withTargetDocs "Build chatty markdown files (for `decker chatty` upload)." $
+    phony "chatty" $ do
+      need ["html"]
+  --
   withTargetDocs "Stop chrome remote session" $
     phony "pdf" $ do
       need ["pdf-start"]
