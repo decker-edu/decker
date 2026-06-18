@@ -13,7 +13,7 @@
 --   - detaches and deletes files that vanished locally,
 --   - leaves unchanged files alone,
 --   - waits for indexing to complete.
-module Text.Decker.Chatty.Upload (runChatty) where
+module Text.Decker.Chatty.Upload (runChatty, syncChattyToStore) where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens hiding ((.=))
@@ -180,12 +180,68 @@ listStoreFiles apiKey storeId = page Nothing Map.empty
 -- ---------------------------------------------------------------------------
 -- Entry point
 
+-- | Look up the OpenAI API key from the environment.
+lookupApiKey :: IO (Maybe BS.ByteString)
+lookupApiKey =
+  lookupEnv "OPENAI_API_KEY" >>= \case
+    Just k | not (null k) -> return (Just (BS.pack k))
+    _ -> return Nothing
+
+-- | Reconcile the given local files (relative to 'chattyDir') against the
+-- store: upload new or changed files (deleting the old remote file first),
+-- delete files that vanished locally, leave unchanged files alone, then wait
+-- for indexing.
+reconcileStore :: BS.ByteString -> Text -> [FilePath] -> IO ()
+reconcileStore apiKey storeId files = do
+  newHashes <- Map.fromList <$> mapM (\p -> (,) p <$> hashFile p) files
+  remote <- listStoreFiles apiKey storeId
+
+  let unchanged =
+        Map.filterWithKey
+          (\p h -> fmap snd (Map.lookup p remote) == Just h)
+          newHashes
+  let upserts =
+        Map.filterWithKey
+          (\p h -> fmap snd (Map.lookup p remote) /= Just h)
+          newHashes
+  let removals = Map.keys remote \\ Map.keys newHashes
+
+  forM_ removals $ \p -> do
+    let (fid, _) = remote Map.! p
+    putStrLn $ "# delete: " <> p
+    detachFromStore apiKey storeId fid
+    deleteFile apiKey fid
+
+  attached <- forM (Map.toList upserts) $ \(p, h) -> do
+    case Map.lookup p remote of
+      Just (oldFid, _) -> do
+        putStrLn $ "# replace: " <> p
+        detachFromStore apiKey storeId oldFid
+        deleteFile apiKey oldFid
+      Nothing -> putStrLn $ "# upload: " <> p
+    fid <- uploadFile apiKey (chattyDir </> p)
+    attachToStore apiKey storeId fid p h
+    return p
+
+  unless (null attached) $ do
+    putStrLn $ "# waiting for indexing of " <> show (length attached) <> " file(s)..."
+    waitForIndexing apiKey storeId
+
+  putStrLn $
+    "# done. "
+      <> show (Map.size unchanged)
+      <> " unchanged, "
+      <> show (length attached)
+      <> " uploaded, "
+      <> show (length removals)
+      <> " removed."
+
 runChatty :: IO ()
 runChatty = do
   apiKey <-
-    lookupEnv "OPENAI_API_KEY" >>= \case
-      Just k | not (null k) -> return (BS.pack k)
-      _ -> do
+    lookupApiKey >>= \case
+      Just k -> return k
+      Nothing -> do
         putStrLn "# OPENAI_API_KEY is not set."
         exitFailure
   meta <- readDeckerMetaIO deckerMetaFile
@@ -215,45 +271,22 @@ runChatty = do
         <> "/. Enable `chatty.write-markdown: true` in decker.yaml and build first."
     exitFailure
 
-  newHashes <- Map.fromList <$> mapM (\p -> (,) p <$> hashFile p) files
-  remote <- listStoreFiles apiKey storeId'
+  reconcileStore apiKey storeId' files
 
-  let unchanged =
-        Map.filterWithKey
-          (\p h -> fmap snd (Map.lookup p remote) == Just h)
-          newHashes
-  let upserts =
-        Map.filterWithKey
-          (\p h -> fmap snd (Map.lookup p remote) /= Just h)
-          newHashes
-  let removals = Map.keys remote \\ Map.keys newHashes
-
-  forM_ removals $ \p -> do
-    let (fid, _) = remote Map.! p
-    putStrLn $ "# delete: " <> p
-    detachFromStore apiKey storeId' fid
-    deleteFile apiKey fid
-
-  attached <- forM (Map.toList upserts) $ \(p, h) -> do
-    case Map.lookup p remote of
-      Just (oldFid, _) -> do
-        putStrLn $ "# replace: " <> p
-        detachFromStore apiKey storeId' oldFid
-        deleteFile apiKey oldFid
-      Nothing -> putStrLn $ "# upload: " <> p
-    fid <- uploadFile apiKey (chattyDir </> p)
-    attachToStore apiKey storeId' fid p h
-    return p
-
-  unless (null attached) $ do
-    putStrLn $ "# waiting for indexing of " <> show (length attached) <> " file(s)..."
-    waitForIndexing apiKey storeId'
-
-  putStrLn $
-    "# done. "
-      <> show (Map.size unchanged)
-      <> " unchanged, "
-      <> show (length attached)
-      <> " uploaded, "
-      <> show (length removals)
-      <> " removed."
+-- | Non-exiting sync for `decker publish`. Reconciles whatever markdown is
+-- currently under 'chattyDir' against the configured vector store. Does nothing
+-- (apart from a note) when no store id or API key is available, so it can never
+-- abort a publish run. The caller is expected to have (re)populated 'chattyDir'
+-- with exactly the set of files that should be present in the store.
+syncChattyToStore :: IO ()
+syncChattyToStore = do
+  meta <- readDeckerMetaIO deckerMetaFile
+  let storeId = lookupMetaOrElse ("" :: Text) "chatty.vector-store-id" meta
+  if T.null storeId
+    then putStrLn "# chatty.vector-store-id not set — skipping vector store sync."
+    else
+      lookupApiKey >>= \case
+        Nothing -> putStrLn "# OPENAI_API_KEY is not set — skipping vector store sync."
+        Just apiKey -> do
+          files <- findMarkdownFiles
+          reconcileStore apiKey storeId files

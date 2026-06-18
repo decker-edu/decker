@@ -8,7 +8,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo) where
+module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo, isDraft, filterPublishable) where
 
 import Control.Lens ((^.))
 import Data.Aeson
@@ -51,16 +51,27 @@ buildIndex indexFile globalMeta decks = do
   liftIO $ encodeFile indexFile inverted
   return $ map (deckSrc . fst) index
 
+-- | A deck is a draft (and thus never published) when it is marked `draft` or
+-- has `lecture.status: draft`.
+isDraft :: Meta -> Bool
+isDraft meta =
+  lookupMetaOrElse False "draft" meta
+    || lookupMeta "lecture.status" meta == Just ("draft" :: Text)
+
+-- | Keep only the non-draft sources, reading each source's merged meta.
+filterPublishable :: Meta -> [FilePath] -> Action [FilePath]
+filterPublishable globalMeta = filterM (fmap (not . isDraft) . readMergedMeta)
+  where
+    readMergedMeta path = do
+      Pandoc meta _ <- readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta
+      return meta
+
 -- | Only index decks which are not marked `draft` and are not in the `no-index`
 -- list
 shouldAddToIndex meta =
   let deckId :: Text = lookupMetaOrElse "" "feedback.deck-id" meta
       noIndex = lookupMetaOrElse [] "no-index" meta
-      isDraft =
-        lookupMetaOrElse False "draft" meta
-          || lookupMeta "lecture.status" meta
-          == Just ("draft" :: Text)
-   in not isDraft && (deckId `notElem` noIndex)
+   in not (isDraft meta) && (deckId `notElem` noIndex)
 
 -- Collects word frequencies for each slide grouped by deck.
 buildDeckIndex :: Meta -> FilePath -> Action (Maybe (DeckInfo, [((Text, Text), [(Text, Int)])]))

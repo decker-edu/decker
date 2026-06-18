@@ -86,6 +86,32 @@ dependency tracking system.
 
 ## `> decker publish`
 
+Cleans the `public/` directory, rebuilds the project and copies it to the
+configured destination with Rsync (see [Publishing](#publishing)). Two modes are
+available, depending on whether the lecture flag `-l` (`--lecture`) is given.
+
+`> decker publish`
+
+:   Publishes the whole project. Slide decks marked `draft: true` (or
+    `lecture.status: draft`) are never built or published; all other decks and
+    all pages are published unchanged.
+
+`> decker publish -l`
+
+:   *Lecture publishing.* In addition to the draft rule above, the value of the
+    `lecture.status` meta variable controls what is published:
+
+    - `draft` --- the deck is not published.
+    - `done` --- the deck is published completely.
+    - `upcoming` --- the deck is published, but all slides and slide fragments
+      that carry the CSS class `.solution` are stripped from the output.
+
+If a vector store is configured (meta variable `chatty.vector-store-id:`),
+`decker publish` also generates the annotated Markdown for every published deck
+and syncs it to the store. The exact same filtering is applied: drafts never
+reach the store, and for `upcoming` lectures published with `-l` the `.solution`
+content is stripped before upload.
+
 ## `> decker search-index`
 
 Builds an inverted index over all Markdown source files and stores it in JSON in

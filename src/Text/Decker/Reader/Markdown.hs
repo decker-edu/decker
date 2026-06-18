@@ -4,6 +4,7 @@
 module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,
     readMarkdownFile,
+    generateChattyMarkdown,
     processCites,
     formatStdin,
   )
@@ -27,12 +28,10 @@ import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
-import Text.Decker.Filter.Select (filterSelectedSlides)
+import Text.Decker.Filter.Select (dropSolutionContent, filterSelectedSlides)
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Template (expandTemplateMacros)
-import Control.Lens ((^.))
 import Text.Decker.Internal.Common
-import Text.Decker.Project.ActionContext (actionContext, forceChattyMarkdown)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (expandMeta, mergeDocumentMeta, needMetaTargets)
@@ -104,7 +103,6 @@ readMarkdownFile' globalMeta top path = do
   parseMarkdownFile path
     >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
-    >>= writeForChatty globalMeta top path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
     >>= checkVersion
@@ -113,6 +111,22 @@ readMarkdownFile' globalMeta top path = do
 
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = readMarkdownFile' globalMeta path path
+
+-- | (Re)generates the annotated chatty markdown for the given deck sources, one
+-- file per deck. Each deck is read with all includes expanded and its meta
+-- merged with the global meta, then the publishing filter is applied (dropping
+-- solution slides and boxes for upcoming lectures, see 'dropSolutionContent')
+-- before the document is written to @chatty\/<deck>.md@. Drafts are expected to
+-- have been excluded from the input list by the caller. Used by `decker publish`
+-- and `decker chatty` to populate the directory synced to the OpenAI vector
+-- store.
+generateChattyMarkdown :: Meta -> [FilePath] -> Action ()
+generateChattyMarkdown globalMeta = mapM_ generate
+  where
+    generate path = do
+      pandoc <- readMarkdownFile globalMeta path
+      Pandoc mergedMeta _ <- mergeDocumentMeta globalMeta pandoc
+      writeToMarkdownFile path "chatty" path (dropSolutionContent mergedMeta pandoc)
 
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
 addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) = do
@@ -161,16 +175,6 @@ writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
 writeBack meta path pandoc@(Pandoc docMeta _) = do
   let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "write-back.enable" meta) "write-back.enable" docMeta
   when writeBack $ writeToMarkdownFile "" "" path pandoc
-  return pandoc
-
--- | Writes a Pandoc document to a file in Markdown format. Throws an exception
--- if something goes wrong
-writeForChatty :: Meta -> FilePath -> FilePath -> Pandoc -> Action Pandoc
-writeForChatty meta top path pandoc@(Pandoc docMeta _) = do
-  forced <- (^. forceChattyMarkdown) <$> actionContext
-  let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "chatty.write-markdown" meta) "chatty.write-markdown" docMeta
-  when (writeBack || forced) $ do
-    writeToMarkdownFile top "chatty" path pandoc
   return pandoc
 
 checkVersion :: Pandoc -> Action Pandoc

@@ -233,7 +233,7 @@ runCommand context command rules = do
     "format" -> formatStdin
     "chatty" -> do
       extractMetaIntoFile (context ^. extra)
-      runShake (context & forceChattyMarkdown .~ True) rules
+      runShake context rules
       runChatty
     _ -> error "Unknown command. Should not happen."
   exitSuccess
@@ -350,7 +350,7 @@ initContext extra meta = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
-  return $ ActionContext extra devRun server watch chan public (addMetaFlags extra meta) False
+  return $ ActionContext extra devRun server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do

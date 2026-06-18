@@ -1,6 +1,7 @@
 import Data.ByteString.Char8 qualified as B
 import GHC.IO.Encoding
 import MetaTests
+import SelectTests
 import ShortLinkTests
 import System.FilePath.Posix
 import Test.Hspec
@@ -17,6 +18,7 @@ main = do
     shortLinkTests
     metaTests
     watchTests
+    selectTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"

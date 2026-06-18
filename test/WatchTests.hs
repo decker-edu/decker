@@ -13,6 +13,7 @@ watchTests =
       fastGlobFiles [] [".hs"] "test" `shouldReturn`
       sort
         [ "test/MetaTests.hs"
+        , "test/SelectTests.hs"
         , "test/ShortLinkTests.hs"
         , "test/Spec.hs"
         , "test/WatchTests.hs"
