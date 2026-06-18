@@ -112,14 +112,14 @@ readMarkdownFile' globalMeta top path = do
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = readMarkdownFile' globalMeta path path
 
--- | (Re)generates the annotated chatty markdown for the given deck sources, one
--- file per deck. Each deck is read with all includes expanded and its meta
--- merged with the global meta, then the publishing filter is applied (dropping
--- solution slides and boxes for upcoming lectures, see 'dropSolutionContent')
--- before the document is written to @chatty\/<deck>.md@. Drafts are expected to
--- have been excluded from the input list by the caller. Used by `decker publish`
--- and `decker chatty` to populate the directory synced to the OpenAI vector
--- store.
+-- | (Re)generates the annotated chatty markdown for the given source documents
+-- (decks and pages), one file per source. Each source is read with all includes
+-- expanded and its meta merged with the global meta, then the publishing filter
+-- is applied (dropping solution slides and boxes for upcoming lectures, see
+-- 'dropSolutionContent') before the document is written to @chatty\/<source>.md@.
+-- Drafts are expected to have been excluded from the input list by the caller.
+-- Used by `decker publish` and `decker chatty` to populate the directory synced
+-- to the OpenAI vector store.
 generateChattyMarkdown :: Meta -> [FilePath] -> Action ()
 generateChattyMarkdown globalMeta = mapM_ generate
   where

@@ -64,17 +64,17 @@ needTargets sel = needTargets' [sel]
 
 -- | When a vector store is configured (`chatty.vector-store-id` is set), clean
 -- the chatty/ directory, (re)generate the annotated markdown for exactly the
--- given deck sources (and their includes), and sync it to the OpenAI vector
--- store. The store ends up mirroring precisely the set of decks that were
--- published, so draft/excluded lectures are removed from it as well. Does
--- nothing when no store is configured.
+-- given source documents (decks and pages, with their includes), and sync it to
+-- the OpenAI vector store. The store ends up mirroring precisely the set of
+-- documents that were published, so draft/excluded sources are removed from it
+-- as well. Does nothing when no store is configured.
 syncChattyVectorStore :: Meta -> [FilePath] -> Action ()
-syncChattyVectorStore meta deckSources = do
+syncChattyVectorStore meta sources = do
   let storeId = lookupMetaOrElse "" "chatty.vector-store-id" meta :: String
   unless (null storeId) $ do
     putNormal "# syncing annotated chatty markdown to vector store"
     liftIO $ tryRemoveDirectory "chatty"
-    generateChattyMarkdown meta deckSources
+    generateChattyMarkdown meta sources
     liftIO syncChattyToStore
 
 needTargets' :: [Control.Lens.Getter.Getting Dependencies Targets Dependencies] -> Targets -> Action ()
@@ -410,10 +410,10 @@ deckerRules = do
     phony "chatty" $ do
       meta <- getGlobalMeta
       deps <- getDeps
-      -- only non-draft decks; drops solution content for upcoming lectures (-l)
-      publishableDecks <- filterPublishable meta (Map.elems $ deps ^. decks)
+      -- only non-draft decks and pages; drops solution content for upcoming lectures (-l)
+      publishable <- filterPublishable meta (Map.elems (deps ^. decks) <> Map.elems (deps ^. pages))
       liftIO $ tryRemoveDirectory "chatty"
-      generateChattyMarkdown meta publishableDecks
+      generateChattyMarkdown meta publishable
   --
   withTargetDocs "Stop chrome remote session" $
     phony "pdf" $ do
@@ -493,23 +493,24 @@ deckerRules = do
               createPublicManifest
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
-              -- sync the annotated markdown of the published (non-draft) decks
-              syncChattyVectorStore meta (filter (`elem` deckSrcs) selected)
+              -- sync the annotated markdown of the published (non-draft) decks and pages
+              syncChattyVectorStore meta selected
             else do
               -- clean out the public dir so stale draft artifacts are not published
               liftIO $ runClean False
               need ["support"]
               deps <- getDeps
-              -- draft decks are never published, even without -l
+              -- draft decks and pages are never published, even without -l
               publishableDecks <- filterPublishable meta (Map.elems $ deps ^. decks)
+              publishablePages <- filterPublishable meta (Map.elems $ deps ^. pages)
               let deckTargets = Map.filter (`elem` publishableDecks) (deps ^. decks)
-              need (Map.keys deckTargets)
-              needTargets' [pages] deps
+              let pageTargets = Map.filter (`elem` publishablePages) (deps ^. pages)
+              need (Map.keys deckTargets <> Map.keys pageTargets)
               createPublicManifest
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
-              -- sync the annotated markdown of the published (non-draft) decks
-              syncChattyVectorStore meta publishableDecks
+              -- sync the annotated markdown of the published (non-draft) decks and pages
+              syncChattyVectorStore meta (publishableDecks <> publishablePages)
         Nothing -> putError "publish.rsync.destination not configured"
 
 createPublicManifest :: Action ()
