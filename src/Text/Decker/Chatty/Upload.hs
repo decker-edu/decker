@@ -7,6 +7,9 @@
 -- from decker.yaml. On first run (no store id), creates a store and prints
 -- the id for the user to paste back into decker.yaml.
 --
+-- In addition to the generated markdown under chatty/, every file in the
+-- directories listed in the chatty.extra meta variable is uploaded as is.
+--
 -- Incremental: each attached vector-store file carries the source's relative
 -- path and md5 as attributes, so the remote store *is* the manifest. Each run:
 --   - uploads new or changed files (deleting the old file first),
@@ -37,6 +40,7 @@ import System.FilePath
 import Text.Decker.Internal.Common (deckerMetaFile)
 import Text.Decker.Internal.Meta (lookupMetaOrElse)
 import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
+import Text.Pandoc (Meta)
 
 chattyDir :: FilePath
 chattyDir = "chatty"
@@ -44,26 +48,52 @@ chattyDir = "chatty"
 -- ---------------------------------------------------------------------------
 -- File walking and hashing
 
-findMarkdownFiles :: IO [FilePath]
+-- | All markdown files generated under 'chattyDir', mapping the store path
+-- (the path relative to 'chattyDir', e.g. @lectures\/12-deck.md@) to the local
+-- file to upload.
+findMarkdownFiles :: IO (Map FilePath FilePath)
 findMarkdownFiles = do
   exists <- doesDirectoryExist chattyDir
-  if exists then sort <$> walk chattyDir else return []
-  where
-    walk dir = do
-      entries <- listDirectory dir
-      fmap concat . forM entries $ \e -> do
-        let p = dir </> e
-        isDir <- doesDirectoryExist p
-        if isDir
-          then walk p
-          else
-            if takeExtension p == ".md"
-              then return [makeRelative chattyDir p]
-              else return []
+  if exists
+    then Map.fromList . map (\p -> (makeRelative chattyDir p, p)) <$> walk (== ".md") chattyDir
+    else return Map.empty
 
-hashFile :: FilePath -> IO Text
-hashFile rel = do
-  bs <- BSL.readFile (chattyDir </> rel)
+-- | All files under the given `chatty.extra` directory, to be uploaded as is.
+-- The store path is the file's project-relative path (which equals the local
+-- path), so files keep their identity across runs.
+findExtraFiles :: FilePath -> IO (Map FilePath FilePath)
+findExtraFiles dir = do
+  exists <- doesDirectoryExist dir
+  if exists
+    then Map.fromList . map (\p -> (p, p)) <$> walk (const True) dir
+    else do
+      putStrLn $ "# chatty.extra: directory does not exist, skipping: " <> dir
+      return Map.empty
+
+-- | Recursively collect files below `dir` whose extension passes `keep`.
+walk :: (String -> Bool) -> FilePath -> IO [FilePath]
+walk keep dir = do
+  entries <- listDirectory dir
+  fmap (sort . concat) . forM entries $ \e -> do
+    let p = dir </> e
+    isDir <- doesDirectoryExist p
+    if isDir
+      then walk keep p
+      else return [p | keep (takeExtension p)]
+
+-- | The complete set of files to mirror into the vector store: the generated
+-- chatty markdown plus everything in the configured `chatty.extra` directories.
+-- Generated markdown wins on a path collision.
+collectLocalFiles :: Meta -> IO (Map FilePath FilePath)
+collectLocalFiles meta = do
+  markdown <- findMarkdownFiles
+  let extraDirs = map T.unpack (lookupMetaOrElse [] "chatty.extra" meta :: [Text])
+  extra <- Map.unions <$> mapM findExtraFiles extraDirs
+  return (Map.union markdown extra)
+
+hashLocal :: FilePath -> IO Text
+hashLocal path = do
+  bs <- BSL.readFile path
   return (T.pack (show (md5 bs)))
 
 -- ---------------------------------------------------------------------------
@@ -187,13 +217,13 @@ lookupApiKey =
     Just k | not (null k) -> return (Just (BS.pack k))
     _ -> return Nothing
 
--- | Reconcile the given local files (relative to 'chattyDir') against the
--- store: upload new or changed files (deleting the old remote file first),
--- delete files that vanished locally, leave unchanged files alone, then wait
--- for indexing.
-reconcileStore :: BS.ByteString -> Text -> [FilePath] -> IO ()
+-- | Reconcile the given local files (a map from store path to local file path)
+-- against the store: upload new or changed files (deleting the old remote file
+-- first), delete files that vanished locally, leave unchanged files alone, then
+-- wait for indexing.
+reconcileStore :: BS.ByteString -> Text -> Map FilePath FilePath -> IO ()
 reconcileStore apiKey storeId files = do
-  newHashes <- Map.fromList <$> mapM (\p -> (,) p <$> hashFile p) files
+  newHashes <- traverse hashLocal files
   remote <- listStoreFiles apiKey storeId
 
   let unchanged =
@@ -219,7 +249,7 @@ reconcileStore apiKey storeId files = do
         detachFromStore apiKey storeId oldFid
         deleteFile apiKey oldFid
       Nothing -> putStrLn $ "# upload: " <> p
-    fid <- uploadFile apiKey (chattyDir </> p)
+    fid <- uploadFile apiKey (files Map.! p)
     attachToStore apiKey storeId fid p h
     return p
 
@@ -263,21 +293,22 @@ runChatty = do
         exitSuccess
       else return storeId
 
-  files <- findMarkdownFiles
-  when (null files) $ do
+  files <- collectLocalFiles meta
+  when (Map.null files) $ do
     putStrLn $
-      "# No markdown files under "
+      "# Nothing to sync: no markdown under "
         <> chattyDir
-        <> "/. Enable `chatty.write-markdown: true` in decker.yaml and build first."
+        <> "/ and no files in `chatty.extra`. Build first."
     exitFailure
 
   reconcileStore apiKey storeId' files
 
--- | Non-exiting sync for `decker publish`. Reconciles whatever markdown is
--- currently under 'chattyDir' against the configured vector store. Does nothing
--- (apart from a note) when no store id or API key is available, so it can never
--- abort a publish run. The caller is expected to have (re)populated 'chattyDir'
--- with exactly the set of files that should be present in the store.
+-- | Non-exiting sync for `decker publish`. Reconciles the generated markdown
+-- under 'chattyDir' plus the files in the configured `chatty.extra` directories
+-- against the vector store. Does nothing (apart from a note) when no store id or
+-- API key is available, so it can never abort a publish run. The caller is
+-- expected to have (re)populated 'chattyDir' with exactly the set of generated
+-- files that should be present in the store.
 syncChattyToStore :: IO ()
 syncChattyToStore = do
   meta <- readDeckerMetaIO deckerMetaFile
@@ -288,5 +319,5 @@ syncChattyToStore = do
       lookupApiKey >>= \case
         Nothing -> putStrLn "# OPENAI_API_KEY is not set — skipping vector store sync."
         Just apiKey -> do
-          files <- findMarkdownFiles
+          files <- collectLocalFiles meta
           reconcileStore apiKey storeId files

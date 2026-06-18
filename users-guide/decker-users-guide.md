@@ -108,9 +108,24 @@ available, depending on whether the lecture flag `-l` (`--lecture`) is given.
 
 If a vector store is configured (meta variable `chatty.vector-store-id:`),
 `decker publish` also generates the annotated Markdown for every published deck
-and syncs it to the store. The exact same filtering is applied: drafts never
-reach the store, and for `upcoming` lectures published with `-l` the `.solution`
-content is stripped before upload.
+and page and syncs it to the store. The exact same filtering is applied: drafts
+never reach the store, and for `upcoming` lectures published with `-l` the
+`.solution` content is stripped before upload.
+
+Additionally, the meta variable `chatty.extra:` may list directories whose files
+are uploaded to the same vector store as is, without any processing:
+
+``` yaml
+chatty:
+  vector-store-id: vs_...
+  extra:
+    - handouts
+    - resources/glossary
+```
+
+The store is reconciled on every run, so changed files are re-uploaded and files
+removed locally (from `chatty/` or from the `chatty.extra` directories) are
+removed from the store.
 
 ## `> decker search-index`
 
