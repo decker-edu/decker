@@ -27,9 +27,10 @@ import Data.Aeson.Lens (key, _Array, _Bool, _Integer, _String)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.Digest.Pure.MD5 (md5)
-import Data.List (sort, (\\))
+import Data.List (partition, sort, (\\))
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.Wreq
@@ -111,6 +112,15 @@ jsonOpts :: BS.ByteString -> Options
 jsonOpts apiKey =
   authOpts apiKey & header "Content-Type" .~ ["application/json"]
 
+-- | Whether the vector store with the given id still exists. A store deleted
+-- via the OpenAI GUI leaves a dangling id in decker.yaml; without this check
+-- every subsequent call would crash with a 404.
+vectorStoreExists :: BS.ByteString -> Text -> IO Bool
+vectorStoreExists apiKey storeId = do
+  let opts = authOpts apiKey & checkResponse ?~ (\_ _ -> return ())
+  r <- getWith opts (openaiBase <> "/vector_stores/" <> T.unpack storeId)
+  return (r ^. responseStatus . statusCode /= 404)
+
 createVectorStore :: BS.ByteString -> Text -> IO Text
 createVectorStore apiKey name = do
   r <- postWith (jsonOpts apiKey) (openaiBase <> "/vector_stores") (object ["name" .= name])
@@ -178,12 +188,15 @@ waitForIndexing apiKey storeId = loop (0 :: Int)
             (Just 0, Just f) -> fail $ "OpenAI: " <> show f <> " file(s) failed to index"
             _ -> threadDelay 1000000 >> loop (n + 1)
 
--- | List all files attached to the store with their attributes.
--- Returns: path → (fileId, md5). Files without a path attribute are skipped.
-listStoreFiles :: BS.ByteString -> Text -> IO (Map FilePath (Text, Text))
-listStoreFiles apiKey storeId = page Nothing Map.empty
+-- | All files attached to the store, grouped by their @path@ attribute.
+-- Returns @(path → [(fileId, md5)], orphanFileIds)@. A path may map to more
+-- than one file when earlier runs left duplicates behind; 'reconcileStore'
+-- prunes those. @orphanFileIds@ are files carrying no @path@ attribute (e.g.
+-- uploaded by an older decker or by hand) — these are removed too.
+listStoreFiles :: BS.ByteString -> Text -> IO (Map FilePath [(Text, Text)], [Text])
+listStoreFiles apiKey storeId = page Nothing Map.empty []
   where
-    page cursor acc = do
+    page cursor acc orphans = do
       let url =
             openaiBase
               <> "/vector_stores/"
@@ -192,20 +205,66 @@ listStoreFiles apiKey storeId = page Nothing Map.empty
               <> maybe "" (\c -> "&after=" <> T.unpack c) cursor
       r <- getWith (authOpts apiKey) url
       let entries = r ^.. responseBody . key "data" . _Array . traverse
-      let acc' = foldr insertEntry acc entries
+      let (acc', orphans') = foldr insertEntry (acc, orphans) entries
+      let hasMore = r ^? responseBody . key "has_more" . _Bool
+      let lastId = r ^? responseBody . key "last_id" . _String
+      case (hasMore, lastId) of
+        (Just True, Just lid) -> page (Just lid) acc' orphans'
+        _ -> return (acc', orphans')
+
+    insertEntry v (m, orphans) =
+      let fid = v ^? key "id" . _String
+          p = v ^? key "attributes" . key "path" . _String
+          h = v ^? key "attributes" . key "md5" . _String
+       in case (fid, p, h) of
+            (Just f, Just pp, Just hh) ->
+              (Map.insertWith (++) (T.unpack pp) [(f, hh)] m, orphans)
+            (Just f, _, _) -> (m, f : orphans)
+            _ -> (m, orphans)
+
+-- | List every @purpose=assistants@ file object in the project, as @(id, name)@.
+-- These are the files decker uploads; other purposes (fine-tune, batch, …) are
+-- left untouched.
+listAssistantFiles :: BS.ByteString -> IO [(Text, Text)]
+listAssistantFiles apiKey = page Nothing []
+  where
+    page cursor acc = do
+      let url =
+            openaiBase
+              <> "/files?purpose=assistants&limit=10000"
+              <> maybe "" (\c -> "&after=" <> T.unpack c) cursor
+      r <- getWith (authOpts apiKey) url
+      let entries = r ^.. responseBody . key "data" . _Array . traverse
+      let acc' = acc ++ mapMaybe entry entries
       let hasMore = r ^? responseBody . key "has_more" . _Bool
       let lastId = r ^? responseBody . key "last_id" . _String
       case (hasMore, lastId) of
         (Just True, Just lid) -> page (Just lid) acc'
         _ -> return acc'
 
-    insertEntry v m =
-      let fid = v ^? key "id" . _String
-          p = v ^? key "attributes" . key "path" . _String
-          h = v ^? key "attributes" . key "md5" . _String
-       in case (fid, p, h) of
-            (Just f, Just pp, Just hh) -> Map.insert (T.unpack pp) (f, hh) m
-            _ -> m
+    entry v = do
+      fid <- v ^? key "id" . _String
+      let name = v ^? key "filename" . _String
+      return (fid, fromMaybe fid name)
+
+-- | Delete every @assistants@ file object that is not currently attached to the
+-- given vector store. Run after 'reconcileStore' so the store holds exactly the
+-- files that should survive; everything else (e.g. files orphaned when a store
+-- was deleted in the GUI) is removed. Destructive: this touches all
+-- assistant-purpose files in the OpenAI project, not just decker's.
+pruneOrphanFiles :: BS.ByteString -> Text -> IO ()
+pruneOrphanFiles apiKey storeId = do
+  (remote, orphans) <- listStoreFiles apiKey storeId
+  let attached = orphans ++ concatMap (map fst) (Map.elems remote)
+  all' <- listAssistantFiles apiKey
+  let danglers = [(fid, name) | (fid, name) <- all', fid `notElem` attached]
+  if null danglers
+    then putStrLn "# prune: no dangling assistant files."
+    else do
+      forM_ danglers $ \(fid, name) -> do
+        putStrLn $ "# prune file: " <> T.unpack name <> " (" <> T.unpack fid <> ")"
+        deleteFile apiKey fid
+      putStrLn $ "# pruned " <> show (length danglers) <> " file(s)."
 
 -- ---------------------------------------------------------------------------
 -- Entry point
@@ -217,57 +276,84 @@ lookupApiKey =
     Just k | not (null k) -> return (Just (BS.pack k))
     _ -> return Nothing
 
+-- | Detach a file from the store and delete the underlying file object.
+purgeFile :: BS.ByteString -> Text -> Text -> IO ()
+purgeFile apiKey storeId fid = do
+  detachFromStore apiKey storeId fid
+  deleteFile apiKey fid
+
 -- | Reconcile the given local files (a map from store path to local file path)
--- against the store: upload new or changed files (deleting the old remote file
--- first), delete files that vanished locally, leave unchanged files alone, then
--- wait for indexing.
+-- against the store so that, when finished, every local path is represented by
+-- exactly one current file:
+--   - upload new or changed files (deleting any old remote files for that path),
+--   - delete files whose path vanished locally,
+--   - collapse accidental duplicates down to a single current copy,
+--   - delete orphan files that carry no path attribute,
+--   - leave unchanged files alone,
+-- then wait for indexing.
 reconcileStore :: BS.ByteString -> Text -> Map FilePath FilePath -> IO ()
 reconcileStore apiKey storeId files = do
   newHashes <- traverse hashLocal files
-  remote <- listStoreFiles apiKey storeId
+  (remote, orphans) <- listStoreFiles apiKey storeId
 
-  let unchanged =
-        Map.filterWithKey
-          (\p h -> fmap snd (Map.lookup p remote) == Just h)
-          newHashes
-  let upserts =
-        Map.filterWithKey
-          (\p h -> fmap snd (Map.lookup p remote) /= Just h)
-          newHashes
+  -- Files with no path attribute can never be matched against a local file;
+  -- drop them so the store only holds files this tool manages.
+  forM_ orphans $ \fid -> do
+    putStrLn "# delete orphan (no path attribute)"
+    purgeFile apiKey storeId fid
+
+  -- Paths present remotely but no longer local: remove every copy.
   let removals = Map.keys remote \\ Map.keys newHashes
-
   forM_ removals $ \p -> do
-    let (fid, _) = remote Map.! p
     putStrLn $ "# delete: " <> p
-    detachFromStore apiKey storeId fid
-    deleteFile apiKey fid
+    forM_ (remote Map.! p) $ \(fid, _) -> purgeFile apiKey storeId fid
 
-  attached <- forM (Map.toList upserts) $ \(p, h) -> do
-    case Map.lookup p remote of
-      Just (oldFid, _) -> do
-        putStrLn $ "# replace: " <> p
-        detachFromStore apiKey storeId oldFid
-        deleteFile apiKey oldFid
-      Nothing -> putStrLn $ "# upload: " <> p
-    fid <- uploadFile apiKey (files Map.! p)
-    attachToStore apiKey storeId fid p h
-    return p
+  -- Each local path: keep a single matching copy if one exists, otherwise
+  -- (re)upload; in both cases purge any other remote copies for that path.
+  results <- forM (Map.toList files) $ \(p, localPath) -> do
+    let h = newHashes Map.! p
+    let copies = Map.findWithDefault [] p remote
+    let (matching, stale) = partition ((== h) . snd) copies
+    case matching of
+      ((_, _) : extras) -> do
+        -- Already present and current; drop any duplicate/stale copies.
+        let dups = map fst (extras ++ stale)
+        unless (null dups) $ putStrLn $ "# dedup: " <> p
+        forM_ dups $ purgeFile apiKey storeId
+        return Unchanged
+      [] -> do
+        if null stale
+          then putStrLn $ "# upload: " <> p
+          else putStrLn $ "# replace: " <> p
+        forM_ (map fst stale) $ purgeFile apiKey storeId
+        fid <- uploadFile apiKey localPath
+        attachToStore apiKey storeId fid p h
+        return Uploaded
 
-  unless (null attached) $ do
-    putStrLn $ "# waiting for indexing of " <> show (length attached) <> " file(s)..."
+  let uploaded = length (filter (== Uploaded) results)
+  let unchanged = length (filter (== Unchanged) results)
+
+  when (uploaded > 0) $ do
+    putStrLn $ "# waiting for indexing of " <> show uploaded <> " file(s)..."
     waitForIndexing apiKey storeId
 
   putStrLn $
     "# done. "
-      <> show (Map.size unchanged)
+      <> show unchanged
       <> " unchanged, "
-      <> show (length attached)
+      <> show uploaded
       <> " uploaded, "
       <> show (length removals)
       <> " removed."
 
-runChatty :: IO ()
-runChatty = do
+-- | Outcome of reconciling a single local file.
+data Outcome = Unchanged | Uploaded deriving (Eq)
+
+-- | Sync the local chatty files to the configured vector store. When @prune@ is
+-- set (the @--prune-files@ flag), also delete any assistant-purpose OpenAI file
+-- objects left dangling, i.e. not attached to the store.
+runChatty :: Bool -> IO ()
+runChatty prune = do
   apiKey <-
     lookupApiKey >>= \case
       Just k -> return k
@@ -278,20 +364,30 @@ runChatty = do
   let storeId = lookupMetaOrElse ("" :: Text) "chatty.vector-store-id" meta
   let storeName = lookupMetaOrElse ("decker" :: Text) "chatty.vector-store-name" meta
 
-  storeId' <-
+  missing <-
     if T.null storeId
-      then do
-        putStrLn "# No chatty.vector-store-id in decker.yaml — creating a new vector store..."
-        sid <- createVectorStore apiKey storeName
-        putStrLn ""
-        putStrLn $ "# Created vector store: " <> T.unpack sid
-        putStrLn "# Add the following to decker.yaml and run `decker chatty` again:"
-        putStrLn ""
-        putStrLn "chatty:"
-        putStrLn $ "  vector-store-id: " <> T.unpack sid
-        putStrLn ""
-        exitSuccess
-      else return storeId
+      then return True
+      else do
+        ok <- vectorStoreExists apiKey storeId
+        unless ok $
+          putStrLn $
+            "# chatty.vector-store-id "
+              <> T.unpack storeId
+              <> " no longer exists (deleted?) — creating a new vector store..."
+        return (not ok)
+
+  when missing $ do
+    when (T.null storeId) $
+      putStrLn "# No chatty.vector-store-id in decker.yaml — creating a new vector store..."
+    sid <- createVectorStore apiKey storeName
+    putStrLn ""
+    putStrLn $ "# Created vector store: " <> T.unpack sid
+    putStrLn "# Add the following to decker.yaml and run `decker chatty` again:"
+    putStrLn ""
+    putStrLn "chatty:"
+    putStrLn $ "  vector-store-id: " <> T.unpack sid
+    putStrLn ""
+    exitSuccess
 
   files <- collectLocalFiles meta
   when (Map.null files) $ do
@@ -301,7 +397,8 @@ runChatty = do
         <> "/ and no files in `chatty.extra`. Build first."
     exitFailure
 
-  reconcileStore apiKey storeId' files
+  reconcileStore apiKey storeId files
+  when prune $ pruneOrphanFiles apiKey storeId
 
 -- | Non-exiting sync for `decker publish`. Reconciles the generated markdown
 -- under 'chattyDir' plus the files in the configured `chatty.extra` directories
@@ -319,5 +416,14 @@ syncChattyToStore = do
       lookupApiKey >>= \case
         Nothing -> putStrLn "# OPENAI_API_KEY is not set — skipping vector store sync."
         Just apiKey -> do
-          files <- collectLocalFiles meta
-          reconcileStore apiKey storeId files
+          exists <- vectorStoreExists apiKey storeId
+          if not exists
+            then
+              putStrLn $
+                "# chatty.vector-store-id "
+                  <> T.unpack storeId
+                  <> " no longer exists — skipping vector store sync. "
+                  <> "Run `decker chatty` to create a new store and update decker.yaml."
+            else do
+              files <- collectLocalFiles meta
+              reconcileStore apiKey storeId files

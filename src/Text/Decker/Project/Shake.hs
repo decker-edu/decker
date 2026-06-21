@@ -234,7 +234,7 @@ runCommand context command rules = do
     "chatty" -> do
       extractMetaIntoFile (context ^. extra)
       runShake context rules
-      runChatty
+      runChatty (PruneFilesFlag `elem` (context ^. extra))
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
@@ -294,7 +294,12 @@ deckerFlags =
       ['l']
       ["lecture"]
       (GetOpt.NoArg $ Right LectureFlag)
-      "Enable lecture publishing."
+      "Enable lecture publishing.",
+    GetOpt.Option
+      []
+      ["prune-files"]
+      (GetOpt.NoArg $ Right PruneFilesFlag)
+      "With `chatty`: delete OpenAI file objects not attached to the vector store."
   ]
 
 parsePortArg :: String -> Either String Flags

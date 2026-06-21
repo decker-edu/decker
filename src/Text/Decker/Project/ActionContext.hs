@@ -33,6 +33,7 @@ data Flags
   | LectureFlag
   | PortFlag Int
   | BindFlag String
+  | PruneFilesFlag
   deriving (Eq, Show)
 
 data ActionContext = ActionContext

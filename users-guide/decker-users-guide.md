@@ -125,7 +125,15 @@ chatty:
 
 The store is reconciled on every run, so changed files are re-uploaded and files
 removed locally (from `chatty/` or from the `chatty.extra` directories) are
-removed from the store.
+removed from the store. Reconciliation keeps exactly one current version per
+file: stale duplicates and files lacking decker's bookkeeping attributes are
+removed. If the configured store no longer exists (for example because it was
+deleted in the OpenAI dashboard), `decker publish` skips the sync with a warning
+instead of failing; run `decker chatty` to create a fresh store.
+
+Note that deleting a vector store in the OpenAI dashboard does *not* delete the
+underlying uploaded file objects, which then linger in the project's file
+storage. Use `decker chatty --prune-files` to clean them up (see below).
 
 ## `> decker search-index`
 
@@ -186,6 +194,25 @@ whisper:
   lang: de
 ```
 
+## `> decker chatty`
+
+Builds the annotated Markdown for the project and syncs it to the configured
+OpenAI vector store, the same way `decker publish` does (see [`decker
+publish`](#-decker-publish) for the reconciliation rules and the
+`chatty.vector-store-id`, `chatty.vector-store-name` and `chatty.extra` meta
+variables). The `OPENAI_API_KEY` environment variable must be set.
+
+If no `chatty.vector-store-id` is configured, or the configured store no longer
+exists, a new vector store is created and its id is printed for you to paste into
+`decker.yaml`.
+
+With the `--prune-files` option, after the sync every assistant-purpose file
+object in the OpenAI project that is *not* attached to the store is deleted. This
+removes files left dangling in the project's file storage, for instance after a
+vector store was deleted in the OpenAI dashboard. This is destructive and
+operates on all assistant-purpose files in the project, not only those uploaded
+by decker.
+
 # Options
 
 ## `-h`, `--help`
@@ -203,6 +230,11 @@ Serve the public dir via HTTP (implies --watch).
 ## `-w`, `--watch`
 
 Watch changes to source files and rebuild current target if necessary.
+
+## `--prune-files`
+
+With `decker chatty`: after syncing, delete all assistant-purpose OpenAI file
+objects that are not attached to the vector store.
 
 # Resources
 
