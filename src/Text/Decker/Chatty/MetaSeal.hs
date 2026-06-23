@@ -69,34 +69,46 @@ sealChattyMeta meta = do
 sealChattyMetaIO :: Maybe KeyFile -> Meta -> IO (Meta, [String])
 sealChattyMetaIO mKeyFile meta =
   case lookupMeta "chatty.prompt" meta :: Maybe Text of
-    Nothing -> pure (meta, []) -- no chatty config in this build
+    Nothing -> pure (meta, []) -- chatty not enabled in this build, stay silent
     Just promptId ->
-      case mKeyFile >>= lookupKey promptId of
-        Nothing ->
-          pure
-            ( stripPlaintext meta,
-              [ "# chatty: no key for prompt "
-                  <> T.unpack promptId
-                  <> " in "
-                  <> chattyKeyFile
-                  <> " — stripping plaintext config (chat will not work until a key is provided)."
-              ]
-            )
-        Just key -> sealWith promptId key meta
+      case mKeyFile of
+        Nothing -> pure (stripPlaintext meta, legacyNotice promptId ("no " <> chattyKeyFile <> " at the project root"))
+        Just kf ->
+          case lookupKey promptId kf of
+            Nothing -> pure (stripPlaintext meta, legacyNotice promptId ("no entry for it in " <> chattyKeyFile))
+            Just key -> sealWith promptId key meta
+
+-- | Explain that a chatty deck is being published *without* a sealed config and
+-- will therefore use the legacy stored-prompt path at runtime.
+legacyNotice :: Text -> String -> [String]
+legacyNotice promptId reason =
+  [ "# chatty: prompt '" <> p <> "' enabled in LEGACY mode (" <> reason <> ").",
+    "#   No sealed config is published; the deck sends '" <> p <> "' to the proxy unchanged.",
+    "#   This only works if '" <> p <> "' is a real OpenAI stored-prompt id (pmpt_...)."
+  ]
+  where
+    p = T.unpack promptId
 
 sealWith :: Text -> BS.ByteString -> Meta -> IO (Meta, [String])
 sealWith promptId key meta = do
   mInstructions <- resolveInstructions meta
   case mInstructions of
     Nothing ->
-      pure (stripPlaintext meta, ["# chatty: no chatty.instructions to seal — skipping."])
+      pure
+        ( stripPlaintext meta,
+          [ "# chatty: prompt '" <> T.unpack promptId <> "' has a key but no chatty.instructions —",
+            "#   nothing to seal; the deck falls back to the LEGACY stored-prompt path."
+          ]
+        )
     Just instructions -> do
-      let si =
+      let model = lookupMetaOrElse "gpt-4.1" "chatty.model" meta :: Text
+          vectorStore = lookupMetaOrElse "" "chatty.vector-store-id" meta :: Text
+          si =
             SealInput
               { siInstructions = instructions,
-                siModel = lookupMetaOrElse "gpt-4.1" "chatty.model" meta,
+                siModel = model,
                 siParams = paramsValue meta,
-                siVectorStoreId = lookupMetaOrElse "" "chatty.vector-store-id" meta
+                siVectorStoreId = vectorStore
               }
       result <- sealConfig key promptId si
       case result of
@@ -104,15 +116,23 @@ sealWith promptId key meta = do
           -- Fail safe: strip plaintext even though no sealed blob was produced.
           pure
             ( stripPlaintext meta,
-              [ "# chatty: sealing failed ("
-                  <> T.unpack err
-                  <> ") — stripping plaintext config from the published meta."
+              [ "# chatty: SEALING FAILED for prompt '" <> T.unpack promptId <> "': " <> T.unpack err <> ".",
+                "#   Plaintext config stripped from the published meta; chat will not work until fixed."
               ]
             )
         Right blob ->
           pure
             ( stripPlaintext (setMetaValue "chatty.sealed-config" blob meta),
-              ["# chatty: sealed config for prompt " <> T.unpack promptId <> "."]
+              [ "# chatty: SEALED config for prompt '"
+                  <> T.unpack promptId
+                  <> "' (model="
+                  <> T.unpack model
+                  <> ", instructions="
+                  <> show (T.length instructions)
+                  <> " chars"
+                  <> (if T.null vectorStore then ", no vector store" else ", vector-store=" <> T.unpack vectorStore)
+                  <> ")."
+              ]
             )
 
 -- | Remove every author-controlled plaintext chatty field from the meta.
