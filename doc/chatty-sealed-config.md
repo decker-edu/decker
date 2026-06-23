@@ -300,3 +300,111 @@ instructions/model/params` come from deck YAML frontmatter merged with global
 
 Sealing protects the prompt at rest in the deck and in transit only. It does not
 prevent prompt-injection extraction of the system prompt once the chat is live.
+
+## Step-by-step implementation plan
+
+Ordered by dependency. The crypto byte-contract is the linchpin both languages
+must agree on, so it goes first and gets a shared test vector that both the
+Haskell and Node sides are checked against.
+
+### Phase 0 — Lock the crypto contract (first)
+
+- **0.1** Write the contract down as a fixture: a fixed 32-byte key (hex),
+  12-byte nonce (hex), AAD string (a prompt id), and a known plaintext payload →
+  expected base64 blob (`nonce‖ciphertext‖tag`). Generate once with a throwaway
+  script, then freeze. Both implementations must reproduce this exact blob — this
+  is what prevents a silent Haskell↔Node incompatibility.
+- **0.2** Freeze the payload schema:
+  `{ instructions, model, params, vector_store_id }`. Decide which `params` keys
+  are allowed (e.g. `temperature`, `max_output_tokens`) and which the proxy
+  clamps (open question 2).
+
+*Exit:* a checked-in JSON fixture plus the expected blob.
+
+### Phase 1 — Haskell sealing (no build wiring yet)
+
+- **1.1** Add `crypton` + `memory` to `package.yaml`; confirm they resolve under
+  `lts-23.28`. Verify the exact `crypton` AEAD signatures against the pinned
+  version (the sketch above may need tweaks).
+- **1.2** New module `Text.Decker.Chatty.Seal`:
+  `data SealInput = SealInput { instructions, model :: Text, params :: Value,
+  vectorStoreId :: Text }`; `sealConfig :: ByteString -> ByteString ->
+  ByteString -> SealInput -> IO Text` (key, nonce, aad=promptId → base64 blob);
+  a pure `openConfig` for round-trip tests.
+- **1.3** Key-file reader: read git-controlled `chatty-key.json` directly (single
+  base64 key or `prompt-id → key` map); `Nothing` ⇒ sealing disabled.
+- **1.4** Unit tests: round-trip; **reproduce the Phase-0 fixture exactly**
+  (fixed nonce); tamper test (flipped byte / changed AAD fails `open`).
+
+*Exit:* `stack test` green, fixture matches.
+
+### Phase 2 — Wire sealing into the build + authoring schema
+
+- **2.1** Add `sealChattyMeta :: Meta -> Action Meta`: read
+  `chatty.prompt/instructions/model/params/vector-store-id`; if key file +
+  prompt present, seal, set `chatty.sealed-config`, and **delete**
+  `chatty.instructions/model/params`; else pass through with a notice.
+- **2.2** Apply at both choke points before `fromPandocMeta`: top of
+  `writePandocFile` (`Writer/Layout.hs:112`) and top of `renderIndex`
+  (`Filter/Index.hs:281`).
+- **2.3** **Leakage guard test** (security-critical, automated): compile a chatty
+  deck with a key and assert `public/<hash>.json` contains `chatty.sealed-config`
+  and **not** `instructions`/the prompt text.
+- **2.4** Document the new meta keys; `chatty.prompt` is now a key selector.
+
+*Exit:* building the test deck with a key seals + leaks nothing; building without
+a key file is unchanged.
+
+### Phase 3 — Client (chatty.js)
+
+- **3.1** Read `sealed` from `Decker.meta.chatty["sealed-config"]` (near line 60).
+- **3.2** Change the fetch body (lines 212-217) to
+  `{ promptId: prompt, sealed, input, previous_response_id, stream: true }`; send
+  `sealed` on **every** request; leave SSE handling untouched.
+- **3.3** If `sealed` absent but `prompt` present, keep the old
+  `{ prompt: { id } }` shape (supports Phase 5 back-compat); decide keep vs.
+  hard-cut.
+
+*Exit:* deck posts the new body shape (verify in devtools).
+
+### Phase 4 — Proxy (decker-chatty)
+
+Branch the repo; **start from committed HEAD**, not the WIP working tree
+(stash/discard or explicitly reconcile it first).
+
+- **4.1** `config.json` → `{ port, prompts: { <id>: { apiKey, deckConfigKey } } }`.
+- **4.2** Load + validate keys at startup (base64 → 32 bytes; fail fast).
+- **4.3** Handler: `promptId` → 400 if unknown; decrypt `sealed` with that
+  entry's `deckConfigKey`, AAD = `promptId` → 400 on tag failure; **ignore** any
+  client `model`/`instructions`/`tools`; build upstream body with `model`,
+  `params`, `tools:[{type:"file_search", vector_store_ids:[vector_store_id]}]`
+  always, `instructions` only when `!previous_response_id`; stream as today.
+- **4.4** Decrypt unit tests including **the Phase-0 fixture**, unknown id,
+  tampered blob, wrong AAD, and rejection of client-supplied fields.
+
+*Exit:* proxy tests green; fixture decrypts to the known payload.
+
+### Phase 5 — End-to-end, back-compat, docs
+
+- **5.1** E2E: generate `chatty-key.json` (`openssl rand -base64 32`), matching
+  `deckConfigKey` in proxy config, compile the test deck, run the proxy locally,
+  confirm chat starts, model/params apply, `file_search` hits the store.
+- **5.2** Back-compat: proxy falls through to the old `prompt.id` pass-through
+  when `sealed` is absent (works until OpenAI removes stored prompts); remove
+  after all decks are recompiled.
+- **5.3** Docs/ops: update `decker-chatty/README.md`, `config.json` example,
+  `users-guide` chatty section; document key generation, the git-controlled file,
+  proxy match requirement, rotation semantics, restrict/rotate-if-public note.
+  Verify `chatty-key.json` is not picked up as a static resource into `public/`.
+- **5.4** Update this doc's status from "design" to "implemented" with any
+  deviations.
+
+### Sequencing notes
+
+- **Commit/PR boundaries:** Phase 1, Phase 2, Phase 3, Phase 4 (separate repo),
+  Phase 5.
+- Phases 1–2 and 4 can proceed in **parallel** once Phase 0's fixture exists —
+  that is the point of locking the contract first.
+- **Riskiest steps:** 2.3 (the leakage invariant — the actual security goal),
+  1.1 (crypton API/version drift), 0.1 (without the shared fixture, 1.4 and 4.4
+  can both pass while being mutually incompatible).
