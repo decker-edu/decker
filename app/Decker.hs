@@ -74,8 +74,18 @@ syncChattyVectorStore meta sources = do
   unless (null storeId) $ do
     putNormal "# syncing annotated chatty markdown to vector store"
     liftIO $ tryRemoveDirectory "chatty"
-    generateChattyMarkdown meta sources
+    sources' <- withIndexSource sources
+    generateChattyMarkdown meta sources'
     liftIO syncChattyToStore
+
+-- | Append the project index source ('indexSource', i.e. @index.md@) to the
+-- given list of chatty sources when it exists. The index is neither a deck nor
+-- a page, so it is not part of the regular target lists, but it should still be
+-- mirrored into the vector store.
+withIndexSource :: [FilePath] -> Action [FilePath]
+withIndexSource sources = do
+  exists <- doesFileExist indexSource
+  return $ if exists then sources <> [indexSource] else sources
 
 needTargets' :: [Control.Lens.Getter.Getting Dependencies Targets Dependencies] -> Targets -> Action ()
 needTargets' sels targets = do
@@ -413,7 +423,8 @@ deckerRules = do
       -- only non-draft decks and pages; drops solution content for upcoming lectures (-l)
       publishable <- filterPublishable meta (Map.elems (deps ^. decks) <> Map.elems (deps ^. pages))
       liftIO $ tryRemoveDirectory "chatty"
-      generateChattyMarkdown meta publishable
+      sources <- withIndexSource publishable
+      generateChattyMarkdown meta sources
   --
   withTargetDocs "Stop chrome remote session" $
     phony "pdf" $ do
