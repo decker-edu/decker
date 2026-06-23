@@ -7,6 +7,7 @@ These are drafts for design documents that try to reconcile the complex connecti
 -   [Resource handling](resource-handling-page.md)
 -   [Formatting options](formatting-options-page.md)
 -   [Graphical user interface architecture](gui-architecture-page.md)
+-   [Chatty sealed config](chatty-sealed-config.md)
 
 Many aspects first discussed in #73 are addressed here. These documents are meant as a starting point for discussion and will evolve over time.
 
