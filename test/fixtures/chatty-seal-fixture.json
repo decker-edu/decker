@@ -1,0 +1,16 @@
+{
+  "comment": "Frozen crypto contract for chatty sealed config (Phase 0). Both Haskell and Node must reproduce sealedBlobBase64 from keyHex/nonceHex/aad/payloadJson. Regenerate with test/fixtures/gen-seal-fixture.mjs (do not change without updating both implementations).",
+  "keyHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "nonceHex": "a0a1a2a3a4a5a6a7a8a9aaab",
+  "aad": "pmpt_fixture_0001",
+  "payloadJson": "{\"instructions\":\"You are a helpful tutor. Answer concisely.\",\"model\":\"gpt-4.1\",\"params\":{\"temperature\":0.2},\"vector_store_id\":\"vs_fixture_abc123\"}",
+  "payload": {
+    "instructions": "You are a helpful tutor. Answer concisely.",
+    "model": "gpt-4.1",
+    "params": {
+      "temperature": 0.2
+    },
+    "vector_store_id": "vs_fixture_abc123"
+  },
+  "sealedBlobBase64": "oKGio6SlpqeoqaqrnToVQza/cMoBEe68aQni5FL1NmWy1jAJvG8G7hrHBWenGmeL2lY8T3G8RaZ6DeaLZ3gpJgG5aRstJyV8iFLo39DZ6U0Kh4OQgM/LNr7s4Ji9atnFqLK7QJVXSv/c6ijm7vBe2WaMtauw6Xt8p/6IS1A/E/GtQfROSpC3wJZv0Du2TtYWqzb1ZVIGn+lxe6PlqqQIV2LvJILWZtMM4Vm6OPRJ"
+}

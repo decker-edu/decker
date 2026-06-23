@@ -14,6 +14,7 @@ import Skylighting (SyntaxMap, defaultSyntaxMap, loadSyntaxFromFile)
 import System.FilePath
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Internal (ChoiceString (..), MarkupM (..), StaticString, getString, getText)
+import Text.Decker.Chatty.MetaSeal (sealChattyMeta)
 import Text.Decker.Filter.Util (hash9String)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
@@ -109,7 +110,10 @@ writeMarkdownFile out pandoc@(Pandoc meta blocks) = do
 -- of plain HTML 4. which is then adjusted for reveal compatible section tags.
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
 writePandocFile :: WriterOptions -> FilePath -> Pandoc -> Action ()
-writePandocFile options out pandoc@(Pandoc meta blocks) = do
+writePandocFile options out pandoc@(Pandoc rawMeta blocks) = do
+  -- Seal+strip author-controlled chatty config before any meta is serialized,
+  -- so the plaintext system prompt never reaches public/ (JSON or inlined HTML).
+  meta <- sealChattyMeta rawMeta
   let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile
   let meta' = addMetaKeyValue "decker-meta-url" (toText metaFile) meta

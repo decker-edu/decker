@@ -28,6 +28,7 @@ import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Util (hash9String)
 import Text.Decker.Internal.Common (privateDir, publicDir)
 import Text.Decker.Internal.Helper (makeRelativeTo)
+import Text.Decker.Chatty.MetaSeal (sealChattyMeta)
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
 import Text.Decker.Project.Project qualified as Project
@@ -278,7 +279,10 @@ insertWord word entry = Map.alter add word
     add (Just list) = Just (entry : list)
 
 renderIndex :: Template Text -> Meta -> Project.Targets -> FilePath -> Action ()
-renderIndex template meta targets out = do
+renderIndex template rawMeta targets out = do
+  -- Seal+strip chatty config (chatty.* can be set globally in decker.yaml, so
+  -- the index is a leak vector too) before any meta is serialized.
+  meta <- sealChattyMeta rawMeta
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile

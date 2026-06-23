@@ -1,6 +1,8 @@
 # Chatty Sealed Config — Design
 
-Status: design, not yet implemented (as of 2026-06-23).
+Status: in progress (as of 2026-06-23). Phases 0–4 implemented and unit-tested
+(Haskell + Node); Phase 5 docs done, end-to-end run still pending. See the
+progress log at the end of the step-by-step plan.
 
 ## Problem
 
@@ -398,6 +400,59 @@ Branch the repo; **start from committed HEAD**, not the WIP working tree
   Verify `chatty-key.json` is not picked up as a static resource into `public/`.
 - **5.4** Update this doc's status from "design" to "implemented" with any
   deviations.
+
+### Progress log
+
+- **Phase 0 — DONE.** Frozen fixture at `test/fixtures/chatty-seal-fixture.json`
+  (generator: `test/fixtures/gen-seal-fixture.mjs`). Fixed key/nonce/AAD +
+  payload → expected `base64(nonce‖ct‖tag)` blob, produced by Node's
+  `aes-256-gcm`. Payload schema frozen as
+  `{ instructions, model, params, vector_store_id }`.
+- **Phase 1 — DONE.** `crypton` + `memory` added to `package.yaml` (resolve
+  under lts-23.28). New module `src/Text/Decker/Chatty/Seal.hs`:
+  `SealInput`, pure `sealBytes`/`openBytes`, `sealConfig` (random nonce, `IO`),
+  pure `openConfig`, `payloadJson`, and a `chatty-key.json` reader
+  (`readKeyFile`/`lookupKey`, single-key or prompt-id→key map). Tests in
+  `test/SealTests.hs` (wired into `test/Spec.hs`): reproduce the Phase-0 fixture
+  byte-for-byte, round-trip, wrong-AAD / wrong-key / tampered-blob all fail,
+  key-file parsing. `stack test` green.
+  - Note: `crypton`'s `AuthTag` Eq is constant-time; tag check via `==`.
+- **Phase 2 — DONE.** Redaction seam `Text.Decker.Chatty.MetaSeal`:
+  `sealChattyMeta :: Meta -> Action Meta` (reads `chatty-key.json` from the
+  project root) wrapping a testable IO core `sealChattyMetaIO :: Maybe KeyFile
+  -> Meta -> IO (Meta, [notice])`. Applied at both choke points before
+  `fromPandocMeta`: top of `writePandocFile` (`Writer/Layout.hs`) and top of
+  `renderIndex` (`Filter/Index.hs`). It seals into `chatty.sealed-config` and
+  deletes `chatty.instructions/model/params`. Added `deleteMetaValue` +
+  exported `getMetaValue`/`fromPandocMeta'` in `Internal/Meta.hs`.
+  `chatty.instructions` is resolved file-or-inline. **Fail-safe:** if the key is
+  missing or sealing fails, the plaintext is *still* stripped (chat breaks, but
+  the prompt never leaks). Leakage-guard tests in `test/SealTests.hs` assert the
+  rendered meta JSON contains `sealed-config` and not the secret/`instructions`.
+  Verified: a loose `chatty-key.json` is **not** auto-copied to `public/` —
+  static resources come only from explicit `static-resources`/
+  `static-resource-dirs` meta (`Project.hs`).
+- **Phase 3 — DONE.** `chatty.js`: reads `sealed =
+  Decker.meta.chatty["sealed-config"]`; new body `{ promptId, sealed, input,
+  previous_response_id, stream }` when sealed is present, else the legacy
+  `{ prompt: { id } }` shape (back-compat). SSE handling unchanged.
+- **Phase 4 — DONE** (separate repo `decker-chatty`, branch `sealed-config`,
+  **not committed/pushed**). New `seal.mjs` (`decodeKey`, `loadPrompts`,
+  `openConfig`, `buildUpstreamBody`); `server.mjs` rewritten from committed HEAD
+  pass-through: per-request prompt lookup (400 unknown), decrypt with AAD=promptId
+  (400 on failure), ignores client `model`/`instructions`/`tools`, always sets
+  `model`/`params`/`file_search` tool, `instructions` only on the first turn,
+  legacy fallthrough kept. `config.json` → `{ port, prompts: { id: { apiKey,
+  deckConfigKey } } }`, keys validated at startup. Tests `test/seal.test.mjs`
+  (`npm test`, node:test): reproduce the Phase-0 fixture decrypt, wrong-AAD /
+  wrong-key / tampered fail, key validation, first-vs-subsequent body, client
+  override rejection. 9/9 green.
+- **Phase 5 — PARTIAL.** Docs done: `decker-chatty/README.md`, `config.json`
+  example, and the users-guide "Chatty system prompt and sealed config" section
+  (key generation, git-controlled file, proxy match, rotation, restrict/rotate
+  note). **Still pending:** 5.1 live end-to-end run against a local proxy with a
+  real OpenAI key + vector store, and flipping this doc's status to
+  "implemented".
 
 ### Sequencing notes
 

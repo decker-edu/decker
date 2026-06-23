@@ -40,6 +40,7 @@ dependencies:
   - bytestring
   - containers
   - conduit
+  - crypton
   - imagesize-conduit
   - colour
   - data-default
@@ -69,6 +70,7 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
+  - memory
   - mime-types
   - modern-uri
   - monad-loops

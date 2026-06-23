@@ -4,6 +4,7 @@ import "./marked.min.js";
 // config
 let server;
 let prompt;
+let sealed; // opaque sealed-config blob, forwarded to the proxy on every request
 
 // access to Reveal and slide with annottions
 let Reveal;
@@ -59,6 +60,7 @@ function setup(anchor, reveal) {
   // get server and prompt from config
   server = window.Decker?.meta?.chatty?.server;
   prompt = window.Decker?.meta?.chatty?.prompt;
+  sealed = window.Decker?.meta?.chatty?.["sealed-config"];
   if (!server || !prompt) return;
 
   // setup GUI
@@ -206,15 +208,28 @@ async function send(userInput) {
   const botMsg = newMessage("bot");
 
   try {
+    // New decks carry a sealed config blob: the proxy decrypts model,
+    // instructions and the vector store from it. Old decks (no sealed blob)
+    // fall back to the legacy stored-prompt shape, which the proxy still
+    // accepts until OpenAI removes stored prompts.
+    const body = sealed
+      ? {
+          promptId: prompt,
+          sealed: sealed,
+          input: input,
+          previous_response_id: previous_response_id,
+          stream: true
+        }
+      : {
+          prompt: { id: prompt },
+          input: input,
+          previous_response_id: previous_response_id,
+          stream: true
+        };
     const response = await fetch(server.trim() + "/chatty", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: { id: prompt },
-        input: input,
-        previous_response_id: previous_response_id,
-        stream: true
-      }),
+      body: JSON.stringify(body),
       signal: abortController.signal
     });
 

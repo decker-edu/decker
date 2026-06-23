@@ -135,6 +135,51 @@ Note that deleting a vector store in the OpenAI dashboard does *not* delete the
 underlying uploaded file objects, which then linger in the project's file
 storage. Use `decker chatty --prune-files` to clean them up (see below).
 
+### Chatty system prompt and sealed config
+
+The chat assistant's system prompt, model and model parameters are authored in
+meta and **sealed into the published deck** at compile time. This replaces
+OpenAI's deprecated stored prompts: the author controls the prompt (fast,
+markdown-only iteration), while the `decker-chatty` proxy holds only the secrets.
+
+``` yaml
+chatty:
+  prompt: pmpt_tutor             # key selector into the proxy config (not a stored-prompt id)
+  server: "https://.../chatty"
+  instructions: ./prompts/tutor.md   # path to a file, or inline text
+  model: gpt-4.1
+  params:
+    temperature: 0.2
+  vector-store-id: vs_...        # reused as the sealed file_search store
+```
+
+At build time decker encrypts `instructions`, `model`, `params` and
+`vector-store-id` (AES-256-GCM, with `chatty.prompt` bound as authenticated
+data) into `chatty.sealed-config`, and **removes the plaintext** so the system
+prompt never appears in `public/`. The browser forwards the opaque blob on every
+request; the proxy decrypts it and injects the model, instructions and the
+`file_search` tool.
+
+The encryption key is read from a git-controlled **`chatty-key.json`** at the
+project root — never from `decker.yaml`, and never copied to `public/`:
+
+``` bash
+openssl rand -base64 32 > /tmp/key   # then put it in chatty-key.json
+```
+
+``` json
+"BASE64_32_BYTE_KEY"
+```
+
+(or, for several prompts, a `{ "pmpt_id": "BASE64_KEY", ... }` map). The same key
+must be configured as `deckConfigKey` for that prompt id in the proxy's
+`config.json`. The key file grants no more than repo read access already does (it
+does **not** expose the OpenAI API key, which lives only in the proxy), but a
+source repo carrying `chatty-key.json` must stay restricted to authors — if it is
+ever made public, rotate the key and recompile the decks. If no `chatty-key.json`
+is present, sealing is skipped and the plaintext chatty config is still stripped
+from the output.
+
 ## `> decker search-index`
 
 Builds an inverted index over all Markdown source files and stores it in JSON in
