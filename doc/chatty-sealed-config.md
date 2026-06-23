@@ -191,6 +191,111 @@ deprecation date, not by our recompile schedule.
 3. Keep a permanent escape hatch (config-side instructions) or remove all
    fallback once stored prompts are gone?
 
+## Implementation anchors (traced)
+
+Concrete code locations, so a fresh session can go straight to implementation.
+
+### How deck meta reaches the client (the confidentiality-critical path)
+
+The client does **not** get meta inlined only — it fetches the **entire deck
+meta as a JSON file** from `public/` at runtime:
+
+- Templates call `initializeDecker("$decker-meta-url$")`
+  (`resource/decker/template/{deck,page,handout,index}.html`).
+- `decker-meta-url` is set to a per-output `<hash9>.json` filename, and that
+  file is written into the output directory:
+  - **Decks / pages / handouts:** `writePandocFile`
+    (`src/Text/Decker/Writer/Layout.hs:111-117`):
+    `BS.writeFile metaPath (encodePretty (fromPandocMeta meta'))`. The *same*
+    `meta'` is also inlined into the HTML template via `writeHtml45String`
+    (same function, line 119) — so this one function is the single choke point
+    for both the JSON file and the inlined template.
+  - **Index page:** `renderIndex`
+    (`src/Text/Decker/Filter/Index.hs:280-295`): `BS.writeFile metaPath jsonMeta`
+    at line 295, plus meta rendered into the template.
+- Both serialize through `fromPandocMeta` (`src/Text/Decker/Internal/Meta.hs:112`).
+
+**Consequence:** the full deck meta is published. `chatty.instructions`,
+`chatty.model`, and `chatty.params` will leak into `public/<hash>.json` unless
+they are removed from the `Meta` *before* these two write sites. `chatty.*` can
+also be set globally in `decker.yaml`, so redaction must apply to every output,
+not just chatty decks.
+
+**Redaction seam (work item B.4):** add an `Action` that takes `Meta`, reads the
+key file, seals the plaintext chatty fields (using the deck's `chatty.prompt` as
+AAD and `chatty.vector-store-id` in the payload), replaces them with
+`chatty.sealed-config`, and drops `chatty.instructions/model/params`. Apply it at
+the top of **both** `writePandocFile` and `renderIndex`, before `fromPandocMeta`
+is called. Applying it there (rather than in the filter pipeline) guarantees both
+the JSON file and the inlined template are covered by one transform. If the key
+file is absent or `chatty.prompt` unset, pass meta through unchanged.
+
+### Decker sealing module (work item B)
+
+- New module `Text.Decker.Chatty.Seal`, sibling of
+  `src/Text/Decker/Chatty/Upload.hs`. Mirror `Upload.hs` for patterns: meta
+  lookups use `lookupMetaOrElse` (`Internal/Meta.hs`); it already imports
+  `Data.Aeson`, `base16`/`base64` available as deps.
+- Add `crypton` (+ `memory` for `ByteArray`/`convert`) to `package.yaml` deps.
+- crypton AES-256-GCM sketch:
+  ```haskell
+  import Crypto.Cipher.AES (AES256)
+  import Crypto.Cipher.Types (AEADMode(AEAD_GCM), cipherInit, aeadInit,
+                              aeadAppendHeader, aeadEncrypt, aeadFinalize)
+  import Crypto.Error (throwCryptoError)
+  -- key :: ByteString (32 bytes), nonce :: ByteString (12 bytes), aad = prompt id
+  let cipher = throwCryptoError (cipherInit key) :: AES256
+      aead   = throwCryptoError (aeadInit AEAD_GCM cipher nonce)
+      aead'  = aeadAppendHeader aead aad
+      (ct, aeadF) = aeadEncrypt aead' plaintext
+      tag    = aeadFinalize aeadF 16   -- AuthTag
+  -- blob = base64 (nonce <> ct <> convert tag)
+  ```
+  Decrypt mirrors with `aeadDecrypt`. Verify exact signatures against the
+  `crypton` version pinned by `lts-23.28`.
+- Key file read: a small reader for the git-controlled `chatty-key.json` (single
+  base64 key or `prompt-id → key` map). Read directly — do **not** route through
+  `readDeckerMetaIO`/deck meta.
+
+### Client (work item C)
+
+- `resource/decker/support/chatty/chatty.js`: config read at lines 60-62
+  (`server`, `prompt`); add `sealed = window.Decker?.meta?.chatty?.["sealed-config"]`.
+- The `fetch` is at line 209; body currently `{ prompt: { id: prompt }, input,
+  previous_response_id, stream: true }` (lines 212-217). Change to
+  `{ promptId: prompt, sealed, input, previous_response_id, stream: true }`.
+- Response-id handling at lines 227 and 321 stays as-is.
+
+### Proxy (work item D)
+
+- `decker-chatty/server.mjs`, **committed HEAD** handler (lines 15-40 of the
+  committed version): `const apiKey = config.apiKey; const body = { stream: true,
+  ...req.body }` then POST to `/v1/responses`. This is the pure pass-through to
+  replace. (The working tree has unrelated WIP — ignore it.)
+- `decker-chatty/config.json` HEAD is `{ apiKey, port }`; change to
+  `{ port, prompts: { <id>: { apiKey, deckConfigKey } } }`.
+- Node decrypt sketch:
+  ```js
+  const buf = Buffer.from(sealed, "base64");
+  const iv = buf.subarray(0, 12), tag = buf.subarray(buf.length - 16);
+  const ct = buf.subarray(12, buf.length - 16);
+  const d = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  d.setAAD(Buffer.from(promptId)); d.setAuthTag(tag);
+  const payload = JSON.parse(Buffer.concat([d.update(ct), d.final()]));
+  ```
+- Build upstream body: always set `model`, `params`,
+  `tools: [{ type: "file_search", vector_store_ids: [payload.vector_store_id] }]`;
+  set `instructions` only when `!previous_response_id` (preserve the first-turn
+  rule the WIP already demonstrates).
+
+### Where chatty meta keys already live
+
+`src/Text/Decker/Reader/Markdown.hs:281-284` adds `chatty.filepath`,
+`chatty.url-path`, `chatty.included-from` for the upload markdown — a *different*
+concern (vector-store sync), not the client config. `chatty.prompt/server/
+instructions/model/params` come from deck YAML frontmatter merged with global
+`decker.yaml`; by the time `writePandocFile`/`renderIndex` run, that merge is done.
+
 ## Caveat
 
 Sealing protects the prompt at rest in the deck and in transit only. It does not
