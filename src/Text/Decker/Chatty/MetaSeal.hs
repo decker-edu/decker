@@ -28,7 +28,7 @@ import qualified Data.ByteString as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
-import Development.Shake (Action, putInfo)
+import Development.Shake (Action, Verbosity (..), putInfo, putVerbose, putWarn)
 import System.Directory (doesFileExist)
 import Text.Decker.Chatty.Seal
   ( KeyFileResult (..),
@@ -58,15 +58,23 @@ sealChattyMeta :: Meta -> Action Meta
 sealChattyMeta meta = do
   keyFile <- liftIO (readKeyFile chattyKeyFile)
   (meta', notices) <- liftIO (sealChattyMetaIO keyFile meta)
-  mapM_ putInfo notices
+  mapM_ emit notices
   pure meta'
+  where
+    -- Success is logged at Verbose so a build does not repeat one line per deck;
+    -- legacy at Info; real misconfigurations as warnings so they stand out.
+    emit (v, line) = case v of
+      Warn -> putWarn line
+      Verbose -> putVerbose line
+      _ -> putInfo line
 
 -- | The pure-ish core, testable without Shake. Given the key-file read result
--- and the meta, returns the redacted meta plus human-readable notices.
--- Guarantees: when sealing applies, the plaintext chatty fields are removed;
--- when anything is missing or fails, the plaintext is *still* stripped if a
--- chatty prompt is present, so the system prompt can never leak to @public/@.
-sealChattyMetaIO :: KeyFileResult -> Meta -> IO (Meta, [String])
+-- and the meta, returns the redacted meta plus notices tagged with the
+-- 'Verbosity' they should be logged at. Guarantees: when sealing applies, the
+-- plaintext chatty fields are removed; when anything is missing or fails, the
+-- plaintext is *still* stripped if a chatty prompt is present, so the system
+-- prompt can never leak to @public/@.
+sealChattyMetaIO :: KeyFileResult -> Meta -> IO (Meta, [(Verbosity, String)])
 sealChattyMetaIO keyFile meta =
   case lookupMeta "chatty.prompt" meta :: Maybe Text of
     Nothing -> pure (meta, []) -- chatty not enabled in this build, stay silent
@@ -75,16 +83,23 @@ sealChattyMetaIO keyFile meta =
         KeyFileAbsent ->
           pure (stripPlaintext meta, legacyNotice promptId ("no " <> chattyKeyFile <> " at the project root"))
         KeyFileError err ->
-          pure (stripPlaintext meta, legacyNotice promptId (chattyKeyFile <> " present but unusable: " <> err))
+          pure (stripPlaintext meta, tag Warn (legacyLines promptId (chattyKeyFile <> " present but unusable: " <> err)))
         KeyFileOk kf ->
           case lookupKey promptId kf of
             Nothing -> pure (stripPlaintext meta, legacyNotice promptId ("no entry for it in " <> chattyKeyFile))
             Just key -> sealWith promptId key meta
 
--- | Explain that a chatty deck is being published *without* a sealed config and
--- will therefore use the legacy stored-prompt path at runtime.
-legacyNotice :: Text -> String -> [String]
-legacyNotice promptId reason =
+-- | Tag every line of a message block with one verbosity.
+tag :: Verbosity -> [String] -> [(Verbosity, String)]
+tag v = map (v,)
+
+-- | A deck published *without* a sealed config will use the legacy stored-prompt
+-- path at runtime. Logged at Info (visible, but it is the deprecated path).
+legacyNotice :: Text -> String -> [(Verbosity, String)]
+legacyNotice promptId reason = tag Info (legacyLines promptId reason)
+
+legacyLines :: Text -> String -> [String]
+legacyLines promptId reason =
   [ "# chatty: prompt '" <> p <> "' enabled in LEGACY mode (" <> reason <> ").",
     "#   No sealed config is published; the deck sends '" <> p <> "' to the proxy unchanged.",
     "#   This only works if '" <> p <> "' is a real OpenAI stored-prompt id (pmpt_...)."
@@ -92,16 +107,18 @@ legacyNotice promptId reason =
   where
     p = T.unpack promptId
 
-sealWith :: Text -> BS.ByteString -> Meta -> IO (Meta, [String])
+sealWith :: Text -> BS.ByteString -> Meta -> IO (Meta, [(Verbosity, String)])
 sealWith promptId key meta = do
   mInstructions <- resolveInstructions meta
   case mInstructions of
     Nothing ->
       pure
         ( stripPlaintext meta,
-          [ "# chatty: prompt '" <> T.unpack promptId <> "' has a key but no chatty.instructions —",
-            "#   nothing to seal; the deck falls back to the LEGACY stored-prompt path."
-          ]
+          tag
+            Warn
+            [ "# chatty: prompt '" <> T.unpack promptId <> "' has a key but no chatty.instructions —",
+              "#   nothing to seal; the deck falls back to the LEGACY stored-prompt path."
+            ]
         )
     Just instructions -> do
       let model = lookupMetaOrElse "gpt-4.1" "chatty.model" meta :: Text
@@ -119,23 +136,27 @@ sealWith promptId key meta = do
           -- Fail safe: strip plaintext even though no sealed blob was produced.
           pure
             ( stripPlaintext meta,
-              [ "# chatty: SEALING FAILED for prompt '" <> T.unpack promptId <> "': " <> T.unpack err <> ".",
-                "#   Plaintext config stripped from the published meta; chat will not work until fixed."
-              ]
+              tag
+                Warn
+                [ "# chatty: SEALING FAILED for prompt '" <> T.unpack promptId <> "': " <> T.unpack err <> ".",
+                  "#   Plaintext config stripped from the published meta; chat will not work until fixed."
+                ]
             )
         Right blob ->
           pure
             ( stripPlaintext (setMetaValue "chatty.sealed-config" blob meta),
-              [ "# chatty: SEALED config for prompt '"
-                  <> T.unpack promptId
-                  <> "' (model="
-                  <> T.unpack model
-                  <> ", instructions="
-                  <> show (T.length instructions)
-                  <> " chars"
-                  <> (if T.null vectorStore then ", no vector store" else ", vector-store=" <> T.unpack vectorStore)
-                  <> ")."
-              ]
+              tag
+                Verbose
+                [ "# chatty: SEALED config for prompt '"
+                    <> T.unpack promptId
+                    <> "' (model="
+                    <> T.unpack model
+                    <> ", instructions="
+                    <> show (T.length instructions)
+                    <> " chars"
+                    <> (if T.null vectorStore then ", no vector store" else ", vector-store=" <> T.unpack vectorStore)
+                    <> ")."
+                ]
             )
 
 -- | Remove every author-controlled plaintext chatty field from the meta.
