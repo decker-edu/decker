@@ -194,19 +194,20 @@ needs them); `chatty.sealed-config` is added.
 
 The key lives in a git-controlled **`chatty-key.json`** at the project root. It is
 read directly by the sealing code — never via `decker.yaml`, and never copied to
-`public/`. Generate a 32-byte key and write the file:
+`public/`. The simplest form is a single 32-byte key written straight to the file:
 
 ``` bash
-openssl rand -base64 32
+openssl rand -base64 32 > chatty-key.json
 ```
 
-Single key (used for every prompt id):
+That bare base64 line is accepted as-is. Equivalently you may quote it as a JSON
+string:
 
 ``` json
 "Yk3v...base64-32-bytes...=="
 ```
 
-Or a per-prompt map (when one project serves several prompts):
+Or, when one project serves several prompts, use a per-prompt JSON map:
 
 ``` json
 {
@@ -215,9 +216,14 @@ Or a per-prompt map (when one project serves several prompts):
 }
 ```
 
-If `chatty-key.json` is absent, sealing is skipped — but the plaintext chatty
-config is still stripped from the output, so the prompt never leaks (the chat
-just won't work until a key is provided).
+The key must decode to exactly 32 bytes. If `chatty-key.json` is absent — or
+present but unparseable — sealing is skipped and the deck falls back to the
+legacy path; the build log says which, and the plaintext chatty config is still
+stripped from the output so the prompt never leaks.
+
+Decker logs, per chatty deck, whether it was **SEALED** (with a model /
+instructions / vector-store summary) or left in **LEGACY** mode (with the reason).
+Watch for the `# chatty:` lines during a build to confirm sealing actually ran.
 
 #### Proxy configuration (`decker-chatty`)
 

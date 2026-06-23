@@ -31,7 +31,7 @@ import Data.Text.Encoding (decodeUtf8)
 import Development.Shake (Action, putInfo)
 import System.Directory (doesFileExist)
 import Text.Decker.Chatty.Seal
-  ( KeyFile,
+  ( KeyFileResult (..),
     SealInput (..),
     lookupKey,
     readKeyFile,
@@ -56,24 +56,27 @@ chattyKeyFile = "chatty-key.json"
 -- key file from the project root. Emits its notices through Shake's log.
 sealChattyMeta :: Meta -> Action Meta
 sealChattyMeta meta = do
-  mKeyFile <- liftIO (readKeyFile chattyKeyFile)
-  (meta', notices) <- liftIO (sealChattyMetaIO mKeyFile meta)
+  keyFile <- liftIO (readKeyFile chattyKeyFile)
+  (meta', notices) <- liftIO (sealChattyMetaIO keyFile meta)
   mapM_ putInfo notices
   pure meta'
 
--- | The pure-ish core, testable without Shake. Given the parsed key file (if
--- any) and the meta, returns the redacted meta plus human-readable notices.
+-- | The pure-ish core, testable without Shake. Given the key-file read result
+-- and the meta, returns the redacted meta plus human-readable notices.
 -- Guarantees: when sealing applies, the plaintext chatty fields are removed;
 -- when anything is missing or fails, the plaintext is *still* stripped if a
 -- chatty prompt is present, so the system prompt can never leak to @public/@.
-sealChattyMetaIO :: Maybe KeyFile -> Meta -> IO (Meta, [String])
-sealChattyMetaIO mKeyFile meta =
+sealChattyMetaIO :: KeyFileResult -> Meta -> IO (Meta, [String])
+sealChattyMetaIO keyFile meta =
   case lookupMeta "chatty.prompt" meta :: Maybe Text of
     Nothing -> pure (meta, []) -- chatty not enabled in this build, stay silent
     Just promptId ->
-      case mKeyFile of
-        Nothing -> pure (stripPlaintext meta, legacyNotice promptId ("no " <> chattyKeyFile <> " at the project root"))
-        Just kf ->
+      case keyFile of
+        KeyFileAbsent ->
+          pure (stripPlaintext meta, legacyNotice promptId ("no " <> chattyKeyFile <> " at the project root"))
+        KeyFileError err ->
+          pure (stripPlaintext meta, legacyNotice promptId (chattyKeyFile <> " present but unusable: " <> err))
+        KeyFileOk kf ->
           case lookupKey promptId kf of
             Nothing -> pure (stripPlaintext meta, legacyNotice promptId ("no entry for it in " <> chattyKeyFile))
             Just key -> sealWith promptId key meta

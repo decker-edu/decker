@@ -24,12 +24,14 @@ module Text.Decker.Chatty.Seal
     openConfig,
     payloadJson,
     readKeyFile,
+    parseKeyFileBytes,
     lookupKey,
     KeyFile (..),
+    KeyFileResult (..),
   )
 where
 
-import Control.Exception (SomeException, catch)
+import Control.Exception (SomeException, try)
 import Crypto.Cipher.AES (AES256)
 import Crypto.Cipher.Types
   ( AEADMode (AEAD_GCM),
@@ -47,7 +49,6 @@ import Data.Aeson (Value (Object, String), object, withObject, (.:), (.:?), (.=)
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Key as K
 import qualified Data.Aeson.KeyMap as KM
-import Data.Aeson.Types (parseEither)
 import qualified Data.ByteArray as BA
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
@@ -56,6 +57,7 @@ import qualified Data.ByteString.Lazy as BSL
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import System.Directory (doesFileExist)
 
 -- | The plaintext author config, before sealing.
 data SealInput = SealInput
@@ -148,23 +150,65 @@ data KeyFile
   deriving (Show, Eq)
 
 instance A.FromJSON KeyFile where
-  parseJSON (String s) = SingleKey <$> decodeB64 s
+  parseJSON (String s) = SingleKey <$> decodeKey s
   parseJSON (Object o) =
     KeyMap <$> traverse parseEntry o
     where
-      parseEntry (String s) = decodeB64 s
+      parseEntry (String s) = decodeKey s
       parseEntry _ = fail "chatty-key.json: each key must be a base64 string"
   parseJSON _ = fail "chatty-key.json must be a base64 string or an object of them"
 
-decodeB64 :: MonadFail m => Text -> m ByteString
-decodeB64 t = either fail pure (B64.decode (TE.encodeUtf8 t))
+-- | Decode a base64 deck-config key and assert it is exactly 32 bytes.
+decodeKey :: MonadFail m => Text -> m ByteString
+decodeKey = either fail pure . decodeKeyE
 
--- | Read and parse the key file. Returns 'Nothing' if the file is absent or
--- unparseable (sealing is then disabled, not an error).
-readKeyFile :: FilePath -> IO (Maybe KeyFile)
+-- | Pure variant of 'decodeKey'.
+decodeKeyE :: Text -> Either String ByteString
+decodeKeyE t = do
+  raw <- B64.decode (TE.encodeUtf8 (T.strip t))
+  if BS.length raw == 32
+    then Right raw
+    else Left ("deck-config key must be 32 bytes (got " <> show (BS.length raw) <> ")")
+
+-- | Outcome of reading the key file: distinguishes a genuinely absent file
+-- (legacy decks, no sealing) from one that is present but unusable (a real
+-- misconfiguration worth reporting).
+data KeyFileResult
+  = KeyFileAbsent
+  | KeyFileError String
+  | KeyFileOk KeyFile
+  deriving (Show, Eq)
+
+-- | Read the key file. Accepts either JSON (a base64 string, or a
+-- @prompt-id → base64@ object) or a **bare base64 key** on its own line, so
+-- @openssl rand -base64 32 > chatty-key.json@ works without hand-quoting.
+readKeyFile :: FilePath -> IO KeyFileResult
 readKeyFile path = do
-  mbs <- (Just <$> BS.readFile path) `catch` \(_ :: SomeException) -> pure Nothing
-  pure (mbs >>= A.decodeStrict)
+  exists <- doesFileExist path
+  if not exists
+    then pure KeyFileAbsent
+    else do
+      e <- try (BS.readFile path) :: IO (Either SomeException ByteString)
+      pure $ case e of
+        Left err -> KeyFileError ("cannot read " <> path <> ": " <> show err)
+        Right bs -> parseKeyFileBytes bs
+
+-- | Parse the raw bytes of the key file (JSON first, then a bare base64 key).
+parseKeyFileBytes :: ByteString -> KeyFileResult
+parseKeyFileBytes bs =
+  case A.eitherDecodeStrict bs of
+    Right kf -> KeyFileOk kf
+    Left jsonErr ->
+      case decodeKeyE (TE.decodeUtf8 bs) of
+        Right key -> KeyFileOk (SingleKey key)
+        Left rawErr ->
+          KeyFileError
+            ( "not valid JSON ("
+                <> jsonErr
+                <> ") and not a bare base64 key ("
+                <> rawErr
+                <> ")"
+            )
 
 -- | Select the deck-config key for a prompt id from a parsed key file.
 lookupKey :: Text -> KeyFile -> Maybe ByteString

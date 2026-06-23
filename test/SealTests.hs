@@ -88,6 +88,24 @@ sealTests = describe "Chatty.Seal" $ do
     (kf >>= lookupKey "pmpt_a") `shouldBe` Just key
     (kf >>= lookupKey "pmpt_missing") `shouldBe` Nothing
 
+  describe "key-file parsing (parseKeyFileBytes)" $ do
+    let lookupIn pid r = case r of KeyFileOk kf -> lookupKey pid kf; _ -> Nothing
+    it "accepts a bare base64 key (openssl rand -base64 32 > chatty-key.json)" $
+      -- A raw key written straight to the file, with a trailing newline.
+      lookupIn "anything" (parseKeyFileBytes (b64key <> "\n")) `shouldBe` Just key
+    it "accepts a JSON string key" $
+      lookupIn "anything" (parseKeyFileBytes ("\"" <> b64key <> "\"")) `shouldBe` Just key
+    it "accepts a JSON prompt-id -> key map" $
+      lookupIn "p" (parseKeyFileBytes ("{\"p\":\"" <> b64key <> "\"}")) `shouldBe` Just key
+    it "reports a wrong-length key rather than silently ignoring it" $
+      case parseKeyFileBytes "c2hvcnQ=" of -- "short", 5 bytes
+        KeyFileError _ -> pure ()
+        other -> expectationFailure ("expected KeyFileError, got " <> show other)
+    it "reports garbage rather than silently ignoring it" $
+      case parseKeyFileBytes "this is not a key" of
+        KeyFileError _ -> pure ()
+        other -> expectationFailure ("expected KeyFileError, got " <> show other)
+
   describe "leakage guard (sealChattyMetaIO)" $ do
     let secret = "TOP SECRET SYSTEM PROMPT do not leak"
         chattyMeta =
@@ -99,14 +117,14 @@ sealTests = describe "Chatty.Seal" $ do
         renderMeta m = TL.toStrict (TLE.decodeUtf8 (A.encode (fromPandocMeta m)))
 
     it "seals and removes the plaintext system prompt from published meta" $ do
-      (meta', _) <- sealChattyMetaIO (Just (SingleKey key)) chattyMeta
+      (meta', _) <- sealChattyMetaIO (KeyFileOk (SingleKey key)) chattyMeta
       let json = renderMeta meta'
       json `shouldSatisfy` T.isInfixOf "sealed-config"
       json `shouldNotSatisfy` T.isInfixOf secret
       json `shouldNotSatisfy` T.isInfixOf "instructions"
 
     it "round-trips the sealed blob from published meta back to the prompt" $ do
-      (meta', _) <- sealChattyMetaIO (Just (SingleKey key)) chattyMeta
+      (meta', _) <- sealChattyMetaIO (KeyFileOk (SingleKey key)) chattyMeta
       let mBlob = lookupMeta "chatty.sealed-config" meta' :: Maybe Text
       case mBlob of
         Nothing -> expectationFailure "no chatty.sealed-config in sealed meta"
@@ -114,13 +132,13 @@ sealTests = describe "Chatty.Seal" $ do
           fmap siInstructions (openConfig key "pmpt_a" blob) `shouldBe` Right secret
 
     it "strips plaintext even when no key is available (fail-safe)" $ do
-      (meta', _) <- sealChattyMetaIO Nothing chattyMeta
+      (meta', _) <- sealChattyMetaIO KeyFileAbsent chattyMeta
       let json = renderMeta meta'
       json `shouldNotSatisfy` T.isInfixOf secret
 
     it "leaves non-chatty meta untouched" $ do
       let plain = setMetaValue "title" ("Hello" :: Text) nullMeta
-      (meta', notices) <- sealChattyMetaIO (Just (SingleKey key)) plain
+      (meta', notices) <- sealChattyMetaIO (KeyFileOk (SingleKey key)) plain
       renderMeta meta' `shouldBe` renderMeta plain
       notices `shouldBe` []
   where
