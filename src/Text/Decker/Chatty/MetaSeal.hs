@@ -28,7 +28,7 @@ import qualified Data.ByteString as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
-import Development.Shake (Action, Verbosity (..), putInfo, putVerbose, putWarn)
+import Development.Shake (Action, Verbosity (..), putVerbose, putWarn)
 import System.Directory (doesFileExist)
 import Text.Decker.Chatty.Seal
   ( KeyFileResult (..),
@@ -61,12 +61,12 @@ sealChattyMeta meta = do
   mapM_ emit notices
   pure meta'
   where
-    -- Success is logged at Verbose so a build does not repeat one line per deck;
-    -- legacy at Info; real misconfigurations as warnings so they stand out.
+    -- Only real misconfigurations are logged as warnings so they stand out;
+    -- everything else (success, the legacy path) goes to Verbose so a build
+    -- does not spam one line per deck.
     emit (v, line) = case v of
       Warn -> putWarn line
-      Verbose -> putVerbose line
-      _ -> putInfo line
+      _ -> putVerbose line
 
 -- | The pure-ish core, testable without Shake. Given the key-file read result
 -- and the meta, returns the redacted meta plus notices tagged with the
@@ -94,9 +94,9 @@ tag :: Verbosity -> [String] -> [(Verbosity, String)]
 tag v = map (v,)
 
 -- | A deck published *without* a sealed config will use the legacy stored-prompt
--- path at runtime. Logged at Info (visible, but it is the deprecated path).
+-- path at runtime. Logged at Verbose (it is the deprecated path, not an error).
 legacyNotice :: Text -> String -> [(Verbosity, String)]
-legacyNotice promptId reason = tag Info (legacyLines promptId reason)
+legacyNotice promptId reason = tag Verbose (legacyLines promptId reason)
 
 legacyLines :: Text -> String -> [String]
 legacyLines promptId reason =

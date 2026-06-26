@@ -151,7 +151,7 @@ runShakeForever last context rules = do
         $ catchAll
           (runShake context rules)
           (\(SomeException _) -> return ())
-      putStrLn $ "# Server: Reload because of: " <> path
+      -- putStrLn $ "# Server: Reload because of: " <> path
       reloadClients (context ^. server)
     UploadComplete operation -> do
       let transcode = PoserFlag `elem` (context ^. extra)
@@ -459,9 +459,9 @@ runClean totally = do
 
 pdfMsg =
   [text|
-    # 
+    #
     # To use 'decker pdf' Google Chrome has to be installed.
-    # 
+    #
     # Windows: Currently 'decker pdf' does not work on Windows.
     #   Please add 'print: true' or 'menu: true' to your slide deck and use
     #   the print button on the title slide.
@@ -469,9 +469,9 @@ pdfMsg =
     # MacOS: Follow the Google Chrome installer instructions.
     #   'Google Chrome.app' has to be located in either of these locations
     #
-    #   - '/Applications/Google Chrome.app' 
+    #   - '/Applications/Google Chrome.app'
     #   - '/Users/<username>/Applications/Google Chrome.app'
     #
     # Linux: 'chrome' has to be on $$PATH.
-    # 
+    #
   |]
