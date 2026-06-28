@@ -15,6 +15,11 @@ const DEFAULT_TEST_ME_CONFIG = {
   slideOffsetJustHorizontal: false
 };
 
+const HEADING_SELECTOR = "h1, h2, h3, h4, h5, h6";
+const DIRECT_HEADING_SELECTOR = HEADING_SELECTOR.split(", ")
+  .map((selector) => `:scope > ${selector}`)
+  .join(", ");
+
 // helper function to parse boolean values from strings or other types
 // returns the fallback value if the input cannot be parsed as a boolean
 function parseBoolean(value, fallback) {
@@ -24,9 +29,11 @@ function parseBoolean(value, fallback) {
 
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
+
     if (["true", "1", "yes", "on"].includes(normalized)) {
       return true;
     }
+
     if (["false", "0", "no", "off"].includes(normalized)) {
       return false;
     }
@@ -42,11 +49,16 @@ function getTestMeConfig() {
   const config = window.Decker?.meta?.chatty?.testme;
 
   if (typeof config === "boolean") {
-    return { ...DEFAULT_TEST_ME_CONFIG, active: config };
+    return {
+      ...DEFAULT_TEST_ME_CONFIG,
+      active: config
+    };
   }
 
   if (!config || typeof config !== "object") {
-    return { ...DEFAULT_TEST_ME_CONFIG };
+    return {
+      ...DEFAULT_TEST_ME_CONFIG
+    };
   }
 
   const offset = Number.parseInt(
@@ -81,6 +93,7 @@ function getTestMeTargetSlide() {
 
   if (slides?.length) {
     const index = slides.length - 1 - config.slideOffsetFromEnd;
+
     if (index >= 0 && index < slides.length) {
       return slides[index];
     }
@@ -95,6 +108,7 @@ function getTestMeTargetSlide() {
 function getTestMeInsertionTarget(targetSlide) {
   if (targetSlide?.matches?.("section")) {
     const firstChildSlide = targetSlide.querySelector(":scope > section");
+
     if (firstChildSlide) {
       return firstChildSlide;
     }
@@ -115,8 +129,10 @@ function createTestMeButton(targetSlide, label, question) {
   const button = document.createElement("button");
   button.type = "button";
   button.tabIndex = 0;
+  button.classList.add("chatty-testme-button");
   button.setAttribute("askChatty", label);
   button.innerText = question;
+
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -126,11 +142,102 @@ function createTestMeButton(targetSlide, label, question) {
   return button;
 }
 
+// determines the appropriate target for the manual test-me button based on the provided marker element
+// if the marker is inside a box with the class "testme-button", it returns that box as the target
+// otherwise, it returns the marker itself as the target
+function getManualTestMeTarget(marker) {
+  return marker?.closest(".box.testme-button") ?? marker;
+}
+
+// determines the appropriate insertion reference for the manual test-me button based on the target container
+// if the target container is a heading, it returns the target container itself as the reference
+// otherwise, it looks for the first direct child heading of the target container and returns that as the reference
+function getManualTestMeInsertionReference(targetContainer) {
+  if (targetContainer?.matches?.(HEADING_SELECTOR)) {
+    return targetContainer;
+  }
+
+  return targetContainer?.querySelector?.(DIRECT_HEADING_SELECTOR);
+}
+
+// checks if a manual test-me button already exists in the target container or after the insertion reference
+// returns true if a button is found, false otherwise
+function hasManualTestMeButton(targetContainer, insertionReference) {
+  if (!targetContainer) {
+    return true;
+  }
+
+  if (
+    insertionReference?.nextElementSibling?.classList.contains(
+      "chatty-testme-wrapper"
+    )
+  ) {
+    return true;
+  }
+
+  return Boolean(
+    targetContainer.querySelector(":scope > .chatty-testme-wrapper")
+  );
+}
+
+// creates a manual test-me button and appends it to the target container
+// checks for existing buttons to avoid duplicates
+// sets the button's label and question based on the provided parameters
+// adds a click event listener to trigger the askChatty function with the question
+function createManualTestMeButton(targetContainer, label, question) {
+  const insertionReference = getManualTestMeInsertionReference(targetContainer);
+
+  if (hasManualTestMeButton(targetContainer, insertionReference)) {
+    return null;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "chatty-testme-wrapper";
+
+  if (insertionReference) {
+    insertionReference.after(wrapper);
+  } else {
+    targetContainer.appendChild(wrapper);
+  }
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.tabIndex = 0;
+  button.classList.add("chatty-testme-button", "chatty-testme-button-manual");
+  button.setAttribute("askChatty", label);
+  button.innerText = question;
+
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    askChatty(question);
+  });
+  wrapper.appendChild(button);
+  return button;
+}
+
+// initializes manual test-me buttons for all elements with the class "testme-button" on the current slide
+// retrieves the appropriate label and question based on the current language
+// creates a button for each target container found
+function initializeManualTestMeButtons() {
+  const { label, question } = getTestMeTexts();
+  const targetContainers = new Set(
+    Array.from(document.querySelectorAll(".reveal .testme-button")).map(
+      getManualTestMeTarget
+    )
+  );
+
+  targetContainers.forEach((container) => {
+    createManualTestMeButton(container, label, question);
+  });
+}
+
 // retrieves the appropriate label and question for the test-me button based on the current language
 // returns an object with the label and question properties
 // defaults to English if the language is not German
 function getTestMeTexts() {
   const isGerman = (window.Decker?.meta?.lang || navigator.language) === "de";
+
   return {
     label: isGerman ? "Frag' mich ab!" : "Test me!",
     question: isGerman
@@ -146,11 +253,13 @@ function initializeAskChattyButtons() {
   document.querySelectorAll(".reveal button[askChatty]").forEach((button) => {
     const text = button.getAttribute("askChatty");
     const question = button.innerText.trim();
-    if (question) {
+
+    if (question && !button.classList.contains("chatty-testme-button")) {
       button.onclick = () => {
         askChatty(question);
       };
     }
+
     button.innerHTML = `<i class="fa-solid fa-robot"></i> &thinsp; ${text}`;
     button.classList.add("fa-button", "fa-solid", "glowing-border");
   });
@@ -167,6 +276,7 @@ function createGUI() {
 
   // first check whether chatty is configured
   const { server, prompt } = window.Decker?.meta?.chatty ?? {};
+
   if (!server || !prompt) return;
 
   // create dialog
@@ -174,6 +284,7 @@ function createGUI() {
   dialog.id = "chatty-popover";
   dialog.setAttribute("closedby", "any");
   document.body.appendChild(dialog);
+
   dialog.onclick = (e) => {
     // workaround for stupid Safari
     if (e.target === e.currentTarget) {
@@ -191,6 +302,7 @@ function createGUI() {
   button.title = button.ariaLabel =
     navigator.language === "de" ? "Prof. Bot fragen" : "Ask Prof. Bot";
   button.className = "fa-button fa-solid fa-robot";
+
   button.onclick = () => {
     dialog.showModal();
   };
@@ -212,15 +324,21 @@ function createGUI() {
           ? "Chatte mit Prof. Bot"
           : "Chat with Prof. Bot"
     },
+
     () => {
       dialog.showModal();
     }
   );
 
+  // add test-me buttons to explicit manual blocks when present
+  initializeManualTestMeButtons();
+
   // add test-me-button to a configurable slide from the end
   const testMeConfig = getTestMeConfig();
+
   if (testMeConfig.active) {
     const targetSlide = getTestMeTargetSlide();
+
     if (targetSlide) {
       const { label, question } = getTestMeTexts();
       createTestMeButton(targetSlide, label, question);
@@ -233,9 +351,13 @@ function createGUI() {
 
 async function wait(ms) {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, ms);
+    setTimeout(
+      () => {
+        resolve();
+      },
+
+      ms
+    );
   });
 }
 
@@ -251,10 +373,12 @@ const Plugin = {
     Reveal = deck;
     Reveal.on("ready", createGUI);
   },
+
   send: (input) => {
     dialog.sendToChatty(input);
     dialog.showModal();
   },
+
   show: () => {
     dialog.showModal();
   }
