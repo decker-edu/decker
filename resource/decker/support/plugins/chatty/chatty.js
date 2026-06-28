@@ -102,10 +102,9 @@ function getTestMeTargetSlide() {
   return document.querySelector("div.reveal div.slides > section:last-of-type");
 }
 
-// determines the appropriate insertion target for the test-me button
-// if the target slide is a section, it looks for the first child section to insert into
-// otherwise, it returns the target slide itself
-function getTestMeInsertionTarget(targetSlide) {
+// determines where the automatically placed test-me button should be inserted
+// if the target slide contains vertical slides, uses the first child slide
+function getAutomaticTestMeInsertionTarget(targetSlide) {
   if (targetSlide?.matches?.("section")) {
     const firstChildSlide = targetSlide.querySelector(":scope > section");
 
@@ -117,28 +116,47 @@ function getTestMeInsertionTarget(targetSlide) {
   return targetSlide;
 }
 
-// creates the test-me button and appends it to the target slide
-// sets the button's label and question based on the provided parameters
-// adds a click event listener to trigger the askChatty function with the question
-function createTestMeButton(targetSlide, label, question) {
-  const insertionTarget = getTestMeInsertionTarget(targetSlide);
-  const wrapper = document.createElement("div");
-  wrapper.className = "chatty-testme-wrapper";
-  insertionTarget.appendChild(wrapper);
+// applies the shared visual treatment for buttons that trigger chatty prompts
+function decorateAskChattyButton(button, label) {
+  button.innerHTML = `<i class="fa-solid fa-robot"></i> &thinsp; ${label}`;
+  button.classList.add("fa-button", "fa-solid", "glowing-border");
+}
 
+// creates a generated test-me button with its chatty prompt handler attached
+function createTestMeButtonElement(label, question, { manual = false } = {}) {
   const button = document.createElement("button");
   button.type = "button";
   button.tabIndex = 0;
   button.classList.add("chatty-testme-button");
+  if (manual) {
+    button.classList.add("chatty-testme-button-manual");
+  }
   button.setAttribute("askChatty", label);
-  button.innerText = question;
+  decorateAskChattyButton(button, label);
 
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     askChatty(question);
   });
+
+  return button;
+}
+
+// creates the shared wrapper used around generated test-me buttons
+function createTestMeWrapper(button) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "chatty-testme-wrapper";
   wrapper.appendChild(button);
+  return wrapper;
+}
+
+// places the automatic test-me button at the configured target slide
+function createAutomaticTestMeButton(targetSlide, label, question) {
+  const insertionTarget = getAutomaticTestMeInsertionTarget(targetSlide);
+  const button = createTestMeButtonElement(label, question);
+  const wrapper = createTestMeWrapper(button);
+  insertionTarget.appendChild(wrapper);
   return button;
 }
 
@@ -180,10 +198,8 @@ function hasManualTestMeButton(targetContainer, insertionReference) {
   );
 }
 
-// creates a manual test-me button and appends it to the target container
-// checks for existing buttons to avoid duplicates
-// sets the button's label and question based on the provided parameters
-// adds a click event listener to trigger the askChatty function with the question
+// places a manual test-me button in a marked target container
+// skips targets that already contain a generated test-me wrapper
 function createManualTestMeButton(targetContainer, label, question) {
   const insertionReference = getManualTestMeInsertionReference(targetContainer);
 
@@ -191,8 +207,8 @@ function createManualTestMeButton(targetContainer, label, question) {
     return null;
   }
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "chatty-testme-wrapper";
+  const button = createTestMeButtonElement(label, question, { manual: true });
+  const wrapper = createTestMeWrapper(button);
 
   if (insertionReference) {
     insertionReference.after(wrapper);
@@ -200,36 +216,41 @@ function createManualTestMeButton(targetContainer, label, question) {
     targetContainer.appendChild(wrapper);
   }
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.tabIndex = 0;
-  button.classList.add("chatty-testme-button", "chatty-testme-button-manual");
-  button.setAttribute("askChatty", label);
-  button.innerText = question;
-
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    askChatty(question);
-  });
-  wrapper.appendChild(button);
   return button;
 }
 
-// initializes manual test-me buttons for all elements with the class "testme-button" on the current slide
-// retrieves the appropriate label and question based on the current language
-// creates a button for each target container found
-function initializeManualTestMeButtons() {
-  const { label, question } = getTestMeTexts();
-  const targetContainers = new Set(
+// returns deduplicated manual test-me targets from Decker's generated DOM
+function getManualTestMeTargets() {
+  return new Set(
     Array.from(document.querySelectorAll(".reveal .testme-button")).map(
       getManualTestMeTarget
     )
   );
+}
 
-  targetContainers.forEach((container) => {
+// initializes all manually marked test-me button containers in the deck
+function initializeManualTestMeButtons() {
+  const { label, question } = getTestMeTexts();
+
+  getManualTestMeTargets().forEach((container) => {
     createManualTestMeButton(container, label, question);
   });
+}
+
+// initializes the automatically placed test-me button if enabled in meta
+function initializeAutomaticTestMeButton() {
+  const testMeConfig = getTestMeConfig();
+
+  if (!testMeConfig.active) {
+    return;
+  }
+
+  const targetSlide = getTestMeTargetSlide();
+
+  if (targetSlide) {
+    const { label, question } = getTestMeTexts();
+    createAutomaticTestMeButton(targetSlide, label, question);
+  }
 }
 
 // retrieves the appropriate label and question for the test-me button based on the current language
@@ -246,30 +267,30 @@ function getTestMeTexts() {
   };
 }
 
-// initializes buttons with the askChatty attribute on the current slide
-// sets the button's label and question based on the askChatty attribute and inner text
-// adds a click event listener to trigger the askChatty function with the question
+// initializes author-defined buttons with the askChatty attribute
+// generated test-me buttons are already fully wired when created
 function initializeAskChattyButtons() {
-  document.querySelectorAll(".reveal button[askChatty]").forEach((button) => {
-    const text = button.getAttribute("askChatty");
-    const question = button.innerText.trim();
+  document
+    .querySelectorAll(".reveal button[askChatty]:not(.chatty-testme-button)")
+    .forEach((button) => {
+      const text = button.getAttribute("askChatty");
+      const question = button.innerText.trim();
 
-    if (question && !button.classList.contains("chatty-testme-button")) {
-      button.onclick = () => {
-        askChatty(question);
-      };
-    }
+      if (question) {
+        button.onclick = () => {
+          askChatty(question);
+        };
+      }
 
-    button.innerHTML = `<i class="fa-solid fa-robot"></i> &thinsp; ${text}`;
-    button.classList.add("fa-button", "fa-solid", "glowing-border");
-  });
+      decorateAskChattyButton(button, text);
+    });
 }
 
 // creates the chatty GUI elements, including the dialog and button
 // checks for PDF mode and chatty configuration before creating the GUI
 // places the button using the ui-anchors plugin if available
 // adds a key binding for toggling chatty with the "C" key
-// creates a test-me button on a configurable slide if enabled in the configuration
+// initializes manual and automatic test-me buttons
 function createGUI() {
   // not in PDF mode
   if (window.location.search.match(/print-pdf/gi)) return;
@@ -330,22 +351,13 @@ function createGUI() {
     }
   );
 
-  // add test-me buttons to explicit manual blocks when present
+  // initialize explicit manual test-me blocks
   initializeManualTestMeButtons();
 
-  // add test-me-button to a configurable slide from the end
-  const testMeConfig = getTestMeConfig();
+  // initialize the optional automatic test-me button
+  initializeAutomaticTestMeButton();
 
-  if (testMeConfig.active) {
-    const targetSlide = getTestMeTargetSlide();
-
-    if (targetSlide) {
-      const { label, question } = getTestMeTexts();
-      createTestMeButton(targetSlide, label, question);
-    }
-  }
-
-  // initialize per-slide button for triggering chatty
+  // initialize author-defined buttons for triggering chatty
   initializeAskChattyButtons();
 }
 
