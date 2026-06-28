@@ -15,7 +15,6 @@ import Relude
 import System.FilePath ((<.>))
 import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
 import Text.Decker.Filter.Util (randomId)
-import Text.Decker.Filter.Local 
 import Text.Decker.Internal.Common (projectDir)
 import Text.Decker.Internal.Exception (DeckerException (..))
 import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse)

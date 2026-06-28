@@ -88,24 +88,6 @@ markdownToHtml disp meta getTemplate markdownFile out = do
           }
   writePandocFile options out pandoc
 
-writeMarkdownFile out pandoc@(Pandoc meta blocks) = do
-  let relSupportDir = relativeSupportDir (takeDirectory out)
-  let options =
-        pandocWriterOpts
-          { writerVariables =
-              Context
-                $ fromList
-                  [ ( "decker-support-dir",
-                      SimpleVal $ Text.DocTemplates.Text 0 $ toText relSupportDir
-                    )
-                  ],
-            writerCiteMethod = Citeproc
-          }
-  liftIO
-    $ runIO (setVerbosity ERROR >> writeMarkdown options pandoc)
-    >>= handleError
-    >>= Text.writeFile out
-  
 -- | writes a document in two steps. First the document is written as a fragment
 -- of plain HTML 4. which is then adjusted for reveal compatible section tags.
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
