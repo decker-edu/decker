@@ -16,9 +16,15 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
+import Data.Aeson (FromJSON (..), eitherDecode, object, withObject, (.!=), (.:), (.:?))
+import Data.Aeson qualified as Aeson
 import Data.ByteString.Builder (byteString)
+import Data.Char (isAlphaNum, toLower)
 import Data.List (isSuffixOf)
 import Data.Maybe
+import Data.Text qualified as T
+import Data.Text.IO qualified as Text
+import Data.Text.Lazy qualified as LT
 import Network.HTTP.Types
 -- import Network.Mime
 import Network.Wai.Handler.Warp
@@ -126,6 +132,7 @@ runHttpServer context = do
     -- when (context ^. devRun) $
     -- Scotty.get (regex "^/support/(.*)$") $ serveSupport context
     Scotty.get (regex "^/recordings/(.*)$") listRecordings
+    Scotty.post "/api/exam-builder/exam" saveExam
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
     Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
@@ -184,6 +191,74 @@ uploadResource suffixes = do
     else do
       text "ERROR: directory does not exist or file (suffix) is not uploadable"
       status status406
+
+-- | A request from the exam-builder web app to save a question collection as a
+-- @*-exam.yaml@ file in the project root.
+data ExamRequest = ExamRequest
+  { erTitle :: Text,
+    erTopics :: [(Text, Text)],
+    erOverwrite :: Bool
+  }
+
+instance FromJSON ExamRequest where
+  parseJSON = withObject "ExamRequest" $ \o ->
+    ExamRequest
+      <$> (o .: "title")
+      <*> (o .: "topics" >>= mapM parseTopic)
+      <*> (o .:? "overwrite" .!= False)
+    where
+      parseTopic = withObject "Topic" $ \t ->
+        (,) <$> (t .: "lectureId") <*> (t .: "topicId")
+
+-- | Turns a collection title into a file name slug: lower-cased, runs of
+-- non-alphanumeric characters collapsed to a single dash, edges trimmed.
+slugify :: Text -> Text
+slugify title =
+  let lowered = T.map (\c -> if isAlphaNum c then toLower c else ' ') title
+   in T.intercalate "-" (T.words lowered)
+
+-- | Renders an exam request to the exact @*-exam.yaml@ layout understood by
+-- the @moodle-xml@ command.
+renderExamYaml :: ExamRequest -> Text
+renderExamYaml req =
+  T.unlines $
+    ["Title: " <> escape (erTitle req), "Topics:"]
+      ++ concatMap topic (erTopics req)
+  where
+    escape t = "\"" <> T.replace "\"" "\\\"" t <> "\""
+    topic (lid, tid) =
+      [ "  - LectureId: " <> lid,
+        "    TopicId: " <> tid
+      ]
+
+-- | Saves a question collection as @<slug>-exam.yaml@ in the project root.
+-- Refuses to overwrite an existing file unless @overwrite@ is set, returning
+-- 409 with the existing path so the web app can confirm.
+saveExam :: AppActionM ()
+saveExam = do
+  raw <- Scotty.body
+  case eitherDecode raw of
+    Left err -> do
+      Scotty.status status400
+      Scotty.text $ "ERROR: invalid request: " <> LT.pack err
+    Right req
+      | T.null (slugify (erTitle req)) -> do
+          Scotty.status status400
+          Scotty.text "ERROR: title must contain at least one alphanumeric character"
+      | null (erTopics req) -> do
+          Scotty.status status400
+          Scotty.text "ERROR: collection has no topics"
+      | otherwise -> do
+          let fileName = slugify (erTitle req) <> "-exam.yaml"
+              path = projectDir </> toString fileName
+          exists <- liftIO $ doesFileExist path
+          if exists && not (erOverwrite req)
+            then do
+              Scotty.status status409
+              Scotty.json $ object ["path" Aeson..= fileName, "exists" Aeson..= True]
+            else do
+              liftIO $ Text.writeFile path (renderExamYaml req)
+              Scotty.json $ object ["path" Aeson..= fileName, "overwritten" Aeson..= exists]
 
 headDirectory :: FilePath -> AppActionM ()
 headDirectory directory = do

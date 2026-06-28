@@ -156,6 +156,7 @@ deckerRules = do
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
   addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
+  addHelpSuffix "  - exam-builder - Browse exam questions and compose *-exam.yaml collections in a web app."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -328,6 +329,18 @@ deckerRules = do
     --
     phony "catalog" $ do
       need ["private/quest-catalog.html"]
+    --
+    (publicDir </> "exam-builder" </> "questions.json") %> \out -> do
+      meta <- getGlobalMeta
+      deps <- getDeps
+      let sources = Map.elems (deps ^. questions)
+      need sources
+      renderQuestionCatalogJson meta sources out
+    --
+    phony "exam-builder" $ do
+      -- Build the full site first so all question media is provisioned into
+      -- public/, then render the question catalog the web app consumes.
+      need ["html", publicDir </> "exam-builder" </> "questions.json"]
     --
     phony "moodle-xml" $ do
       deps <- getDeps

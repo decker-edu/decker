@@ -85,7 +85,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     otherwise -> do
@@ -220,6 +220,14 @@ runCommand context command rules = do
     "purge" -> runClean True
     "example" -> writeExampleProject meta
     "serve" -> do
+      forkServer context
+      handleUploads context
+    "exam-builder" -> do
+      extractMetaIntoFile (context ^. extra)
+      -- Pre-render the question catalog to JSON before serving.
+      runShake context rules
+      let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
+      openBrowser $ "http://localhost:" <> show port <> "/support/exam-builder.html"
       forkServer context
       handleUploads context
     "crunch" -> crunchAllRecordings context

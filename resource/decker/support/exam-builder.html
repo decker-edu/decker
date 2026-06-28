@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Exam Builder</title>
+    <link rel="stylesheet" href="/support/css/exam-builder.css" />
+    <!-- MathJax config mirrors resource/decker/template/page.html so the decker
+         TeX macros resolve identically to deck and page rendering. -->
+    <script>
+      window.MathJax = {
+        loader: { load: ["[tex]/ams"] },
+        startup: { typeset: false },
+        svg: {
+          minScale: 0.5,
+          mtextInheritFont: false,
+          merrorInheritFont: true,
+          mathmlSpacing: false,
+          exFactor: 0.5,
+          displayAlign: "center",
+          displayIndent: "0",
+          fontCache: "none",
+        },
+        tex: {
+          tags: "ams",
+          packages: { "[+]": ["ams"] },
+          macros: {
+            R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+            laplace: "{\\Delta}",
+            grad: "{\\nabla}",
+            T: "^{\\mathsf{T}}",
+            norm: ["\\lVert#1\\rVert", 1],
+            iprod: ["\\left\\langle #1 \\right\\rangle", 1],
+            vec: ["\\boldsymbol{\\mathbf{#1}}", 1],
+            mat: ["\\boldsymbol{\\mathbf{#1}}", 1],
+            set: ["\\mathcal{#1}", 1],
+            func: ["\\mathrm{#1}", 1],
+            trans: ["{#1}\\mkern-1mu^{\\mathsf{T}}", 1],
+            matrix: ["\\begin{bmatrix} #1 \\end{bmatrix}", 1],
+            vector: ["\\begin{pmatrix} #1 \\end{pmatrix}", 1],
+            of: ["\\mkern{-2mu}\\left( #1 \\right)", 1],
+            diff: ["\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}", 2],
+            pdiff: ["\\frac{\\partial {#1}}{\\partial {#2}}", 2],
+            vc: ["\\mathbf{#1}", 1],
+            abs: ["\\lvert#1\\rvert", 1],
+            det: ["\\lvert#1\\rvert", 1],
+            qt: ["\\hat{\\vc {#1}}", 1],
+            mt: ["\\boldsymbol{#1}", 1],
+            pt: ["\\boldsymbol{#1}", 1],
+            textcolor: ["\\color{#1}", 1],
+          },
+        },
+        options: { renderActions: { addMenu: [0, "", ""] } },
+      };
+    </script>
+    <script src="/support/vendor/mathjax/tex-svg-nofont.js" id="MathJax-script" async></script>
+    <script src="/support/js/reload.js"></script>
+    <script type="module" src="/support/js/exam-builder.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail">
+        <header class="brand">
+          <h1>Exam&nbsp;Builder</h1>
+          <p class="brand-sub" id="catalog-count">Loading catalog…</p>
+        </header>
+
+        <nav class="lectures" id="lectures" aria-label="Lectures"></nav>
+
+        <section class="manifest" aria-label="Collection">
+          <div class="manifest-head">
+            <span class="manifest-label">Collection</span>
+            <span class="manifest-count" id="manifest-count">0</span>
+          </div>
+          <label class="title-field">
+            <span>Title</span>
+            <input
+              id="exam-title"
+              type="text"
+              placeholder="Midterm 2026"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+          <ol class="manifest-list" id="manifest-list"></ol>
+          <p class="manifest-empty" id="manifest-empty">
+            Pick topics to assemble an exam.
+          </p>
+          <div class="manifest-actions">
+            <output class="save-status" id="save-status"></output>
+            <button id="save-button" type="button" disabled>Save exam.yaml</button>
+          </div>
+        </section>
+      </aside>
+
+      <div
+        class="resizer"
+        id="resize-rail"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize lectures panel"
+        tabindex="0"
+      ></div>
+
+      <main class="topics-pane">
+        <div class="pane-head">
+          <h2 id="lecture-heading">Topics</h2>
+          <span class="pane-hint" id="topics-hint"></span>
+        </div>
+        <div class="topics" id="topics"></div>
+      </main>
+
+      <div
+        class="resizer"
+        id="resize-preview"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize preview panel"
+        tabindex="0"
+      ></div>
+
+      <section class="preview-pane" id="preview-pane" aria-label="Question preview">
+        <div class="pane-head">
+          <h2 id="preview-heading">Preview</h2>
+          <span class="pane-hint" id="preview-hint"></span>
+        </div>
+        <div class="preview-body" id="preview-body">
+          <p class="placeholder">Select a topic to preview its variants.</p>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
