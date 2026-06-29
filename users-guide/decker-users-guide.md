@@ -380,6 +380,20 @@ Serve the public dir via HTTP (implies --watch).
 
 Watch changes to source files and rebuild current target if necessary.
 
+## `-d DIR`, `--project-dir=DIR`
+
+Change to `DIR` and use it as the project root, instead of searching upwards
+from the current directory for `decker.yaml` (or `.git`). This is handy for
+building a project that lives elsewhere, for example when running a development
+build from the decker source tree:
+
+``` {.sh}
+stack run -- decker --project-dir=/path/to/other-project html
+```
+
+The directory is used verbatim, so the root is pinned even when it is nested
+inside a larger Git repository.
+
 ## `--prune-files`
 
 With `decker chatty`: after syncing, delete all assistant-purpose OpenAI file

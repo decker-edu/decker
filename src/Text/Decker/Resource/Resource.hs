@@ -98,8 +98,25 @@ deckerResource :: IO Source
 deckerResource = do
   devRun <- isDevelopmentRun
   if devRun
-    then return $ LocalDir "resource/decker"
+    then do
+      src <- devSourceDir
+      return $ LocalDir $ maybe "resource/decker" (</> "resource/decker") src
     else return $ DeckerExecutable "decker"
+
+-- | On a development run resources live under `resource/` in the decker source
+-- tree. That tree is normally the CWD, but `--project-dir` changes the CWD to a
+-- foreign project, so the path can no longer be relative. On a `stack
+-- run`/installed dev build the executable lives at `<src>/.stack-work/.../decker`,
+-- so derive `<src>` from the executable path to resolve resources independent of
+-- the CWD. Returns 'Nothing' (falling back to a CWD-relative path) when the
+-- marker is absent, e.g. under ghci.
+devSourceDir :: IO (Maybe FilePath)
+devSourceDir = do
+  segments <- splitDirectories <$> getExecutablePath
+  let before = takeWhile (/= ".stack-work") segments
+  -- `before == segments` means the marker was not found; otherwise `takeWhile`
+  -- stopped at it and `before` is the source tree above `.stack-work`.
+  return $ if before == segments then Nothing else Just (joinPath before)
 
 -- |  If the resource pack is located inside the executable during a development
 --  run, use the local resource dir.
@@ -112,8 +129,9 @@ packResource meta = do
           >>= parseSourceURI
   case source of
     Just (DeckerExecutable path)
-      | devRun ->
-        return $ LocalDir $ "resource" </> path
+      | devRun -> do
+        src <- devSourceDir
+        return $ LocalDir $ maybe ("resource" </> path) (</> ("resource" </> path)) src
     Just source -> return source
     Nothing -> return None
 

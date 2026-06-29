@@ -6,6 +6,7 @@
 module Text.Decker.Project.Shake
   ( runDecker,
     runDeckerArgs,
+    deckerFlags,
     calcSource,
     calcSource',
     currentlyServedPages,
@@ -303,6 +304,11 @@ deckerFlags =
       ["lecture"]
       (GetOpt.NoArg $ Right LectureFlag)
       "Enable lecture publishing.",
+    GetOpt.Option
+      ['d']
+      ["project-dir"]
+      (GetOpt.ReqArg (Right . ProjectDirFlag) "DIR")
+      "Change to DIR before locating the project root. Useful for building a project that lives elsewhere.",
     GetOpt.Option
       []
       ["prune-files"]

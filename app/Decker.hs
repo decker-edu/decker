@@ -6,6 +6,7 @@ import Control.Lens ((^.))
 import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
 import Data.Aeson (encodeFile)
+import Data.Either (rights)
 import Data.IORef ()
 import Data.List
 import Data.Map.Strict qualified as Map
@@ -41,7 +42,7 @@ import Text.Decker.Internal.External (
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.PdfExport
-import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
+import Text.Decker.Project.ActionContext (Flags (LectureFlag, ProjectDirFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -53,11 +54,19 @@ import Text.Decker.Resource.Zip
 import Text.Decker.Writer.Layout
 import Text.Groom
 import Text.Pandoc (Meta)
+import System.Console.GetOpt qualified as GetOpt
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  setProjectDirectory
+  -- Honor --project-dir/-d before locating the project root. When given, the
+  -- directory is used verbatim and pins the project root (no upward search).
+  -- The flag is also parsed (and ignored) by the Shake rules later, so it need
+  -- not be stripped from the arguments.
+  args <- getArgs
+  let flags = rights $ (\(r, _, _) -> r) $ GetOpt.getOpt GetOpt.Permute deckerFlags args
+  setProjectDirectory $ listToMaybe [dir | ProjectDirFlag dir <- flags]
   run
 
 needTargets sel = needTargets' [sel]
