@@ -529,21 +529,12 @@ deckerRules = do
               -- sync the annotated markdown of the published (non-draft) decks and pages
               syncChattyVectorStore meta selected
             else do
-              -- clean out the public dir so stale draft artifacts are not published
-              liftIO $ runClean False
               need ["support"]
-              deps <- getDeps
-              -- draft decks and pages are never published, even without -l
-              publishableDecks <- filterPublishable meta (Map.elems $ deps ^. decks)
-              publishablePages <- filterPublishable meta (Map.elems $ deps ^. pages)
-              let deckTargets = Map.filter (`elem` publishableDecks) (deps ^. decks)
-              let pageTargets = Map.filter (`elem` publishablePages) (deps ^. pages)
-              need (Map.keys deckTargets <> Map.keys pageTargets)
+              getDeps >>= needTargets' [decks, pages]
               createPublicManifest
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
-              -- sync the annotated markdown of the published (non-draft) decks and pages
-              syncChattyVectorStore meta (publishableDecks <> publishablePages)
+              liftIO $ runExternal "rsync" src destination meta
         Nothing -> putError "publish.rsync.destination not configured"
 
 createPublicManifest :: Action ()
