@@ -168,6 +168,26 @@ Podman instead of Docker on Apple Silicon, two host-side settings are required:
 Avoid driving the Podman VM with two heavy clients at once (e.g. a manual
 `podman build` while Zed runs `devcontainer up`), which can wedge the machine.
 
+The `devcontainer` CLI shells out to `docker`, so `docker` must be pointed at
+Podman rather than a stopped Docker Desktop. If `devcontainer up` fails with
+`Cannot connect to the Docker daemon`, create a Podman context once and select
+it:
+
+``` sh
+docker context create podman --docker \
+    "host=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+docker context use podman
+```
+
+The Podman API socket lives under a volatile `/var/folders/.../T/podman/` path
+that changes when the machine is recreated. If the context breaks later,
+re-point it with:
+
+``` sh
+docker context update podman --docker \
+    "host=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+```
+
 ### Templates and CSS
 
 To interactively work on the template, CSS and Javascript files in

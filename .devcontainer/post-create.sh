@@ -21,6 +21,16 @@ npm install -g @anthropic-ai/claude-code
 git submodule update --init --recursive
 npm install
 
+# mermaid-cli (`mmdc`, the "mermaid" external tool) and Playwright, which
+# provides the headless Chromium backing both `mmdc` and decker's `chrome`
+# external tool (used by `decker pdf`/`decker pdf-decks`). Playwright's
+# Chromium build works on arm64 as well as amd64, unlike Google Chrome or
+# Puppeteer's default download (see PUPPETEER_EXECUTABLE_PATH in the
+# Dockerfile) — install-deps pulls in the shared libraries it needs.
+npm install -g @mermaid-js/mermaid-cli playwright
+sudo env "PATH=$PATH" npx --yes playwright install --with-deps chromium
+sudo ln -sf "$(NODE_PATH="$(npm root -g)" node -e 'console.log(require("playwright").chromium.executablePath())')" /usr/local/bin/chrome
+
 echo
 echo "Dev container ready."
 echo "  Build:  stack build -j8"
