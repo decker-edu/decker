@@ -230,7 +230,11 @@ runCommand context command rules = do
       let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
       openBrowser $ "http://localhost:" <> show port <> "/support/exam-builder.html"
       forkServer context
-      handleUploads context
+      -- Watch source files so edits to *-quest.yaml rebuild questions.json and
+      -- reload the browser, exactly like the 'serve' command.
+      Notify.withManager $ \manager -> do
+        startWatcher manager context
+        runShakeForever Nothing context rules
     "crunch" -> crunchAllRecordings context
     "transcribe" -> transcribeAllRecordings meta
     "version" -> putDeckerVersion

@@ -54,7 +54,9 @@
       };
     </script>
     <script src="/support/vendor/mathjax/tex-svg-nofont.js" id="MathJax-script" async></script>
-    <script src="/support/js/reload.js"></script>
+    <!-- No reload.js here: exam-builder.js listens on the same /reload SSE but
+         soft-refreshes the catalog in place instead of a full page reload, so
+         the current selection and scroll positions survive an edit. -->
     <script type="module" src="/support/js/exam-builder.js"></script>
   </head>
   <body>
