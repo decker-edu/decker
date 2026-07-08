@@ -20,7 +20,7 @@ import Data.Aeson (FromJSON (..), eitherDecode, object, withObject, (.!=), (.:),
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Builder (byteString)
 import Data.Char (isAlphaNum, toLower)
-import Data.List (isSuffixOf)
+import Data.List (isInfixOf, isSuffixOf)
 import Data.Maybe
 import Data.Text qualified as T
 import Data.Text.IO qualified as Text
@@ -35,6 +35,7 @@ import System.Directory qualified as Dir
 -- import System.FilePath.Posix
 import System.FilePath
 import System.Random
+import Text.Decker.Exam.Exam (Exam, etLectureId, etTopicId, examTitle, examTopics, readExam)
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
@@ -133,6 +134,9 @@ runHttpServer context = do
     -- Scotty.get (regex "^/support/(.*)$") $ serveSupport context
     Scotty.get (regex "^/recordings/(.*)$") listRecordings
     Scotty.post "/api/exam-builder/exam" saveExam
+    Scotty.get "/api/exam-builder/exams" listExams
+    Scotty.get "/api/exam-builder/project" projectInfo
+    Scotty.delete "/api/exam-builder/exam/:file" deleteExam
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
     Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
@@ -192,8 +196,13 @@ uploadResource suffixes = do
       text "ERROR: directory does not exist or file (suffix) is not uploadable"
       status status406
 
+-- | Directory under the project root where question collections are saved and
+-- loaded. Kept in one place so save, list, and delete stay in agreement.
+examsDir :: FilePath
+examsDir = projectDir </> "exams"
+
 -- | A request from the exam-builder web app to save a question collection as a
--- @*-exam.yaml@ file in the project root.
+-- @*-exam.yaml@ file under @exams/@.
 data ExamRequest = ExamRequest
   { erTitle :: Text,
     erTopics :: [(Text, Text)],
@@ -231,9 +240,9 @@ renderExamYaml req =
         "    TopicId: " <> tid
       ]
 
--- | Saves a question collection as @<slug>-exam.yaml@ in the project root.
--- Refuses to overwrite an existing file unless @overwrite@ is set, returning
--- 409 with the existing path so the web app can confirm.
+-- | Saves a question collection as @<slug>-exam.yaml@ under @exams/@ (created
+-- if missing). Refuses to overwrite an existing file unless @overwrite@ is set,
+-- returning 409 with the existing file name so the web app can confirm.
 saveExam :: AppActionM ()
 saveExam = do
   raw <- Scotty.body
@@ -250,7 +259,8 @@ saveExam = do
           Scotty.text "ERROR: collection has no topics"
       | otherwise -> do
           let fileName = slugify (erTitle req) <> "-exam.yaml"
-              path = projectDir </> toString fileName
+              path = examsDir </> toString fileName
+          liftIO $ createDirectoryIfMissing True examsDir
           exists <- liftIO $ doesFileExist path
           if exists && not (erOverwrite req)
             then do
@@ -259,6 +269,69 @@ saveExam = do
             else do
               liftIO $ Text.writeFile path (renderExamYaml req)
               Scotty.json $ object ["path" Aeson..= fileName, "overwritten" Aeson..= exists]
+
+-- | Lists the saved question collections under @exams/@ for the web app's
+-- collections panel. Each is parsed with 'readExam' and reported as its file
+-- name, title, and topics; a file that fails to parse is skipped so one bad
+-- file does not break the panel.
+listExams :: AppActionM ()
+listExams = do
+  collections <- liftIO $ do
+    exists <- doesDirectoryExist examsDir
+    if not exists
+      then return []
+      else do
+        names <- sort . filter ("-exam.yaml" `isSuffixOf`) <$> listDirectory examsDir
+        catMaybes <$> mapM readCollection names
+  Scotty.json (collections :: [Aeson.Value])
+  where
+    readCollection name = do
+      parsed <- try (readExam (examsDir </> name)) :: IO (Either SomeException Exam)
+      return $ case parsed of
+        Left _ -> Nothing
+        Right exam ->
+          Just $
+            object
+              [ "path" Aeson..= T.pack name,
+                "title" Aeson..= (exam ^. examTitle),
+                "topics" Aeson..= map topicJson (exam ^. examTopics)
+              ]
+    topicJson t =
+      object
+        [ "lectureId" Aeson..= (t ^. etLectureId),
+          "topicId" Aeson..= (t ^. etTopicId)
+        ]
+
+-- | Reports the absolute project directory so the web app can namespace its
+-- per-project @localStorage@ (the in-progress collection and layout), keeping
+-- projects served from the same @localhost@ origin from mixing state.
+projectInfo :: AppActionM ()
+projectInfo = do
+  dir <- liftIO $ makeAbsolute projectDir
+  Scotty.json $ object ["dir" Aeson..= T.pack dir]
+
+-- | Deletes a saved collection under @exams/@. The captured name is confined to
+-- a bare @*-exam.yaml@ file name (no path separators, no @..@) so the request
+-- cannot reach outside the exams directory.
+deleteExam :: AppActionM ()
+deleteExam = do
+  name <- captureParam "file" :: AppActionM FilePath
+  if takeFileName name /= name
+    || not ("-exam.yaml" `isSuffixOf` name)
+    || (".." `isInfixOf` name)
+    then do
+      Scotty.status status400
+      Scotty.text "ERROR: invalid collection name"
+    else do
+      let path = examsDir </> name
+      exists <- liftIO $ doesFileExist path
+      if not exists
+        then do
+          Scotty.status status404
+          Scotty.text "ERROR: no such collection"
+        else do
+          liftIO $ removeFile path
+          Scotty.json $ object ["path" Aeson..= T.pack name, "deleted" Aeson..= True]
 
 headDirectory :: FilePath -> AppActionM ()
 headDirectory directory = do

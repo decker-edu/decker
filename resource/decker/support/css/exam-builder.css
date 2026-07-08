@@ -194,6 +194,122 @@ body.resizing {
   visibility: visible;
 }
 
+/* ---------- saved collections ---------- */
+
+.saved {
+  border-top: 1px solid var(--line);
+  background: var(--surface-sunk);
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: 30%;
+}
+
+.saved-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.saved-label {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+#new-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-wash);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+#new-button:hover {
+  background: var(--surface);
+}
+
+.saved-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.saved-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.saved-load {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  font: inherit;
+  padding: 6px 4px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.saved-load:hover {
+  background: var(--surface);
+}
+
+.saved-title {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.saved-del {
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+
+.saved-del:hover {
+  color: var(--warn);
+  background: var(--surface);
+}
+
+.saved-empty {
+  margin: 6px 2px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
 /* ---------- collection / manifest ---------- */
 
 .manifest {

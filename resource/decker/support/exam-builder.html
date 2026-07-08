@@ -67,6 +67,17 @@
 
         <nav class="lectures" id="lectures" aria-label="Lectures"></nav>
 
+        <section class="saved" aria-label="Saved exams">
+          <div class="saved-head">
+            <span class="saved-label">Saved exams</span>
+            <button id="new-button" type="button" title="Start a new, empty collection">
+              New
+            </button>
+          </div>
+          <ul class="saved-list" id="saved-list"></ul>
+          <p class="saved-empty" id="saved-empty">No saved exams yet.</p>
+        </section>
+
         <section class="manifest" aria-label="Collection">
           <div class="manifest-head">
             <span class="manifest-label">Collection</span>
@@ -88,7 +99,7 @@
           </p>
           <div class="manifest-actions">
             <output class="save-status" id="save-status"></output>
-            <button id="save-button" type="button" disabled>Save exam.yaml</button>
+            <button id="save-button" type="button" disabled>Save exam</button>
           </div>
         </section>
       </aside>
