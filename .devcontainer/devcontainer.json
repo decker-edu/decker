@@ -1,0 +1,39 @@
+{
+  "name": "Decker (Haskell)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Node is needed for the mermaid support dependency and for Claude Code.
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+
+  // Persist heavy, regenerable state across container rebuilds so you don't
+  // recompile GHC/deps every time. .stack-work as a volume also avoids slow
+  // bind-mount IO on macOS for the thousands of build artifacts.
+  "mounts": [
+    "source=decker-stack,target=/home/vscode/.stack,type=volume",
+    "source=decker-stackwork,target=${containerWorkspaceFolder}/.stack-work,type=volume",
+    "source=decker-claude,target=/home/vscode/.claude,type=volume"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  // Decker's dev server (`decker --server`) listens on 8888.
+  "appPort": ["8888:8888"],
+
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8"
+  },
+
+  "customizations": {
+    "zed": {
+      "extensions": ["haskell", "html", "toml"]
+    }
+  }
+}

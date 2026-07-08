@@ -128,6 +128,46 @@ Use appropriate tooling. I use:
     -   *Haskell Language Server*
     -   *hindent-format*
 
+### Dev container
+
+The repository ships a [dev container](https://containers.dev)
+(`.devcontainer/`) that provides the complete build environment — the Haskell
+toolchain (GHC 9.8.4 to match the `lts-23.28` resolver, `stack`, and Haskell
+Language Server), the native tools Decker shells out to (`sassc`, `graphviz`,
+`gnuplot`, `rsync`), NodeJS, and the Claude Code CLI. It works with any dev
+container client (VS Code, the `devcontainer` CLI, or Zed).
+
+On first start the container installs the toolchain, fetches the git
+submodules under `third-party/`, and runs `npm install`. Heavy state
+(`~/.stack`, `.stack-work`, `~/.claude`) is kept in named volumes so it
+survives rebuilds. Once inside, build and run as usual:
+
+``` sh
+stack build -j8
+stack test -j1
+stack run -- decker --server   # dev server on http://localhost:8888 (forwarded)
+```
+
+#### Zed + Podman
+
+Zed opens the dev container natively (it prompts on opening a project that has a
+`.devcontainer/devcontainer.json`, or use *Project: Open Remote*). When using
+Podman instead of Docker on Apple Silicon, two host-side settings are required:
+
+-   Use the `applehv` VM provider (the default `libkrun` needs a `krunkit`
+    binary that is not in Homebrew). In `~/.config/containers/containers.conf`:
+
+    ``` toml
+    [machine]
+    provider = "applehv"
+    ```
+
+-   In Zed's `settings.json`, keep `"use_podman": true` and add
+    `"dev_container_use_buildkit": false` (Podman has no BuildKit/buildx).
+
+Avoid driving the Podman VM with two heavy clients at once (e.g. a manual
+`podman build` while Zed runs `devcontainer up`), which can wedge the machine.
+
 ### Templates and CSS
 
 To interactively work on the template, CSS and Javascript files in

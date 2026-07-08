@@ -362,6 +362,25 @@ vector store was deleted in the OpenAI dashboard. This is destructive and
 operates on all assistant-purpose files in the project, not only those uploaded
 by decker.
 
+## `> decker exam-builder`
+
+Opens a browser web app for browsing the project's exam questions and assembling
+them into named exam collections. It first renders every `*-quest.yaml` question
+into a catalog, then starts the development server and opens the app at
+`http://localhost:8888/support/exam-builder.html` (use `-p` to change the port).
+
+Questions are grouped by lecture and topic. Questions that share a lecture and
+topic are treated as *variants* — the generated Moodle exam picks one of them at
+random for each student — so collections refer to topics rather than to
+individual variants. Pick the topics you want, give the collection a title, and
+save it. Each saved collection is written as `exams/<title>-exam.yaml` and can be
+reloaded or deleted from the app. The in-progress collection is kept in the
+browser, so it survives a page reload.
+
+The command keeps watching the project while the app is open: editing a
+`*-quest.yaml` (or a saved `*-exam.yaml`) rebuilds the catalog and refreshes the
+open app in place, preserving the current selection and scroll position.
+
 # Options
 
 ## `-h`, `--help`
