@@ -15,7 +15,6 @@ jobs:
           - ubuntu-latest      # Linux X64
           - ubuntu-24.04-arm   # Linux ARM64
           - macos-latest       # macOS ARM64 (Apple Silicon)
-          - macos-13           # macOS X64 (Intel)
           - windows-latest
     name: Decker ${{ github.ref_name }} (${{ matrix.os }})
     steps:
@@ -97,7 +96,6 @@ jobs:
             sha256sum "$asset" | cut -d' ' -f1
           }
           MAC_ARM=$(sha "macOS-ARM64")
-          MAC_X64=$(sha "macOS-X64")
           LNX_ARM=$(sha "Linux-ARM64")
           LNX_X64=$(sha "Linux-X64")
 
@@ -113,10 +111,6 @@ jobs:
               on_arm do
                 url "${BASE}/decker-${TAG}-macOS-ARM64"
                 sha256 "${MAC_ARM}"
-              end
-              on_intel do
-                url "${BASE}/decker-${TAG}-macOS-X64"
-                sha256 "${MAC_X64}"
               end
             end
 
