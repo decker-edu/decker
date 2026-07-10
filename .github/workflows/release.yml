@@ -48,6 +48,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-stack-
 
+      # bzlib-conduit (via the Stackage snapshot) needs the system bz2 C library.
+      - name: Install libbz2 (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libbz2-dev
+
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
         with:
@@ -55,6 +60,12 @@ jobs:
           stack-no-global: true
           stack-version: "latest"
           stack-setup-ghc: true
+
+      # On Windows GHC links against Stack's bundled MSYS2/mingw toolchain, so
+      # bz2 must be installed there (after stack setup has provisioned MSYS2).
+      - name: Install libbz2 (Windows)
+        if: runner.os == 'Windows'
+        run: stack exec -- pacman --sync --noconfirm --needed mingw-w64-x86_64-bzip2
 
       - name: Build & test
         run: |
