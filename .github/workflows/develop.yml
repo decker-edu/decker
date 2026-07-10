@@ -37,7 +37,7 @@ jobs:
         run: 'echo ("The value of ATTACH_RESOURCE_ZIP:" + $env:ATTACH_RESOURCE_ZIP)'
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: develop
 

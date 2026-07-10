@@ -18,7 +18,7 @@ jobs:
     name: Decker ${{ github.ref_name }} (${{ matrix.os }})
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
 
@@ -102,16 +102,10 @@ jobs:
     needs: build-all-platforms
     runs-on: ubuntu-latest
     steps:
-      - name: Check out tap
-        uses: actions/checkout@v4
-        with:
-          repository: decker-edu/homebrew-decker
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: tap
-
-      - name: Regenerate formula
+      - name: Update Homebrew tap
         env:
           TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           set -euo pipefail
           VERSION="${TAG#v}"
@@ -120,14 +114,20 @@ jobs:
           # Download each release asset and compute its sha256.
           sha() {
             local asset="decker-${TAG}-$1"
-            curl -fsSL -o "$asset" "${BASE}/${asset}"
-            sha256sum "$asset" | cut -d' ' -f1
+            curl -fsSL -o "${RUNNER_TEMP}/${asset}" "${BASE}/${asset}"
+            sha256sum "${RUNNER_TEMP}/${asset}" | cut -d' ' -f1
           }
           MAC_ARM=$(sha "macOS-ARM64")
           LNX_X64=$(sha "Linux-X64")
 
-          mkdir -p tap/Formula
-          cat > tap/Formula/decker.rb <<EOF
+          # Clone the tap. This also succeeds for a brand-new empty repo (the
+          # working tree just starts on an unborn branch), so the tap needs no
+          # initial commit.
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/decker-edu/homebrew-decker.git" tap
+          cd tap
+
+          mkdir -p Formula
+          cat > Formula/decker.rb <<EOF
           class Decker < Formula
             desc "Markdown to reveal.js slide decks, HTML pages, and handouts"
             homepage "https://github.com/decker-edu/decker"
@@ -184,12 +184,45 @@ jobs:
           end
           EOF
 
-      - name: Commit and push
-        run: |
-          set -euo pipefail
-          cd tap
+          # Landing page for the tap. Quoted heredoc: content is literal, no
+          # shell expansion, so backticks and $ are safe.
+          cat > README.md <<'MD'
+          # Decker Homebrew Tap
+
+          Homebrew formula for [Decker](https://github.com/decker-edu/decker) — a
+          tool that turns Markdown into reveal.js slide decks, HTML pages, and
+          handouts.
+
+          ## Install
+
+              brew install decker-edu/decker/decker
+
+          Or tap first, then install:
+
+              brew tap decker-edu/decker
+              brew install decker
+
+          ## Upgrade
+
+              brew upgrade decker
+
+          ## Extra tools
+
+          Some Decker features need programs that are not installed automatically.
+          `brew install decker` prints a caveats section listing them (PDF export
+          needs Google Chrome, embedded LaTeX needs a TeX distribution, and so on).
+
+          ---
+
+          This formula is generated automatically by Decker's release workflow.
+          Do not edit `Formula/decker.rb` or this file by hand.
+          MD
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/decker.rb
-          git commit -m "decker ${{ github.ref_name }}" || { echo "No changes"; exit 0; }
-          git push
+          git add Formula/decker.rb README.md
+          git commit -m "decker ${TAG}" || { echo "No changes"; exit 0; }
+          # Normalize the branch name (covers the unborn-branch case of a fresh
+          # empty repo) and push it as the tap's main branch.
+          git branch -M main
+          git push -u origin main
