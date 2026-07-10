@@ -12,8 +12,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - macos-latest
+          - ubuntu-latest      # Linux X64
+          - ubuntu-24.04-arm   # Linux ARM64
+          - macos-latest       # macOS ARM64 (Apple Silicon)
+          - macos-13           # macOS X64 (Intel)
           - windows-latest
     name: Decker ${{ github.ref_name }} (${{ matrix.os }})
     steps:
@@ -65,3 +67,86 @@ jobs:
             readme.md
             changelog.md
             dist/**
+
+  # Regenerate Formula/decker.rb in the decker-edu/homebrew-decker tap so that
+  # `brew install decker-edu/decker/decker` picks up this release. Requires a
+  # repo secret HOMEBREW_TAP_TOKEN: a PAT with `contents:write` on the tap repo.
+  update-homebrew-tap:
+    needs: build-all-platforms
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tap
+        uses: actions/checkout@v4
+        with:
+          repository: decker-edu/homebrew-decker
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Regenerate formula
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          BASE="https://github.com/decker-edu/decker/releases/download/${TAG}"
+
+          # Download each release asset and compute its sha256.
+          sha() {
+            local asset="decker-${TAG}-$1"
+            curl -fsSL -o "$asset" "${BASE}/${asset}"
+            sha256sum "$asset" | cut -d' ' -f1
+          }
+          MAC_ARM=$(sha "macOS-ARM64")
+          MAC_X64=$(sha "macOS-X64")
+          LNX_ARM=$(sha "Linux-ARM64")
+          LNX_X64=$(sha "Linux-X64")
+
+          mkdir -p tap/Formula
+          cat > tap/Formula/decker.rb <<EOF
+          class Decker < Formula
+            desc "Markdown to reveal.js slide decks, HTML pages, and handouts"
+            homepage "https://github.com/decker-edu/decker"
+            version "${VERSION}"
+            license "GPL-3.0-or-later"
+
+            on_macos do
+              on_arm do
+                url "${BASE}/decker-${TAG}-macOS-ARM64"
+                sha256 "${MAC_ARM}"
+              end
+              on_intel do
+                url "${BASE}/decker-${TAG}-macOS-X64"
+                sha256 "${MAC_X64}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "${BASE}/decker-${TAG}-Linux-ARM64"
+                sha256 "${LNX_ARM}"
+              end
+              on_intel do
+                url "${BASE}/decker-${TAG}-Linux-X64"
+                sha256 "${LNX_X64}"
+              end
+            end
+
+            def install
+              bin.install Dir["*"].first => "decker"
+            end
+
+            test do
+              assert_match "decker version", shell_output("#{bin}/decker version")
+            end
+          end
+          EOF
+
+      - name: Commit and push
+        run: |
+          set -euo pipefail
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/decker.rb
+          git commit -m "decker ${{ github.ref_name }}" || { echo "No changes"; exit 0; }
+          git push
