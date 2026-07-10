@@ -8,18 +8,13 @@ jobs:
   remove-old-release:
     runs-on: ubuntu-latest
     steps:
-      - name: remove assets
-        uses: mknejp/delete-release-assets@v1
-        with:
-          token: ${{ github.token }}
-          tag: latest
-          assets: "*"
-          fail-if-no-assets: false
-          fail-if-no-release: false
-      - name: remove old release
-        uses: cb80/delrel@latest
-        with:
-          tag: latest
+      - name: Remove old "latest" release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest \
+            --repo "$GITHUB_REPOSITORY" \
+            --cleanup-tag --yes || true
 
   build-all-platforms:
     needs: remove-old-release
@@ -43,12 +38,12 @@ jobs:
         run: 'echo ("The value of ATTACH_RESOURCE_ZIP:" + $env:ATTACH_RESOURCE_ZIP)'
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: develop
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.stack
           key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
@@ -83,7 +78,7 @@ jobs:
           mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
 
       - name: Release
-        uses: "softprops/action-gh-release@v1"
+        uses: "softprops/action-gh-release@v2"
         with:
           token: ${{ github.token }}
           name: latest

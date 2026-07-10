@@ -20,12 +20,12 @@ jobs:
     name: Decker ${{ github.ref_name }} (${{ matrix.os }})
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.stack
           key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
@@ -56,7 +56,7 @@ jobs:
           mv dist/decker.exe "dist/decker-${{ github.ref_name }}-${{ runner.os }}-${{ runner.arch }}.exe"
 
       - name: Release
-        uses: "softprops/action-gh-release@v1"
+        uses: "softprops/action-gh-release@v2"
         with:
           token: ${{ github.token }}
           name: "Decker ${{ github.ref_name }}"
