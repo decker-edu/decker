@@ -22,13 +22,31 @@ jobs:
         with:
           submodules: true
 
+      # Windows Defender real-time scanning inspects every file GHC/stack
+      # writes, which drastically slows Haskell builds. Exclude the build and
+      # toolchain directories before any files are written.
+      - name: Disable Defender scanning of build dirs (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Add-MpPreference -ExclusionPath `
+            "$env:GITHUB_WORKSPACE", `
+            "$env:APPDATA\stack", `
+            "$env:LOCALAPPDATA\Programs\stack"
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.stack
-          key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
+          # ~/.stack        - global snapshot packages (all OSes)
+          # .stack-work     - project build artifacts
+          # ...Programs\stack - GHC + MSYS2 toolchain installed by stack (Windows)
+          path: |
+            ~/.stack
+            .stack-work
+            ~/AppData/Local/Programs/stack
+          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml', 'stack.yaml.lock', 'package.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-
+            ${{ runner.os }}-stack-
 
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
