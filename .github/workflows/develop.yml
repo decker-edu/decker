@@ -54,7 +54,7 @@ jobs:
             "$env:LOCALAPPDATA\Programs\stack"
 
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           # ~/.stack        - global snapshot packages (all OSes)
           # .stack-work     - project build artifacts
