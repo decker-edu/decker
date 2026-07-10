@@ -28,6 +28,45 @@ adds to Pandoc's Markdown.
 
 ## Features
 
+## Installation
+
+Prebuilt binaries for every release are available under
+[Releases](https://github.com/decker-edu/decker/releases). The executable is
+self-contained: all templates and support resources are bundled inside it.
+
+### Homebrew (macOS and Linux)
+
+On macOS and Linux the recommended way to install Decker is via
+[Homebrew](https://brew.sh):
+
+``` sh
+> brew install decker-edu/decker/decker
+```
+
+This installs the latest release from the
+[`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap
+together with the external tools Decker needs for its core features. Some
+optional features need additional programs — `brew install` prints a caveats
+section explaining how to add them:
+
+-   PDF export of decks needs Google Chrome (`brew install --cask google-chrome`)
+-   Rendering embedded LaTeX needs a TeX distribution (`brew install --cask basictex`)
+-   Mermaid diagrams need the Mermaid CLI (`npm install -g @mermaid-js/mermaid-cli`)
+-   Speech transcription needs `whisper.cpp` (`brew install whisper-cpp`)
+
+Upgrade to a newer release with:
+
+``` sh
+> brew upgrade decker
+```
+
+### Manual installation
+
+Download the binary for your platform from the releases page, make it executable
+(`chmod +x decker` on macOS and Linux), and place it on your `PATH`. See the
+project [`readme.md`](https://github.com/decker-edu/decker/blob/master/readme.md)
+for platform-specific details, including Windows.
+
 ## Using Decker
 
 ## Creating a project

@@ -15,6 +15,24 @@ A markdown based tool for slide deck creation.
 
 Under [Releases](https://github.com/decker-edu/decker/releases) you can find the binaries of `decker`.
 
+### Installation with Homebrew (macOS and Linux)
+
+On macOS and Linux the easiest way to install `decker` is via [Homebrew](https://brew.sh):
+
+```sh
+brew install decker-edu/decker/decker
+```
+
+This pulls the latest release binary from the [`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap and installs the external tools `decker` needs for its core features (see [External tools](#external-tools)). Some optional features (PDF export, embedded LaTeX, Mermaid diagrams, speech transcription) need additional programs; `brew install` prints a caveats section explaining how to install them.
+
+To upgrade to a newer release later:
+
+```sh
+brew upgrade decker
+```
+
+### Manual installation
+
 To install the program by hand you simply need to download the binary and put it in a location where your operating system can find executable files. The executable and its internal dependencies are statically linked and everything `decker` extracts in order to generate its output is inside its binary.
 
 ### Manual installation on Windows
