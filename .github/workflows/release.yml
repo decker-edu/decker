@@ -107,6 +107,16 @@ jobs:
             version "${VERSION}"
             license "GPL-3.0-or-later"
 
+            # External programs Decker shells out to for full functionality
+            # (see the "external-tools" section of Decker's default.yaml).
+            depends_on "ffmpeg"   # video/audio processing and ffprobe
+            depends_on "graphviz" # dot diagrams
+            depends_on "gnuplot"  # gnuplot diagrams
+            depends_on "plantuml" # plantuml diagrams
+            depends_on "d2"       # d2 diagrams
+            depends_on "pdf2svg"  # pdf-to-svg conversion
+            depends_on "rsync"    # resource deployment
+
             on_macos do
               on_arm do
                 url "${BASE}/decker-${TAG}-macOS-ARM64"
@@ -127,6 +137,22 @@ jobs:
 
             def install
               bin.install Dir["*"].first => "decker"
+            end
+
+            # These are optional and/or too heavy to force on every user, so
+            # they are documented rather than declared as hard dependencies.
+            def caveats
+              <<~EOS
+                Some Decker features need extra tools that are not installed automatically:
+                  * PDF export of decks needs Google Chrome:
+                      brew install --cask google-chrome
+                  * Rendering embedded LaTeX (pdflatex) needs a TeX distribution:
+                      brew install --cask basictex
+                  * Mermaid diagrams need the mermaid CLI (mmdc):
+                      npm install -g @mermaid-js/mermaid-cli
+                  * Speech transcription needs whisper.cpp (provides whisper-cli):
+                      brew install whisper-cpp
+              EOS
             end
 
             test do
