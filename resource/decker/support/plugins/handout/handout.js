@@ -91,7 +91,7 @@ handoutSlides.addEventListener(
       }
     }
   },
-  true
+  true,
 );
 
 function activateHandoutMode() {
@@ -101,11 +101,11 @@ function activateHandoutMode() {
     storedMetaViewport = meta.getAttribute("content");
     const scalable = storedMetaViewport.replace(
       /user-scalable=no/,
-      "user-scalable=yes"
+      "user-scalable=yes",
     );
     const unlimited = scalable.replace(
       /\s*maximum-scale=([0-9]|\.)*\s*,?\s*/,
-      " "
+      " ",
     );
     meta.setAttribute("content", unlimited);
   }
@@ -214,7 +214,7 @@ function activateHandoutMode() {
               const container = document.createElement("div");
               container.className = "handout-feedback-container";
               slide.appendChild(container);
-              const heading = document.createElement("h4");
+              const heading = document.createElement("h2");
               heading.innerText = localization.comment_header;
               container.appendChild(heading);
               const commentWrapper = document.createElement("div");
@@ -258,7 +258,10 @@ function activateHandoutMode() {
     .forEach(makeWhiteboardVisible);
 
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
-  currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
+  currentSlide.scrollIntoView({ behavior: "instant", block: "center" });
+
+  /* adjust URL search parameter */
+  window.Decker.addURLSearchParameter("handout");
 
   /* patch Reveal functions for slide navigation */
   bak_getCurrentSlide = Reveal.getCurrentSlide;
@@ -282,7 +285,7 @@ function disassembleHandoutMode() {
   }
 
   const commentContainers = document.querySelectorAll(
-    ".handout-feedback-container"
+    ".handout-feedback-container",
   );
   for (const container of commentContainers) {
     container.remove();
@@ -301,10 +304,6 @@ function disassembleHandoutMode() {
   document.documentElement.classList.remove("handout");
   handoutSlideMode = false;
 
-  let revealContainer = Reveal.getRevealElement();
-  let slides = handoutSlides.childNodes;
-  // Create a 2nd list to iterate over because we will be removing elements from the childNodes list
-  let iterate = [...slides];
   let revealSlidesElement = Reveal.getSlidesElement();
 
   // Restore audio/video (if not also locked by a11y-mode)
@@ -318,13 +317,8 @@ function disassembleHandoutMode() {
   });
 
   // Reattach slides to original slides container
-  for (const slide of iterate) {
-    revealSlidesElement.appendChild(slide);
-  }
-  handoutContainer.parentElement.insertBefore(
-    revealContainer,
-    handoutContainer.nextSibling
-  );
+  revealSlidesElement.append(...handoutSlides.childNodes);
+
   detachWindowEventListeners();
 
   // delete intersection observers
@@ -333,6 +327,9 @@ function disassembleHandoutMode() {
 
   /* Remove the fake container from the DOM */
   handoutContainer.remove();
+
+  /* adjust URL search parameter */
+  window.Decker.removeURLSearchParameter("handout");
 
   /* Force reveal to do recalculations on returned slides */
   Reveal.sync();
@@ -476,7 +473,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
-    visibilityObserverOptions
+    visibilityObserverOptions,
   );
 
   // Observe all actual sections, not the container sections of vertical stacks
@@ -499,7 +496,7 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
 function createSRCIntersectionObserver() {
   const observerOptions = {
     root: document.body,
-    rootMargin: "50%",
+    rootMargin: "10%",
     threshold: [0],
   };
 
@@ -527,7 +524,7 @@ function createSRCIntersectionObserver() {
 
   srcIntersectionObserver = new IntersectionObserver(
     toggleSrc,
-    observerOptions
+    observerOptions,
   );
 
   handoutContainer
@@ -592,7 +589,7 @@ function onWindowKeydown(event) {
   const slideHeight = Reveal.getConfig().height * scaling();
   const pageHeight = Math.max(
     Math.floor(viewportHeight / slideHeight) * slideHeight,
-    slideHeight
+    slideHeight,
   );
 
   switch (event.key) {
@@ -680,10 +677,8 @@ function makeWhiteboardVisible(svg) {
 function toggleHandoutMode() {
   if (!handoutSlideMode) {
     activateHandoutMode();
-    Decker.flash.message(localization.handout_mode_on);
   } else {
     disassembleHandoutMode();
-    Decker.flash.message(localization.handout_mode_off);
   }
 }
 
@@ -699,7 +694,7 @@ function createButtons() {
       "menu-handout-button",
       "handout-button",
       localization.activate_handout_mode,
-      toggleHandoutMode
+      toggleHandoutMode,
     );
     pluginButton.ariaPressed = "false";
   }
@@ -737,6 +732,7 @@ const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
   currentSlide: () => centralSlide,
+  toggle: toggleHandoutMode,
   init: (reveal) => {
     Reveal = reveal;
     createButtons();
@@ -755,10 +751,14 @@ const Plugin = {
         key: "H",
         description: "Toggle Handout Mode (Triple Click)",
       },
-
       Decker.tripleClick(() => {
         toggleHandoutMode();
-      })
+        Decker.flashMessage(
+          handoutSlideMode
+            ? localization.handout_mode_on
+            : localization.handout_mode_off,
+        );
+      }),
     );
     if (a11y || handout) {
       Reveal.addEventListener("ready", () => {

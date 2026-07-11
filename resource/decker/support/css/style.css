@@ -78,16 +78,16 @@ li {
 
 ul {
   margin-top: 0;
-  margin-left: var(--list-indent);
-  list-style: outside disc;
   margin-bottom: var(--vertical-margin);
+  padding-inline-start: var(--list-indent);
+  list-style: outside disc;
 }
 
 ol {
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
-  margin-left: var(--list-indent);
-  list-style: outside disc;
+  padding-inline-start: var(--list-indent);
+  list-style: outside decimal;
 }
 
 ul li ul li {
@@ -226,15 +226,15 @@ div.block.accent7 {
 }
 
 span:is(
-    .accent0,
-    .accent1,
-    .accent2,
-    .accent3,
-    .accent4,
-    .accent5,
-    .accent6,
-    .accent7
-  ) {
+  .accent0,
+  .accent1,
+  .accent2,
+  .accent3,
+  .accent4,
+  .accent5,
+  .accent6,
+  .accent7
+) {
   padding-left: 0.2em;
   padding-right: 0.2em;
   margin-left: -0.2em;

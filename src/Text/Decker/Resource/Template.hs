@@ -103,7 +103,7 @@ readTemplate meta file = do
 readTemplateMeta :: Meta -> Action Meta
 readTemplateMeta meta = do
   (Resources decker pack) <- liftIO $ deckerResources meta
-  putInfo $ "# extracting meta data"
+  -- putInfo $ "# extracting meta data"
   deckerMeta <- readTemplateMeta' decker
   packMeta <- readTemplateMeta' pack
   return $ mergePandocMeta packMeta deckerMeta

@@ -70,6 +70,7 @@ function initializeDecker(metaUrl) {
         1
       );
     },
+
     tripleClick: (callback) => {
       let pushCount = 0;
       let lastPush = null;
@@ -89,6 +90,17 @@ function initializeDecker(metaUrl) {
         }
       };
     },
+
+    addURLSearchParameter: (mode) => {
+      const url = new URL(window.location);
+      url.searchParams.set(mode, "1");
+      history.replaceState(null, null, url);
+    },
+    removeURLSearchParameter: (mode) => {
+      const url = new URL(window.location);
+      url.searchParams.delete(mode);
+      history.replaceState(null, null, url);
+    },
   };
 
   // Finally, opens a web socket connection and listens to reload requests from the server.
@@ -96,8 +108,8 @@ function initializeDecker(metaUrl) {
   let reloadInhibitors = [];
   window.addEventListener("load", () => {
     if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
-      var socket = new WebSocket("ws://" + location.host + "/reload");
-      socket.onmessage = function (event) {
+      var source = new EventSource("/reload");
+      source.onmessage = function (event) {
         if (event.data.startsWith("reload!")) {
           console.log("Reload requested.");
           let reload = reloadInhibitors.reduce((a, p) => a && p(), true);

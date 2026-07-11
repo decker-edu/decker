@@ -7,45 +7,36 @@
   background: var(--menu-background-color);
   color: var(--menu-text-color);
   border-right: 2px solid var(--menu-border-color);
-  overflow: auto;
+  /* overflow: auto; */
 }
 
 .menu-header {
   --icon-inactive-color: var(--shade2);
 
   display: grid;
-  box-sizing: border-box;
-  width: 100%;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  justify-items: center;
+  align-items: center;
+  box-sizing: border-box;
+
+  width: 100%;
   z-index: 258;
 
   padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
   color: var(--menu-header-text-color);
   background: var(--menu-header-background-color);
-
   border-bottom: 2px solid var(--menu-border-color);
   flex-grow: 0;
-}
 
-.menu-header-button-group {
-  grid-column: 2 / 6;
-  display: grid;
-  grid-template-columns: subgrid;
-  justify-items: center;
-  align-items: center;
   &:has(:focus-visible) {
     outline: solid 2px var(--focus-color) !important;
-    outline-offset: 2px;
+    outline-offset: -2px;
   }
 }
 
 .menu-header button {
   color: var(--menu-header-text-color);
-}
-
-#decker-menu-close-button {
-  grid-column: 1 / 1;
 }
 
 ul.slide-list {
@@ -55,10 +46,7 @@ ul.slide-list {
   width: 100%;
   padding: 0 0 0.2rem 0;
   margin: 0;
-}
-
-.slide-list-wrapper {
-  width: 100%;
+  overflow: auto;
 }
 
 ul.slide-list > li {

@@ -8,20 +8,16 @@ jobs:
   remove-old-release:
     runs-on: ubuntu-latest
     steps:
-      - name: remove assets
-        uses: mknejp/delete-release-assets@v1
-        with:
-          token: ${{ github.token }}
-          tag: latest
-          assets: "*"
-          fail-if-no-assets: false
-          fail-if-no-release: false
-      - name: remove old release
-        uses: cb80/delrel@latest
-        with:
-          tag: latest
+      - name: Remove old "latest" release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest \
+            --repo "$GITHUB_REPOSITORY" \
+            --cleanup-tag --yes || true
 
   build-all-platforms:
+    needs: remove-old-release
     runs-on: ${{ matrix.os }}
     env:
       ATTACH_RESOURCE_ZIP: "1"
@@ -30,7 +26,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-          - macos-15-intel
           - windows-latest
     name: Decker latest (${{ matrix.os }})
     steps:
@@ -42,18 +37,37 @@ jobs:
         run: 'echo ("The value of ATTACH_RESOURCE_ZIP:" + $env:ATTACH_RESOURCE_ZIP)'
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           ref: develop
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.stack
-          key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-
+      # Windows Defender real-time scanning inspects every file GHC/stack
+      # writes, which drastically slows Haskell builds. Exclude the build and
+      # toolchain directories before any files are written.
+      - name: Disable Defender scanning of build dirs (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Add-MpPreference -ExclusionPath `
+            "$env:GITHUB_WORKSPACE", `
+            "$env:APPDATA\stack", `
+            "$env:LOCALAPPDATA\Programs\stack"
 
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          # ~/.stack        - global snapshot packages (all OSes)
+          # .stack-work     - project build artifacts
+          # ...Programs\stack - GHC + MSYS2 toolchain installed by stack (Windows)
+          path: |
+            ~/.stack
+            .stack-work
+            ~/AppData/Local/Programs/stack
+          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml', 'stack.yaml.lock', 'package.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-
+
+      # bzlib-conduit (via the Stackage snapshot) needs the system bz2 C library.
       - name: Install bzip2 with dev headers
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y bzip2 libbz2-dev
@@ -65,6 +79,12 @@ jobs:
           stack-no-global: true
           stack-version: latest
           stack-setup-ghc: true
+
+      # On Windows GHC links against Stack's bundled MSYS2/mingw toolchain, so
+      # bz2 must be installed there (after stack setup has provisioned MSYS2).
+      - name: Install libbz2 (Windows)
+        if: runner.os == 'Windows'
+        run: stack exec -- pacman --sync --noconfirm --needed mingw-w64-x86_64-bzip2
 
       - name: Build & test
         run: |
@@ -82,7 +102,7 @@ jobs:
           mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
 
       - name: Release
-        uses: "softprops/action-gh-release@v1"
+        uses: "softprops/action-gh-release@v2"
         with:
           token: ${{ github.token }}
           name: latest

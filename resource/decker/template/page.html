@@ -180,9 +180,9 @@ $include-after$
 $endfor$
 
   <script>
-    var socket = new WebSocket("ws://" + location.host + "/reload");
-    socket.onmessage = function (event) {
-      if (event.data.startsWith("reload!")) 
+    var source = new EventSource("/reload");
+    source.onmessage = function (event) {
+      if (event.data.startsWith("reload!"))
         window.location.reload(true);
     };
   </script>

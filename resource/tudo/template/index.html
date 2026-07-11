@@ -14,7 +14,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#84b819" />
     <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
     <link rel="manifest" href="$decker-support-dir$/pwa/manifest.webmanifest" crossorigin="use-credentials" />
@@ -33,9 +33,14 @@ $if(date-meta)$
 $endif$
 $if(template.favicon)$
     <link rel="shortcut icon" href="$template.favicon$">
+$else$
+    <link rel="shortcut icon" href="$decker-support-dir$/assets/favicon.ico">
 $endif$
-    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-
+$if(title)$ 
+    <title>$if(title-prefix)$$title-prefix$ – $endif$ $title$</title>
+$else$
+    <title>Decker: Table of Contents</title>
+$endif$
     
     <!-- style sheets ------------------------------------------------------->
 
@@ -98,6 +103,7 @@ $endif$
     
     <!-- main content -->
     <main class="content">
+
       $if(index.manual)$
         $manual.html()$
       $endif$
@@ -116,8 +122,8 @@ $endif$
       $if(chatty)$
         <details class="chatty" name="index-details">
           <summary>
-            <span class="english">Ask Prof. Bot<del>sch</del></span>
-            <span class="german">Frag Prof. Bot<del>sch</del></span>
+            <span class="english">Ask Prof. Bot</span>
+            <span class="german">Frag Prof. Bot</span>
           </summary>
           <div id="chatty"></div>
         </details>

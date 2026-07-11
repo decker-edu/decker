@@ -1,12 +1,14 @@
+-- {-# OPTIONS_GHC -Wno-ambiguous-fields #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedRecordUpdate #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -Wno-ambiguous-fields #-}
 
-module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo) where
+module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo, isDraft, filterPublishable) where
 
 import Control.Lens ((^.))
 import Data.Aeson
@@ -21,10 +23,12 @@ import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Relude
 import System.FilePath
+import Text.Decker.Exam.Question
 import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Util (hash9String)
-import Text.Decker.Internal.Common (publicDir, privateDir)
+import Text.Decker.Internal.Common (privateDir, publicDir)
 import Text.Decker.Internal.Helper (makeRelativeTo)
+import Text.Decker.Chatty.MetaSeal (sealChattyMeta)
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
 import Text.Decker.Project.Project qualified as Project
@@ -35,7 +39,6 @@ import Text.DocLayout (render)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Decker.Exam.Question
 
 -- For lookup use: http://glench.github.io/fuzzyset.js/
 
@@ -49,16 +52,27 @@ buildIndex indexFile globalMeta decks = do
   liftIO $ encodeFile indexFile inverted
   return $ map (deckSrc . fst) index
 
+-- | A deck is a draft (and thus never published) when it is marked `draft` or
+-- has `lecture.status: draft`.
+isDraft :: Meta -> Bool
+isDraft meta =
+  lookupMetaOrElse False "draft" meta
+    || lookupMeta "lecture.status" meta == Just ("draft" :: Text)
+
+-- | Keep only the non-draft sources, reading each source's merged meta.
+filterPublishable :: Meta -> [FilePath] -> Action [FilePath]
+filterPublishable globalMeta = filterM (fmap (not . isDraft) . readMergedMeta)
+  where
+    readMergedMeta path = do
+      Pandoc meta _ <- readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta
+      return meta
+
 -- | Only index decks which are not marked `draft` and are not in the `no-index`
 -- list
 shouldAddToIndex meta =
   let deckId :: Text = lookupMetaOrElse "" "feedback.deck-id" meta
       noIndex = lookupMetaOrElse [] "no-index" meta
-      isDraft =
-        lookupMetaOrElse False "draft" meta
-          || lookupMeta "lecture.status" meta
-          == Just ("draft" :: Text)
-   in not isDraft && (deckId `notElem` noIndex)
+   in not (isDraft meta) && (deckId `notElem` noIndex)
 
 -- Collects word frequencies for each slide grouped by deck.
 buildDeckIndex :: Meta -> FilePath -> Action (Maybe (DeckInfo, [((Text, Text), [(Text, Int)])]))
@@ -107,7 +121,7 @@ readQuestInfo globalMeta (target, src) = do
   let questTopicId = topicId
   let questTitle = title
   let questComment = comment
-  return $ QuestInfo { questSrc ,questUrl ,questLectureId ,questTopicId ,questTitle ,questComment }
+  return $ QuestInfo {questSrc, questUrl, questLectureId, questTopicId, questTitle, questComment}
 
 -- Extracts all searchable words from an inline
 extractInlineWords :: Inline -> [Text]
@@ -188,7 +202,7 @@ data SlideInfo = SlideInfo
   { slideUrl :: SlideUrl,
     slideId :: Text,
     slideTitle :: Text,
-    deckUrl :: DeckUrl
+    slideDeckUrl :: DeckUrl
   }
   deriving (Generic, Show)
 
@@ -232,7 +246,7 @@ invertIndex =
                                 { slideUrl,
                                   slideId,
                                   slideTitle,
-                                  deckUrl
+                                  slideDeckUrl = deckUrl
                                 }
                               slideMap
                           )
@@ -265,7 +279,10 @@ insertWord word entry = Map.alter add word
     add (Just list) = Just (entry : list)
 
 renderIndex :: Template Text -> Meta -> Project.Targets -> FilePath -> Action ()
-renderIndex template meta targets out = do
+renderIndex template rawMeta targets out = do
+  -- Seal+strip chatty config (chatty.* can be set globally in decker.yaml, so
+  -- the index is a leak vector too) before any meta is serialized.
+  meta <- sealChattyMeta rawMeta
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile
@@ -303,9 +320,9 @@ addTargetInfo targets meta = do
           $ setMetaValue "pages.by-id" (toListSortedBy deckId pagesInfo) withDecks
   let withPagesDecksAndQuests =
         setMetaValue "quests.by-title" (toQuestListSortedBy questTitle questInfo)
-        $ setMetaValue "quests.by-url" (toQuestListSortedBy questUrl questInfo)
-        $ setMetaValue "quests.by-lecture-id" (toQuestListSortedBy questLectureId questInfo)
-        $ setMetaValue "quests.by-topic-id" (toQuestListSortedBy questTopicId questInfo) withPagesAndDecks
+          $ setMetaValue "quests.by-url" (toQuestListSortedBy questUrl questInfo)
+          $ setMetaValue "quests.by-lecture-id" (toQuestListSortedBy questLectureId questInfo)
+          $ setMetaValue "quests.by-topic-id" (toQuestListSortedBy questTopicId questInfo) withPagesAndDecks
   return withPagesDecksAndQuests
   where
     toQuestListSortedBy by info = MetaList $ map toQuestMeta $ sortInfo by info

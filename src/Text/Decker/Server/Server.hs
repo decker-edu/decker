@@ -11,26 +11,31 @@ where
 import Control.Concurrent
 -- import Data.List
 
-import Control.Concurrent.STM (modifyTVar)
+import Control.Concurrent.STM (modifyTVar, newTQueueIO, readTQueue, writeTQueue)
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
-import Data.List (isSuffixOf)
+import Data.Aeson (FromJSON (..), eitherDecode, object, withObject, (.!=), (.:), (.:?))
+import Data.Aeson qualified as Aeson
+import Data.ByteString.Builder (byteString)
+import Data.Char (isAlphaNum, toLower)
+import Data.List (isInfixOf, isSuffixOf)
 import Data.Maybe
-import Data.Text qualified as Text
+import Data.Text qualified as T
+import Data.Text.IO qualified as Text
+import Data.Text.Lazy qualified as LT
 import Network.HTTP.Types
 -- import Network.Mime
 import Network.Wai.Handler.Warp
-import Network.Wai.Handler.WebSockets (websocketsOr)
 import Network.Wai.Middleware.Static
-import Network.WebSockets
 import Relude
 import System.Directory
 import System.Directory qualified as Dir
 -- import System.FilePath.Posix
 import System.FilePath
 import System.Random
+import Text.Decker.Exam.Exam (Exam, etLectureId, etTopicId, examTitle, examTopics, readExam)
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
@@ -72,10 +77,7 @@ removeClient tvar cid =
 reloadClients :: TVar ServerState -> IO ()
 reloadClients tvar = do
   state <- readTVarIO tvar
-  mapM_ reload (state ^. clients)
-  where
-    reload :: Client -> IO ()
-    reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
+  atomically $ forM_ (state ^. clients) $ \(_, q) -> writeTQueue q "reload!"
 
 aPort :: Flags -> Bool
 aPort (PortFlag _) = True
@@ -106,6 +108,10 @@ runHttpServer context = do
   let server = Server chan state
   let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
   startUpdater state
+  -- Per-process boot id. Sent to clients via SSE event ids; if a client
+  -- reconnects with a Last-Event-ID that does not match, the server has been
+  -- restarted and we tell the browser to reload.
+  bootId <- (show :: Int -> Text) <$> randomIO
   scottyOptsT opts (useState server) $ do
     -- TODO this middleware business is not the right way to do this.
     -- middleware is ecvaluated BEFORE any routes are resolved. so, if
@@ -120,13 +126,17 @@ runHttpServer context = do
       resourceMiddleware "support" deckerSource
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
-    middleware $ websocketsOr defaultConnectionOptions $ reloader state
-    
+
+    Scotty.get "/reload" $ sseReload bootId state
     Scotty.get "/" $ redirect "index.html"
     Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
     -- when (context ^. devRun) $
     -- Scotty.get (regex "^/support/(.*)$") $ serveSupport context
     Scotty.get (regex "^/recordings/(.*)$") listRecordings
+    Scotty.post "/api/exam-builder/exam" saveExam
+    Scotty.get "/api/exam-builder/exams" listExams
+    Scotty.get "/api/exam-builder/project" projectInfo
+    Scotty.delete "/api/exam-builder/exam/:file" deleteExam
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
     Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
@@ -137,8 +147,8 @@ resourceMiddleware prefix source =
   case source of
     (LocalDir base) -> middleware $ staticPolicy (noDots >-> hasPrefix prefix >-> addBase base)
     _ -> middleware $ nullMiddleware
-    
-nullMiddleware app req respond = app req respond
+
+nullMiddleware app = app
 
 --       route
 --         [ ("/reload", runWebSocketsSnap $ reloader state),
@@ -154,10 +164,7 @@ tenSeconds = 10 * 10 ^ 6
 pingAll :: TVar ServerState -> IO ()
 pingAll tvar = do
   state <- readTVarIO tvar
-  mapM_ reload (state ^. clients)
-  where
-    reload :: Client -> IO ()
-    reload (_, conn) = sendTextData conn ("ping!" :: Text.Text)
+  atomically $ forM_ (state ^. clients) $ \(_, q) -> writeTQueue q "ping!"
 
 -- Safari times out on web sockets to save energy. Prevent this by sending pings
 -- from the server to all connected browsers. Once every 10 seconds should do
@@ -176,7 +183,7 @@ startUpdater state = do
 -- already exists. Do this atomically.
 uploadResource :: [String] -> AppActionM ()
 uploadResource suffixes = do
-  destination <- param "1"
+  destination <- captureParam "1"
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
     then do
@@ -189,9 +196,146 @@ uploadResource suffixes = do
       text "ERROR: directory does not exist or file (suffix) is not uploadable"
       status status406
 
+-- | Directory under the project root where question collections are saved and
+-- loaded. Kept in one place so save, list, and delete stay in agreement.
+examsDir :: FilePath
+examsDir = projectDir </> "exams"
+
+-- | A request from the exam-builder web app to save a question collection as a
+-- @*-exam.yaml@ file under @exams/@.
+data ExamRequest = ExamRequest
+  { erTitle :: Text,
+    erTopics :: [(Text, Text)],
+    erOverwrite :: Bool
+  }
+
+instance FromJSON ExamRequest where
+  parseJSON = withObject "ExamRequest" $ \o ->
+    ExamRequest
+      <$> (o .: "title")
+      <*> (o .: "topics" >>= mapM parseTopic)
+      <*> (o .:? "overwrite" .!= False)
+    where
+      parseTopic = withObject "Topic" $ \t ->
+        (,) <$> (t .: "lectureId") <*> (t .: "topicId")
+
+-- | Turns a collection title into a file name slug: lower-cased, runs of
+-- non-alphanumeric characters collapsed to a single dash, edges trimmed.
+slugify :: Text -> Text
+slugify title =
+  let lowered = T.map (\c -> if isAlphaNum c then toLower c else ' ') title
+   in T.intercalate "-" (T.words lowered)
+
+-- | Renders an exam request to the exact @*-exam.yaml@ layout understood by
+-- the @moodle-xml@ command.
+renderExamYaml :: ExamRequest -> Text
+renderExamYaml req =
+  T.unlines $
+    ["Title: " <> escape (erTitle req), "Topics:"]
+      ++ concatMap topic (erTopics req)
+  where
+    escape t = "\"" <> T.replace "\"" "\\\"" t <> "\""
+    topic (lid, tid) =
+      [ "  - LectureId: " <> lid,
+        "    TopicId: " <> tid
+      ]
+
+-- | Saves a question collection as @<slug>-exam.yaml@ under @exams/@ (created
+-- if missing). Refuses to overwrite an existing file unless @overwrite@ is set,
+-- returning 409 with the existing file name so the web app can confirm.
+saveExam :: AppActionM ()
+saveExam = do
+  raw <- Scotty.body
+  case eitherDecode raw of
+    Left err -> do
+      Scotty.status status400
+      Scotty.text $ "ERROR: invalid request: " <> LT.pack err
+    Right req
+      | T.null (slugify (erTitle req)) -> do
+          Scotty.status status400
+          Scotty.text "ERROR: title must contain at least one alphanumeric character"
+      | null (erTopics req) -> do
+          Scotty.status status400
+          Scotty.text "ERROR: collection has no topics"
+      | otherwise -> do
+          let fileName = slugify (erTitle req) <> "-exam.yaml"
+              path = examsDir </> toString fileName
+          liftIO $ createDirectoryIfMissing True examsDir
+          exists <- liftIO $ doesFileExist path
+          if exists && not (erOverwrite req)
+            then do
+              Scotty.status status409
+              Scotty.json $ object ["path" Aeson..= fileName, "exists" Aeson..= True]
+            else do
+              liftIO $ Text.writeFile path (renderExamYaml req)
+              Scotty.json $ object ["path" Aeson..= fileName, "overwritten" Aeson..= exists]
+
+-- | Lists the saved question collections under @exams/@ for the web app's
+-- collections panel. Each is parsed with 'readExam' and reported as its file
+-- name, title, and topics; a file that fails to parse is skipped so one bad
+-- file does not break the panel.
+listExams :: AppActionM ()
+listExams = do
+  collections <- liftIO $ do
+    exists <- doesDirectoryExist examsDir
+    if not exists
+      then return []
+      else do
+        names <- sort . filter ("-exam.yaml" `isSuffixOf`) <$> listDirectory examsDir
+        catMaybes <$> mapM readCollection names
+  Scotty.json (collections :: [Aeson.Value])
+  where
+    readCollection name = do
+      parsed <- try (readExam (examsDir </> name)) :: IO (Either SomeException Exam)
+      return $ case parsed of
+        Left _ -> Nothing
+        Right exam ->
+          Just $
+            object
+              [ "path" Aeson..= T.pack name,
+                "title" Aeson..= (exam ^. examTitle),
+                "topics" Aeson..= map topicJson (exam ^. examTopics)
+              ]
+    topicJson t =
+      object
+        [ "lectureId" Aeson..= (t ^. etLectureId),
+          "topicId" Aeson..= (t ^. etTopicId)
+        ]
+
+-- | Reports the absolute project directory so the web app can namespace its
+-- per-project @localStorage@ (the in-progress collection and layout), keeping
+-- projects served from the same @localhost@ origin from mixing state.
+projectInfo :: AppActionM ()
+projectInfo = do
+  dir <- liftIO $ makeAbsolute projectDir
+  Scotty.json $ object ["dir" Aeson..= T.pack dir]
+
+-- | Deletes a saved collection under @exams/@. The captured name is confined to
+-- a bare @*-exam.yaml@ file name (no path separators, no @..@) so the request
+-- cannot reach outside the exams directory.
+deleteExam :: AppActionM ()
+deleteExam = do
+  name <- captureParam "file" :: AppActionM FilePath
+  if takeFileName name /= name
+    || not ("-exam.yaml" `isSuffixOf` name)
+    || (".." `isInfixOf` name)
+    then do
+      Scotty.status status400
+      Scotty.text "ERROR: invalid collection name"
+    else do
+      let path = examsDir </> name
+      exists <- liftIO $ doesFileExist path
+      if not exists
+        then do
+          Scotty.status status404
+          Scotty.text "ERROR: no such collection"
+        else do
+          liftIO $ removeFile path
+          Scotty.json $ object ["path" Aeson..= T.pack name, "deleted" Aeson..= True]
+
 headDirectory :: FilePath -> AppActionM ()
 headDirectory directory = do
-  path <- param "1"
+  path <- captureParam "1"
   exists <- liftIO $ doesFileExist (directory </> path)
   if exists
     then status status200
@@ -238,13 +382,36 @@ headDirectory directory = do
 --       setHeader "Expires:" "0"
 --       raw $ toLazy content
 
--- Accepts a request and adds the connection to the client list. Then reads the
--- connection forever. Removes the client from the list on disconnect.
-reloader :: TVar ServerState -> PendingConnection -> IO ()
-reloader state pending = do
-  connection <- acceptRequest pending
-  cid <- randomIO -- Use a random number as client id.
-  flip finally (removeClient state cid) $ do
-    addClient state (cid, connection)
-    handleAll (\_ -> return ()) $
-      forever (receiveData connection :: IO Text)
+-- | Server-Sent Events endpoint. Registers the client, then streams events
+-- pushed to the client's queue as SSE messages until the connection is closed.
+-- Browsers using EventSource will auto-reconnect on disconnect. Every event is
+-- tagged with the server's boot id; if a reconnecting client sends a
+-- Last-Event-ID that does not match, the server has been restarted while the
+-- page was open and we push a reload immediately.
+sseReload :: Text -> TVar ServerState -> AppActionM ()
+sseReload bootId state = do
+  Scotty.setHeader "Content-Type" "text/event-stream"
+  Scotty.setHeader "Cache-Control" "no-store"
+  Scotty.setHeader "Connection" "keep-alive"
+  -- Disable proxy buffering (e.g. nginx) so events are flushed immediately.
+  Scotty.setHeader "X-Accel-Buffering" "no"
+  lastId <- fmap toStrict <$> Scotty.header "Last-Event-ID"
+  cid <- liftIO randomIO
+  queue <- liftIO newTQueueIO
+  liftIO $ addClient state (cid, queue)
+  -- A reconnecting client whose Last-Event-ID does not match the current
+  -- boot id was talking to a previous server process. Tell it to reload.
+  case lastId of
+    Just lid | lid /= bootId -> liftIO $ atomically $ writeTQueue queue "reload!"
+    _ -> pure ()
+  Scotty.stream $ \write flush -> do
+    let send bs = write (byteString bs) >> flush
+        event msg = "id: " <> bootId <> "\ndata: " <> msg <> "\n\n"
+    flip finally (removeClient state cid) $
+      handleAll (\_ -> return ()) $ do
+        -- Priming event with id sets the browser's lastEventId so reconnects
+        -- carry it back to us as Last-Event-ID.
+        send (encodeUtf8 (event "hello"))
+        forever $ do
+          msg <- atomically $ readTQueue queue
+          send (encodeUtf8 (event msg))

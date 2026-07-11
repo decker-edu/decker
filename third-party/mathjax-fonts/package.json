@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@mathjax/mathjax-asana-font": "^4.1.0",
+    "@mathjax/mathjax-fira-font": "^4.1.0",
+    "@mathjax/mathjax-newcm-font": "^4.1.0",
+    "@mathjax/mathjax-tex-font": "^4.1.0"
+  }
+}

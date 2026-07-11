@@ -6,57 +6,67 @@
 module Text.Decker.Exam.Render
   ( renderQuestion,
     renderCatalog,
+    renderQuestionCatalogJson,
   )
 where
 
 import Control.Exception
-import Control.Lens hiding (Choice)
-import qualified Data.HashMap.Strict as HashMap
-import qualified Data.List as List
-import qualified Data.List.NonEmpty as NonEmpty
-import qualified Data.Text.IO as Text
+import Control.Lens hiding (Choice, (.=))
+import Data.Aeson (ToJSON (..), object, (.=))
+import Data.Aeson qualified as Aeson
+import Data.ByteString.Lazy qualified as LBS
+import Data.HashMap.Strict qualified as HashMap
+import Data.List qualified as List
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
+import System.Directory (createDirectoryIfMissing, getCurrentDirectory)
 -- import Text.Groom
 
 import Relude
 import Relude.Extra.Group
 import System.FilePath.Posix
-import qualified Text.Blaze as A
+import Text.Blaze qualified as A
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Pretty
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html5 qualified as H
+import Text.Blaze.Html5.Attributes qualified as A
 import Text.Decker.Exam.Question
+import Text.Decker.Exam.Xml (renderMarkdownFields)
+import Text.Decker.Filter.Decker2 (deckerMediaFilter)
 import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
+import Text.Decker.Writer.Layout
 import Text.Pandoc
 import Text.Pandoc.Walk
-import Text.Decker.Writer.Layout
-import Text.Decker.Exam.Xml (renderMarkdownFields)
-import Text.Decker.Internal.MetaExtra (mergeDocumentMeta)
-import Text.Decker.Filter.Decker2 (deckerMediaFilter)
 
 -- import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
-compileQuestionToHtml meta base quest = do
- traverseOf qstTitle render
+compileQuestionToHtml meta _base quest = do
+  -- The question file path is absolute; the media filter needs a
+  -- project-relative base so referenced resources are provisioned into public/
+  -- (publicDir </> absolutePath would collapse to the absolute source path and
+  -- nothing would be copied).
+  cwd <- liftIO getCurrentDirectory
+  let base = makeRelative cwd (dropFileName (quest ^. qstFilePath))
+      render = renderSnippetToHtml meta base
+      compileAnswerToHtml :: Answer -> Action Answer
+      compileAnswerToHtml mc@MultipleChoice {} =
+        traverseOf (answChoices . traverse . choiceTheAnswer) render mc
+      compileAnswerToHtml ma@MultipleAnswers {} =
+        traverseOf (answAnswers . traverse . oneDetail) render
+          =<< traverseOf (answAnswers . traverse . oneCorrect) render ma
+      compileAnswerToHtml ff@FreeForm {} =
+        traverseOf answCorrectAnswer render ff
+      compileAnswerToHtml nu@Numerical {} = return nu
+      compileAnswerToHtml ft@FillText {} =
+        traverseOf (answCorrectWords . traverse) render ft
+  traverseOf qstTitle render
     =<< traverseOf qstQuestion render
-    =<< traverseOf qstAnswer (compileAnswerToHtml meta base) quest
-  where
-    render = renderSnippetToHtml meta base
-    compileAnswerToHtml :: Meta -> FilePath -> Answer -> Action Answer
-    compileAnswerToHtml meta base mc@MultipleChoice {} = do
-      traverseOf (answChoices . traverse . choiceTheAnswer) render mc
-    compileAnswerToHtml meta base ma@MultipleAnswers {} = do
-      traverseOf (answAnswers . traverse . oneDetail) render
-        =<< traverseOf (answAnswers . traverse . oneCorrect) render ma
-    compileAnswerToHtml meta base ff@FreeForm {} =
-      traverseOf answCorrectAnswer render ff
-    compileAnswerToHtml meta base nu@Numerical {} = return nu
-    compileAnswerToHtml meta base ft@FillText {} = do
-      traverseOf (answCorrectWords . traverse) render ft
+    =<< traverseOf qstAnswer compileAnswerToHtml quest
 
 -- | Renders a Markdown snippet to HTML applying the full Decker media filter.
 renderSnippetToHtml :: Meta -> FilePath -> Text -> Action Text
@@ -67,7 +77,7 @@ renderSnippetToHtml meta base markdown = do
     mergeDocumentMeta (setMetaValue "decker.use-data-src" False meta) pandoc
       >>= adjustResourcePathsA base
       -- >>= (\p -> print p >> return p)
-        >>= deckerMediaFilter (Disposition Page Html) (base </> "dummy.md")
+      >>= deckerMediaFilter (Disposition Page Html) (base </> "dummy.md")
   liftIO $ handleError $ runPure $ writeHtml45String options meta $ walk dropPara filtered
 
 -- | Drops a leading Para block wrapper for a Plain wrapper.
@@ -106,80 +116,79 @@ hn 5 = H.h5
 hn 6 = H.h6
 hn n = throw $ InternalException $ "Haha, good one: H" <> show n
 
-renderQuestionToHtml :: Int -> Text -> Question -> Html
-renderQuestionToHtml h id quest = do
+renderQuestionToHtml :: Int -> Text -> Meta -> Question -> Html
+renderQuestionToHtml h id meta quest = do
+  let editor :: String = lookupMetaOrElse "zed://file" "editor.link-prefix" meta
   H.div
     ! A.class_ "question"
     ! A.id (toValue id)
     $ do
       hn h $ do
         preEscapedText $ quest ^. qstTitle
-        H.small $
-          H.a
-            ! A.class_ "vscode"
-            ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
-            $ "(Edit)"
+        H.small
+          $ H.a
+          ! A.class_ "editor-link"
+          ! A.href (toValue (editor <> toString (quest ^. qstFilePath)))
+          $ "(Edit)"
       H.div ! A.class_ "closed" $ do
         H.p $ preEscapedText $ quest ^. qstQuestion
         hn (h + 1) "Answer"
         H.p $ renderAnswerToHtml $ quest ^. qstAnswer
-        H.table $ do
-          H.tr $ do
-            H.th "lecture id"
-            H.td $ toHtml (quest ^. qstLectureId)
-          H.tr $ do
-            H.th "topic id"
-            H.td $ toHtml (quest ^. qstTopicId)
-          H.tr $ do
-            H.th "exam"
-            H.td $ toHtml (quest ^. qstExam)
-          H.tr $ do
-            H.th "path"
-            H.td $
-              H.code $
-                H.a
-                  ! A.class_ "vscode"
-                  ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
-                  $ toHtml (quest ^. qstFilePath)
+        H.div ! A.class_ "question-meta" $ do
+          metaItem "Lecture" $ H.code $ toHtml (quest ^. qstLectureId)
+          metaItem "Topic" $ H.code $ toHtml (quest ^. qstTopicId)
+          metaItem "Exam" $ toHtml (if quest ^. qstExam then "yes" else "no" :: Text)
+          H.a
+            ! A.class_ "editor-link open-in-editor"
+            ! A.href (toValue (editor <> toString (quest ^. qstFilePath)))
+            $ "Open in Zed"
+  where
+    metaItem :: Text -> Html -> Html
+    metaItem key value =
+      H.span ! A.class_ "meta-item" $ do
+        H.span ! A.class_ "meta-key" $ toHtml key
+        H.span ! A.class_ "meta-val" $ value
 
 renderQuestionDocument :: Meta -> FilePath -> Question -> Action Text
 renderQuestionDocument meta base quest = do
   -- htmlQuest <- compileQuestionToHtml meta base quest
   htmlQuest <- renderMarkdownFields quest
-  let html = renderQuestionToHtml 2 "" htmlQuest
-  return $
-    toText $
-      renderHtml $
-        H.html $ do
-          H.head $ do
-            H.meta ! A.charset "utf-8"
-            H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/quest.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/css/quest.css"
-            H.title (preEscapedText $ quest ^. qstTitle)
-          H.body html
+  let html = renderQuestionToHtml 2 "" meta htmlQuest
+  return
+    $ toText
+    $ renderHtml
+    $ H.html
+    $ do
+      H.head $ do
+        H.meta ! A.charset "utf-8"
+        H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
+        H.script ! A.src "/support/js/quest.js" $ ""
+        H.link ! A.rel "stylesheet" ! A.href "/support/css/quest.css"
+        H.title (preEscapedText $ quest ^. qstTitle)
+      H.body html
 
 renderQuestionBrowser :: FilePath -> [Question] -> Action Text
 renderQuestionBrowser base questions = do
-  return $
-    toText $
-      renderHtml $
-        H.html $ do
-          H.head $ do
-            H.meta ! A.charset "utf-8"
-            H.title "Question Catalog"
-            H.script ! A.type_ "module" ! A.src "/support/js/catalog.js" $ ""
-            H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/reload.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/css/catalog.css"
-          H.body $ do
-            H.header $ do
-              H.h1 ("Question Browser (" <> show (length questions) <> ")")
-              H.div ! A.class_ "panel" $ do
-                H.div ! A.class_ "lectures" $ lectureIds
-                H.div ! A.class_ "topics" $ topicIds
-                H.div ! A.class_ "questions" $ topicQuests
-                H.iframe ! A.class_ "questions" ! A.src "" $ ""
+  return
+    $ toText
+    $ renderHtml
+    $ H.html
+    $ do
+      H.head $ do
+        H.meta ! A.charset "utf-8"
+        H.title "Question Catalog"
+        H.script ! A.type_ "module" ! A.src "/support/js/catalog.js" $ ""
+        H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
+        H.script ! A.src "/support/js/reload.js" $ ""
+        H.link ! A.rel "stylesheet" ! A.href "/support/css/catalog.css"
+      H.body $ do
+        H.header $ do
+          H.h1 ("Question Browser (" <> show (length questions) <> ")")
+          H.div ! A.class_ "panel" $ do
+            H.div ! A.class_ "lectures" $ lectureIds
+            H.div ! A.class_ "topics" $ topicIds
+            H.div ! A.class_ "questions" $ topicQuests
+            H.iframe ! A.class_ "questions" ! A.src "" $ ""
   where
     grouped = groupQuestions questions
     lectureIds = toHtml $ map (lectureButton . fst) grouped
@@ -201,10 +210,12 @@ renderQuestionBrowser base questions = do
         ! A.type_ "radio"
         ! A.name "question"
         ! A.dataAttribute "src" (toValue $ quest ^. qstTitle)
-        $ toHtml $ quest ^. qstTitle
+        $ toHtml
+        $ quest
+        ^. qstTitle
     topicQuests =
-      toHtml $
-        concatMap
+      toHtml
+        $ concatMap
           ( \(lid, topics) ->
               map (questTitles lid) topics
           )
@@ -212,12 +223,14 @@ renderQuestionBrowser base questions = do
     lectureTopics (lid, topics) =
       H.div
         ! A.dataAttribute "lecture" (toValue lid)
-        $ toHtml $ map (topicButton . fst) topics
+        $ toHtml
+        $ map (topicButton . fst) topics
     questTitles lid (tid, quests) =
       H.div
         ! A.dataAttribute "lecture" (toValue lid)
         ! A.dataAttribute "topic" (toValue tid)
-        $ toHtml $ map questButton quests
+        $ toHtml
+        $ map questButton quests
 
 groupQuestions :: [Question] -> [(Text, [(Text, [Question])])]
 groupQuestions questions = sorted
@@ -226,28 +239,28 @@ groupQuestions questions = sorted
     grouped = HashMap.map (groupBy _qstTopicId) (groupBy _qstLectureId questions)
     sorted :: [(Text, [(Text, [Question])])]
     sorted =
-      List.sortOn fst $
-        map
+      List.sortOn fst
+        $ map
           ( \(k, v) ->
               ( k,
-                List.sortOn fst $
-                  map
+                List.sortOn fst
+                  $ map
                     ( \(k, v) ->
                         (k, List.sortOn _qstTitle $ NonEmpty.toList v)
                     )
-                    $ HashMap.toList v
+                  $ HashMap.toList v
               )
           )
-          $ HashMap.toList grouped
+        $ HashMap.toList grouped
 
-instance ToMarkup a => ToMarkup (NonEmpty a) where
+instance (ToMarkup a) => ToMarkup (NonEmpty a) where
   toMarkup = toHtml . map toMarkup . toList
 
 renderQuestion :: Meta -> FilePath -> FilePath -> Action ()
 renderQuestion meta src out =
   do
     let base = takeDirectory src
-    putInfo $ "# render ('" <> src <>"' for '" <> out <> "' with base '" <> base <> "')"
+    putInfo $ "# render ('" <> src <> "' for '" <> out <> "' with base '" <> base <> "')"
     liftIO (readQuestion src)
       >>= renderQuestionDocument meta base
       >>= (liftIO . Text.writeFile out)
@@ -261,3 +274,67 @@ renderCatalog meta files out =
     mapM (compileQuestionToHtml meta base) questions
       >>= renderQuestionBrowser base
       >>= (liftIO . Text.writeFile out)
+
+-- | A flattened, fully rendered view of a single question for consumption by
+-- the exam-builder web app. The question markdown fields are compiled to HTML
+-- here (server-side) so the browser only needs to display them.
+data QuestionView = QuestionView
+  { qvLectureId :: Text,
+    qvTopicId :: Text,
+    qvTitle :: Text,
+    qvPoints :: Int,
+    qvDifficulty :: Text,
+    qvExam :: Bool,
+    qvFilePath :: Text,
+    -- | The question's directory relative to the project root. Image and other
+    -- resource URLs in the rendered HTML are relative to this directory; the
+    -- web app uses it to resolve them against the server root (public/).
+    qvBase :: Text,
+    qvHtml :: Text
+  }
+
+instance ToJSON QuestionView where
+  toJSON v =
+    object
+      [ "lectureId" .= qvLectureId v,
+        "topicId" .= qvTopicId v,
+        "title" .= qvTitle v,
+        "points" .= qvPoints v,
+        "difficulty" .= qvDifficulty v,
+        "exam" .= qvExam v,
+        "filePath" .= qvFilePath v,
+        "base" .= qvBase v,
+        "html" .= qvHtml v
+      ]
+
+-- | Pre-renders all questions to a JSON catalog for the exam-builder web app.
+-- Each question's markdown fields are compiled to HTML via 'compileQuestionToHtml'
+-- and the whole question is rendered to an HTML preview snippet.
+renderQuestionCatalogJson :: Meta -> [FilePath] -> FilePath -> Action ()
+renderQuestionCatalogJson meta files out = do
+  putInfo $ "# exam-builder catalog (for " <> out <> ")"
+  cwd <- liftIO getCurrentDirectory
+  questions <- liftIO $ mapM readQuestion files
+  views <- mapM (toView cwd) questions
+  liftIO $ createDirectoryIfMissing True (takeDirectory out)
+  liftIO $ LBS.writeFile out (Aeson.encode views)
+  where
+    toView cwd quest = do
+      let base = dropFileName (quest ^. qstFilePath)
+          -- Project-relative directory; resource URLs in the HTML are relative
+          -- to this and must be resolved against public/ by the web app.
+          relBase = dropTrailingPathSeparator (makeRelative cwd base)
+      compiled <- compileQuestionToHtml meta base quest
+      let html = toText $ renderHtml $ renderQuestionToHtml 2 "" meta compiled
+      return
+        QuestionView
+          { qvLectureId = quest ^. qstLectureId,
+            qvTopicId = quest ^. qstTopicId,
+            qvTitle = quest ^. qstTitle,
+            qvPoints = quest ^. qstPoints,
+            qvDifficulty = show (quest ^. qstDifficulty),
+            qvExam = quest ^. qstExam,
+            qvFilePath = toText (quest ^. qstFilePath),
+            qvBase = toText relBase,
+            qvHtml = html
+          }

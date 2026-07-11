@@ -25,12 +25,13 @@ import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.XML qualified as XML
 
--- Renders a catalog of all questions sorted by LectureId and TopicId.
+-- Renders a catalog of questions sorted by LectureId and TopicId. Only
+-- questions satisfying the predicate are included.
 renderXmlCatalog ::
-  [Question] -> FilePath -> Action ()
-renderXmlCatalog allQuestions out = do
-  let questions = filter _qstExam allQuestions
-  putNormal $ "Compiling " <> show (length questions) <> " questions to Moodle XML."
+  (Question -> Bool) -> [Question] -> FilePath -> Action ()
+renderXmlCatalog selector allQuestions out = do
+  let questions = filter selector allQuestions
+  putNormal $ "Compiling " <> show (length questions) <> " questions to " <> out <> "."
   rendered <- mapM (renderMarkdownFields . insertTitle) questions
   let sorted = sortQuestions rendered
       nodes = concatMap renderXML sorted

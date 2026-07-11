@@ -6,6 +6,7 @@
 module Text.Decker.Project.Shake
   ( runDecker,
     runDeckerArgs,
+    deckerFlags,
     calcSource,
     calcSource',
     currentlyServedPages,
@@ -56,6 +57,7 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
+import Text.Decker.Chatty.Upload (runChatty)
 import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
@@ -84,7 +86,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     otherwise -> do
@@ -150,7 +152,7 @@ runShakeForever last context rules = do
         $ catchAll
           (runShake context rules)
           (\(SomeException _) -> return ())
-      putStrLn $ "# Server: Reload because of: " <> path
+      -- putStrLn $ "# Server: Reload because of: " <> path
       reloadClients (context ^. server)
     UploadComplete operation -> do
       let transcode = PoserFlag `elem` (context ^. extra)
@@ -221,6 +223,18 @@ runCommand context command rules = do
     "serve" -> do
       forkServer context
       handleUploads context
+    "exam-builder" -> do
+      extractMetaIntoFile (context ^. extra)
+      -- Pre-render the question catalog to JSON before serving.
+      runShake context rules
+      let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
+      openBrowser $ "http://localhost:" <> show port <> "/support/exam-builder.html"
+      forkServer context
+      -- Watch source files so edits to *-quest.yaml rebuild questions.json and
+      -- reload the browser, exactly like the 'serve' command.
+      Notify.withManager $ \manager -> do
+        startWatcher manager context
+        runShakeForever Nothing context rules
     "crunch" -> crunchAllRecordings context
     "transcribe" -> transcribeAllRecordings meta
     "version" -> putDeckerVersion
@@ -230,6 +244,10 @@ runCommand context command rules = do
       runShake context rules
       killThread id
     "format" -> formatStdin
+    "chatty" -> do
+      extractMetaIntoFile (context ^. extra)
+      runShake context rules
+      runChatty (PruneFilesFlag `elem` (context ^. extra))
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
@@ -289,7 +307,17 @@ deckerFlags =
       ['l']
       ["lecture"]
       (GetOpt.NoArg $ Right LectureFlag)
-      "Enable lecture publishing."
+      "Enable lecture publishing.",
+    GetOpt.Option
+      ['d']
+      ["project-dir"]
+      (GetOpt.ReqArg (Right . ProjectDirFlag) "DIR")
+      "Change to DIR before locating the project root. Useful for building a project that lives elsewhere.",
+    GetOpt.Option
+      []
+      ["prune-files"]
+      (GetOpt.NoArg $ Right PruneFilesFlag)
+      "With `chatty`: delete OpenAI file objects not attached to the vector store."
   ]
 
 parsePortArg :: String -> Either String Flags
@@ -308,7 +336,8 @@ parseMetaValueArg arg =
 isMetaName :: String -> Bool
 isMetaName str = all check $ List.splitOn "." str
   where
-    check s = length s > 1 && isAlpha (List.head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (List.tail s)
+    check [] = False
+    check (s:sx) = isAlpha s && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) sx
 
 addMetaFlags :: [Flags] -> Meta -> Meta
 addMetaFlags flags meta =
@@ -431,6 +460,8 @@ runClean totally = do
   tryRemoveDirectory publicDir
   putStrLn $ "# Removing " <> privateDir
   tryRemoveDirectory privateDir
+  putStrLn $ "# Removing " <> "chatty"
+  tryRemoveDirectory "chatty"
   when totally
     $ do
       transient <- transientDir
@@ -446,9 +477,9 @@ runClean totally = do
 
 pdfMsg =
   [text|
-    # 
+    #
     # To use 'decker pdf' Google Chrome has to be installed.
-    # 
+    #
     # Windows: Currently 'decker pdf' does not work on Windows.
     #   Please add 'print: true' or 'menu: true' to your slide deck and use
     #   the print button on the title slide.
@@ -456,9 +487,9 @@ pdfMsg =
     # MacOS: Follow the Google Chrome installer instructions.
     #   'Google Chrome.app' has to be located in either of these locations
     #
-    #   - '/Applications/Google Chrome.app' 
+    #   - '/Applications/Google Chrome.app'
     #   - '/Users/<username>/Applications/Google Chrome.app'
     #
     # Linux: 'chrome' has to be on $$PATH.
-    # 
+    #
   |]

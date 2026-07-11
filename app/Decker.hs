@@ -6,6 +6,7 @@ import Control.Lens ((^.))
 import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
 import Data.Aeson (encodeFile)
+import Data.Either (rights)
 import Data.IORef ()
 import Data.List
 import Data.Map.Strict qualified as Map
@@ -18,39 +19,82 @@ import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
 import System.FilePath.Glob qualified as Glob
+
 -- import System.FilePath.Posix
+
+import Network.Socket.Wait (wait)
+import Path (parseRelDir)
+import Path.IO (copyDirRecur)
+import System.Directory (makeRelativeToCurrentDirectory)
 import System.FilePath
 import System.IO
+import Text.Decker.Exam.Exam
 import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render
 import Text.Decker.Exam.Xml
 import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.External
-    ( runExternal, runExternalForSVG )
+import Text.Decker.Internal.External (
+    runExternal,
+    runExternalForSVG,
+ )
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
-import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
+import Text.Decker.Internal.PdfExport
+import Text.Decker.Project.ActionContext (Flags (LectureFlag, ProjectDirFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
+import Text.Decker.Chatty.Upload (syncChattyToStore)
+import Text.Decker.Reader.Markdown (generateChattyMarkdown)
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
 import Text.Decker.Writer.Layout
 import Text.Groom
-import System.Directory (makeRelativeToCurrentDirectory)
-import Path (parseRelDir)
-import Path.IO (copyDirRecur)
+import Text.Pandoc (Meta)
+import System.Console.GetOpt qualified as GetOpt
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  setProjectDirectory
+  -- Honor --project-dir/-d before locating the project root. When given, the
+  -- directory is used verbatim and pins the project root (no upward search).
+  -- The flag is also parsed (and ignored) by the Shake rules later, so it need
+  -- not be stripped from the arguments.
+  args <- getArgs
+  let flags = rights $ (\(r, _, _) -> r) $ GetOpt.getOpt GetOpt.Permute deckerFlags args
+  setProjectDirectory $ listToMaybe [dir | ProjectDirFlag dir <- flags]
   run
 
 needTargets sel = needTargets' [sel]
+
+-- | When a vector store is configured (`chatty.vector-store-id` is set), clean
+-- the chatty/ directory, (re)generate the annotated markdown for exactly the
+-- given source documents (decks and pages, with their includes), and sync it to
+-- the OpenAI vector store. The store ends up mirroring precisely the set of
+-- documents that were published, so draft/excluded sources are removed from it
+-- as well. Does nothing when no store is configured.
+syncChattyVectorStore :: Meta -> [FilePath] -> Action ()
+syncChattyVectorStore meta sources = do
+  let storeId = lookupMetaOrElse "" "chatty.vector-store-id" meta :: String
+  unless (null storeId) $ do
+    putNormal "# syncing annotated chatty markdown to vector store"
+    liftIO $ tryRemoveDirectory "chatty"
+    sources' <- withIndexSource sources
+    generateChattyMarkdown meta sources'
+    liftIO syncChattyToStore
+
+-- | Append the project index source ('indexSource', i.e. @index.md@) to the
+-- given list of chatty sources when it exists. The index is neither a deck nor
+-- a page, so it is not part of the regular target lists, but it should still be
+-- mirrored into the vector store.
+withIndexSource :: [FilePath] -> Action [FilePath]
+withIndexSource sources = do
+  exists <- doesFileExist indexSource
+  return $ if exists then sources <> [indexSource] else sources
 
 needTargets' :: [Control.Lens.Getter.Getting Dependencies Targets Dependencies] -> Targets -> Action ()
 needTargets' sels targets = do
@@ -89,16 +133,25 @@ indexFile = publicDir </> "index.html"
 
 run :: IO ()
 run = do
-  runDecker deckerRules
+  runDecker (deckerRules)
+
+--
 
 runArgs :: [String] -> IO ()
 runArgs args = do
-  runDeckerArgs args deckerRules
+  runDeckerArgs args (deckerRules)
 
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   transient <- liftIO transientDir
-  devRun <- liftIO $ isDevelopmentRun
+  devRun <- liftIO isDevelopmentRun
+
+  -- Create websocket lock to only let one thread at a time open a websocket connection to chrome.
+  -- As for now requesting more pdfs concurrently breaks and all but one pdf generation thread freezes.
+  websocketLock <- liftIO newEmptyMVar
+
+  chromeResource <- newResource "Chrome" 1
+
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
@@ -111,6 +164,8 @@ deckerRules = do
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
+  addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
+  addHelpSuffix "  - exam-builder - Browse exam questions and compose *-exam.yaml collections in a web app."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -140,9 +195,24 @@ deckerRules = do
       need ["support", "questions"]
       getDeps >>= needTargets' [pages]
   --
-  phony "pdf" $ do
+  phony "pdf-start" $ do
     need ["support"]
+    meta <- do getGlobalMeta
+
+    -- start chrome in a seperate thread
+    chromeId <- liftIO $ do
+      forkIO $ runExternal "chromeheadless" "9222" "" meta
+    liftIO $ putStrLn "Started external chrome browser"
+    -- Wait for the chrome remote debugging service to become reachable
+    liftIO $ wait "127.0.0.1" 9222
+    -- Save our chrome thread id into our lock to
+    -- later clean it up and signal the pdf generation process,
+    -- that chrome is ready to accept connections
+    liftIO $ putMVar websocketLock chromeId
+
     getDeps >>= needTargets decksPdf
+  --
+
   --
   withTargetDocs "Compile global search index." $
     phony "search-index" $ do
@@ -161,7 +231,7 @@ deckerRules = do
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
   --
-  when (not devRun) $ do
+  unless devRun $ do
     priority 5 $ do
       (supportDir </> deckerGitCommitId) %> \out -> do
         meta <- getGlobalMeta
@@ -171,12 +241,13 @@ deckerRules = do
           (Resources dr pr) <- deckerResources meta
           extractFast dr
           extractFast pr
-  --
+
   priority 4 $ do
     publicDir <//> "*-deck.html" %> \out -> do
-      src <- lookupSource decks out <$> getDeps
+      targets <- getDeps
+      let src = lookupSource decks out targets
       need [src]
-      meta <- getGlobalMeta
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
       needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
@@ -186,30 +257,47 @@ deckerRules = do
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
       needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
-    publicDir <//> "*-deck.pdf" %> \out -> do
-      let src = replaceSuffix "-deck.pdf" "-deck.html" out
-      let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
-      -- This is the right way to depend on an optional file. Just check for the
-      -- files existence with the Shake function `doesFileExist`.
-      exists <- doesFileExist annot
-      when exists $ need [annot]
-      need [src]
-      let url = serverUrl </> makeRelative publicDir src 
-      putInfo $ "# chrome started ... (for " <> out <> ")"
-      meta <- getGlobalMeta
-      liftIO $ runExternal "chrome" url out meta
-      putInfo $ "# chrome finished (for " <> out <> ")"
+    publicDir <//> "*-deck.pdf" %> \out ->
+      do
+        let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
+        -- This is the right way to depend on an optional file. Just check for the
+        -- files existence with the Shake function `doesFileExist`.
+        exists <- doesFileExist annot
+        when exists $ need [annot]
+        need [src]
+        let url = serverUrl </> makeRelative publicDir src
+        withResource chromeResource 1 $ do
+          putInfo $ "# chrome started ... (for " <> out <> ")"
+          liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
+          putInfo $ "# chrome finished (for " <> out <> ")"
+
+    {- publicDir <//> "*-deck.pdf" %> \out -> do
+        let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
+        -- This is the right way to depend on an optional file. Just check for the
+        -- files existence with the Shake function `doesFileExist`.
+        exists <- doesFileExist annot
+        when exists $ need [annot]
+        need [src]
+        let url = serverUrl </> makeRelative publicDir src
+        putInfo $ "# chrome started ... (for " <> out <> ")"
+        meta <- getGlobalMeta
+        liftIO $ runExternal "chrome" url out meta
+        putInfo $ "# chrome finished (for " <> out <> ")" -}
     --
     publicDir <//> "*-handout.html" %> \out -> do
-      src <- lookupSource handouts out <$> getDeps
+      targets <- getDeps
+      let src = lookupSource handouts out targets
       need [src]
-      meta <- getGlobalMeta
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlHandout meta getTemplate src out
     --
     publicDir <//> "*-page.html" %> \out -> do
-      src <- lookupSource pages out <$> getDeps
+      targets <- getDeps
+      let src = lookupSource pages out targets
       need [src]
-      meta <- getGlobalMeta
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlPage meta getTemplate src out
     --
     publicDir <//> "*.css" %> \out -> do
@@ -236,29 +324,51 @@ deckerRules = do
       deps <- getDeps
       let sources = Map.elems (deps ^. questions)
       need sources
-      questions <- liftIO $ mapM readQuestion sources
-      renderXmlCatalog questions out
+      qs <- liftIO $ mapM readQuestion sources
+      renderXmlCatalog _qstExam qs out
+    --
+    privateDir <//> "*-exam.xml" %> \out -> do
+      deps <- getDeps
+      let examSrc = lookupSource exams out deps
+          questionSrcs = Map.elems (deps ^. questions)
+      need (examSrc : questionSrcs)
+      exam <- liftIO $ readExam examSrc
+      qs <- liftIO $ mapM readQuestion questionSrcs
+      renderXmlCatalog (matchesExam exam) qs out
     --
     phony "catalog" $ do
       need ["private/quest-catalog.html"]
     --
-    phony "moodle-xml" $ do
-      need ["private/quest-catalog.xml"]
-    --
-    indexFile %> \out -> do
+    (publicDir </> "exam-builder" </> "questions.json") %> \out -> do
       meta <- getGlobalMeta
       deps <- getDeps
+      let sources = Map.elems (deps ^. questions)
+      need sources
+      renderQuestionCatalogJson meta sources out
+    --
+    phony "exam-builder" $ do
+      -- Build the full site first so all question media is provisioned into
+      -- public/, then render the question catalog the web app consumes.
+      need ["html", publicDir </> "exam-builder" </> "questions.json"]
+    --
+    phony "moodle-xml" $ do
+      deps <- getDeps
+      need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
+    --
+    indexFile %> \out -> do
+      targets <- getDeps
+      meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       exists <- doesFileExist indexSource
       if exists
         then do
           need [indexSource]
-          targetMeta <- addTargetInfo deps meta
+          targetMeta <- addTargetInfo targets meta
           markdownToHtml htmlIndex targetMeta getTemplate indexSource out
           template <- getTemplate "template/index-generated.html"
-          renderIndex template meta deps generatedIndex
+          renderIndex template meta targets generatedIndex
         else do
           template <- getTemplate "template/index-generated.html"
-          renderIndex template meta deps out
+          renderIndex template meta targets out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do
@@ -276,7 +386,7 @@ deckerRules = do
       putInfo $ "# plantuml (for " <> out <> ")"
       meta <- getGlobalMeta
       liftIO $ runExternalForSVG "plantuml" src out meta
-      -- liftIO $ Dir.renameFile (src -<.> "svg") out
+    -- liftIO $ Dir.renameFile (src -<.> "svg") out
     --
     "**/*.mmd.svg" %> \out -> do
       let src = dropExtension out
@@ -314,8 +424,6 @@ deckerRules = do
       let pdf = src -<.> ".pdf"
       let dir = takeDirectory src
       need [src]
-      -- pdflatex ["-output-directory", dir, src] Nothing
-      -- pdf2svg [pdf, out] (Just out)
       meta <- getGlobalMeta
       liftIO $ runExternal "pdflatex" src dir meta
       liftIO $ runExternalForSVG "pdf2svg" pdf out meta
@@ -328,6 +436,26 @@ deckerRules = do
       let src = makeRelative publicDir out
       putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
+  --
+
+  withTargetDocs "Build filtered chatty markdown files (for `decker chatty` upload)." $
+    phony "chatty" $ do
+      meta <- getGlobalMeta
+      deps <- getDeps
+      -- only non-draft decks and pages; drops solution content for upcoming lectures (-l)
+      publishable <- filterPublishable meta (Map.elems (deps ^. decks) <> Map.elems (deps ^. pages))
+      liftIO $ tryRemoveDirectory "chatty"
+      sources <- withIndexSource publishable
+      generateChattyMarkdown meta sources
+  --
+  withTargetDocs "Stop chrome remote session" $
+    phony "pdf" $ do
+      need ["pdf-start"]
+
+      -- Stop chrome after all documents are exported using the saved chrome thread id.
+      -- This produces errors in the log but cleans up quite nicely ;)
+      chromeId <- liftIO $ takeMVar websocketLock
+      liftIO $ killThread chromeId
   --
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
@@ -371,7 +499,7 @@ deckerRules = do
       -- Now use a version file containing the commit hash.
       -- need $ Map.keys (deps ^. resources)
       -- putNormal $ "needing: " <> (supportDir </> deckerGitCommitId)
-      when (not devRun) $ need [supportDir </> deckerGitCommitId]
+      unless devRun $ need [supportDir </> deckerGitCommitId]
   --
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
     phony "publish" $ do
@@ -398,11 +526,14 @@ deckerRules = do
               createPublicManifest
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
+              -- sync the annotated markdown of the published (non-draft) decks and pages
+              syncChattyVectorStore meta selected
             else do
               need ["support"]
               getDeps >>= needTargets' [decks, pages]
               createPublicManifest
               let src = publicDir ++ "/"
+              liftIO $ runExternal "rsync" src destination meta
               liftIO $ runExternal "rsync" src destination meta
         Nothing -> putError "publish.rsync.destination not configured"
 
@@ -435,10 +566,10 @@ waitForYes = do
 
 extractFast (DeckerExecutable path) = do
   putStrLn $ "extractFast: extracting from executable: " <> path
-  extractResourceEntries (path </> "support") supportDir  
+  extractResourceEntries (path </> "support") supportDir
 extractFast (LocalDir path) = do
   putStrLn $ "extractFast: extracting from local dir: " <> path
   from <- parseRelDir (path </> "support")
   to <- parseRelDir supportDir
-  copyDirRecur from to  
-extractFast source = putStrLn $ "extractFast: saw: " <> show source  
+  copyDirRecur from to
+extractFast source = putStrLn $ "extractFast: saw: " <> show source

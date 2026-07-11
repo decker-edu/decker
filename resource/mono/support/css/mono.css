@@ -23,10 +23,10 @@ body.deck {
     "MONO" 0,
     "CASL" var(--casl);
   font-weight: var(--normal-font-weight);
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 body.handout,
@@ -39,10 +39,10 @@ body.index {
     "MONO" 0,
     "CASL" var(--casl);
   font-weight: var(--normal-font-weight);
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 /* Inline code */
@@ -385,11 +385,6 @@ pre.numberSource code>span>a:first-child::before {
   border: none;
   display: inline-block;
   -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
   padding: 0 4px;
   width: 4em;
 }
@@ -646,7 +641,7 @@ span:is(.red, .green, .blue, .black) {
   margin-right: -0.2em;
 }
 
-span.document-path {
+a.document-url {
   display: block;
   position: fixed;
   left: 0;
@@ -654,4 +649,16 @@ span.document-path {
   font-weight: 200;
   font-size: 50%;
   color: var(--shade2);
+}
+
+body.deck div#chatty-dialog {
+  font-size: 1.6vw;
+
+  & :is(input, select, textarea, button) {
+    font-size: 1.6vw;
+  }
+}
+
+body.deck button.chatty-testme-button {
+  font-size: unset;
 }

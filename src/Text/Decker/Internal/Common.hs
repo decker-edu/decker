@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -71,7 +70,8 @@ pandocWriterOpts =
   def
     { writerExtensions =
         disableExtension Ext_implicit_figures
-          $ enableExtension Ext_emoji pandocExtensions,
+          $ enableExtension Ext_emoji
+          $ enableExtension Ext_sourcepos pandocExtensions,
       writerSectionDivs = False,
       writerReferenceLocation = EndOfBlock
     }
@@ -82,7 +82,8 @@ pandocReaderOpts =
   def
     { readerExtensions =
         disableExtension Ext_implicit_figures
-          $ enableExtension Ext_emoji pandocExtensions,
+          $ enableExtension Ext_emoji
+          $ enableExtension Ext_sourcepos pandocExtensions,
       readerColumns = 999
     }
 

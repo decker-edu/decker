@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -15,7 +16,6 @@ module Text.Decker.Project.Project
     excludeGlob,
     static,
     sources,
-    resources,
     decks,
     decksPdf,
     pages,
@@ -23,6 +23,7 @@ module Text.Decker.Project.Project
     handouts,
     handoutsPdf,
     questions,
+    exams,
     Dependencies,
     Targets (..),
     lookupSource,
@@ -69,7 +70,6 @@ type Dependencies = Map FilePath FilePath
 
 data Targets = Targets
   { _sources :: [FilePath],
-    _resources :: Map FilePath Source,
     _static :: Dependencies,
     _decks :: Dependencies,
     _decksPdf :: Dependencies,
@@ -77,7 +77,8 @@ data Targets = Targets
     _pagesPdf :: Dependencies,
     _handouts :: Dependencies,
     _handoutsPdf :: Dependencies,
-    _questions :: Dependencies
+    _questions :: Dependencies,
+    _exams :: Dependencies
   }
   deriving (Show)
 
@@ -90,6 +91,25 @@ $( deriveJSON
        }
      ''Targets
  )
+
+instance ToMetaValue Targets where
+  toMetaValue (Targets {..}) =
+    MetaMap $
+      Map.fromList
+        [ ("sources", toMetaValue $ map toText _sources),
+          ("static", depsToMeta _static),
+          ("decks", depsToMeta _decks),
+          ("decksPdf", depsToMeta _decksPdf),
+          ("pages", depsToMeta _pages),
+          ("pagesPdf", depsToMeta _pagesPdf),
+          ("handouts", depsToMeta _handouts),
+          ("handoutsPdf", depsToMeta _handoutsPdf),
+          ("questions", depsToMeta _questions),
+          ("exams", depsToMeta _exams)
+        ]
+    where
+      depsToMeta :: Dependencies -> MetaValue
+      depsToMeta = MetaMap . Map.mapKeys toText . Map.map (toMetaValue . toText)
 
 readTargetsFile :: FilePath -> Action Targets
 readTargetsFile targetFile = do
@@ -160,10 +180,12 @@ findProjectRoot = do
         | FP.isDrive dir -> return start
         | otherwise -> search (FP.takeDirectory dir) start
 
--- Move CWD to the project directory.
-setProjectDirectory :: IO ()
-setProjectDirectory = do
-  projectDir <- findProjectRoot
+-- Move CWD to the project directory. When an explicit directory is given (via
+-- `--project-dir`), use it verbatim and skip the upward search for the project
+-- root. Otherwise locate the root with 'findProjectRoot'.
+setProjectDirectory :: Maybe FilePath -> IO ()
+setProjectDirectory explicit = do
+  projectDir <- maybe findProjectRoot return explicit
   Directory.setCurrentDirectory projectDir
   -- putStrLn $ "# Running decker in: " <> projectDir
 
@@ -172,14 +194,19 @@ sourceRegexes :: [String] =
     "-page.md\\'",
     "-deck-index.yaml\\'",
     "-quest.yaml\\'",
+    "-exam.yaml\\'",
     "\\`(^_).*\\.scss\\'"
   ]
 
-alwaysExclude = [publicDir, "dist", ".git", ".vscode", ".stack-work"]
+alwaysExclude = [publicDir, "chatty", "dist", ".git", ".vscode", ".stack-work"]
 
 questSuffix = "-quest.yaml"
 
 questHTMLSuffix = "-quest.html"
+
+examSuffix = "-exam.yaml"
+
+examXMLSuffix = "-exam.xml"
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
@@ -226,7 +253,6 @@ scanTargets meta = do
   return
     Targets
       { _sources = sort srcs,
-        _resources = supportFiles,
         _static = Map.fromList $ map publicDep staticSrc,
         _decks = calcTargets deckSuffix deckHTMLSuffix srcs,
         _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs,
@@ -234,7 +260,8 @@ scanTargets meta = do
         _pagesPdf = calcTargets pageSuffix pagePDFSuffix srcs,
         _handouts = calcTargets deckSuffix handoutHTMLSuffix srcs,
         _handoutsPdf = calcTargets deckSuffix handoutPDFSuffix srcs,
-        _questions = calcPrivateTargets questSuffix questHTMLSuffix srcs
+        _questions = calcPrivateTargets questSuffix questHTMLSuffix srcs,
+        _exams = calcPrivateTargets examSuffix examXMLSuffix srcs
       }
   where
     publicDep src = (publicDir </> src, src)

@@ -55,13 +55,17 @@ body.reveal-viewport {
   max-width: 100%;
 }
 
-/* WITH centering */
-.reveal .slides section.center > .decker {
-  align-items: center;
-  justify-content: center;
-}
-.reveal .slides section.center > .decker > .alignment {
-  width: auto;
+/* WITH centering (also for section titles) */
+.reveal .slides section.center,
+.reveal .slides section.section,
+.reveal section:has(h1:only-child) {
+  & > .decker {
+    align-items: center;
+    justify-content: center;
+    & > .alignment {
+      width: auto;
+    }
+  }
 }
 
 /* WITH centering, but VERTICAL centering disabled */
@@ -104,7 +108,7 @@ del {
 }
 
 /*********************************************
- * frame box 
+ * frame box
  *********************************************/
 
 .reveal .boxed {
@@ -399,7 +403,6 @@ div.align-right > p {
 
 .reveal :is(ul, ol, dl) li {
   margin-bottom: 0.5em;
-  margin-left: 1em;
   padding-left: 0.2em;
 }
 
@@ -416,7 +419,6 @@ div.align-right > p {
   display: block;
   margin-top: 0.3em;
   font-size: 0.8em;
-  margin-left: 0.5em;
 }
 
 .reveal :is(ul, ol) li :is(ul, ol) li {
@@ -476,7 +478,9 @@ div.align-right > p {
   padding: 0.5em;
   font-style: italic;
   border: 1px solid var(--shade1);
-  box-shadow: 2px 2px 4px var(--shade1);
+  @media not print {
+    box-shadow: 2px 2px 4px var(--shade1);
+  }
   width: auto;
 }
 
@@ -574,7 +578,7 @@ pre.line-numbers code > span > a:first-child::before {
   color: var(--shade3);
 }
 
-/* MacOS only shows scrollbars when they are used, which is not a 
+/* MacOS only shows scrollbars when they are used, which is not a
    good idea for code blocks. The following settings show the scrollbar.
    Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
 .reveal pre::-webkit-scrollbar {
@@ -858,10 +862,14 @@ span.sequence {
   visibility: inherit !important;
 }
 
-/* hide non-active stack items 
+/* hide non-active stack items
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
-  .reveal .slides section .stack .fragment:not(.current-fragment) {
+  .reveal
+    .slides
+    section
+    .stack:has(.current-fragment)
+    .fragment:not(.current-fragment) {
     visibility: hidden;
   }
 }
@@ -965,7 +973,7 @@ section#title-slide div.affiliation {
 }
 
 section#title-slide div.date {
-  margin: 10px 0 0 0;
+  margin: 2em 0 0 0;
   font-weight: normal;
   font-style: normal;
   font-size: 0.8em;
@@ -977,6 +985,7 @@ section#title-slide div.authors {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-around;
+  height: auto;
 }
 
 section#title-slide .logo img {
@@ -1033,7 +1042,10 @@ section#title-slide .decker-link:hover {
 [popup] {
   display: block;
   position: absolute;
-  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  @media not print {
+    box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  }
+  border: 2px solid var(--accent3-fg);
   z-index: 3000;
   background: var(--accent3);
   color: white;
@@ -1041,6 +1053,8 @@ section#title-slide .decker-link:hover {
   padding: 0.5em;
   border-radius: 0.25em;
   font-weight: bold;
+  text-wrap: balance;
+  text-align: center;
 }
 
 /* A centered block. This is very clever. */
@@ -1109,7 +1123,7 @@ section#title-slide .decker-link:hover {
  *********************************************/
 
 /* hide checkbox */
-.reveal ul.task-list li > input[type="checkbox"] {
+.reveal ul.task-list > li > label > input[type="checkbox"] {
   display: none;
 }
 /* hide item bullets */
@@ -1247,9 +1261,7 @@ section#title-slide .decker-link:hover {
 
 /* possibility to hide quizzes */
 .hide-quizzes .reveal .quiz,
-.hide-quizzes .reveal .quiz *,
-.hide-quizzes .reveal .quizzer,
-.hide-quizzes .reveal .quizzer * {
+.hide-quizzes .reveal .quiz * {
   visibility: hidden;
 }
 
@@ -1633,7 +1645,7 @@ html.a11y {
 }
 
 html.a11y .reveal a {
-  color: var(--blueish);
+  /* color: var(--blueish); */
   text-decoration: underline;
   transition: transform 0.1s ease-out 0s;
 }

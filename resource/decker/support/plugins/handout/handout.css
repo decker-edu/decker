@@ -92,10 +92,8 @@ html.handout .reveal .pause-overlay {
   display: none;
 }
 
-html.handout .reveal .stack > p {
-  display: block;
-}
-
+html.handout .reveal .stack,
+html.handout .reveal .stack > p,
 html.handout .reveal .stack span.media {
   display: block;
 }
@@ -104,17 +102,17 @@ html.handout .reveal .slides section .stack {
   counter-reset: stack-item;
 }
 
-html.handout .reveal .slides section .stack .fragment {
+html.handout .reveal .slides section .stack .media {
   position: relative;
   border: 1px solid var(--foreground-color);
   margin: 0.5rem;
 }
 
-html.handout .reveal .slides section .stack .fragment img {
+html.handout .reveal .slides section .stack .media img {
   border: none;
 }
 
-html.handout .reveal .slides section .stack .fragment::before {
+html.handout .reveal .slides section .stack .media::before {
   counter-increment: stack-item;
   content: counter(stack-item);
   color: var(--foreground-color);
@@ -187,7 +185,7 @@ html.handout .decker-anchor #handout-minus {
   justify-content: flex-start;
 
   &:before {
-    content: "🙄";
+    content: "🤔";
     font-size: 1.7em;
     position: absolute;
     left: -2em;
@@ -218,7 +216,7 @@ html.handout .decker-anchor #handout-minus {
   justify-content: flex-end;
 
   &:before {
-    content: "🤓";
+    content: "🎓";
     font-size: 1.7em;
     position: absolute;
     right: -2em;

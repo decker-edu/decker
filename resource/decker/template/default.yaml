@@ -44,6 +44,7 @@ index:
 # Reveal Config
 
 reveal:
+  scrollActivationWidth: null
   backgroundTransition: "none"
   center: true
   controls: true
@@ -82,6 +83,11 @@ progress: true
 # Language Config
 
 lang: "de"
+
+# Editor Links
+
+editor:
+  link-prefix: "zed://file"
 
 # Language dictionary. Currently for quiz elements
 dictionary:
@@ -170,6 +176,28 @@ external-tools:
       - "-pipe"
       # - "${input}"
     help: ""
+  chromeheadless:
+    linux:
+      command: "chrome"
+      arguments:
+        - "--headless"
+        - "--remote-debugging-port=${input}"
+        # If you want to see whats going on replace this with the headless flag `- "--user-data-dir=./user-data-dir"`
+      help: ""
+    macos:
+      command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      arguments:
+        - "--headless"
+        - "--log-level=3"
+        - "--disable-gpu"
+        - "--remote-debugging-port=${input}"
+      help: ""
+    windows: # Still an issue with cleaning up the edge process but works for usage!
+      command: "C:\\PROGRA~2\\Microsoft\\Edge\\Application\\msedge.exe"
+      arguments:
+        - "--headless"
+        - "--remote-debugging-port=${input}"
+      help: "MS edge must be on the path! Please add `C:\\Program Files (x86)\\Microsoft\\Edge\\Application` to your path!"
   chrome:
     linux:
       command: "chrome"
@@ -178,6 +206,9 @@ external-tools:
         - "--disable-gpu"
         - "--virtual-time-budget=10000"
         - "--no-pdf-header-footer"
+        - "--run-all-compositor-stages-before-draw"
+        - "--virtual-time-budget=1000000"
+        - "--incognito"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
       help: ""
@@ -188,6 +219,9 @@ external-tools:
         - "--disable-gpu"
         - "--virtual-time-budget=10000"
         - "--no-pdf-header-footer"
+        - "--run-all-compositor-stages-before-draw"
+        - "--virtual-time-budget=1000000"
+        - "--incognito"
         - "--print-to-pdf=${output}"
         - "${input}?print-pdf#/"
       help: ""
@@ -226,6 +260,13 @@ external-tools:
   d2:
     command: d2
     arguments:
+      - "--pad"
+      - "10"
+      - "--sketch"
+      - "--theme"
+      - "7"
+      - "--dark-theme"
+      - "200"
       - "${input}"
       - "${output}"
     help: https://d2lang.com/
@@ -270,7 +311,7 @@ external-tools:
       - "5"
       - "-mc"
       - "0"
-      - "--output-vtt" 
+      - "--output-vtt"
       - "--output-file"
       - "${output}"
     help: ""
@@ -288,6 +329,7 @@ external-tools:
       - "-acodec"
       - "aac"
       - "${output}"
+    help: ""
   tomp4-transcode:
     command: "ffmpeg"
     arguments:
@@ -318,6 +360,7 @@ external-tools:
       - "-metadata"
       - "comment=decker-crunched"
       - "${output}"
+    help: ""
   tomp4-concat:
     command: "ffmpeg"
     arguments:
@@ -336,3 +379,4 @@ external-tools:
       - "-acodec"
       - "aac"
       - "${output}"
+    help: ""

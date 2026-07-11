@@ -4,6 +4,7 @@
 module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,
     readMarkdownFile,
+    generateChattyMarkdown,
     processCites,
     formatStdin,
   )
@@ -27,7 +28,7 @@ import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
-import Text.Decker.Filter.Select (filterSelectedSlides)
+import Text.Decker.Filter.Select (dropSolutionContent, filterSelectedSlides)
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Template (expandTemplateMacros)
 import Text.Decker.Internal.Common
@@ -63,20 +64,23 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do
+  putVerbose "processMeta"
   let processed = computeCssColorVariables $ computeCssVariables meta
   return (Pandoc processed blocks)
 
 -- | Provide default CSL data from the resources if csl: is not set.
-processCites :: (MonadIO m) => Pandoc -> m Pandoc
-processCites pandoc@(Pandoc meta blocks) = liftIO $ do
-  if
-    | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
-        runIOorExplode $ processCitations pandoc
-    | isMetaSet "bibliography" meta -> do
-        defaultCSL <- installDefaultCSL meta
-        let cslMeta = setMetaValue "csl" defaultCSL meta
-        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
-    | otherwise -> return pandoc
+processCites :: Pandoc -> Action Pandoc
+processCites pandoc@(Pandoc meta blocks) = do
+  putVerbose "processCites"
+  liftIO $
+    if
+      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+          runIOorExplode $ processCitations pandoc
+      | isMetaSet "bibliography" meta -> do
+          defaultCSL <- installDefaultCSL meta
+          let cslMeta = setMetaValue "csl" defaultCSL meta
+          runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+      | otherwise -> return pandoc
 
 installDefaultCSL :: Meta -> IO FilePath
 installDefaultCSL meta = do
@@ -92,32 +96,55 @@ installDefaultCSL meta = do
 -- converted to absolute paths. Additional meta data is read and merged into
 -- the document. Other Markdown files may be transitively included. Throws an
 -- exception if something goes wrong
-readMarkdownFile :: Meta -> FilePath -> Action Pandoc
-readMarkdownFile globalMeta path = do
+readMarkdownFile' :: Meta -> FilePath -> FilePath -> Action Pandoc
+readMarkdownFile' globalMeta top path = do
   let base = takeDirectory path
+  putVerbose "readMarkdownFile"
   parseMarkdownFile path
     >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
     >>= checkVersion
-    >>= includeMarkdownFiles globalMeta base
+    >>= includeMarkdownFiles globalMeta top base
     >>= addPathInfo base
 
+readMarkdownFile :: Meta -> FilePath -> Action Pandoc
+readMarkdownFile globalMeta path = readMarkdownFile' globalMeta path path
+
+-- | (Re)generates the annotated chatty markdown for the given source documents
+-- (decks and pages), one file per source. Each source is read with all includes
+-- expanded and its meta merged with the global meta, then the publishing filter
+-- is applied (dropping solution slides and boxes for upcoming lectures, see
+-- 'dropSolutionContent') before the document is written to @chatty\/<source>.md@.
+-- Drafts are expected to have been excluded from the input list by the caller.
+-- Used by `decker publish` and `decker chatty` to populate the directory synced
+-- to the OpenAI vector store.
+generateChattyMarkdown :: Meta -> [FilePath] -> Action ()
+generateChattyMarkdown globalMeta = mapM_ generate
+  where
+    generate path = do
+      pandoc <- readMarkdownFile globalMeta path
+      Pandoc mergedMeta _ <- mergeDocumentMeta globalMeta pandoc
+      writeToMarkdownFile path "chatty" path (dropSolutionContent mergedMeta pandoc)
+
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
-addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) =
+addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) = do
+  absDocumentPath <- liftIO $ Dir.makeAbsolute documentPath
+  let editor = lookupMetaOrElse "zed://file" "editor.link-prefix" meta
+  let documentUrl = toText $ editor ++ absDocumentPath;
   return
     $ if not (lookupMetaOrElse False "lecture.publish" globalMeta)
       && lookupMetaOrElse False "experiments.add-document-path" globalMeta
-      then walk addToHeader1 pandoc
+      then walk (addToHeader1 documentUrl) pandoc
       else pandoc
   where
-    addToHeader1 (Header 1 (id, cls, kvs) content) =
+    addToHeader1 documentUrl (Header 1 (id, cls, kvs) content) =
       Header
         1
         (id, cls, addPath kvs)
-        (content <> [Span ("", ["document-path"], []) [Space, Str $ toText documentPath]])
-    addToHeader1 block = block
+        (content <> [Link ("", ["document-url"], [])[Span nullAttr [Space, Str $ toText documentPath]] (documentUrl, "")])
+    addToHeader1 _ block = block
     addPath kvs = ("data-source-path", toText documentPath) : kvs
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
@@ -147,15 +174,15 @@ parseMarkdownWithOpts text opts = runIOorExplode (readMarkdown opts text)
 writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
 writeBack meta path pandoc@(Pandoc docMeta _) = do
   let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "write-back.enable" meta) "write-back.enable" docMeta
-  when writeBack $ writeToMarkdownFile path pandoc
+  when writeBack $ writeToMarkdownFile "" "" path pandoc
   return pandoc
 
 checkVersion :: Pandoc -> Action Pandoc
 checkVersion = return
 
 -- | Traverses the pandoc AST and transitively embeds included Markdown files.
-includeMarkdownFiles :: Meta -> FilePath -> Pandoc -> Action Pandoc
-includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
+includeMarkdownFiles :: Meta -> FilePath -> FilePath -> Pandoc -> Action Pandoc
+includeMarkdownFiles globalMeta top docBase (Pandoc docMeta content) =
   Pandoc docMeta <$> processBlocks content
   where
     processBlocks :: [Block] -> Action [Block]
@@ -165,7 +192,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
       let path = makeProjectPath docBase (toString url)
       -- putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
       need [path]
-      Pandoc _ includedBlocks <- readMarkdownFile globalMeta path
+      Pandoc _ includedBlocks <- readMarkdownFile' globalMeta top path
       return $ includedBlocks : document
     include document block = return $ [block] : document
 
@@ -173,6 +200,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
 -- the meta data. Also calls need on those files.
 calcRelativeResourcePaths :: FilePath -> Pandoc -> Action Pandoc
 calcRelativeResourcePaths base (Pandoc meta content) = do
+  putVerbose "calcRelativeResourcePaths"
   calculated <- needMetaTargets base meta
   return (Pandoc calculated content)
 
@@ -244,14 +272,24 @@ writeToMarkdown pandoc@(Pandoc pmeta _) = do
   runIO (writeMarkdown options pandoc) >>= handleError
 
 -- | Writes a pandoc document atomically to a markdown file.
-writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
-writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
-  putNormal $ "# write back markdown (" <> filepath <> ")"
-  markdown <- liftIO $ writeToMarkdown pandoc
-  fileContent <- liftIO $ Text.readFile filepath
-  when (markdown /= fileContent)
-    $ withTempFile
-      (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)
+writeToMarkdownFile :: FilePath -> FilePath -> FilePath -> Pandoc -> Action ()
+writeToMarkdownFile top base filepath pandoc@(Pandoc pmeta blocks) = do
+  absProjectDir <- liftIO $ Dir.makeAbsolute projectDir
+  canonFile <- liftIO $ (makeRelative absProjectDir <$> Dir.canonicalizePath filepath)
+  canonTop <- liftIO $ (makeRelative absProjectDir <$> Dir.canonicalizePath top)
+  let path = base </> canonFile
+  let meta0 = addMetaKeyValue "chatty.filepath" canonFile pmeta
+  let meta1 = if canonFile /= canonTop
+                then addMetaKeyValue "chatty.url-path" (canonTop -<.> "html") $ addMetaKeyValue "chatty.included-from" top meta0
+                else addMetaKeyValue "chatty.url-path" (canonFile -<.> "html") meta0
+  liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
+  putNormal $ "# write back markdown (" <> path <> ")"
+  markdown <- liftIO $ writeToMarkdown (Pandoc meta1 (addSlideUrl (toText $ canonTop -<.> "html") blocks))
+  writeFileChanged path (toString markdown)
+  where
+    addSlideUrl deckUrl = walk (add deckUrl)
+    add deckUrl (Header 1 (id, cls, kvs) inlines) = Header 1 (id, cls, ("url", deckUrl <> "#" <> id):kvs) inlines
+    add deckUrl block = block
 
 formatStdin :: IO ()
 formatStdin = do

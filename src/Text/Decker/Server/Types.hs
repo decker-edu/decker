@@ -3,24 +3,20 @@
 
 module Text.Decker.Server.Types where
 
-import Control.Concurrent.STM (TChan)
+import Control.Concurrent.STM (TChan, TQueue)
 import Control.Lens
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Time
 import Network.Wai (pathInfo)
-import Network.WebSockets
 import Relude
 import Web.Scotty.Trans
 
--- | Clients are identified by integer ids
-type Client = (Int, Connection)
+-- | Clients are identified by integer ids. Each client has a queue of
+-- server-sent events to be written to its open SSE connection.
+type Client = (Int, TQueue Text)
 
 type Error = Text
-
-instance ScottyError Text where
-  stringError = toText
-  showError = toLazy
 
 data ServerState = ServerState
   { _clients :: [Client],
@@ -46,9 +42,9 @@ data Server = Server
   }
   deriving (Eq)
 
-type AppScottyM a = ScottyT Text (ReaderT Server IO) a
+type AppScottyM a = ScottyT (ReaderT Server IO) a
 
-type AppActionM a = ActionT Text (ReaderT Server IO) a
+type AppActionM a = ActionT (ReaderT Server IO) a
 
 requestPathText :: AppActionM Text
 requestPathText = Text.intercalate "/" . pathInfo <$> request

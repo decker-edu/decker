@@ -84,6 +84,7 @@ data MediaT
   | ModelviewerT
   | GeogebraT
   | RenderT
+  | RenderEmbedT
   | JavascriptT
   | StreamT
   | ExamQuestT
@@ -96,6 +97,7 @@ classifyMedia uri (_, classes, _) =
    in if
         | "raw" `elem` classes -> RawImageT
         | "code" `elem` classes -> CodeT
+        | ext `maybeElem` renderExt && "render" `elem` classes && "embed" `elem` classes -> RenderEmbedT
         | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
         | ext `maybeElem` javascriptExt && "run" `elem` classes -> JavascriptT
         | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT

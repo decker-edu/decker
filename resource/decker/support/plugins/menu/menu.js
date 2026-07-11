@@ -28,10 +28,11 @@ class SlideMenu {
       print_button: undefined,
       color_button: undefined,
       close_button: undefined,
-      slide_list: undefined,
+      fullscreen_button: undefined,
+      slide_list: undefined
     };
     this.plugin_buttons = {
-      container: undefined,
+      container: undefined
     };
     this.glass = undefined;
     this.position = position;
@@ -116,13 +117,15 @@ class SlideMenu {
       }
       this.disableKeybinds();
       this.glass.classList.add("show");
-      this.menu.home_button.removeAttribute("tabindex");
-      this.menu.container.scroll(0, 0);
+      this.menu.close_button.setAttribute("tabindex", "0");
       if (event && event.detail === 0) {
         this.menu.close_button.focus();
       }
-      // scrolling the current slide into view now conflicts with the entire menu being scrollable
-      // document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
+      document.querySelector(".decker-menu [aria-current]")?.scrollIntoView({
+        block: "center",
+        behavior: "instant",
+        container: "nearest"
+      });
     }
   }
 
@@ -175,19 +178,19 @@ class SlideMenu {
    * Reopens the tab with ?print-pdf to allow PDF printing.
    */
   printPDF() {
-    if (window.electronApp) {
-      let url = location.protocol + "//" + location.host + location.pathname;
-      window.electronApp.printPDF(url);
-    } else {
-      if (confirm(this.localization.print_confirmation)) {
-        let url =
-          location.protocol +
-          "//" +
-          location.host +
-          location.pathname +
-          "?print-pdf";
-        window.open(url, "_self");
-      }
+    if (window.Decker.isElectron()) {
+      alert("Cannot export PDF in DeckerApp");
+      return;
+    }
+
+    if (confirm(this.localization.print_confirmation)) {
+      let url =
+        location.protocol +
+        "//" +
+        location.host +
+        location.pathname +
+        "?print-pdf";
+      window.open(url, "_self");
     }
   }
 
@@ -315,11 +318,8 @@ class SlideMenu {
    */
   initializeSlideList() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="slide-list-wrapper">
-      <ul class="slide-list" role="menu" aria-label="${this.localization.navigation_list_label}"></ul>
-    </div>`;
-    let wrapper = template.content.firstElementChild;
-    let list = wrapper.firstElementChild;
+    template.innerHTML = String.raw`<ul class="slide-list" role="menu" aria-label="${this.localization.navigation_list_label}"></ul>`;
+    let list = template.content.firstElementChild;
     let slides = document.querySelectorAll(".slides > section");
     slides.forEach((slide, h) => {
       let subslides = slide.querySelectorAll("section");
@@ -345,7 +345,7 @@ class SlideMenu {
         item.classList.add("separator-slide");
       }
     });
-    this.menu.container.appendChild(wrapper);
+    this.menu.container.appendChild(list);
     this.menu.slide_list = list;
   }
 
@@ -451,27 +451,30 @@ class SlideMenu {
   initializeMenu() {
     let template = document.createElement("template");
     template.innerHTML = String.raw`<nav class="decker-menu slide-in-left" id="decker-menu" role="menubar" aria-label="${this.localization.navigationmenu_label}" inert>
-      <div class="menu-header">
-        <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
+      <div class="menu-header" role="group" aria-label="${this.localization.navigationmenu_label}">
+        <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem" tabindex="-1">
         </button> 
-        <div class="menu-header-button-group" role="group" aria-label="${this.localization.navigationmenu_label}">
-          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem" tabindex="-1">
-          </button>
-          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem" tabindex="-1">
-          </button>
-          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem" tabindex="-1">
-          </button>
-          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem" tabindex="-1">
-          </button>
-        </div>
+        <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem" tabindex="-1">
+        </button>
+        <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem" tabindex="-1">
+        </button>
+        <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}" role="menuitem" tabindex="-1">
+        </button>
+        <button id="decker-menu-fullscreen-button" class="fa-button fas fa-up-right-and-down-left-from-center" title="${this.localization.toggle_fullscreen_label}" aria-label="${this.localization.toggle_fullscreen_label}" role="menuitem" tabindex="-1">
+        </button>
+        <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem" tabindex="-1">
+        </button>
       </div>
-     </nav>`;
+    </nav>`;
     let container = template.content.firstElementChild;
     this.menu.container = container;
 
     this.menu.header = container.querySelector(".menu-header");
 
     /* Getting references */
+    this.menu.close_button = container.querySelector(
+      "#decker-menu-close-button"
+    );
     this.menu.home_button = container.querySelector(
       "#decker-menu-index-button"
     );
@@ -484,11 +487,11 @@ class SlideMenu {
     this.menu.color_button = container.querySelector(
       "#decker-menu-color-button"
     );
-    this.menu.close_button = container.querySelector(
-      "#decker-menu-close-button"
+    this.menu.fullscreen_button = container.querySelector(
+      "#decker-menu-fullscreen-button"
     );
 
-    this.plugin_buttons = container.querySelector(".menu-header-button-group");
+    this.plugin_buttons = container.querySelector(".menu-header");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -500,21 +503,34 @@ class SlideMenu {
     this.menu.search_button.addEventListener("click", (event) =>
       this.toggleSearchbar()
     );
-    this.menu.print_button.addEventListener("click", (event) =>
-      this.printPDF()
-    );
+    this.menu.print_button.addEventListener("click", (event) => {
+      if (this.menu.print_button.ariaDisabled === "true") return;
+      this.printPDF();
+    });
     this.menu.print_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
     this.menu.color_button.addEventListener("click", (event) => {
-      if (this.menu.color_button.ariaDisabled === "true") {
-        return;
-      }
+      if (this.menu.color_button.ariaDisabled === "true") return;
       colorScheme.toggleColor();
+    });
+    this.menu.fullscreen_button.addEventListener("click", (event) => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        event.target.classList.add("fa-up-right-and-down-left-from-center");
+        event.target.classList.remove("fa-down-left-and-up-right-to-center");
+      } else {
+        document.documentElement.requestFullscreen();
+        event.target.classList.add("fa-down-left-and-up-right-to-center");
+        event.target.classList.remove("fa-up-right-and-down-left-from-center");
+      }
     });
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
+
+    if (window.Decker.isElectron())
+      this.menu.print_button.ariaDisabled = "true";
 
     const colorSetting = window.Decker?.meta?.colorscheme;
     if (colorSetting == "light" || colorSetting == "dark")
@@ -536,9 +552,9 @@ class SlideMenu {
       this.glass.id = "glass";
       document.body.appendChild(this.glass);
     }
+    this.glass.addEventListener("click", (event) => this.closeMenu(event));
 
     /* Allow exit with ESC and focus with HOME and END */
-
     this.menu.container.addEventListener("keydown", (event) => {
       switch (event.key) {
         case "Escape":
@@ -558,24 +574,23 @@ class SlideMenu {
     });
 
     /* Trap Keyboard Focus */
-
     this.menu.slide_list.addEventListener("keydown", (event) => {
       if (event.key === "Tab" && !event.shiftKey) {
         event.preventDefault();
-        setTimeout(() => this.menu.close_button.focus());
-      }
-    });
-
-    this.menu.close_button.addEventListener("keydown", (event) => {
-      if (event.key === "Tab" && event.shiftKey) {
-        event.preventDefault();
         setTimeout(() =>
-          this.menu.slide_list.querySelector("[aria-current]").focus()
+          this.menu.header.querySelector('[tabindex="0"]')?.focus()
         );
       }
     });
-
-    this.glass.addEventListener("click", (event) => this.closeMenu(event));
+    this.menu.header.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        setTimeout(() => {
+          // this.menu.slide_list.querySelector("[aria-current]")?.focus()
+          this.menu.slide_list.querySelector('[tabindex="0"]')?.focus();
+        });
+      }
+    });
   }
 
   addMenuButton(id, icon, title, callback) {
@@ -659,15 +674,14 @@ const plugin = () => {
         search_button_label: "Toggle Searchbar",
         print_pdf_label: "Print PDF",
         toggle_colors_label: "Toggle Color Mode",
-        open_views_label: "Open View Menu",
-        close_views_label: "Close View Menu",
+        toggle_fullscreen_label: "Toggle Fullscreen Mode",
         close_label: "Close Navigation Menu",
         no_title: "No Title",
         title: "Navigation",
         print_confirmation: "Leave presentation to export it to PDF?",
         index_confirmation: "Go back to index page?",
         navigationmenu_label: "Navigation Menu",
-        navigation_list_label: "Slide List",
+        navigation_list_label: "Slide List"
       };
 
       let lang = navigator.language;
@@ -676,18 +690,17 @@ const plugin = () => {
         menu.localization = {
           open_button_label: "Navigationsmenu öffnen",
           home_button_label: "Zurück zur Materialübersicht",
-          search_button_label: "Suchleiste umschalten",
+          search_button_label: "Suchleiste an-/ausschalten",
           print_pdf_label: "Als PDF drucken",
           toggle_colors_label: "Farbmodus umschalten",
-          open_views_label: "Anzeigemenu öffnen",
-          close_views_label: "Anzeigemenu schließen",
+          toggle_fullscreen_label: "Vollbildmodus an-/ausschalten",
           close_label: "Navigationsmenu schließen",
           no_title: "Kein Titel",
           title: "Navigation",
           print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
           index_confirmation: "Zurück zur Index-Seite gehen?",
           navigationmenu_label: "Navigationsmenu",
-          navigation_list_label: "Folienliste",
+          navigation_list_label: "Folienliste"
         };
       }
 
@@ -735,7 +748,7 @@ const plugin = () => {
       reveal.addEventListener("ready", () => {
         this.updateCurrentSlideMark();
       });
-    },
+    }
   };
 };
 

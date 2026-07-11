@@ -1,3 +1,5 @@
+@import url("./colors.css");
+
 :root {
   /* These are for internal calculations */
   --list-indent: 1.5em;
@@ -87,11 +89,8 @@
   --green-border-color: var(--accent3);
   --red-background-color: var(--accent0-bbg);
   --red-border-color: var(--accent0);
-
-  /* make Henrik's style nicer */
-  --list-indent: 0.5em;
 }
 
 .dark {
-    --icon-shadow-color: var(--background-color);
+  --icon-shadow-color: var(--background-color);
 }

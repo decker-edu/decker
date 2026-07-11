@@ -46,12 +46,13 @@ m3' =
          , MetaList [MetaString "img.png", MetaString "some/where/img.png"])
        ])
 
-m3'' =
-  Meta
-    (M.fromList
-       [ ( "list"
-         , MetaList [MetaString "img.jpg", MetaString "some/where/img.png"])
-       ])
+-- Fixture for the disabled "sets the value in a nested map with arrays" test below.
+-- m3'' =
+--   Meta
+--     (M.fromList
+--        [ ( "list"
+--          , MetaList [MetaString "img.jpg", MetaString "some/where/img.png"])
+--        ])
 
 m4 =
   Meta

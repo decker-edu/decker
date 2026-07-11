@@ -1,17 +1,13 @@
 # Default meta data
-
 poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
 # poll-server: ws://localhost:3003/quiz
 save-polls: true
-
 # enable some experimental features
 experiments:
   # fragment templates are needed for Codapi live-code support
   fragment-templates: true
   add-document-path: true
-
 # highlightjs: "xcode"
-
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
@@ -49,9 +45,8 @@ palette:
       - "#2b90d8"
       - "#7d80d1"
   contrast: 0.3
-
 reveal:
-  reveal:
+  scrollActivationWidth: null
   backgroundTransition: "slide"
   center: true
   controls: true
@@ -73,6 +68,5 @@ reveal:
   vertical-slides: true
   viewDistance: 2
   width: 1920
-
 css-variables:
   block-border-radius: 0.2em;

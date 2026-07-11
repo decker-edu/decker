@@ -6,7 +6,7 @@ SHELL := $(shell which bash)
 support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
-upgrade: reveal.js highlight.js fontawesome videojs d3 chartjs codapi-js codejar highlight
+upgrade: reveal.js highlight.js fontawesome videojs d3 chartjs codapi-js codejar highlight mathjax 
 
 d3:
 	@echo "Update d3"
@@ -17,12 +17,14 @@ videojs:
 	@mkdir -p $(support)/videojs
 	@rsync video.js/* $(support)/videojs
 
-# mathjax:
-# 	@echo "Update mathjax"
-# 	@mkdir -p $(support)/mathjax/{input,output,input/tex,output/svg,a11y,sre}
-# 	@for i in tex-svg.js a11y/ sre/ input/tex/ input/tex.js input/mml.js output/ ui/; do \
-# 		rsync --recursive --delete $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
-# 	done
+mathjax:
+	@echo "Update mathjax and mathjax-fonts"
+	@mkdir -p $(support)/mathjax
+	@for i in tex-svg-nofont.js a11y/ input/ output/ sre/ ui/; do \
+		rsync --recursive --delete $(third)/MathJax/$$i $(support)/mathjax/$$i; \
+	done
+	@mkdir -p $(support)/mathjax-fonts
+	rsync --recursive --delete $(third)/mathjax-fonts/node_modules/@mathjax/* $(support)/mathjax-fonts/
 
 reveal.js:
 	@echo "Update reveal.js"

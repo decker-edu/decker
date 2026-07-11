@@ -28,7 +28,8 @@ header {
   justify-content: center;
   text-align: center;
   background: var(--primary-color);
-  padding: 2rem 0 2rem;
+  padding: 1em 1em;
+  box-sizing: border-box;
   width: 100%;
 }
 
@@ -38,18 +39,18 @@ header > h2 {
   line-height: 1.5;
   margin: auto;
   border: none;
+  text-wrap: balance;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 70rem;
 }
 
 header > h1 {
   font-size: 3rem;
-  margin: 0 auto;
-  padding: 0;
 }
 
 header > h2 {
   font-size: 2rem;
-  margin: 0 auto;
-  padding: 0;
   font-family: inherit;
   font-weight: normal;
 }
@@ -151,6 +152,12 @@ del {
   text-decoration-line: line-through;
   text-decoration-thickness: 0.3em;
   text-decoration-color: var(--redish);
+}
+
+span.separator:first-child,
+span.separator:last-child,
+span.separator + span.separator {
+  display: none;
 }
 
 /*********************************************

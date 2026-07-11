@@ -124,6 +124,7 @@ menu:
 reveal:
   width: 1280
   height: 720
+  scrollActivationWidth: null
   backgroundTransition: "none"
   center: true
   controls: true

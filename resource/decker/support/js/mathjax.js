@@ -18,6 +18,11 @@ export function injectMathJaxCSS() {
         pointer-events: none;
     }
 
+    /* new MathJax put display equations into span */
+    span.math.display { 
+      display: block; 
+    }
+
     /* eqn refs have to be clickable */
     mjx-container > svg a, 
     mjx-container > svg a * {
@@ -57,9 +62,6 @@ export function configureMathJax() {
   const options = Decker?.meta?.math;
   if (!options) console.error("MathJax not configured. Should not happen.");
 
-  // from where to load mathjax
-  const mathjax = Decker.meta.supportPath + "/vendor/mathjax/";
-
   // is initial a11y mode requested?
   const a11y = /a11y/gi.test(window.location.search);
 
@@ -76,49 +78,58 @@ export function configureMathJax() {
   window.MathJax = {
     loader: {
       load: ["[tex]/action", "[tex]/color"],
+      paths: {
+        fonts: Decker.meta.supportPath + "/vendor/mathjax-fonts/"
+      }
     },
     startup: {
       ready: () => {
         console.error("override mathjax startup");
-      },
+      }
     },
     svg: {
-      fontCache: "local", // or 'global' or 'none'
+      fontCache: "local" // or 'global' or 'none'
     },
     output: {
       font: "mathjax-" + (options.font || "newcm"),
-      fontPath: mathjax + "/fonts/%%FONT%%-font",
       scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
       mtextInheritFont: true, // true to make mtext elements use surrounding font
       merrorInheritFont: true, // true to make merror text use surrounding font
+      linebreaks: {
+        // whether to use linebreaks for inline equations
+        inline:
+          window.Decker.meta.math.linebreaks === undefined
+            ? true
+            : window.Decker.meta.math.linebreaks
+      }
     },
     tex: {
       tags: "ams",
       packages: { "[+]": ["action", "color"] },
       macros: macros,
-      inlineMath: { "[+]": [["$", "$"]] },
+      inlineMath: { "[+]": [["$", "$"]] }
     },
     options: {
-      // skipHtmlTags: { "[+]": ["details"] },
+      skipHtmlTags: { "[+]": ["details"] },
       enableMenu: a11y,
-      //      enableExplorer: a11y,
+      enableExplorer: a11y,
       menuOptions: {
         settings: {
           enrich: a11y, // true to enable semantic-enrichment
-          //          collapsible: false, // true to enable collapsible math
-          //          speech: a11y, // true to enable speech generation
-          //          braille: a11y, // true to enable Braille generation
-          //          assistiveMml: false, // true if hidden assistive MathML should be generated for screen readers
-        },
+          collapsible: false, // true to enable collapsible math
+          speech: a11y, // true to enable speech generation
+          braille: a11y, // true to enable Braille generation
+          assistiveMml: false // true if hidden assistive MathML should be generated for screen readers
+        }
       },
       a11y: {
-        //        speech: a11y, // true to enable speech generation
-        //        braille: a11y, // true to enable Braille generation
+        speech: a11y, // true to enable speech generation
+        braille: a11y // true to enable Braille generation
       },
       sre: {
-        locale: language === "de" ? "de" : "en",
-      },
-    },
+        locale: language === "de" ? "de" : "en"
+      }
+    }
   };
 }
 

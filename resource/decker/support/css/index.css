@@ -159,6 +159,7 @@ a:hover {
 
 a[aria-disabled="true"] {
   color: var(--shade2);
+  pointer-events: none;
 }
 
 /*********************************************
@@ -313,8 +314,10 @@ html[lang="de"] .english {
 }
 .index .progress {
   --progress: 0%;
-  --color: color-mix(in hsl, var(--redish), var(--greenish) var(--progress));
-  --background: conic-gradient(var(--color) var(--progress), var(--shade1) 0);
+  --background: conic-gradient(
+    var(--greenish) var(--progress),
+    var(--shade1) 0
+  );
   height: 1em;
   width: 1em;
   inset: 0;
@@ -322,11 +325,27 @@ html[lang="de"] .english {
   border-radius: 50%;
   background: var(--background);
   -webkit-mask: radial-gradient(
-    transparent 39%,
-    white 40% 70%,
-    transparent 71%
+    transparent 34%,
+    white 35% 74%,
+    transparent 75%
   );
   position: relative;
+}
+
+.index .progress[data-value="-1"] {
+  -webkit-mask: none;
+  &::before {
+    content: "NEW";
+    color: white;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 0.45em;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    background: red;
+    padding: 0.2em;
+    border-radius: 0.25em;
+  }
 }
 
 .index .progress[data-value="0"] {

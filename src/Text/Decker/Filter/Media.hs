@@ -226,7 +226,12 @@ compileCodeBlock attr@(id, classes, _) code caption = do
                 putStrLn $ "# write (" <> path <> ")"
           )
       uri <- lift $ URI.mkURI (toText path)
-      renderCodeBlock uri "" caption
+      if "embed" `elem` classes
+      then do
+        renderCodeBlockEmbed uri "" caption
+      else do
+        renderCodeBlock uri "" caption
+      
 
 compileBlockQuote :: [Block] -> [Inline] -> Filter Block
 compileBlockQuote quote caption =
@@ -253,6 +258,7 @@ imageCompilers =
       (AudioT, audioBlock),
       (CodeT, includeCodeBlock),
       (RenderT, renderCodeBlock),
+      (RenderEmbedT, renderCodeBlockEmbed),
       (JavascriptT, javascriptBlock)
     ]
 
@@ -369,6 +375,7 @@ iframeBlock uri title caption = do
     takeData
     injectStyles innerSizes
     injectAria title caption
+    injectTitle title caption
     extractAttr
   figureAttr <- do
     takeUsual
@@ -565,6 +572,33 @@ renderCodeBlock uri title caption = do
     $ wrapFigure figureAttr caption
     $ containOne
     $ Image imgAttr [Str fileName] (turl, "")
+
+-- embed SVG as object tag, since then a CSS file can be injected
+-- currently doesn't work on Safari...
+renderCodeBlockEmbed :: (Container c) => URI -> Text -> [Inline] -> Attrib c
+renderCodeBlockEmbed uri title caption = do
+  turi <- lift $ transformUri uri "svg"
+  let turl = renderUriDecode turi
+  (innerSizes, outerSizes) <- calcImageSizes
+  objectAttr <- do
+    injectClasses ["processed"]
+    injectAttribute ("data", turl)
+    injectAttribute ("type", "image/svg+xml")
+    injectStyles innerSizes
+    injectAria title caption
+    takeAttributes ["style"]
+    takeData
+    extractAttr
+  figureAttr <- do
+    injectClasses ["image rendered"]
+    cutClasses fragmentRelated >>= injectClasses
+    injectStyles outerSizes
+    takeUsual
+    extractAttr
+  return
+    $ wrapFigure figureAttr caption
+    $ mkObject objectAttr
+
 
 -- |  Transforms an image tag to script tag using the image url as src. Only
 -- supports ES6 modules.

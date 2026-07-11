@@ -8,6 +8,7 @@
 includeTULogo: true
 
 reveal:
+  scrollActivationWidth: null
   backgroundTransition: "none"
   center: false
   controls: true
@@ -67,6 +68,18 @@ speech-recognition-language: de-DE
 # show decker link on title slide
 showDeckerLink: true
 
+zoom:
+  trigger: "tripleClick"
+
+# quiz server at TU Dortmund
+quizzer:
+  url: https://quiz.jetzt/
+  audio:
+    start: 'default'
+    loop: 'default'
+    end: 'default'
+    volume: 0.2
+
 # progress bar on index page
 index:
   progress: true
@@ -74,6 +87,8 @@ index:
   search: true
   searchShowsDeckTitle: true
   searchShowsDeckSubtitle: true
+  listShowsDeckTitle: true
+  listShowsDeckSubtitle: true
   links:
     - a11y
     - handout

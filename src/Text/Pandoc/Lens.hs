@@ -31,7 +31,7 @@ module Text.Pandoc.Lens
     _Header,
     _HorizontalRule,
     _Div,
-    _Null,
+    -- _Null,
 
     -- * Inlines
 
@@ -80,7 +80,7 @@ where
 
 import Control.Lens
 import Data.Map (Map)
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Text.Pandoc.Definition
 
 -- | The body of a pandoc document
@@ -179,11 +179,11 @@ _Div = prism' (Div nullAttr) f
     f _ = Nothing
 
 -- | A prism on a 'Null' 'Block'
-_Null :: Prism' Block ()
-_Null = prism' (const Null) f
-  where
-    f Null = Just ()
-    f _ = Nothing
+-- _Null :: Prism' Block ()
+-- _Null = prism' (const Null) f
+--   where
+--     f Null = Just ()
+--     f _ = Nothing
 
 -- | A prism on a 'Str' 'Inline'
 _Str :: Prism' Inline Text.Text
@@ -384,14 +384,14 @@ class HasAttr a where
   attributes :: Traversal' a Attr
 
 instance HasAttr Block where
-  attributes f (CodeBlock a s) = fmap (\a' -> CodeBlock a' s) (f a)
+  attributes f (CodeBlock a s) = fmap (`CodeBlock` s) (f a)
   attributes f (Header n a s) = fmap (\a' -> Header n a' s) (f a)
-  attributes f (Div a s) = fmap (\a' -> Div a' s) (f a)
+  attributes f (Div a s) = fmap (`Div` s) (f a)
   attributes _ x = pure x
 
 instance HasAttr Inline where
-  attributes f (Code a s) = fmap (\a' -> Code a' s) (f a)
-  attributes f (Span a s) = fmap (\a' -> Span a' s) (f a)
+  attributes f (Code a s) = fmap (`Code` s) (f a)
+  attributes f (Span a s) = fmap (`Span` s) (f a)
   attributes _ x = pure x
 
 -- | A lens onto identifier of an 'Attr'

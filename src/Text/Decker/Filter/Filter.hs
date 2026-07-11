@@ -37,6 +37,7 @@ import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Filter
 import Text.Pandoc.Lens
+import Text.Pandoc.Lua
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
@@ -44,10 +45,13 @@ data FilterPosition = Before | After deriving (Show, Eq)
 
 runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
 runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
+  putVerbose "runDynamicFilters"
   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
   let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
   if not $ null filters
-    then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
+    then liftIO $ do
+      engine <- getEngine
+      runIOorExplode $ applyFilters engine env filters ["html"] pandoc
     else return pandoc
   where
     env = Environment pandocReaderOpts pandocWriterOpts
@@ -64,7 +68,8 @@ processPandoc ::
   Disposition ->
   Pandoc ->
   Action Pandoc
-processPandoc transform base disp pandoc =
+processPandoc transform base disp pandoc = do
+  putVerbose "processPandoc"
   evalStateT (transform pandoc) (DeckerState base disp 0)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
