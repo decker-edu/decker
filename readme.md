@@ -23,7 +23,23 @@ On macOS and Linux the easiest way to install `decker` is via [Homebrew](https:/
 brew install decker-edu/decker/decker
 ```
 
-This pulls the latest release binary from the [`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap and installs the external tools `decker` needs for its core features (see [External tools](#external-tools)). Some optional features (PDF export, embedded LaTeX, Mermaid diagrams, speech transcription) need additional programs; `brew install` prints a caveats section explaining how to install them.
+This pulls the latest release binary from the [`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap and installs the external tools `decker` needs for its core features (see [External tools](#external-tools)).
+
+The tap offers three install tiers, each building on the previous one:
+
+| Formula        | Installs                                                    |
+| -------------- | ---------------------------------------------------------- |
+| `decker-naked` | Just the `decker` binary, no external tools                |
+| `decker`       | Binary + the common tools (diagrams, mermaid, video)       |
+| `decker-full`  | Everything, including TeX Live and whisper.cpp             |
+
+```sh
+brew install decker-edu/decker/decker-naked  # binary only
+brew install decker-edu/decker/decker        # recommended default
+brew install decker-edu/decker/decker-full   # everything
+```
+
+Some optional features (PDF export, embedded LaTeX, speech transcription) need additional programs. The `decker` tier documents them in a caveats section that `brew install` prints; the `decker-full` tier installs TeX Live and whisper.cpp automatically and leaves only a Chrome/Chromium install on Linux to you.
 
 To upgrade to a newer release later:
 

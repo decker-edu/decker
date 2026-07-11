@@ -45,14 +45,31 @@ On macOS and Linux the recommended way to install Decker is via
 
 This installs the latest release from the
 [`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap
-together with the external tools Decker needs for its core features. Some
-optional features need additional programs — `brew install` prints a caveats
-section explaining how to add them:
+together with the external tools Decker needs for its core features.
+
+The tap offers three install tiers, each building on the previous one:
+
+| Formula        | Installs                                            |
+| -------------- | --------------------------------------------------- |
+| `decker-naked` | Just the `decker` binary, no external tools         |
+| `decker`       | Binary + the common tools (diagrams, mermaid, video)|
+| `decker-full`  | Everything, including TeX Live and whisper.cpp      |
+
+``` sh
+> brew install decker-edu/decker/decker-naked  # binary only
+> brew install decker-edu/decker/decker        # recommended default
+> brew install decker-edu/decker/decker-full   # everything
+```
+
+Some optional features need additional programs. The `decker` tier prints a
+caveats section explaining how to add them:
 
 -   PDF export of decks needs Google Chrome (`brew install --cask google-chrome`)
--   Rendering embedded LaTeX needs a TeX distribution (`brew install --cask basictex`)
--   Mermaid diagrams need the Mermaid CLI (`npm install -g @mermaid-js/mermaid-cli`)
+-   Rendering embedded LaTeX needs a TeX distribution (`brew install texlive`)
 -   Speech transcription needs `whisper.cpp` (`brew install whisper-cpp`)
+
+The `decker-full` tier installs TeX Live and whisper.cpp automatically and leaves
+only a Chrome/Chromium install on Linux to you.
 
 Upgrade to a newer release with:
 

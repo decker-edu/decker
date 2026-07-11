@@ -120,6 +120,14 @@ jobs:
           MAC_ARM=$(sha "macOS-ARM64")
           LNX_X64=$(sha "Linux-X64")
 
+          # Source tarball. The "normal" and "full" formulae are metapackages
+          # that install no binary of their own (they depend on decker-naked for
+          # that), but Homebrew still requires every formula to carry a url +
+          # sha256, so they point at the tagged source tarball.
+          SRC_URL="https://github.com/decker-edu/decker/archive/refs/tags/${TAG}.tar.gz"
+          curl -fsSL -o "${RUNNER_TEMP}/decker-src.tar.gz" "${SRC_URL}"
+          SRC_SHA=$(sha256sum "${RUNNER_TEMP}/decker-src.tar.gz" | cut -d' ' -f1)
+
           # Clone the tap. This also succeeds for a brand-new empty repo (the
           # working tree just starts on an unborn branch), so the tap needs no
           # initial commit.
@@ -127,22 +135,26 @@ jobs:
           cd tap
 
           mkdir -p Formula
-          cat > Formula/decker.rb <<EOF
-          class Decker < Formula
-            desc "Markdown to reveal.js slide decks, HTML pages, and handouts"
+
+          # ------------------------------------------------------------------
+          # Three install tiers, layered so that exactly one formula installs
+          # the binary and the others only add dependencies on top:
+          #
+          #   decker-naked  -> the binary, no external tools
+          #   decker        -> decker-naked + the common tools (the default)
+          #   decker-full   -> decker + the heavy tools (TeX Live, whisper, ...)
+          #
+          # Because only decker-naked installs the "decker" binary there are no
+          # binary-name conflicts and no conflicts_with is needed.
+          # ------------------------------------------------------------------
+
+          # 1. decker-naked: binary only.
+          cat > Formula/decker-naked.rb <<EOF
+          class DeckerNaked < Formula
+            desc "Decker binary only, without any external tools"
             homepage "https://github.com/decker-edu/decker"
             version "${VERSION}"
             license "GPL-3.0-or-later"
-
-            # External programs Decker shells out to for full functionality
-            # (see the "external-tools" section of Decker's default.yaml).
-            depends_on "ffmpeg"   # video/audio processing and ffprobe
-            depends_on "graphviz" # dot diagrams
-            depends_on "gnuplot"  # gnuplot diagrams
-            depends_on "plantuml" # plantuml diagrams
-            depends_on "d2"       # d2 diagrams
-            depends_on "pdf2svg"  # pdf-to-svg conversion
-            depends_on "rsync"    # resource deployment
 
             on_macos do
               on_arm do
@@ -162,19 +174,14 @@ jobs:
               bin.install Dir["*"].first => "decker"
             end
 
-            # These are optional and/or too heavy to force on every user, so
-            # they are documented rather than declared as hard dependencies.
             def caveats
               <<~EOS
-                Some Decker features need extra tools that are not installed automatically:
-                  * PDF export of decks needs Google Chrome:
-                      brew install --cask google-chrome
-                  * Rendering embedded LaTeX (pdflatex) needs a TeX distribution:
-                      brew install --cask basictex
-                  * Mermaid diagrams need the mermaid CLI (mmdc):
-                      npm install -g @mermaid-js/mermaid-cli
-                  * Speech transcription needs whisper.cpp (provides whisper-cli):
-                      brew install whisper-cpp
+                This is the bare Decker binary with no external tools. Most
+                features that shell out to other programs (diagrams, video,
+                PDF export, LaTeX, transcription) will not work until you
+                install those tools yourself, or install a fuller tier instead:
+                    brew install decker-edu/decker/decker       # common tools
+                    brew install decker-edu/decker/decker-full  # everything
               EOS
             end
 
@@ -184,18 +191,124 @@ jobs:
           end
           EOF
 
+          # 2. decker: binary + the common external tools (the default tier).
+          cat > Formula/decker.rb <<EOF
+          class Decker < Formula
+            desc "Markdown to reveal.js slide decks, HTML pages, and handouts"
+            homepage "https://github.com/decker-edu/decker"
+            url "${SRC_URL}"
+            sha256 "${SRC_SHA}"
+            version "${VERSION}"
+            license "GPL-3.0-or-later"
+
+            # The binary itself.
+            depends_on "decker-edu/decker/decker-naked"
+
+            # External programs Decker shells out to for its common features
+            # (see the "external-tools" section of Decker's default.yaml).
+            depends_on "ffmpeg"   # video/audio processing and ffprobe
+            depends_on "graphviz" # dot diagrams
+            depends_on "gnuplot"  # gnuplot diagrams
+            depends_on "plantuml" # plantuml diagrams
+            depends_on "d2"       # d2 diagrams
+            depends_on "pdf2svg"  # pdf-to-svg conversion
+            depends_on "rsync"    # resource deployment
+            depends_on "1jehuang/mmdr/mmdr" # mermaid diagram rendering
+
+            # Metapackage: the binary comes from decker-naked.
+            def install
+              (pkgshare/"README").write "decker is a metapackage; the binary is provided by decker-naked.\n"
+            end
+
+            # These are optional and/or too heavy to force on this tier; the
+            # decker-full formula pulls them in automatically.
+            def caveats
+              <<~EOS
+                Some Decker features need extra tools that this tier does not
+                install. Install them individually, or use the full tier
+                (brew install decker-edu/decker/decker-full):
+                  * PDF export of decks needs Google Chrome:
+                      brew install --cask google-chrome
+                  * Rendering embedded LaTeX (pdflatex) needs a TeX distribution:
+                      brew install texlive
+                  * Speech transcription needs whisper.cpp (provides whisper-cli):
+                      brew install whisper-cpp
+              EOS
+            end
+
+            test do
+              assert_match "decker version", shell_output("decker version")
+            end
+          end
+          EOF
+
+          # 3. decker-full: the common tier plus the heavy tools.
+          cat > Formula/decker-full.rb <<EOF
+          class DeckerFull < Formula
+            desc "Decker plus all optional external tools (TeX Live, whisper, ...)"
+            homepage "https://github.com/decker-edu/decker"
+            url "${SRC_URL}"
+            sha256 "${SRC_SHA}"
+            version "${VERSION}"
+            license "GPL-3.0-or-later"
+
+            # Everything the default tier pulls in (binary + common tools).
+            depends_on "decker-edu/decker/decker"
+
+            # Heavy tools, installed on both macOS and Linux.
+            depends_on "texlive"     # embedded LaTeX (pdflatex)
+            depends_on "whisper-cpp" # speech transcription (whisper-cli)
+
+            # Google Chrome (PDF export) is only available as a cask on macOS.
+            on_macos do
+              depends_on cask: "google-chrome"
+            end
+
+            # Metapackage: the binary comes from decker-naked (via decker).
+            def install
+              (pkgshare/"README").write "decker-full is a metapackage; the binary is provided by decker-naked.\n"
+            end
+
+            def caveats
+              <<~EOS
+                One Decker helper is still not installable via Homebrew:
+                  * On Linux, PDF export needs a Chrome/Chromium install for
+                    headless rendering (no Homebrew cask exists there).
+              EOS
+            end
+
+            test do
+              assert_match "decker version", shell_output("decker version")
+            end
+          end
+          EOF
+
           # Landing page for the tap. Quoted heredoc: content is literal, no
           # shell expansion, so backticks and $ are safe.
           cat > README.md <<'MD'
           # Decker Homebrew Tap
 
-          Homebrew formula for [Decker](https://github.com/decker-edu/decker) — a
+          Homebrew formulae for [Decker](https://github.com/decker-edu/decker) — a
           tool that turns Markdown into reveal.js slide decks, HTML pages, and
           handouts.
 
+          The tap ships three install tiers, from smallest to largest:
+
+          | Formula        | Installs                                            |
+          | -------------- | --------------------------------------------------- |
+          | `decker-naked` | Just the Decker binary, no external tools           |
+          | `decker`       | Binary + the common tools (diagrams, mermaid, video)|
+          | `decker-full`  | Everything, including TeX Live and whisper.cpp      |
+
+          Each tier builds on the one above it, so `decker` pulls in the binary
+          from `decker-naked`, and `decker-full` pulls in `decker` plus the heavy
+          tools.
+
           ## Install
 
-              brew install decker-edu/decker/decker
+              brew install decker-edu/decker/decker        # recommended default
+              brew install decker-edu/decker/decker-naked  # binary only
+              brew install decker-edu/decker/decker-full   # everything
 
           Or tap first, then install:
 
@@ -208,19 +321,21 @@ jobs:
 
           ## Extra tools
 
-          Some Decker features need programs that are not installed automatically.
-          `brew install decker` prints a caveats section listing them (PDF export
-          needs Google Chrome, embedded LaTeX needs a TeX distribution, and so on).
+          The `decker` tier prints a caveats section listing the few remaining
+          optional tools (Google Chrome for PDF export, embedded LaTeX, speech
+          transcription). The `decker-full` tier installs TeX Live and
+          whisper.cpp for you and only leaves a Chrome/Chromium install on Linux
+          to you.
 
           ---
 
-          This formula is generated automatically by Decker's release workflow.
-          Do not edit `Formula/decker.rb` or this file by hand.
+          These formulae are generated automatically by Decker's release
+          workflow. Do not edit the files under `Formula/` or this file by hand.
           MD
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/decker.rb README.md
+          git add Formula/decker-naked.rb Formula/decker.rb Formula/decker-full.rb README.md
           git commit -m "decker ${TAG}" || { echo "No changes"; exit 0; }
           # Normalize the branch name (covers the unborn-branch case of a fresh
           # empty repo) and push it as the tap's main branch.
