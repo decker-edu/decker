@@ -437,6 +437,44 @@ The command keeps watching the project while the app is open: editing a
 `*-quest.yaml` (or a saved `*-exam.yaml`) rebuilds the catalog and refreshes the
 open app in place, preserving the current selection and scroll position.
 
+## `> decker agent-docs`
+
+Writes two version-stamped documents that teach an AI coding agent how to author
+and validate Decker content (slide decks, pages and exam questions), so it builds
+and inspects the generated HTML instead of guessing at the syntax:
+
+- `.decker/agent-guide.md` — the full, self-contained syntax reference and
+  build/validation recipe. Like `targets.yaml` it is a **regenerable, gitignored**
+  artifact that lives with the Shake state, and `decker clean`/`purge` may remove
+  it. Regenerate it any time with `decker agent-docs`.
+- `.claude/skills/decker/SKILL.md` — a short Claude Code skill that points at the
+  guide. This one is meant to be **committed** so that any clone or new session
+  auto-discovers it without running anything first.
+
+Both files carry the running binary's version stamp (e.g. `0.15.0 (dev, branch
+develop)`), so stale copies are easy to spot — check with `decker version`.
+Re-running the command is idempotent: when the on-disk stamp already matches the
+binary, the file is left untouched (reported as `Up to date`) and the git tree
+stays clean.
+
+Options (all specific to this command):
+
+- `--no-skill` — do not write `.claude/skills/decker/SKILL.md`.
+- `--no-guide` — do not write `.decker/agent-guide.md`.
+- `--output PATH` — write the guide to `PATH` instead of the default location.
+- `--stdout` — print the guide to standard output and write no files.
+
+With no options, both files are written to their default paths.
+
+Because these two documents now own the generic Decker knowledge — syntax and the
+build/validation loop — a project's `CLAUDE.md` no longer needs to teach any of
+it. Strip generic Decker how-to out of `CLAUDE.md` and keep only
+**project-specific** context there (this repo's conventions, directory layout,
+naming rules, bibliography keys, publishing target). This keeps `CLAUDE.md` small
+and avoids two copies of the syntax drifting apart; the skill and guide are
+version-stamped, `CLAUDE.md` is not. A project with no special conventions may not
+need a `CLAUDE.md` at all.
+
 # Options
 
 ## `-h`, `--help`

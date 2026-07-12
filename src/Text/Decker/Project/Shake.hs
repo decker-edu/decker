@@ -54,6 +54,7 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
 import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
+import Text.Decker.Project.AgentDocs (AgentDocsOpts (..), defaultAgentDocsOpts, runAgentDocs)
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
@@ -86,7 +87,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder", "agent-docs"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     otherwise -> do
@@ -238,6 +239,7 @@ runCommand context command rules = do
     "crunch" -> crunchAllRecordings context
     "transcribe" -> transcribeAllRecordings meta
     "version" -> putDeckerVersion
+    "agent-docs" -> runAgentDocs meta (agentDocsOptsFromFlags (context ^. extra))
     "pdf" -> do
       putStrLn (toString pdfMsg)
       id <- forkServer context
@@ -250,6 +252,16 @@ runCommand context command rules = do
       runChatty (PruneFilesFlag `elem` (context ^. extra))
     _ -> error "Unknown command. Should not happen."
   exitSuccess
+
+-- | Build 'AgentDocsOpts' for the @agent-docs@ command from the parsed flags.
+agentDocsOptsFromFlags :: [Flags] -> AgentDocsOpts
+agentDocsOptsFromFlags flags =
+  defaultAgentDocsOpts
+    { adoStdout = AgentStdoutFlag `elem` flags,
+      adoSkill = NoSkillFlag `notElem` flags,
+      adoGuide = NoGuideFlag `notElem` flags,
+      adoOutput = listToMaybe [path | AgentOutputFlag path <- flags]
+    }
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -317,7 +329,27 @@ deckerFlags =
       []
       ["prune-files"]
       (GetOpt.NoArg $ Right PruneFilesFlag)
-      "With `chatty`: delete OpenAI file objects not attached to the vector store."
+      "With `chatty`: delete OpenAI file objects not attached to the vector store.",
+    GetOpt.Option
+      []
+      ["no-skill"]
+      (GetOpt.NoArg $ Right NoSkillFlag)
+      "With `agent-docs`: do not write .claude/skills/decker/SKILL.md.",
+    GetOpt.Option
+      []
+      ["no-guide"]
+      (GetOpt.NoArg $ Right NoGuideFlag)
+      "With `agent-docs`: do not write .decker/agent-guide.md.",
+    GetOpt.Option
+      []
+      ["stdout"]
+      (GetOpt.NoArg $ Right AgentStdoutFlag)
+      "With `agent-docs`: print the guide to stdout and write nothing.",
+    GetOpt.Option
+      []
+      ["output"]
+      (GetOpt.ReqArg (Right . AgentOutputFlag) "PATH")
+      "With `agent-docs`: override the guide output path."
   ]
 
 parsePortArg :: String -> Either String Flags

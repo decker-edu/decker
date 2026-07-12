@@ -35,6 +35,10 @@ data Flags
   | BindFlag String
   | ProjectDirFlag String
   | PruneFilesFlag
+  | NoSkillFlag
+  | NoGuideFlag
+  | AgentStdoutFlag
+  | AgentOutputFlag String
   deriving (Eq, Show)
 
 data ActionContext = ActionContext

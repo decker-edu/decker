@@ -166,6 +166,7 @@ deckerRules = do
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
   addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
   addHelpSuffix "  - exam-builder - Browse exam questions and compose *-exam.yaml collections in a web app."
+  addHelpSuffix "  - agent-docs - Write version-stamped AI agent guide (.decker/agent-guide.md) and Claude skill (.claude/skills/decker/SKILL.md)."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
