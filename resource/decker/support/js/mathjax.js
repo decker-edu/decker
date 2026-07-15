@@ -53,6 +53,10 @@ export function injectMathJaxCSS() {
     mjx-help-background {
         z-index: 128;
     }
+
+    g.math-incremental-label:not(.visible) {
+      opacity: 0;
+    }
     `;
   document.head.append(style);
 }
