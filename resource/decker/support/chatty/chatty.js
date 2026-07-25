@@ -269,6 +269,17 @@ async function send(userInput) {
               break;
             }
 
+            case "error": {
+              botMsg.innerText = "[Error] " + (evt.error?.message ?? "Unknown error");
+              break;
+            }
+
+            case "response.failed": {
+              const msg = evt.response?.error?.message;
+              if (msg) botMsg.innerText = "[Error] " + msg;
+              break;
+            }
+
             // response complete: list used source files
             case "response.completed": {
               // collect searched files
