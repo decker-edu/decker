@@ -658,3 +658,7 @@ body.deck div#chatty-dialog {
     font-size: 1.6vw;
   }
 }
+
+body.deck button.chatty-testme-button {
+  font-size: unset;
+}

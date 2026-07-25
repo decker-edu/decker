@@ -14,6 +14,7 @@ import Skylighting (SyntaxMap, defaultSyntaxMap, loadSyntaxFromFile)
 import System.FilePath
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Internal (ChoiceString (..), MarkupM (..), StaticString, getString, getText)
+import Text.Decker.Chatty.MetaSeal (sealChattyMeta)
 import Text.Decker.Filter.Util (hash9String)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
@@ -87,29 +88,14 @@ markdownToHtml disp meta getTemplate markdownFile out = do
           }
   writePandocFile options out pandoc
 
-writeMarkdownFile out pandoc@(Pandoc meta blocks) = do
-  let relSupportDir = relativeSupportDir (takeDirectory out)
-  let options =
-        pandocWriterOpts
-          { writerVariables =
-              Context
-                $ fromList
-                  [ ( "decker-support-dir",
-                      SimpleVal $ Text.DocTemplates.Text 0 $ toText relSupportDir
-                    )
-                  ],
-            writerCiteMethod = Citeproc
-          }
-  liftIO
-    $ runIO (setVerbosity ERROR >> writeMarkdown options pandoc)
-    >>= handleError
-    >>= Text.writeFile out
-  
 -- | writes a document in two steps. First the document is written as a fragment
 -- of plain HTML 4. which is then adjusted for reveal compatible section tags.
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
 writePandocFile :: WriterOptions -> FilePath -> Pandoc -> Action ()
-writePandocFile options out pandoc@(Pandoc meta blocks) = do
+writePandocFile options out pandoc@(Pandoc rawMeta blocks) = do
+  -- Seal+strip author-controlled chatty config before any meta is serialized,
+  -- so the plaintext system prompt never reaches public/ (JSON or inlined HTML).
+  meta <- sealChattyMeta rawMeta
   let metaFile = hash9String out <.> ".json"
   let metaPath = takeDirectory out </> metaFile
   let meta' = addMetaKeyValue "decker-meta-url" (toText metaFile) meta

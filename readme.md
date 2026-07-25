@@ -15,6 +15,40 @@ A markdown based tool for slide deck creation.
 
 Under [Releases](https://github.com/decker-edu/decker/releases) you can find the binaries of `decker`.
 
+### Installation with Homebrew (macOS and Linux)
+
+On macOS and Linux the easiest way to install `decker` is via [Homebrew](https://brew.sh):
+
+```sh
+brew install decker-edu/decker/decker
+```
+
+This pulls the latest release binary from the [`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap and installs the external tools `decker` needs for its core features (see [External tools](#external-tools)).
+
+The tap offers three install tiers, each building on the previous one:
+
+| Formula        | Installs                                                    |
+| -------------- | ---------------------------------------------------------- |
+| `decker-naked` | Just the `decker` binary, no external tools                |
+| `decker`       | Binary + the common tools (diagrams, mermaid, video)       |
+| `decker-full`  | Everything, including TeX Live and whisper.cpp             |
+
+```sh
+brew install decker-edu/decker/decker-naked  # binary only
+brew install decker-edu/decker/decker        # recommended default
+brew install decker-edu/decker/decker-full   # everything
+```
+
+Some optional features (PDF export, embedded LaTeX, speech transcription) need additional programs. The `decker` tier documents them in a caveats section that `brew install` prints; the `decker-full` tier installs TeX Live and whisper.cpp automatically and leaves only a Chrome/Chromium install on Linux to you.
+
+To upgrade to a newer release later:
+
+```sh
+brew upgrade decker
+```
+
+### Manual installation
+
 To install the program by hand you simply need to download the binary and put it in a location where your operating system can find executable files. The executable and its internal dependencies are statically linked and everything `decker` extracts in order to generate its output is inside its binary.
 
 ### Manual installation on Windows
@@ -127,6 +161,66 @@ Use appropriate tooling. I use:
 -   *Visual Studio Code* with the following plugins:
     -   *Haskell Language Server*
     -   *hindent-format*
+
+### Dev container
+
+The repository ships a [dev container](https://containers.dev)
+(`.devcontainer/`) that provides the complete build environment — the Haskell
+toolchain (GHC 9.8.4 to match the `lts-23.28` resolver, `stack`, and Haskell
+Language Server), the native tools Decker shells out to (`sassc`, `graphviz`,
+`gnuplot`, `rsync`), NodeJS, and the Claude Code CLI. It works with any dev
+container client (VS Code, the `devcontainer` CLI, or Zed).
+
+On first start the container installs the toolchain, fetches the git
+submodules under `third-party/`, and runs `npm install`. Heavy state
+(`~/.stack`, `.stack-work`, `~/.claude`) is kept in named volumes so it
+survives rebuilds. Once inside, build and run as usual:
+
+``` sh
+stack build -j8
+stack test -j1
+stack run -- decker --server   # dev server on http://localhost:8888 (forwarded)
+```
+
+#### Zed + Podman
+
+Zed opens the dev container natively (it prompts on opening a project that has a
+`.devcontainer/devcontainer.json`, or use *Project: Open Remote*). When using
+Podman instead of Docker on Apple Silicon, two host-side settings are required:
+
+-   Use the `applehv` VM provider (the default `libkrun` needs a `krunkit`
+    binary that is not in Homebrew). In `~/.config/containers/containers.conf`:
+
+    ``` toml
+    [machine]
+    provider = "applehv"
+    ```
+
+-   In Zed's `settings.json`, keep `"use_podman": true` and add
+    `"dev_container_use_buildkit": false` (Podman has no BuildKit/buildx).
+
+Avoid driving the Podman VM with two heavy clients at once (e.g. a manual
+`podman build` while Zed runs `devcontainer up`), which can wedge the machine.
+
+The `devcontainer` CLI shells out to `docker`, so `docker` must be pointed at
+Podman rather than a stopped Docker Desktop. If `devcontainer up` fails with
+`Cannot connect to the Docker daemon`, create a Podman context once and select
+it:
+
+``` sh
+docker context create podman --docker \
+    "host=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+docker context use podman
+```
+
+The Podman API socket lives under a volatile `/var/folders/.../T/podman/` path
+that changes when the machine is recreated. If the context breaks later,
+re-point it with:
+
+``` sh
+docker context update podman --docker \
+    "host=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')"
+```
 
 ### Templates and CSS
 

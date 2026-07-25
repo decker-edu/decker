@@ -10,7 +10,10 @@ module Text.Decker.Internal.Meta
     adjustMetaStringsBelowM,
     adjustMetaValue,
     adjustMetaValueM,
+    deleteMetaValue,
     fromPandocMeta,
+    fromPandocMeta',
+    getMetaValue,
     isMetaSet,
     lookupInDictionary,
     lookupMeta,
@@ -166,6 +169,19 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
 
 readMetaValue :: Text -> Text -> Meta -> Meta
 readMetaValue key value = setMetaValue key (maybe value show (readMaybe (toString value) :: Maybe Bool))
+
+-- | Removes the value at the compound key from the meta data. Intermediate
+-- containers are left in place; a missing key is a no-op.
+deleteMetaValue :: Text -> Meta -> Meta
+deleteMetaValue key meta = Meta $ del (splitKey key) (MetaMap (unMeta meta))
+  where
+    del [k] (MetaMap map) = M.delete k map
+    del (k : p) (MetaMap map) =
+      case M.lookup k map of
+        Just value -> M.insert k (MetaMap $ del p value) map
+        _ -> map
+    del _ (MetaMap map) = map
+    del _ _ = unMeta meta
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the function to the value if the key exists.

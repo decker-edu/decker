@@ -6,7 +6,6 @@ module Text.Decker.Filter.Layout
 where
 
 import Control.Lens
-import Control.Monad.State
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -95,7 +94,7 @@ slideAreas names blocks =
       split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
   where
     extract [] = Nothing
-    extract area = firstClass names (Data.List.head area) >>= Just . (,area)
+    extract area@(b : _) = firstClass names b >>= Just . (,area)
 
 layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) [] dir) = return slide

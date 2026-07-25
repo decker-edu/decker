@@ -70,6 +70,52 @@ function incrementalDocument(doc) {
   }
 }
 
+function markVisible(elem, visible) {
+  elem.classList.toggle("visible", visible);
+}
+
+function syncLabel(row, label) {
+  markVisible(label, row.classList.contains("visible"));
+  label.classList.toggle(
+    "current-fragment",
+    row.classList.contains("current-fragment")
+  );
+}
+
+function addFragment(row, doc) {
+  row.classList.add("fragment");
+  if (doc.classList.contains("handout") || doc.classList.contains("a11y")) {
+    row.classList.add("visible");
+  }
+}
+
+function addIncrementalLabels(root, rows, doc) {
+  const labels = root.querySelectorAll(
+    'svg[data-labels="true"] g[data-mml-node="mtd"][id^="mjx-eqn"]'
+  );
+  labels.forEach((label, index) => {
+    const row = rows[index];
+    if (!row) return;
+
+    label.classList.add("math-incremental-label");
+    if (doc.classList.contains("handout") || doc.classList.contains("a11y")) {
+      label.classList.add("visible");
+      return;
+    }
+
+    syncLabel(row, label);
+    if (!row.deckerMathIncrementalObserver) {
+      row.deckerMathIncrementalObserver = new MutationObserver(() =>
+        syncLabel(row, label)
+      );
+      row.deckerMathIncrementalObserver.observe(row, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    }
+  });
+}
+
 function incrementalItem(item, mdoc) {
   const doc = document.documentElement;
   const root = item.typesetRoot;
@@ -77,19 +123,13 @@ function incrementalItem(item, mdoc) {
     for (let mrow of root.querySelectorAll(
       'g[data-mml-node="mtable"]:first-of-type > g[data-mml-node="mtr"]'
     )) {
-      mrow.classList.add("fragment");
-      if (doc.classList.contains("handout") || doc.classList.contains("a11y")) {
-        mrow.classList.add("visible");
-      }
+      addFragment(mrow, doc);
     }
-    for (let mrow of root.querySelectorAll(
+    const labeledRows = root.querySelectorAll(
       'g[data-mml-node="mtable"]:first-of-type g[data-mml-node="mlabeledtr"]'
-    )) {
-      mrow.classList.add("fragment");
-      if (doc.classList.contains("handout") || doc.classList.contains("a11y")) {
-        mrow.classList.add("visible");
-      }
-    }
+    );
+    for (let mrow of labeledRows) addFragment(mrow, doc);
+    addIncrementalLabels(root, labeledRows, doc);
   }
 }
 

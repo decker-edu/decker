@@ -6,16 +6,21 @@
 module Text.Decker.Exam.Render
   ( renderQuestion,
     renderCatalog,
+    renderQuestionCatalogJson,
   )
 where
 
 import Control.Exception
-import Control.Lens hiding (Choice)
+import Control.Lens hiding (Choice, (.=))
+import Data.Aeson (ToJSON (..), object, (.=))
+import Data.Aeson qualified as Aeson
+import Data.ByteString.Lazy qualified as LBS
 import Data.HashMap.Strict qualified as HashMap
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
+import System.Directory (createDirectoryIfMissing, getCurrentDirectory)
 -- import Text.Groom
 
 import Relude
@@ -41,7 +46,12 @@ import Text.Pandoc.Walk
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
 compileQuestionToHtml meta _base quest = do
-  let base = dropFileName (quest ^. qstFilePath)
+  -- The question file path is absolute; the media filter needs a
+  -- project-relative base so referenced resources are provisioned into public/
+  -- (publicDir </> absolutePath would collapse to the absolute source path and
+  -- nothing would be copied).
+  cwd <- liftIO getCurrentDirectory
+  let base = makeRelative cwd (dropFileName (quest ^. qstFilePath))
       render = renderSnippetToHtml meta base
       compileAnswerToHtml :: Answer -> Action Answer
       compileAnswerToHtml mc@MultipleChoice {} =
@@ -124,24 +134,20 @@ renderQuestionToHtml h id meta quest = do
         H.p $ preEscapedText $ quest ^. qstQuestion
         hn (h + 1) "Answer"
         H.p $ renderAnswerToHtml $ quest ^. qstAnswer
-        H.table $ do
-          H.tr $ do
-            H.th "lecture id"
-            H.td $ toHtml (quest ^. qstLectureId)
-          H.tr $ do
-            H.th "topic id"
-            H.td $ toHtml (quest ^. qstTopicId)
-          H.tr $ do
-            H.th "exam"
-            H.td $ toHtml (quest ^. qstExam)
-          H.tr $ do
-            H.th "path"
-            H.td
-              $ H.code
-              $ H.a
-              ! A.class_ "editor-link"
-              ! A.href (toValue (editor <> toString (quest ^. qstFilePath)))
-              $ toHtml (quest ^. qstFilePath)
+        H.div ! A.class_ "question-meta" $ do
+          metaItem "Lecture" $ H.code $ toHtml (quest ^. qstLectureId)
+          metaItem "Topic" $ H.code $ toHtml (quest ^. qstTopicId)
+          metaItem "Exam" $ toHtml (if quest ^. qstExam then "yes" else "no" :: Text)
+          H.a
+            ! A.class_ "editor-link open-in-editor"
+            ! A.href (toValue (editor <> toString (quest ^. qstFilePath)))
+            $ "Open in Zed"
+  where
+    metaItem :: Text -> Html -> Html
+    metaItem key value =
+      H.span ! A.class_ "meta-item" $ do
+        H.span ! A.class_ "meta-key" $ toHtml key
+        H.span ! A.class_ "meta-val" $ value
 
 renderQuestionDocument :: Meta -> FilePath -> Question -> Action Text
 renderQuestionDocument meta base quest = do
@@ -268,3 +274,67 @@ renderCatalog meta files out =
     mapM (compileQuestionToHtml meta base) questions
       >>= renderQuestionBrowser base
       >>= (liftIO . Text.writeFile out)
+
+-- | A flattened, fully rendered view of a single question for consumption by
+-- the exam-builder web app. The question markdown fields are compiled to HTML
+-- here (server-side) so the browser only needs to display them.
+data QuestionView = QuestionView
+  { qvLectureId :: Text,
+    qvTopicId :: Text,
+    qvTitle :: Text,
+    qvPoints :: Int,
+    qvDifficulty :: Text,
+    qvExam :: Bool,
+    qvFilePath :: Text,
+    -- | The question's directory relative to the project root. Image and other
+    -- resource URLs in the rendered HTML are relative to this directory; the
+    -- web app uses it to resolve them against the server root (public/).
+    qvBase :: Text,
+    qvHtml :: Text
+  }
+
+instance ToJSON QuestionView where
+  toJSON v =
+    object
+      [ "lectureId" .= qvLectureId v,
+        "topicId" .= qvTopicId v,
+        "title" .= qvTitle v,
+        "points" .= qvPoints v,
+        "difficulty" .= qvDifficulty v,
+        "exam" .= qvExam v,
+        "filePath" .= qvFilePath v,
+        "base" .= qvBase v,
+        "html" .= qvHtml v
+      ]
+
+-- | Pre-renders all questions to a JSON catalog for the exam-builder web app.
+-- Each question's markdown fields are compiled to HTML via 'compileQuestionToHtml'
+-- and the whole question is rendered to an HTML preview snippet.
+renderQuestionCatalogJson :: Meta -> [FilePath] -> FilePath -> Action ()
+renderQuestionCatalogJson meta files out = do
+  putInfo $ "# exam-builder catalog (for " <> out <> ")"
+  cwd <- liftIO getCurrentDirectory
+  questions <- liftIO $ mapM readQuestion files
+  views <- mapM (toView cwd) questions
+  liftIO $ createDirectoryIfMissing True (takeDirectory out)
+  liftIO $ LBS.writeFile out (Aeson.encode views)
+  where
+    toView cwd quest = do
+      let base = dropFileName (quest ^. qstFilePath)
+          -- Project-relative directory; resource URLs in the HTML are relative
+          -- to this and must be resolved against public/ by the web app.
+          relBase = dropTrailingPathSeparator (makeRelative cwd base)
+      compiled <- compileQuestionToHtml meta base quest
+      let html = toText $ renderHtml $ renderQuestionToHtml 2 "" meta compiled
+      return
+        QuestionView
+          { qvLectureId = quest ^. qstLectureId,
+            qvTopicId = quest ^. qstTopicId,
+            qvTitle = quest ^. qstTitle,
+            qvPoints = quest ^. qstPoints,
+            qvDifficulty = show (quest ^. qstDifficulty),
+            qvExam = quest ^. qstExam,
+            qvFilePath = toText (quest ^. qstFilePath),
+            qvBase = toText relBase,
+            qvHtml = html
+          }

@@ -1,9 +1,9 @@
 name: decker
-version: 0.14.0
+version: 0.15.0
 license: GPL-3.0-or-later
 author: "Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 maintainer: "henrik.tramberend@bht-berlin.de"
-copyright: "2023 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
+copyright: "2026 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 build-type: Custom
 custom-setup:
   dependencies:
@@ -40,6 +40,7 @@ dependencies:
   - bytestring
   - containers
   - conduit
+  - crypton
   - imagesize-conduit
   - colour
   - data-default
@@ -49,7 +50,6 @@ dependencies:
   - doclayout
   - exceptions
   - extra
-  - file-embed
   - filelock
   - filepath
   - formatting
@@ -69,6 +69,7 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
+  - memory
   - mime-types
   - modern-uri
   - monad-loops

@@ -6,6 +6,7 @@ import Control.Lens ((^.))
 import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
 import Data.Aeson (encodeFile)
+import Data.Either (rights)
 import Data.IORef ()
 import Data.List
 import Data.Map.Strict qualified as Map
@@ -41,7 +42,7 @@ import Text.Decker.Internal.External (
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.PdfExport
-import Text.Decker.Project.ActionContext (Flags (LectureFlag), actionContext, extra)
+import Text.Decker.Project.ActionContext (Flags (LectureFlag, ProjectDirFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -53,11 +54,19 @@ import Text.Decker.Resource.Zip
 import Text.Decker.Writer.Layout
 import Text.Groom
 import Text.Pandoc (Meta)
+import System.Console.GetOpt qualified as GetOpt
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  setProjectDirectory
+  -- Honor --project-dir/-d before locating the project root. When given, the
+  -- directory is used verbatim and pins the project root (no upward search).
+  -- The flag is also parsed (and ignored) by the Shake rules later, so it need
+  -- not be stripped from the arguments.
+  args <- getArgs
+  let flags = rights $ (\(r, _, _) -> r) $ GetOpt.getOpt GetOpt.Permute deckerFlags args
+  setProjectDirectory $ listToMaybe [dir | ProjectDirFlag dir <- flags]
   run
 
 needTargets sel = needTargets' [sel]
@@ -74,8 +83,18 @@ syncChattyVectorStore meta sources = do
   unless (null storeId) $ do
     putNormal "# syncing annotated chatty markdown to vector store"
     liftIO $ tryRemoveDirectory "chatty"
-    generateChattyMarkdown meta sources
+    sources' <- withIndexSource sources
+    generateChattyMarkdown meta sources'
     liftIO syncChattyToStore
+
+-- | Append the project index source ('indexSource', i.e. @index.md@) to the
+-- given list of chatty sources when it exists. The index is neither a deck nor
+-- a page, so it is not part of the regular target lists, but it should still be
+-- mirrored into the vector store.
+withIndexSource :: [FilePath] -> Action [FilePath]
+withIndexSource sources = do
+  exists <- doesFileExist indexSource
+  return $ if exists then sources <> [indexSource] else sources
 
 needTargets' :: [Control.Lens.Getter.Getting Dependencies Targets Dependencies] -> Targets -> Action ()
 needTargets' sels targets = do
@@ -146,6 +165,8 @@ deckerRules = do
   addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
   addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
+  addHelpSuffix "  - exam-builder - Browse exam questions and compose *-exam.yaml collections in a web app."
+  addHelpSuffix "  - agent-docs - Write version-stamped AI agent guide (.decker/agent-guide.md) and Claude skill (.claude/skills/decker/SKILL.md)."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -319,6 +340,18 @@ deckerRules = do
     phony "catalog" $ do
       need ["private/quest-catalog.html"]
     --
+    (publicDir </> "exam-builder" </> "questions.json") %> \out -> do
+      meta <- getGlobalMeta
+      deps <- getDeps
+      let sources = Map.elems (deps ^. questions)
+      need sources
+      renderQuestionCatalogJson meta sources out
+    --
+    phony "exam-builder" $ do
+      -- Build the full site first so all question media is provisioned into
+      -- public/, then render the question catalog the web app consumes.
+      need ["html", publicDir </> "exam-builder" </> "questions.json"]
+    --
     phony "moodle-xml" $ do
       deps <- getDeps
       need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
@@ -413,7 +446,8 @@ deckerRules = do
       -- only non-draft decks and pages; drops solution content for upcoming lectures (-l)
       publishable <- filterPublishable meta (Map.elems (deps ^. decks) <> Map.elems (deps ^. pages))
       liftIO $ tryRemoveDirectory "chatty"
-      generateChattyMarkdown meta publishable
+      sources <- withIndexSource publishable
+      generateChattyMarkdown meta sources
   --
   withTargetDocs "Stop chrome remote session" $
     phony "pdf" $ do
@@ -496,21 +530,12 @@ deckerRules = do
               -- sync the annotated markdown of the published (non-draft) decks and pages
               syncChattyVectorStore meta selected
             else do
-              -- clean out the public dir so stale draft artifacts are not published
-              liftIO $ runClean False
               need ["support"]
-              deps <- getDeps
-              -- draft decks and pages are never published, even without -l
-              publishableDecks <- filterPublishable meta (Map.elems $ deps ^. decks)
-              publishablePages <- filterPublishable meta (Map.elems $ deps ^. pages)
-              let deckTargets = Map.filter (`elem` publishableDecks) (deps ^. decks)
-              let pageTargets = Map.filter (`elem` publishablePages) (deps ^. pages)
-              need (Map.keys deckTargets <> Map.keys pageTargets)
+              getDeps >>= needTargets' [decks, pages]
               createPublicManifest
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
-              -- sync the annotated markdown of the published (non-draft) decks and pages
-              syncChattyVectorStore meta (publishableDecks <> publishablePages)
+              liftIO $ runExternal "rsync" src destination meta
         Nothing -> putError "publish.rsync.destination not configured"
 
 createPublicManifest :: Action ()

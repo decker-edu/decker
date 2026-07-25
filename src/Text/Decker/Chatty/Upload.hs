@@ -141,18 +141,29 @@ uploadFile apiKey path = do
     Just fid -> return fid
     Nothing -> fail $ "OpenAI: no id in files response for " <> path
 
+-- | Issue a DELETE that treats a 404 as success. Deletes are idempotent: a file
+-- or attachment that is already gone is the desired end state, so a stale id
+-- (e.g. a duplicate purged in an earlier interrupted run) must not abort the
+-- sync. Other 4xx/5xx responses still raise, with the body for context.
+idempotentDelete :: BS.ByteString -> String -> IO ()
+idempotentDelete apiKey url = do
+  -- Suppress wreq's automatic status check so a 404 does not throw.
+  let opts = authOpts apiKey & checkResponse ?~ (\_ _ -> return ())
+  r <- deleteWith opts url
+  let code = r ^. responseStatus . statusCode
+  when (code >= 400 && code /= 404) $
+    fail $
+      "OpenAI: DELETE " <> url <> " failed with status " <> show code
+
 deleteFile :: BS.ByteString -> Text -> IO ()
-deleteFile apiKey fid = do
-  _ <- deleteWith (authOpts apiKey) (openaiBase <> "/files/" <> T.unpack fid)
-  return ()
+deleteFile apiKey fid =
+  idempotentDelete apiKey (openaiBase <> "/files/" <> T.unpack fid)
 
 detachFromStore :: BS.ByteString -> Text -> Text -> IO ()
-detachFromStore apiKey storeId fid = do
-  _ <-
-    deleteWith
-      (authOpts apiKey)
-      (openaiBase <> "/vector_stores/" <> T.unpack storeId <> "/files/" <> T.unpack fid)
-  return ()
+detachFromStore apiKey storeId fid =
+  idempotentDelete
+    apiKey
+    (openaiBase <> "/vector_stores/" <> T.unpack storeId <> "/files/" <> T.unpack fid)
 
 -- | Attach a file to the store with attributes capturing its source path and md5.
 attachToStore :: BS.ByteString -> Text -> Text -> FilePath -> Text -> IO ()

@@ -28,6 +28,62 @@ adds to Pandoc's Markdown.
 
 ## Features
 
+## Installation
+
+Prebuilt binaries for every release are available under
+[Releases](https://github.com/decker-edu/decker/releases). The executable is
+self-contained: all templates and support resources are bundled inside it.
+
+### Homebrew (macOS and Linux)
+
+On macOS and Linux the recommended way to install Decker is via
+[Homebrew](https://brew.sh):
+
+``` sh
+> brew install decker-edu/decker/decker
+```
+
+This installs the latest release from the
+[`decker-edu/homebrew-decker`](https://github.com/decker-edu/homebrew-decker) tap
+together with the external tools Decker needs for its core features.
+
+The tap offers three install tiers, each building on the previous one:
+
+| Formula        | Installs                                            |
+| -------------- | --------------------------------------------------- |
+| `decker-naked` | Just the `decker` binary, no external tools         |
+| `decker`       | Binary + the common tools (diagrams, mermaid, video)|
+| `decker-full`  | Everything, including TeX Live and whisper.cpp      |
+
+``` sh
+> brew install decker-edu/decker/decker-naked  # binary only
+> brew install decker-edu/decker/decker        # recommended default
+> brew install decker-edu/decker/decker-full   # everything
+```
+
+Some optional features need additional programs. The `decker` tier prints a
+caveats section explaining how to add them:
+
+-   PDF export of decks needs Google Chrome (`brew install --cask google-chrome`)
+-   Rendering embedded LaTeX needs a TeX distribution (`brew install texlive`)
+-   Speech transcription needs `whisper.cpp` (`brew install whisper-cpp`)
+
+The `decker-full` tier installs TeX Live and whisper.cpp automatically and leaves
+only a Chrome/Chromium install on Linux to you.
+
+Upgrade to a newer release with:
+
+``` sh
+> brew upgrade decker
+```
+
+### Manual installation
+
+Download the binary for your platform from the releases page, make it executable
+(`chmod +x decker` on macOS and Linux), and place it on your `PATH`. See the
+project [`readme.md`](https://github.com/decker-edu/decker/blob/master/readme.md)
+for platform-specific details, including Windows.
+
 ## Using Decker
 
 ## Creating a project
@@ -135,6 +191,155 @@ Note that deleting a vector store in the OpenAI dashboard does *not* delete the
 underlying uploaded file objects, which then linger in the project's file
 storage. Use `decker chatty --prune-files` to clean them up (see below).
 
+### Chatty system prompt and sealed config
+
+The chat assistant's system prompt, model and model parameters are authored in
+meta and **sealed into the published deck** at compile time. This replaces
+OpenAI's deprecated stored prompts. The work is split so each side changes at its
+own pace:
+
+- **Deck author (changes often):** the system prompt, model and params, written
+  in markdown and re-sealed on every `decker` build.
+- **Sysadmin (changes rarely):** the OpenAI API key and the encryption key, held
+  only in the `decker-chatty` proxy.
+
+How it flows at runtime:
+
+1. Decker encrypts the author config into `chatty.sealed-config` and strips the
+   plaintext, so the system prompt never appears in `public/`.
+2. The browser forwards the opaque blob to the proxy on every chat request and
+   does no crypto itself.
+3. The proxy decrypts the blob, then calls OpenAI with the sealed model,
+   instructions and `file_search` tool — ignoring any model/instructions/tools a
+   client tries to supply.
+
+The blob is AES-256-GCM with the `chatty.prompt` value bound as authenticated
+data, so a client can neither read the prompt nor move a blob between decks. (It
+does **not** protect against prompt-injection extraction once the chat is live.)
+
+#### Author configuration (meta)
+
+Set these under `chatty:` in `decker.yaml` (project-wide) or in a deck's YAML
+frontmatter:
+
+``` yaml
+chatty:
+  prompt: pmpt_tutor                 # selector into the proxy config (see below)
+  server: "https://example.org/chatty"
+  instructions: ./prompts/tutor.md   # path to a file, or inline prompt text
+  model: gpt-4.1
+  params:
+    temperature: 0.2
+  vector-store-id: vs_abc123         # the file_search store, sealed into the blob
+```
+
+| Key                | Required | Meaning |
+|--------------------|----------|---------|
+| `prompt`           | yes      | A name that selects an entry in the proxy's `config.json`. **No longer an OpenAI stored-prompt id** — pick any stable string, e.g. `pmpt_tutor`. Also used as the encryption AAD. |
+| `server`           | yes      | URL of the `decker-chatty` proxy endpoint the deck POSTs to. |
+| `instructions`     | yes      | The system prompt. If the value names an existing file (e.g. `./prompts/tutor.md`) its contents are used; otherwise the value is taken as inline text. |
+| `model`            | no       | OpenAI model id. Defaults to `gpt-4.1`. |
+| `params`           | no       | Extra Responses-API parameters merged into the request (e.g. `temperature`, `max_output_tokens`). Defaults to none. |
+| `vector-store-id`  | no       | The vector store used for `file_search` (the same id `decker chatty` uploads to). Omit to run without retrieval. |
+
+`instructions`, `model`, `params` and `vector-store-id` are sealed and then
+**removed** from the published meta. `prompt` and `server` remain (the client
+needs them); `chatty.sealed-config` is added.
+
+#### The encryption key (`chatty-key.json`)
+
+The key lives in a git-controlled **`chatty-key.json`** at the project root. It is
+read directly by the sealing code — never via `decker.yaml`, and never copied to
+`public/`. The simplest form is a single 32-byte key written straight to the file:
+
+``` bash
+openssl rand -base64 32 > chatty-key.json
+```
+
+That bare base64 line is accepted as-is. Equivalently you may quote it as a JSON
+string:
+
+``` json
+"Yk3v...base64-32-bytes...=="
+```
+
+Or, when one project serves several prompts, use a per-prompt JSON map:
+
+``` json
+{
+  "pmpt_tutor": "Yk3v...==",
+  "pmpt_grader": "Qp9a...=="
+}
+```
+
+The key must decode to exactly 32 bytes. If `chatty-key.json` is absent — or
+present but unparseable — sealing is skipped and the deck falls back to the
+legacy path; the build log says which, and the plaintext chatty config is still
+stripped from the output so the prompt never leaks.
+
+Decker logs, per chatty deck, whether it was **SEALED** (with a model /
+instructions / vector-store summary) or left in **LEGACY** mode (with the reason).
+Watch for the `# chatty:` lines during a build to confirm sealing actually ran.
+
+#### Proxy configuration (`decker-chatty`)
+
+The proxy's `config.json` maps each `prompt` id to its two secrets:
+
+``` json
+{
+  "port": 3000,
+  "prompts": {
+    "pmpt_tutor": {
+      "apiKey": "sk-...",
+      "deckConfigKey": "Yk3v...=="
+    }
+  }
+}
+```
+
+- `apiKey` — the OpenAI API key used for that prompt's requests.
+- `deckConfigKey` — **must be byte-for-byte the same** base64 key the author put
+  in `chatty-key.json` for that prompt id. Keys are validated (32 bytes) at
+  startup, so a mismatch in length fails fast; a content mismatch surfaces as a
+  `400 invalid sealed config` per request.
+
+Run it (typically behind a reverse proxy that terminates TLS and handles client
+authentication):
+
+``` bash
+cd decker-chatty
+npm install
+npm start          # or install the systemd service, see its README
+npm test           # optional: crypto-contract + body-assembly unit tests
+```
+
+#### End-to-end setup checklist
+
+1. **Generate a key:** `openssl rand -base64 32`.
+2. **Author side:** put the key in `chatty-key.json` at the project root; add the
+   `chatty:` block (above) to `decker.yaml`; keep the repo private to authors.
+3. **Proxy side:** add a `prompts.<prompt>` entry to the proxy `config.json` with
+   the OpenAI `apiKey` and the same key as `deckConfigKey`; start the proxy and
+   expose `server` over HTTPS.
+4. **Vector store (optional):** run `decker chatty` to create/sync the store and
+   set `chatty.vector-store-id`.
+5. **Build & publish:** `decker publish`. Verify the published
+   `public/<hash>.json` contains `chatty.sealed-config` and **not** the prompt
+   text, then open a deck and start a chat.
+
+#### Rotation and security notes
+
+- Rotating the **OpenAI `apiKey`** is free: edit the proxy `config.json`, no deck
+  recompile needed (the payoff of keeping the two secrets separate).
+- Rotating the **`deckConfigKey`** requires updating both `chatty-key.json` and
+  the proxy, then **recompiling** every deck that uses that prompt id.
+- `chatty-key.json` grants no more than repo read access already does — it does
+  **not** expose the OpenAI API key, which lives only in the proxy. Still, keep
+  any repo carrying it restricted to authors; if it is ever made public, rotate
+  the key and recompile.
+- Old decks published before this change (no sealed blob) keep working through a
+  legacy pass-through in the proxy, until OpenAI removes stored prompts.
+
 ## `> decker search-index`
 
 Builds an inverted index over all Markdown source files and stores it in JSON in
@@ -213,6 +418,63 @@ vector store was deleted in the OpenAI dashboard. This is destructive and
 operates on all assistant-purpose files in the project, not only those uploaded
 by decker.
 
+## `> decker exam-builder`
+
+Opens a browser web app for browsing the project's exam questions and assembling
+them into named exam collections. It first renders every `*-quest.yaml` question
+into a catalog, then starts the development server and opens the app at
+`http://localhost:8888/support/exam-builder.html` (use `-p` to change the port).
+
+Questions are grouped by lecture and topic. Questions that share a lecture and
+topic are treated as *variants* — the generated Moodle exam picks one of them at
+random for each student — so collections refer to topics rather than to
+individual variants. Pick the topics you want, give the collection a title, and
+save it. Each saved collection is written as `exams/<title>-exam.yaml` and can be
+reloaded or deleted from the app. The in-progress collection is kept in the
+browser, so it survives a page reload.
+
+The command keeps watching the project while the app is open: editing a
+`*-quest.yaml` (or a saved `*-exam.yaml`) rebuilds the catalog and refreshes the
+open app in place, preserving the current selection and scroll position.
+
+## `> decker agent-docs`
+
+Writes two version-stamped documents that teach an AI coding agent how to author
+and validate Decker content (slide decks, pages and exam questions), so it builds
+and inspects the generated HTML instead of guessing at the syntax:
+
+- `.decker/agent-guide.md` — the full, self-contained syntax reference and
+  build/validation recipe. Like `targets.yaml` it is a **regenerable, gitignored**
+  artifact that lives with the Shake state, and `decker clean`/`purge` may remove
+  it. Regenerate it any time with `decker agent-docs`.
+- `.claude/skills/decker/SKILL.md` — a short Claude Code skill that points at the
+  guide. This one is meant to be **committed** so that any clone or new session
+  auto-discovers it without running anything first.
+
+Both files carry the running binary's version stamp (e.g. `0.15.0 (dev, branch
+develop)`), so stale copies are easy to spot — check with `decker version`.
+Re-running the command is idempotent: when the on-disk stamp already matches the
+binary, the file is left untouched (reported as `Up to date`) and the git tree
+stays clean.
+
+Options (all specific to this command):
+
+- `--no-skill` — do not write `.claude/skills/decker/SKILL.md`.
+- `--no-guide` — do not write `.decker/agent-guide.md`.
+- `--output PATH` — write the guide to `PATH` instead of the default location.
+- `--stdout` — print the guide to standard output and write no files.
+
+With no options, both files are written to their default paths.
+
+Because these two documents now own the generic Decker knowledge — syntax and the
+build/validation loop — a project's `CLAUDE.md` no longer needs to teach any of
+it. Strip generic Decker how-to out of `CLAUDE.md` and keep only
+**project-specific** context there (this repo's conventions, directory layout,
+naming rules, bibliography keys, publishing target). This keeps `CLAUDE.md` small
+and avoids two copies of the syntax drifting apart; the skill and guide are
+version-stamped, `CLAUDE.md` is not. A project with no special conventions may not
+need a `CLAUDE.md` at all.
+
 # Options
 
 ## `-h`, `--help`
@@ -230,6 +492,20 @@ Serve the public dir via HTTP (implies --watch).
 ## `-w`, `--watch`
 
 Watch changes to source files and rebuild current target if necessary.
+
+## `-d DIR`, `--project-dir=DIR`
+
+Change to `DIR` and use it as the project root, instead of searching upwards
+from the current directory for `decker.yaml` (or `.git`). This is handy for
+building a project that lives elsewhere, for example when running a development
+build from the decker source tree:
+
+``` {.sh}
+stack run -- decker --project-dir=/path/to/other-project html
+```
+
+The directory is used verbatim, so the root is pinned even when it is nested
+inside a larger Git repository.
 
 ## `--prune-files`
 

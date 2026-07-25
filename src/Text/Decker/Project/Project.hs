@@ -180,10 +180,12 @@ findProjectRoot = do
         | FP.isDrive dir -> return start
         | otherwise -> search (FP.takeDirectory dir) start
 
--- Move CWD to the project directory.
-setProjectDirectory :: IO ()
-setProjectDirectory = do
-  projectDir <- findProjectRoot
+-- Move CWD to the project directory. When an explicit directory is given (via
+-- `--project-dir`), use it verbatim and skip the upward search for the project
+-- root. Otherwise locate the root with 'findProjectRoot'.
+setProjectDirectory :: Maybe FilePath -> IO ()
+setProjectDirectory explicit = do
+  projectDir <- maybe findProjectRoot return explicit
   Directory.setCurrentDirectory projectDir
   -- putStrLn $ "# Running decker in: " <> projectDir
 
