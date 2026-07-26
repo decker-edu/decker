@@ -52,6 +52,46 @@ div.block.testme-button[align="left"] {
    color: var(--chatty-testme-manual-focus-color, var(--foreground-color));
 }
 
+.chatty-icon-host {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   line-height: 1;
+}
+
+.chatty-icon-host .chatty-icon-image {
+   display: block;
+   width: 1em;
+   height: 1em;
+   object-fit: contain;
+}
+
+button.chatty-icon-host {
+   width: 2em;
+   height: 2em;
+}
+
+button.chatty-icon-host .chatty-icon-image {
+   width: 1.35em;
+   height: 1.35em;
+}
+
+button.chatty-icon-host.text,
+button.chatty-icon-host.emoji {
+   font-family: sans-serif;
+}
+
+button.chatty-icon-host.text {
+   width: auto;
+   min-width: 2em;
+   white-space: normal;
+   overflow-wrap: anywhere;
+}
+
+button .chatty-icon-host {
+   margin-inline-end: 0.25em;
+}
+
 #chatty-popover {
    position: fixed;
    width: 100ch;
@@ -98,6 +138,7 @@ div.block.testme-button[align="left"] {
       gap: var(--gap);
       align-items: stretch;
       flex: 0 0 6em;
+      min-width: 0;
    }
 
    & :is(input, select, textarea, button) {
@@ -112,6 +153,9 @@ div.block.testme-button[align="left"] {
 
    & textarea {
       flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
    }
 
    & button {
@@ -135,6 +179,7 @@ div.block.testme-button[align="left"] {
       flex-direction: column;
       gap: 1em;
       flex: 1 1 auto;
+      min-width: 0;
    }
 
    & #prompt {
@@ -143,7 +188,10 @@ div.block.testme-button[align="left"] {
 
    & .msg {
       display: flex;
+      align-items: flex-start;
+      gap: 0.75em;
       position: relative;
+      width: 100%;
 
       h1 {
          font-size: 1.5em;
@@ -171,7 +219,8 @@ div.block.testme-button[align="left"] {
    }
 
    & .msg.user {
-      justify-content: flex-end;
+      flex-direction: row-reverse;
+      justify-content: flex-start;
    }
 
    & .msg.bot {
@@ -181,11 +230,22 @@ div.block.testme-button[align="left"] {
    & .bubble {
       color: var(--foreground-color);
       border-radius: var(--radius);
-      max-width: min(calc(100% - 7em), 80ch);
+      max-width: min(100%, 80ch);
+      min-width: 0;
       padding: 10px 14px;
       line-height: 1.4;
       overflow-x: visible;
       position: relative;
+      flex: 0 1 auto;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+   }
+
+   & .bubble .content {
+      max-width: 100%;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
    }
 
    & .bubble p {
@@ -194,17 +254,6 @@ div.block.testme-button[align="left"] {
 
    & .user .bubble {
       background: var(--base0B-bg);
-      margin-right: 3em;
-
-      &:before {
-         content: "🤔";
-         font-size: 2em;
-         position: absolute;
-         right: -1.5em;
-         top: 0;
-         width: 1em;
-         height: 1em;
-      }
 
       &:after {
          content: "";
@@ -222,17 +271,6 @@ div.block.testme-button[align="left"] {
 
    & .bot .bubble {
       background: var(--background-color);
-      margin-left: 3em;
-
-      &:before {
-         content: "🤖";
-         font-size: 2em;
-         position: absolute;
-         left: -1.5em;
-         top: 0;
-         width: 1em;
-         height: 1em;
-      }
 
       &:after {
          content: "";
@@ -248,17 +286,58 @@ div.block.testme-button[align="left"] {
       }
    }
 
-   & .bot .bubble:has(.content:empty) {
-      &:before {
-         animation-name: fa-fade;
-         animation-duration: 1s;
-         animation-iteration-count: infinite;
-         animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
-      }
+   & .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      line-height: 1;
+      overflow: visible;
+      text-align: center;
+   }
 
+   & .avatar.fontawesome,
+   & .avatar.emoji {
+      width: 1em;
+      height: 1em;
+      font-size: 2em;
+   }
+
+   & .avatar.image {
+      width: 2em;
+      height: 2em;
+   }
+
+   & .avatar.text {
+      min-width: 2em;
+      max-width: 10em;
+      min-height: 2em;
+      padding: 0 0.35em;
+      font-family: sans-serif;
+      font-size: 0.95em;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+      white-space: normal;
+   }
+
+   & .avatar .chatty-icon-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+   }
+
+   & .bot .bubble:has(.content:empty) {
       &:after {
          display: none;
       }
+   }
+
+   & .bot.msg:has(.content:empty) .avatar {
+      animation-name: fa-fade;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
    }
 
    & .bot .bubble .content:empty {

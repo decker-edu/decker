@@ -329,6 +329,10 @@ showDeckerLink: true
 | `chatty.vector-store-name` | string | Name used when creating a vector store; default is `decker`. |
 | `chatty.extra` | list of directories | Extra directories uploaded into the Chatty vector store. |
 | `chatty.greeting` | string | Runtime greeting fallback used by Chatty UI where present. |
+| `chatty.identity.name` | string | Display name used for Chatty button labels/tooltips; defaults to `Prof. Bot`. |
+| `chatty.identity.launcher.icon` | map | Launcher icon as `{ type, value }`; `type` is `fontawesome`, `image`, `text`, or `emoji`. |
+| `chatty.identity.bot.icon` | map | Bot bubble avatar as `{ type, value }`; defaults to the robot emoji. |
+| `chatty.identity.user.icon` | map | User bubble avatar as `{ type, value }`; defaults to the thinking-face emoji. |
 
 Example skeleton:
 
