@@ -357,7 +357,13 @@ deckerRules = do
       need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
     --
     indexFile %> \out -> do
+      targetsPath <- liftIO targetsFile
+      need [targetsPath]
       targets <- getDeps
+      need $
+        Map.elems (targets ^. decks)
+          <> Map.elems (targets ^. pages)
+          <> Map.elems (targets ^. questions)
       meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       exists <- doesFileExist indexSource
       if exists
