@@ -117,9 +117,14 @@ const Plugin = {
       // which element to zoom to
       let element = event.target;
 
+      // is it a part of a code editor, then zoom the code cell
+      const textarea = element.closest(".thebe-cell");
+      if (textarea) element = textarea;
+
       // is it a part of an SVG (or MathJax formula)? then zoom to the SVG
       const svg = element.closest("svg");
       if (svg) element = svg;
+
 
       zoomTo(element);
 
