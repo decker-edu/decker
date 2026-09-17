@@ -4,6 +4,7 @@
 @import url("./structure.css");
 @import url("./style.css");
 @import url("./media.css");
+@import url("./buttons.css");
 
 html {
   color: var(--foreground-color);

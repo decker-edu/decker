@@ -1,8 +1,18 @@
 @import url("./colors.css");
 
 :root {
-  /* variable font setting for Recursive*/
+  /* Recursive variable font settings */
   --casl: 0.2;
+  --normal-font-weight: 400;
+  --code-font-weight: 500;
+  --bold-font-weight: 600;
+  --header-font-weight: 700;
+
+  /* Primary colors for .red, .green, .blue and .black spans */
+  --red: #ff0000;
+  --green: #00ff00;
+  --blue: #0000ff;
+  --black: #000000;
 
   /* Icon settings */
   --icon-size: 1rem;

@@ -1,20 +1,19 @@
+/* The deck font size stays here: deck.css sets it after variables.css. Other
+variables are in variables.css, where `css-variables` can override them. */
 :root {
   --root-font-size: 40px;
-  --normal-font-weight: 400;
-  --code-font-weight: 500;
-  --bold-font-weight: 600;
-  --header-font-weight: 700;
 }
 
+/* Recursive has a slant axis, so `italic` and `oblique` use real slanted
+glyphs. */
 @font-face {
   font-family: "Recursive";
   src: url("../fonts/Recursive.woff2") format("woff2-variations");
   font-weight: 300 1000;
-  font-style: normal;
+  font-style: oblique 0deg 15deg;
 }
 
-body.deck {
-  font-size: var(--root-font-size);
+body:is(.deck, .handout, .page, .index) {
   color: var(--foreground-color);
   font-family: "Recursive", sans-serif;
   font-variation-settings:
@@ -22,70 +21,92 @@ body.deck {
     "CASL" var(--casl);
   font-weight: var(--normal-font-weight);
   -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
   user-select: text;
 }
 
-body.handout,
-body.page,
-body.index {
+body:is(.handout, .page, .index) {
   font-size: 16px;
-  color: var(--foreground-color);
-  font-family: "Recursive", sans-serif;
-  font-variation-settings:
-    "MONO" 0,
-    "CASL" var(--casl);
-  font-weight: var(--normal-font-weight);
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}
-
-/* Element styles below are scoped to content: slides, pages, handouts, the
-index and chatty answers. Plugin UIs appended to the deck body keep their own
-styles. `:where()` keeps the specificity of the plain element selectors. */
-
-/* Inline code */
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) code {
-  font-size: 100%;
-  color: var(--foreground-color);
-  font-family: "Recursive", monospace;
-  font-variation-settings:
-    "MONO" 1,
-    "CASL" var(--casl);
-  font-weight: var(--code-font-weight);
-  caret-color: var(--shade7);
-  padding: 0.2em;
 }
 
 body.index div.search-box {
   white-space: nowrap;
 }
 
-/* Bold stuff */
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) strong {
-  font-weight: var(--bold-font-weight);
+/* Element styles below are scoped to content: slides, pages, handouts, the
+index and chatty answers. Plugin UIs appended to the deck body keep their own
+styles. `:where()` keeps the specificity of the plain element selectors. */
+:where(.reveal .slides, body:not(.deck), #chatty-dialog) {
+  /* Inline code */
+  & code {
+    font-size: 100%;
+    color: var(--foreground-color);
+    font-family: "Recursive", monospace;
+    font-variation-settings:
+      "MONO" 1,
+      "CASL" var(--casl);
+    font-weight: var(--code-font-weight);
+    caret-color: var(--shade7);
+    padding: 0.2em;
+  }
+
+  /* Bold stuff */
+  & :is(strong, summary, th) {
+    font-weight: var(--bold-font-weight);
+  }
+
+  /* Headers */
+  & h1,
+  & h1.title {
+    font-size: 130%;
+  }
+
+  & h2 {
+    font-size: 120%;
+  }
+
+  & h3 {
+    font-size: 110%;
+  }
+
+  & :is(h1, h2, h3),
+  & h1.title {
+    font-weight: var(--header-font-weight);
+  }
+
+  /* Links. `:visited` and `:active` are needed to override style.css. */
+  & a,
+  & a:visited,
+  & a:active {
+    color: var(--accent5);
+  }
+
+  & a:hover {
+    background-color: var(--accent5-bbg);
+    border-radius: var(--block-border-radius);
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    margin-left: -0.2em;
+    margin-right: -0.2em;
+  }
 }
 
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) summary {
-  font-weight: var(--bold-font-weight);
+body.deck :where(.reveal .slides) h1 {
+  font-size: 150%;
 }
 
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) th {
-  font-weight: var(--bold-font-weight);
+section.inverse :is(h1, h2) {
+  color: var(--shade1);
 }
 
 /* Code blocks. */
-:is(span.pre, pre)>code {
+:is(span.pre, pre) > code {
   display: block;
   font-size: 100%;
   line-height: 1.3;
   padding: 0.5em;
 }
 
-:is(span.pre, pre)>code[contenteditable]:focus {
+:is(span.pre, pre) > code[contenteditable]:focus {
   outline: solid 10px var(--accent7);
 }
 
@@ -93,46 +114,8 @@ div.media {
   margin: var(--vertical-margin) 0;
 }
 
-/* Headers */
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) h1,
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) h1.title {
-  font-size: 130%;
-  font-weight: var(--header-font-weight);
-}
-
-body.deck :where(.reveal .slides) h1 {
-  font-size: 150%;
-  font-weight: var(--header-font-weight);
-}
-
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) h2 {
-  font-size: 120%;
-  font-weight: var(--header-font-weight);
-}
-
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) h3 {
-  font-size: 110%;
-  font-weight: var(--header-font-weight);
-}
-
-section.inverse :is(h1, h2) {
-  color: var(--shade1);
-}
-
-/* Links */
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) a,
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) a:visited,
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) a:active {
-  color: var(--accent5);
-}
-
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) a:hover {
-  background-color: var(--accent5-bbg);
-}
-
-/* Spans */
-:where(.reveal .slides, body:not(.deck), #chatty-dialog) a:hover,
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+/* Colored spans */
+span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7, .red, .green, .blue, .black) {
   border-radius: var(--block-border-radius);
   padding-left: 0.2em;
   padding-right: 0.2em;
@@ -144,313 +127,74 @@ span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .a
 use them. */
 .accent0 {
   --mono-accent: var(--accent0);
-  --mono-accent-bbg: var(--accent0-bbg);
 }
 
 .accent1 {
   --mono-accent: var(--accent1);
-  --mono-accent-bbg: var(--accent1-bbg);
 }
 
 .accent2 {
   --mono-accent: var(--accent2);
-  --mono-accent-bbg: var(--accent2-bbg);
 }
 
 .accent3 {
   --mono-accent: var(--accent3);
-  --mono-accent-bbg: var(--accent3-bbg);
 }
 
 .accent4 {
   --mono-accent: var(--accent4);
-  --mono-accent-bbg: var(--accent4-bbg);
 }
 
 .accent5 {
   --mono-accent: var(--accent5);
-  --mono-accent-bbg: var(--accent5-bbg);
 }
 
 .accent6 {
   --mono-accent: var(--accent6);
-  --mono-accent-bbg: var(--accent6-bbg);
 }
 
 .accent7 {
   --mono-accent: var(--accent7);
-  --mono-accent-bbg: var(--accent7-bbg);
 }
 
-/* Blocks get a light accent background, the block header the full accent. */
+/* Blocks get a light accent background from style.css, the border and the
+block header the full accent. */
 div.block:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
-  background-color: var(--mono-accent-bbg);
   border: var(--block-border-width) solid var(--mono-accent);
-}
 
-div.block:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) h2 {
-  color: var(--shade1);
-  background-color: var(--mono-accent);
+  & h2 {
+    color: var(--shade1);
+    background-color: var(--mono-accent);
+  }
 }
 
 /* Spans are filled with the accent color, `.fg` colors only the text. `.bg` is
 the same as the default. */
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7):not(.fg) {
-  background-color: var(--mono-accent);
-  color: var(--shade0);
-}
+span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+  &:not(.fg) {
+    background-color: var(--mono-accent);
+    color: var(--shade0);
+  }
 
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7).fg {
-  background-color: var(--shade0);
-  color: var(--mono-accent);
-}
-
-/* More styling */
-
-section .figure :is(img, svg, pre, span.pre, video, iframe, object) {
-  border-radius: var(--block-border-radius);
-  border: solid var(--shade2) 0.01em;
-}
-
-section.inverse .figure :is(img, svg, pre, span.pre, video, iframe, object) {
-  border: solid var(--shade5) 0.01em;
-}
-
-/* Overwrite Pandoc's syntax highlighting CSS with palette colors */
-pre>code.sourceCode {
-  white-space: pre;
-}
-
-pre>code.sourceCode>span {
-  display: inline-block;
-  line-height: 1.25;
-}
-
-pre>code.sourceCode>span:empty {
-  height: 1.2em;
-}
-
-.sourceCode {
-  overflow: visible;
-}
-
-code.sourceCode>span {
-  color: inherit;
-  text-decoration: inherit;
-}
-
-div.sourceCode {
-  margin: 1em 0;
-}
-
-pre.sourceCode {
-  margin: 0;
-}
-
-@media screen {
-  div.sourceCode {
-    overflow: auto;
+  &.fg {
+    background-color: var(--shade0);
+    color: var(--mono-accent);
   }
 }
 
-@media print {
-  pre>code.sourceCode {
-    white-space: pre-wrap;
-  }
-
-  pre>code.sourceCode>span {
-    text-indent: -5em;
-    padding-left: 5em;
-  }
+/* Primary colors */
+span.red {
+  color: var(--red);
 }
 
-pre.numberSource code {
-  counter-reset: source-line 0;
+span.green {
+  color: var(--green);
 }
 
-pre.numberSource code>span {
-  position: relative;
-  left: -4em;
-  counter-increment: source-line;
+span.blue {
+  color: var(--blue);
 }
 
-pre.numberSource code>span>a:first-child::before {
-  content: counter(source-line);
-  position: relative;
-  left: -1em;
-  text-align: right;
-  vertical-align: baseline;
-  border: none;
-  display: inline-block;
-  -webkit-touch-callout: none;
-  padding: 0 4px;
-  width: 4em;
-}
-
-pre.numberSource {
-  margin-left: 3em;
-  padding-left: 4px;
-}
-
-div.sourceCode {
-  color: var(--shade7);
-  background-color: var(--code-background-color);
-}
-
-@media screen {
-  pre>code.sourceCode>span>a:first-child::before {
-    text-decoration: underline;
-  }
-}
-
-/* Alert */
-code span.al {
-  color: var(--accent0);
-}
-
-/* Annotation */
-code span.an {
-  color: var(--accent4);
-  font-weight: var(--bold-font-weight);
-}
-
-/* BaseN */
-code span.bn {
-  color: var(--accent2);
-}
-
-/* ControlFlow */
-code span.cf {
-  color: var(--accent5);
-}
-
-/* Char */
-code span.ch {
-  color: var(--accent3);
-}
-
-/* Constant */
-code span.cn {
-  color: var(--accent1);
-  font-weight: var(--bold-font-weight);
-}
-
-/* Comment */
-code span.co {
-  color: var(--shade5);
-}
-
-/* CommentVar */
-code span.cv {
-  color: var(--shade5);
-  font-weight: var(--bold-font-weight);
-}
-
-/* Documentation */
-code span.do {
-  color: var(--shade5);
-}
-
-/* DataType */
-code span.dt {
-  color: var(--accent2);
-  text-decoration: none;
-}
-
-/* DecVal */
-code span.dv {
-  color: var(--accent2);
-}
-
-/* Error */
-code span.er {
-  color: var(--accent7);
-}
-
-/* Float */
-code span.fl {
-  color: var(--accent1);
-}
-
-/* Function */
-code span.fu {
-  color: var(--accent2);
-}
-
-/* Information */
-code span.in {
-  color: var(--accent3);
-  font-weight: var(--bold-font-weight);
-}
-
-/* Keyword */
-code span.kw {
-  color: var(--accent5);
-  font-weight: var(--bold-font-weight);
-}
-
-/* Operator */
-code span.op {
-  color: var(--accent5);
-}
-
-/* Preprocessor */
-code span.pp {
-  color: var(--accent1);
-  font-weight: var(--bold-font-weight);
-}
-
-/* SpecialChar */
-code span.sc {
-  color: var(--accent0);
-}
-
-/* SpecialString */
-code span.ss {
-  color: var(--accent0);
-}
-
-/* String */
-code span.st {
-  color: var(--accent3);
-}
-
-/* VerbatimString */
-code span.vs {
-  color: var(--accent2);
-}
-
-/* Warning */
-code span.wa {
-  color: var(--accent1);
-  font-weight: var(--bold-font-weight);
-}
-
-input {
-  accent-color: var(--accent3);
-}
-
-/* Task list entries */
-li.task-yes input[type="checkbox"],
-li.task-no input[type="checkbox"] {
-  font-size: 100%;
-  height: 0.8em;
-  width: 0.8em;
-  vertical-align: baseline;
-  padding: 0;
-  margin-bottom: 0;
-}
-
-/* Some additional colors */
-:root {
-  /* primary colors */
-  --red: #ff0000;
-  --green: #00ff00;
-  --blue: #0000ff;
-  --black: #000000;
-}
-
-/* Primary RGB color stuff */
 span.red.bg {
   color: var(--shade0);
   background-color: var(--red);
@@ -471,24 +215,75 @@ span.black.bg {
   background-color: var(--black);
 }
 
-span.red {
-  color: var(--red);
-}
-
-span.green {
-  color: var(--green);
-}
-
-span.blue {
-  color: var(--blue);
-}
-
-span:is(.red, .green, .blue, .black) {
+/* Figures */
+section .figure :is(img, svg, pre, span.pre, video, iframe, object) {
   border-radius: var(--block-border-radius);
-  padding-left: 0.2em;
-  padding-right: 0.2em;
-  margin-left: -0.2em;
-  margin-right: -0.2em;
+  border: solid var(--shade2) 0.01em;
+}
+
+section.inverse .figure :is(img, svg, pre, span.pre, video, iframe, object) {
+  border: solid var(--shade5) 0.01em;
+}
+
+/* Syntax highlighting. Pandoc's CSS provides the structure, this only replaces
+its colors and weights with palette colors. */
+div.sourceCode {
+  color: var(--shade7);
+  background-color: var(--code-background-color);
+}
+
+code span:is(.al, .sc, .ss) {
+  color: var(--accent0);
+}
+
+code span:is(.cn, .fl, .pp, .wa) {
+  color: var(--accent1);
+}
+
+code span:is(.bn, .dt, .dv, .fu, .vs) {
+  color: var(--accent2);
+}
+
+code span:is(.ch, .in, .st) {
+  color: var(--accent3);
+}
+
+code span.an {
+  color: var(--accent4);
+}
+
+code span:is(.cf, .kw, .op) {
+  color: var(--accent5);
+}
+
+code span.er {
+  color: var(--accent7);
+}
+
+code span:is(.co, .cv, .do) {
+  color: var(--shade5);
+}
+
+code span:is(.an, .cn, .cv, .in, .kw, .pp, .wa) {
+  font-weight: var(--bold-font-weight);
+}
+
+code span.dt {
+  text-decoration: none;
+}
+
+/* Form elements */
+input {
+  accent-color: var(--accent3);
+}
+
+li:is(.task-yes, .task-no) input[type="checkbox"] {
+  font-size: 100%;
+  height: 0.8em;
+  width: 0.8em;
+  vertical-align: baseline;
+  padding: 0;
+  margin-bottom: 0;
 }
 
 a.document-url {
@@ -496,11 +291,12 @@ a.document-url {
   position: fixed;
   left: 0;
   bottom: 0;
-  font-weight: 200;
+  font-weight: 300;
   font-size: 50%;
   color: var(--shade2);
 }
 
+/* Chatty */
 body.deck div#chatty-dialog {
   font-size: 1.6vw;
 
