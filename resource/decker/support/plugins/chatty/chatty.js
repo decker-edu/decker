@@ -1,4 +1,9 @@
-import setup from "../../chatty/chatty.js";
+import setup, {
+  getChattyIdentity,
+  getLocalizedText,
+  renderIcon,
+  setButtonIcon
+} from "../../chatty/chatty.js";
 
 let Reveal;
 let dialog;
@@ -19,6 +24,22 @@ const HEADING_SELECTOR = "h1, h2, h3, h4, h5, h6";
 const DIRECT_HEADING_SELECTOR = HEADING_SELECTOR.split(", ")
   .map((selector) => `:scope > ${selector}`)
   .join(", ");
+
+function currentLanguage() {
+  return window.Decker?.meta?.lang || navigator.language;
+}
+
+function currentIdentity() {
+  return getChattyIdentity(window.Decker?.meta?.chatty ?? {});
+}
+
+function launcherTooltip(id, defaults) {
+  return getLocalizedText(
+    id.launcher?.tooltip ?? id.tooltip,
+    currentLanguage(),
+    currentLanguage() === "de" ? defaults.de : defaults.en
+  );
+}
 
 // helper function to parse boolean values from strings or other types
 // returns the fallback value if the input cannot be parsed as a boolean
@@ -118,7 +139,9 @@ function getAutomaticTestMeInsertionTarget(targetSlide) {
 
 // applies the shared visual treatment for buttons that trigger chatty prompts
 function decorateAskChattyButton(button, label) {
-  button.innerHTML = `<i class="fa-solid fa-robot"></i> &thinsp; ${label}`;
+  const icon = document.createElement("span");
+  renderIcon(icon, currentIdentity().launcher?.icon);
+  button.replaceChildren(icon, document.createTextNode(` \u2009 ${label}`));
   button.classList.add("fa-button", "fa-solid", "glowing-border");
 }
 
@@ -318,11 +341,15 @@ function createGUI() {
   setup(dialog, Reveal);
 
   // create button
+  const id = currentIdentity();
   const button = document.createElement("button");
   button.id = "chatty-button";
-  button.title = button.ariaLabel =
-    navigator.language === "de" ? "Prof. Bot fragen" : "Ask Prof. Bot";
-  button.className = "fa-button fa-solid fa-robot";
+  button.title = button.ariaLabel = launcherTooltip(id, {
+    de: `${id.name} fragen`,
+    en: `Ask ${id.name}`
+  });
+  button.className = "fa-button";
+  setButtonIcon(button, id.launcher?.icon);
 
   button.onclick = () => {
     dialog.showModal();
@@ -341,9 +368,9 @@ function createGUI() {
       keyCode: 67,
       key: "C",
       description:
-        navigator.language === "de"
-          ? "Chatte mit Prof. Bot"
-          : "Chat with Prof. Bot"
+        currentLanguage() === "de"
+          ? `Chatte mit ${id.name}`
+          : `Chat with ${id.name}`
     },
 
     () => {

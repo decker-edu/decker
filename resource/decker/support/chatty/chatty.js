@@ -1,10 +1,14 @@
 export default setup;
+export { getChattyIdentity, getLocalizedText, renderIcon, setButtonIcon };
 import "./marked.min.js";
 
 // config
 let server;
 let prompt;
 let sealed; // opaque sealed-config blob, forwarded to the proxy on every request
+let config = {};
+let setupOptions = {};
+let identity;
 
 // access to Reveal and slide with annottions
 let Reveal;
@@ -53,14 +57,18 @@ const useFirst = Decker?.meta?.chatty
   ? Decker.meta.chatty["use-first-annotation-page"]
   : false;
 
-function setup(anchor, reveal) {
+function setup(anchor, revealOrOptions, maybeOptions) {
+  setupOptions = normalizeSetupOptions(revealOrOptions, maybeOptions);
+
   // are we running in a slide deck?
-  if (reveal) Reveal = reveal;
+  Reveal = setupOptions.reveal;
 
   // get server and prompt from config
-  server = window.Decker?.meta?.chatty?.server;
-  prompt = window.Decker?.meta?.chatty?.prompt;
-  sealed = window.Decker?.meta?.chatty?.["sealed-config"];
+  config = getChattyConfig(setupOptions);
+  identity = getChattyIdentity(config, setupOptions.fallbackConfig);
+  server = config.server;
+  prompt = config.prompt;
+  sealed = config["sealed-config"];
   if (!server || !prompt) return;
 
   // setup GUI
@@ -82,13 +90,19 @@ function setup(anchor, reveal) {
   promptEl = document.getElementById("prompt");
   sendBtn = document.getElementById("send");
   stopBtn = document.getElementById("stop");
+  applyDialogIdentity(dialog, identity);
 
-  // inject CSS
-  const style = document.createElement("link");
-  style.rel = "stylesheet";
-  style.type = "text/css";
-  style.href = import.meta.url.replace("chatty.js", "chatty.css");
-  document.head.appendChild(style);
+  // inject CSS unless a template provides its own chatty styling
+  if (setupOptions.loadStyles !== false) {
+    const href = import.meta.url.replace("chatty.js", "chatty.css");
+    if (!document.querySelector(`link[href="${href}"]`)) {
+      const style = document.createElement("link");
+      style.rel = "stylesheet";
+      style.type = "text/css";
+      style.href = href;
+      document.head.appendChild(style);
+    }
+  }
 
   // button callbacks
   sendBtn.onclick = () => send();
@@ -124,20 +138,16 @@ function setup(anchor, reveal) {
   };
 
   // post initial bot message
-  newMessage("bot").add(
-    Reveal
-      ? window.Decker?.meta?.chatty?.greetingDeck ||
-          window.Decker?.meta?.chatty?.greeting ||
-          l10n.greetingDeck
-      : window.Decker?.meta?.chatty?.greeting || l10n.greeting
-  );
+  newMessage("bot").add(getGreeting());
 }
 
 function newMessage(role) {
   const wrap = document.createElement("div");
   wrap.className = `msg ${role}`;
-  wrap.innerHTML = `<div class="bubble"><div class="content"></div></div>`;
+  wrap.innerHTML = `<span class="avatar"></span><div class="bubble"><div class="content"></div></div>`;
 
+  const avatar = wrap.querySelector(".avatar");
+  renderRoleAvatar(avatar, role);
   const content = wrap.querySelector(".content");
   content.add = (text) => {
     addToMessage(content, text);
@@ -167,6 +177,10 @@ async function addToMessage(msg, text) {
   // restore math content
   html = html.replace(/@@MATH_(\d+)@@/g, (_, i) => tokens[Number(i)]);
 
+  if (typeof setupOptions.postProcessMarkdown === "function") {
+    html = setupOptions.postProcessMarkdown(html, msg) ?? html;
+  }
+
   // add to DOM element
   msg.innerHTML = html;
 
@@ -191,9 +205,12 @@ async function send(userInput) {
     userInput = promptEl.value.trim();
     if (!userInput) return;
   }
-  let input = Reveal
-    ? await combineUserInputAndSlideInfo(userInput)
-    : userInput;
+  let input =
+    typeof setupOptions.buildInput === "function"
+      ? await setupOptions.buildInput(userInput)
+      : Reveal
+        ? await combineUserInputAndSlideInfo(userInput)
+        : userInput;
 
   // adjust button states
   sendBtn.disabled = true;
@@ -360,6 +377,186 @@ async function send(userInput) {
     abortController = null;
     promptEl.focus();
   }
+}
+
+function normalizeSetupOptions(revealOrOptions, maybeOptions) {
+  if (isSetupOptions(revealOrOptions)) {
+    return { ...revealOrOptions };
+  }
+  return { ...(maybeOptions || {}), reveal: revealOrOptions };
+}
+
+function isSetupOptions(value) {
+  return (
+    value &&
+    typeof value === "object" &&
+    ("config" in value ||
+      "fallbackConfig" in value ||
+      "buildInput" in value ||
+      "postProcessMarkdown" in value ||
+      "greeting" in value ||
+      "loadStyles" in value ||
+      "reveal" in value)
+  );
+}
+
+function getChattyConfig(options = {}) {
+  const fallback = options.fallbackConfig ?? window.Decker?.meta?.chatty ?? {};
+  const primary = options.config ?? fallback;
+  return mergeObjects(fallback, primary);
+}
+
+function getGreeting() {
+  if (typeof setupOptions.greeting === "string") return setupOptions.greeting;
+  if (Reveal) return config.greetingDeck || config.greeting || l10n.greetingDeck;
+  return config.greeting || l10n.greeting;
+}
+
+function mergeObjects(base, override) {
+  const merged = { ...(base || {}) };
+  Object.entries(override || {}).forEach(([key, value]) => {
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      merged[key] &&
+      typeof merged[key] === "object" &&
+      !Array.isArray(merged[key])
+    ) {
+      merged[key] = mergeObjects(merged[key], value);
+    } else {
+      merged[key] = value;
+    }
+  });
+  return merged;
+}
+
+function getChattyIdentity(primaryConfig = {}, fallbackConfig = {}) {
+  const fallbackIdentity = fallbackConfig?.identity ?? {};
+  const primaryIdentity = primaryConfig?.identity ?? {};
+  const configured = mergeObjects(fallbackIdentity, primaryIdentity);
+  const name = configured.name || "Prof. Bot";
+
+  return normalizeIdentityFields(
+    mergeObjects(
+      {
+        name,
+        launcher: {
+          icon: { type: "fontawesome", value: "fa-robot" }
+        },
+        bot: {
+          icon: { type: "emoji", value: "🤖" },
+          tooltip: name
+        },
+        user: {
+          icon: { type: "emoji", value: "🤔" }
+        }
+      },
+      configured
+    )
+  );
+}
+
+function normalizeIdentityFields(id) {
+  [id, id.launcher, id.bot, id.user].forEach((section) => {
+    if (!section) return;
+    const de = section["tooltip-de"];
+    const en = section["tooltip-en"];
+    if (de || en) {
+      const existing =
+        section.tooltip && typeof section.tooltip === "object"
+          ? section.tooltip
+          : { en: section.tooltip };
+      section.tooltip = {
+        ...existing,
+        ...(de ? { de } : {}),
+        ...(en ? { en } : {})
+      };
+    }
+  });
+  return id;
+}
+
+function getLocalizedText(value, language = lang, fallback = "") {
+  if (!value) return fallback;
+  if (typeof value === "string") return value;
+  return (
+    value[language] ??
+    value[language?.slice(0, 2)] ??
+    value.en ??
+    value.de ??
+    fallback
+  );
+}
+
+function getRoleTooltip(role) {
+  return getLocalizedText(identity[role]?.tooltip, lang, "");
+}
+
+function applyDialogIdentity(dialogEl, id) {
+  dialogEl.dataset.chattyName = id.name;
+}
+
+function renderRoleAvatar(target, role) {
+  const icon = role === "user" ? identity.user?.icon : identity.bot?.icon;
+  const tooltip = getRoleTooltip(role);
+  renderIcon(target, icon);
+  if (tooltip) {
+    target.title = tooltip;
+    target.ariaLabel = tooltip;
+  } else {
+    target.setAttribute("aria-hidden", "true");
+  }
+}
+
+function renderIcon(target, iconConfig) {
+  const icon = normalizeIcon(iconConfig);
+  target.replaceChildren();
+  target.classList.remove("fontawesome", "image", "text", "emoji");
+  target.classList.add("chatty-icon-host", icon.type);
+
+  if (icon.type === "fontawesome") {
+    const element = document.createElement("i");
+    element.className = normalizeFontAwesomeClasses(icon.value);
+    element.setAttribute("aria-hidden", "true");
+    target.appendChild(element);
+  } else if (icon.type === "image") {
+    const element = document.createElement("img");
+    element.src = icon.value;
+    element.alt = "";
+    element.className = "chatty-icon-image";
+    target.appendChild(element);
+  } else {
+    target.textContent = icon.value;
+  }
+}
+
+function setButtonIcon(button, iconConfig) {
+  button.classList.remove("fa-solid", "fas", "far", "fab", "fa-robot");
+  renderIcon(button, iconConfig);
+}
+
+function normalizeIcon(iconConfig) {
+  if (iconConfig && typeof iconConfig === "object") {
+    return {
+      type: iconConfig.type || "fontawesome",
+      value: iconConfig.value || "fa-robot"
+    };
+  }
+  if (typeof iconConfig === "string") {
+    return { type: "fontawesome", value: iconConfig };
+  }
+  return { type: "fontawesome", value: "fa-robot" };
+}
+
+function normalizeFontAwesomeClasses(value) {
+  const classes = String(value || "fa-robot").trim();
+  if (!classes) return "fa-solid fa-robot";
+  if (/\b(fa-solid|fas|fa-regular|far|fa-brands|fab)\b/.test(classes)) {
+    return classes;
+  }
+  if (classes.startsWith("fa-")) return `fa-solid ${classes}`;
+  return `fa-solid fa-${classes}`;
 }
 
 function closeDialog() {

@@ -226,6 +226,16 @@ frontmatter:
 chatty:
   prompt: pmpt_tutor                 # selector into the proxy config (see below)
   server: "https://example.org/chatty"
+  greeting: |
+    I'm **Prof. Bot**, your AI tutor for this course.
+  identity:
+    name: Prof. Bot
+    launcher:
+      icon: { type: fontawesome, value: fa-robot }
+    bot:
+      icon: { type: emoji, value: "🤖" }
+    user:
+      icon: { type: emoji, value: "🤔" }
   instructions: ./prompts/tutor.md   # path to a file, or inline prompt text
   model: gpt-4.1
   params:
@@ -237,6 +247,8 @@ chatty:
 |--------------------|----------|---------|
 | `prompt`           | yes      | A name that selects an entry in the proxy's `config.json`. **No longer an OpenAI stored-prompt id** — pick any stable string, e.g. `pmpt_tutor`. Also used as the encryption AAD. |
 | `server`           | yes      | URL of the `decker-chatty` proxy endpoint the deck POSTs to. |
+| `greeting`         | no       | Markdown greeting shown as the first Chatty message. |
+| `identity`         | no       | Name, launcher tooltip and launcher/bot/user icons. Icons use `{ type, value }` with `fontawesome`, `image`, `text`, or `emoji`. |
 | `instructions`     | yes      | The system prompt. If the value names an existing file (e.g. `./prompts/tutor.md`) its contents are used; otherwise the value is taken as inline text. |
 | `model`            | no       | OpenAI model id. Defaults to `gpt-4.1`. |
 | `params`           | no       | Extra Responses-API parameters merged into the request (e.g. `temperature`, `max_output_tokens`). Defaults to none. |

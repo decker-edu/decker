@@ -158,7 +158,7 @@ function slideChanged() {
     for (let i = 0; i < numAnswers; i++) {
       const input = inputElements[i];
       input.parentElement.classList.remove("show-answer");
-      if (input.checked) {
+      if (input.defaultChecked) {
         ++numCorrectAnswers;
         solution.push(choices[i]);
       }
@@ -331,9 +331,10 @@ function prepareQuizzes() {
 
       // active quizzes
       if (!Decker.meta["disable-quizzes"]) {
+        input.setAttribute("autocomplete", "off");
         li.setAttribute("role", "button");
         li.setAttribute("tabindex", 0);
-        li.classList.add(input.checked ? "right" : "wrong");
+        li.classList.add(input.defaultChecked ? "right" : "wrong");
 
         li.onclick = function (e) {
           this.classList.add("show-answer");
