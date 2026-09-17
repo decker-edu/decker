@@ -8,11 +8,19 @@
   --bold-font-weight: 600;
   --header-font-weight: 700;
 
-  /* Primary colors for .red, .green, .blue and .black spans */
-  --red: #ff0000;
-  --green: #00ff00;
-  --blue: #0000ff;
-  --black: #000000;
+  /* Text on accent fills (block headers, colored spans). Always dark, light
+     text on the palette accents is below 4.5:1 contrast. */
+  --fill-text-color: var(--light-shade7);
+
+  /* Line height of code blocks */
+  --code-line-height: 1.3;
+
+  /* Colors for .red, .green, .blue and .black spans. The accent indices match
+     the OKSolar palette in default.yaml. Black stays dark in dark mode. */
+  --red: var(--accent1);
+  --green: var(--accent4);
+  --blue: var(--accent6);
+  --black: var(--light-shade7);
 
   /* Icon settings */
   --icon-size: 1rem;

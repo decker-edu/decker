@@ -15,7 +15,7 @@ glyphs. */
 
 body:is(.deck, .handout, .page, .index) {
   color: var(--foreground-color);
-  font-family: "Recursive", sans-serif;
+  font-family: "Recursive", system-ui, sans-serif;
   font-variation-settings:
     "MONO" 0,
     "CASL" var(--casl);
@@ -40,7 +40,9 @@ styles. `:where()` keeps the specificity of the plain element selectors. */
   & code {
     font-size: 100%;
     color: var(--foreground-color);
-    font-family: "Recursive", monospace;
+    /* Recursive covers Latin only. Arrows, math symbols and Greek fall back
+    to a system monospace font. */
+    font-family: "Recursive", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-variation-settings:
       "MONO" 1,
       "CASL" var(--casl);
@@ -102,7 +104,7 @@ section.inverse :is(h1, h2) {
 :is(span.pre, pre) > code {
   display: block;
   font-size: 100%;
-  line-height: 1.3;
+  line-height: var(--code-line-height);
   padding: 0.5em;
 }
 
@@ -114,13 +116,14 @@ div.media {
   margin: var(--vertical-margin) 0;
 }
 
-/* Colored spans */
+/* Colored spans. The fill extends 0.1em beyond the text on each side, less
+than half the width of a space, so fills of adjacent spans do not overlap. */
 span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7, .red, .green, .blue, .black) {
   border-radius: var(--block-border-radius);
   padding-left: 0.2em;
   padding-right: 0.2em;
-  margin-left: -0.2em;
-  margin-right: -0.2em;
+  margin-left: -0.1em;
+  margin-right: -0.1em;
 }
 
 /* Accent colors. Each accent class selects its palette colors, the rules below
@@ -163,7 +166,7 @@ div.block:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent
   border: var(--block-border-width) solid var(--mono-accent);
 
   & h2 {
-    color: var(--shade1);
+    color: var(--fill-text-color);
     background-color: var(--mono-accent);
   }
 }
@@ -173,16 +176,17 @@ the same as the default. */
 span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
   &:not(.fg) {
     background-color: var(--mono-accent);
-    color: var(--shade0);
+    color: var(--fill-text-color);
   }
 
   &.fg {
-    background-color: var(--shade0);
+    background-color: transparent;
     color: var(--mono-accent);
   }
 }
 
-/* Primary colors */
+/* Primary colors. Plain spans color the text, `.bg` fills. Black is only a
+fill, black text would vanish in dark mode. */
 span.red {
   color: var(--red);
 }
@@ -195,41 +199,57 @@ span.blue {
   color: var(--blue);
 }
 
+span:is(.red, .green, .blue).bg {
+  color: var(--fill-text-color);
+}
+
 span.red.bg {
-  color: var(--shade0);
   background-color: var(--red);
 }
 
 span.green.bg {
-  color: var(--shade7);
   background-color: var(--green);
 }
 
 span.blue.bg {
-  color: var(--shade1);
   background-color: var(--blue);
 }
 
 span.black.bg {
-  color: var(--shade1);
+  color: var(--light-shade0);
   background-color: var(--black);
 }
 
 /* Figures */
 section .figure :is(img, svg, pre, span.pre, video, iframe, object) {
   border-radius: var(--block-border-radius);
-  border: solid var(--shade2) 0.01em;
+  border: 1px solid var(--shade2);
 }
 
 section.inverse .figure :is(img, svg, pre, span.pre, video, iframe, object) {
-  border: solid var(--shade5) 0.01em;
+  border-color: var(--shade5);
 }
 
 /* Syntax highlighting. Pandoc's CSS provides the structure, this only replaces
 its colors and weights with palette colors. */
 div.sourceCode {
-  color: var(--shade7);
+  color: var(--foreground-color);
   background-color: var(--code-background-color);
+}
+
+/* One line height for all lines, empty ones included. */
+pre > code.sourceCode > span {
+  line-height: inherit;
+}
+
+pre > code.sourceCode > span:empty {
+  height: calc(var(--code-line-height) * 1em);
+}
+
+/* Pandoc's monochrome style makes some tokens bold. Mono sets its own weights
+below, italic comments stay. */
+code.sourceCode span {
+  font-weight: inherit;
 }
 
 code span:is(.al, .sc, .ss) {
@@ -264,7 +284,7 @@ code span:is(.co, .cv, .do) {
   color: var(--shade5);
 }
 
-code span:is(.an, .cn, .cv, .in, .kw, .pp, .wa) {
+code span:is(.an, .cf, .cn, .cv, .in, .kw, .pp, .wa) {
   font-weight: var(--bold-font-weight);
 }
 
@@ -301,7 +321,7 @@ body.deck div#chatty-dialog {
   font-size: 1.6vw;
 
   & :is(input, select, textarea, button) {
-    font-size: 1.6vw;
+    font-size: 1em;
   }
 }
 
