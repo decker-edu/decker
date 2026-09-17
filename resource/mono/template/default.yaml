@@ -8,6 +8,19 @@ experiments:
   fragment-templates: true
   add-document-path: true
 # highlightjs: "xcode"
+# built-in deck plugins (see decker's default.yaml)
+decker-plugins:
+  zoom: false
+  jingles: false
+  quiz: false
+  quiz-wue: false
+  feedback: false
+  notes: false
+  chatty: true
+  quizzer: true
+page-features:
+  codapi: true
+  math-module: true
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
@@ -69,4 +82,4 @@ reveal:
   viewDistance: 2
   width: 1920
 css-variables:
-  block-border-radius: 0.2em;
+  block-border-radius: 0.2em

@@ -6,23 +6,35 @@
   import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
   import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
   import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
+$if(decker-plugins.zoom)$
   import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+$endif$
   import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+$if(decker-plugins.jingles)$
   import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+$endif$
+$if(decker-plugins.quiz)$
   import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+$endif$
 $if(poll)$
   import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
 $endif$
+$if(decker-plugins.quiz-wue)$
   import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
+$endif$
   import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
   import examinerPlugin from "./$decker-support-dir$/plugins/examiner/examiner.js";
   import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
   import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
+$if(decker-plugins.feedback)$
   import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
+$endif$
 $if(highlightjs)$
   import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
 $endif$
+$if(decker-plugins.notes)$
   import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+$endif$
 $if(live-captions)$
   import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
 $endif$
@@ -31,6 +43,12 @@ $endif$
   $endfor$
   import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
   import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
+$if(decker-plugins.chatty)$
+  import chattyPlugin from './$decker-support-dir$/plugins/chatty/chatty.js';
+$endif$
+$if(decker-plugins.quizzer)$
+  import quizzerPlugin from './$decker-support-dir$/plugins/quizzer/quizzer.js';
+$endif$
 
   let revealConfig = { 
     // reveal configuration (see https://revealjs.com/config/)
@@ -41,8 +59,12 @@ $endif$
     chart: Decker.meta.chart,
     menu: Decker.meta.menu,
     explain: Decker.meta.explain,
+$if(decker-plugins.feedback)$
     feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
+$endif$
+$if(decker-plugins.jingles)$
     jingles: Decker.meta.jingles,
+$endif$
     whiteboard: Decker.meta.whiteboard,
     $for(reveal-plugins)$
       $it.name$: Decker.meta.$it.name$,
@@ -56,20 +78,33 @@ $endif$
        chartsPlugin,
        whiteboardPlugin,
        searchPlugin,
+$if(decker-plugins.zoom)$
        zoomPlugin,
+$endif$
        printPlugin,
+$if(decker-plugins.jingles)$
        jinglesPlugin,
+$endif$
+$if(decker-plugins.quiz-wue)$
        quizWuePlugin,
+$endif$
        explainPlugin,
        examinerPlugin,
        menuPlugin,
+$if(decker-plugins.feedback)$
        feedbackPlugin,
+$endif$
 $if(highlightjs)$
        highlightPlugin,
 $endif$
+$if(decker-plugins.notes)$
        notesPlugin,
+$endif$
 $if(live-captions)$
        captionPlugin,
+$endif$
+$if(decker-plugins.chatty)$
+       chattyPlugin,
 $endif$
        a11yPlugin,
        handoutPlugin,
@@ -79,6 +114,9 @@ $endif$
   $for(reveal-plugins)$
     $it.name$,
   $endfor$
+$if(decker-plugins.quizzer)$
+       quizzerPlugin,
+$endif$
     ]
   };
   

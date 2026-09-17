@@ -19,7 +19,7 @@
   --list-indent: 1.5em;
   --block-border-width: 0em;
   --block-border-radius: 0em;
-  --block-outset: 0.5rem;
+  --block-outset: 1rem;
 
   /* Rainbow Accents */
   --redish: var(--accent0);
@@ -63,8 +63,6 @@
   --header-color: var(--shade5);
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
-  --icon-active-color: var(--accent5);
-  --icon-inactive-color: var(--shade3);
   --hover-color: var(--accent5-bg);
   --code-background-color: var(--shade1);
   --highlight-color: var(--accent5-bg);
@@ -80,14 +78,14 @@
 
   --whiteboard-background-color: var(--shade1);
   --whiteboard-border-color: var(--shade2);
-  --whiteboard-pen0: var(---accent0);
-  --whiteboard-pen1: var(---accent1);
-  --whiteboard-pen2: var(---accent2);
-  --whiteboard-pen3: var(---accent3);
-  --whiteboard-pen4: var(---accent4);
-  --whiteboard-pen5: var(---accent5);
-  --whiteboard-pen6: var(---accent6);
-  --whiteboard-pen7: var(---accent7);
+  --whiteboard-pen0: var(--accent0);
+  --whiteboard-pen1: var(--accent1);
+  --whiteboard-pen2: var(--accent2);
+  --whiteboard-pen3: var(--accent3);
+  --whiteboard-pen4: var(--accent4);
+  --whiteboard-pen5: var(--accent5);
+  --whiteboard-pen6: var(--accent6);
+  --whiteboard-pen7: var(--accent7);
 
   --menu-background-color: var(--shade1);
   --menu-text-color: var(--shade6);
@@ -119,4 +117,29 @@
 
 .dark {
   --icon-shadow-color: var(--background-color);
+}
+
+/* Colors for the grid templates */
+@media (prefers-color-scheme: light) {
+  :root {
+    --canvas: color(from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05));
+    --grid: var(--light-shade2);
+  }
+
+  :root.dark {
+    --canvas: color(from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8));
+    --grid: var(--dark-shade2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: color(from var(--dark-shade0) srgb calc(r * 0.8) calc(g * 0.8) calc(b * 0.8));
+    --grid: var(--dark-shade2);
+  }
+
+  :root.light {
+    --canvas: color(from var(--light-shade0) srgb calc(r * 1.05) calc(g * 1.05) calc(b * 1.05));
+    --grid: var(--light-shade2);
+  }
 }

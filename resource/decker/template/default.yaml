@@ -18,6 +18,25 @@ runtime-path-variables:
 
 # Plugin Config
 
+# Built-in plugins loaded by `deck-plugins.html`. Resource packs can switch
+# them on or off in their own `default.yaml`.
+decker-plugins:
+  zoom: true
+  jingles: true
+  quiz: true
+  quiz-wue: true
+  feedback: true
+  notes: true
+  chatty: false
+  quizzer: false
+
+# Optional features of the page and index templates.
+page-features:
+  # codapi snippet CSS and JS
+  codapi: false
+  # load MathJax via `js/page-math.js` instead of the inline configuration
+  math-module: false
+
 chart:
   defaults:
     font: { size: 20 }

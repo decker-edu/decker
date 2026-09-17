@@ -72,7 +72,13 @@ $endif$
     }
   </style>
 
+$if(page-features.codapi)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
+$endif$
   <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/pack.css">
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$" />
 $endfor$
@@ -112,12 +118,32 @@ $if(date)$
 $endif$
 </header>
 $endif$
+$if(decker-plugins.chatty)$
+$if(chatty.index)$
+  <details class="chatty" name="index-details">
+    <summary>
+      <span class="german">Frag Prof. Bot</span>
+    </summary>
+    <div id="chatty"></div>
+  </details>
+  <script type="module">
+    import setup from "./$decker-support-dir$/chatty/chatty.js";
+    setup(document.getElementById("chatty"));
+  </script>
+$endif$
+$endif$
 $body$
 $for(include-after)$
 $include-after$
 $endfor$
 
+$if(page-features.codapi)$
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+$endif$
   <script src="$decker-support-dir$/js/index.js"></script>
+$if(page-features.math-module)$
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
+$endif$
   <script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js">
   </script>
 

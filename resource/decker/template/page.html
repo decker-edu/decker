@@ -80,11 +80,19 @@ $endif$
    }
  </style>
 
+$if(page-features.codapi)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/codapi-js/snippet.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/hljs.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/codapi.css">
+$endif$
   <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/pack.css">
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$" />
 $endfor$
 
+$if(page-features.math-module)$
+$else$
   <!-- MathJax config -->
   <script>
       window.MathJax = {
@@ -149,6 +157,7 @@ $endfor$
   </script>
   <script type="text/javascript" id="MathJax-script" async src="$decker-support-dir$/vendor/mathjax/tex-svg.js">
   </script>
+$endif$
   <script type="module" src="$decker-support-dir$/vendor/codapi-js/settings.js">
   </script>
 
@@ -178,6 +187,12 @@ $body$
 $for(include-after)$
 $include-after$
 $endfor$
+$if(page-features.math-module)$
+  <script type="module" src="$decker-support-dir$/js/page-math.js"></script>
+$endif$
+$if(page-features.codapi)$
+  <script type="module" src="$decker-support-dir$/vendor/codapi-js/snippet.js"></script>
+$endif$
 
   <script>
     var source = new EventSource("/reload");
