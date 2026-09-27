@@ -143,6 +143,7 @@ runArgs args = do
 
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
+  addTargetInfoOracles getGlobalMeta
   transient <- liftIO transientDir
   devRun <- liftIO isDevelopmentRun
 
@@ -360,10 +361,8 @@ deckerRules = do
       targetsPath <- liftIO targetsFile
       need [targetsPath]
       targets <- getDeps
-      need $
-        Map.elems (targets ^. decks)
-          <> Map.elems (targets ^. pages)
-          <> Map.elems (targets ^. questions)
+      -- Per-source info is obtained via oracles (see addTargetInfoOracles),
+      -- so the index is not rebuilt when only the body of a source changes.
       meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       exists <- doesFileExist indexSource
       if exists

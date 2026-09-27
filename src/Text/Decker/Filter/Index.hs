@@ -6,13 +6,15 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedRecordUpdate #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo, isDraft, filterPublishable) where
+module Text.Decker.Filter.Index (buildIndex, readDeckInfo, renderIndex, addTargetInfo, addTargetInfoOracles, isDraft, filterPublishable) where
 
 import Control.Lens ((^.))
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (encodePretty)
+import Development.Shake.Classes (Binary)
 import Data.ByteString.Lazy qualified as BS
 import Data.Char
 import Data.Map qualified as Map
@@ -186,7 +188,13 @@ data DeckInfo = DeckInfo
     deckTitle :: Maybe Text,
     deckSubtitle :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
+
+instance Hashable DeckInfo
+
+instance Binary DeckInfo
+
+instance NFData DeckInfo
 
 data QuestInfo = QuestInfo
   { questSrc :: FilePath,
@@ -196,7 +204,42 @@ data QuestInfo = QuestInfo
     questTitle :: Text,
     questComment :: Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
+
+instance Hashable QuestInfo
+
+instance Binary QuestInfo
+
+instance NFData QuestInfo
+
+-- | Oracle keys for the per-source info shown on the index page. The key is
+-- the (target, source) pair from the targets map.
+newtype DeckInfoQ = DeckInfoQ (FilePath, FilePath)
+  deriving (Show, Eq, Hashable, Binary, NFData)
+
+type instance RuleResult DeckInfoQ = DeckInfo
+
+newtype QuestInfoQ = QuestInfoQ (FilePath, FilePath)
+  deriving (Show, Eq, Hashable, Binary, NFData)
+
+type instance RuleResult QuestInfoQ = QuestInfo
+
+-- | Registers cached oracles that extract the index info from each source.
+-- An oracle is only rerun when its source (or includes, or the global meta)
+-- changes, and rules that depend on it (the index) are only rebuilt when the
+-- extracted info actually differs. Editing the body of a deck therefore does
+-- not trigger a rebuild of the index.
+addTargetInfoOracles :: Action Meta -> Rules ()
+addTargetInfoOracles getGlobalMeta = do
+  _ <- addOracleCache $ \(DeckInfoQ ts@(_, src)) -> do
+    need [src]
+    meta <- getGlobalMeta
+    readDeckInfo meta ts
+  _ <- addOracleCache $ \(QuestInfoQ ts@(_, src)) -> do
+    need [src]
+    meta <- getGlobalMeta
+    readQuestInfo meta ts
+  return ()
 
 data SlideInfo = SlideInfo
   { slideUrl :: SlideUrl,
@@ -303,9 +346,9 @@ addTargetInfo targets meta = do
   let allDecks = getSorted Project.decks
   let allPages = getSorted Project.pages
   let allQuests = getSorted Project.questions
-  decksInfo <- mapM (readDeckInfo meta) allDecks
-  pagesInfo <- mapM (readDeckInfo meta) allPages
-  questInfo <- mapM (readQuestInfo meta) allQuests
+  decksInfo <- askOracles (map DeckInfoQ allDecks)
+  pagesInfo <- askOracles (map DeckInfoQ allPages)
+  questInfo <- askOracles (map QuestInfoQ allQuests)
   let withDecks =
         setMetaValue "decks.by-title" (toListSortedBy deckTitle decksInfo)
           $ setMetaValue "decks.by-date" (toListSortedBy deckDate decksInfo)
