@@ -33,6 +33,10 @@
   */
   --vertical-margin: 0.3em;
 
+  /* Scales the vertical spacing of pages and the index (mono.css). A plain
+     factor, set it with `document-spacing` under `css-variables`. */
+  --document-spacing: 1;
+
   /* These are just for internal calculations */
   --list-indent: 1.5em;
   --block-border-width: 0em;

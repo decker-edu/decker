@@ -47,11 +47,6 @@ body.index {
   background-color: var(--background-color);
 }
 
-body.index div.block {
-  padding: 0.4em 0.8em;
-  margin: 0.4em -0.8em;
-}
-
 body.index header p.subtitle {
   font-size: 80%
 }

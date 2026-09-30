@@ -90,55 +90,67 @@ styles. `:where()` keeps the specificity of the plain element selectors. */
     font-weight: var(--header-font-weight);
   }
 
-  /* Links. `:visited` and `:active` are needed to override style.css. */
+  /* Links follow the badge recipe: dark ink of the link hue as text, the hue
+  itself as a thin underline, the pale wash on hover. `:visited` and `:active`
+  are needed to override style.css. */
   & a,
   & a:visited,
   & a:active,
   & a:hover {
-    color: var(--link-color);
+    color: color-mix(
+      in srgb-linear,
+      var(--link-color),
+      var(--foreground-color) 60%
+    );
+    text-decoration: underline 1px var(--link-color);
+    text-underline-offset: 0.15em;
   }
 
-  /* The hover fill is the mix of `--accentN-bbg` in colors.css, applied to
-  the link color. */
   & a:hover {
     background-color: color-mix(
       in srgb-linear,
       var(--link-color),
-      var(--background-color) calc(2 * var(--contrast))
+      var(--background-color) 80%
     );
     border-radius: var(--block-border-radius);
     padding-left: 0.2em;
     padding-right: 0.2em;
     margin-left: -0.2em;
     margin-right: -0.2em;
+    text-decoration-thickness: 2px;
   }
 }
 
 /* Reference links (MDN, Wikipedia, RFC). Only the label is a chip, the link
-itself has no fill. The mixes are those of `--accentN-bbg` and `--accentN-fg`
-in colors.css. */
+itself has no fill. The chip is a borderless badge and marks the link, so
+there is no underline. */
 a:is(.mdn, .wde, .rfc) {
   --link-color: var(--reference-link-color);
   background-color: transparent;
+  text-decoration: none;
 
   & :is(span, code) {
     border-radius: var(--block-border-radius);
+    border-color: transparent;
     padding: 0 0.2em;
     margin: 0 -0.2em;
-    background-color: var(--shade1);
-    color: var(--link-color);
+    background-color: color-mix(
+      in srgb-linear,
+      var(--link-color),
+      var(--background-color) 80%
+    );
+    color: color-mix(
+      in srgb-linear,
+      var(--link-color),
+      var(--foreground-color) 60%
+    );
   }
 
   &:hover :is(span, code) {
     background-color: color-mix(
       in srgb-linear,
       var(--link-color),
-      var(--background-color) calc(2 * var(--contrast))
-    );
-    color: color-mix(
-      in srgb-linear,
-      var(--link-color),
-      var(--foreground-color) var(--contrast)
+      var(--background-color) 60%
     );
   }
 }
@@ -426,6 +438,137 @@ li:is(.task-yes, .task-no) input[type="checkbox"] {
   vertical-align: baseline;
   padding: 0;
   margin-bottom: 0;
+}
+
+/* Layout of pages and the index. Both documents share one vertical rhythm and
+one block shape.
+
+The default decker styles set the tight spacing of slides everywhere: no top
+margins, 0.3em below every element. On a document a heading then sits as close
+to the text above as to the text below, list items are as far apart as
+paragraphs, and `h3` falls back to the larger browser margins. Here flow
+elements are spaced by `--space-flow`, list items by the smaller
+`--space-item`, and headings get room above that grows with their rank. Top
+margins of headings collapse with the bottom margin of whatever comes before.
+
+The spacing tokens are registered as lengths, so an `em` value resolves once on
+`body` (16px) and is inherited as an absolute length. A heading or a code block
+with its own font size therefore gets the same spacing as the text. `rem` would
+not do: the root size comes from Pandoc's inline default CSS.
+
+`--document-spacing` (variables.css) scales all vertical spacing at once. The
+block padding is part of the box shape and does not scale. */
+@property --space-flow {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --space-item {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --space-section {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --block-pad-y {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --block-pad-x {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+body:is(.page, .index) {
+  --space-flow: calc(0.75em * var(--document-spacing));
+  --space-item: calc(0.375em * var(--document-spacing));
+  --space-section: calc(2.5em * var(--document-spacing));
+  --block-pad-y: 0.4em;
+  --block-pad-x: 0.8em;
+
+  /* Flow elements. The title block keeps its own spacing. */
+  & :is(p, ul, ol, table, div.media, div.block, details):not(header *) {
+    margin-top: 0;
+    margin-bottom: var(--space-flow);
+  }
+
+  & li {
+    margin-bottom: var(--space-item);
+  }
+
+  /* Content inside a list item: paragraphs and code blocks of loose lists
+  keep the smaller gap, so they stay with their item */
+  & li > :is(p, div.media, ul, ol) {
+    margin-bottom: 0;
+  }
+
+  & li > * + :is(p, div.media, ul, ol) {
+    margin-top: var(--space-item);
+  }
+
+  /* The last element in a container adds nothing below */
+  & :is(div.block, li, ul, ol, td, th) > :last-child {
+    margin-bottom: 0;
+  }
+
+  & hr {
+    margin: calc(0.7 * var(--space-section)) 0;
+  }
+
+  /* Headings, outside of blocks */
+  & h1:not(.title, div.block > h1) {
+    margin-top: var(--space-section);
+    margin-bottom: calc(1.25 * var(--space-flow));
+  }
+
+  & h2:not(div.block > h2) {
+    margin-top: calc(0.9 * var(--space-section));
+    margin-bottom: var(--space-flow);
+  }
+
+  & h3 {
+    margin-top: calc(0.7 * var(--space-section));
+    margin-bottom: calc(0.66 * var(--space-flow));
+  }
+
+  /* No extra room for a heading that follows a separator or its parent
+  heading, or that opens the document below the title block */
+  & :is(
+      hr + h1,
+      h1:first-of-type:not(:is(p, ul, ol, table, div) ~ h1),
+      :is(h1, h2) + :is(h2, h3)
+    ):not(div.block > *) {
+    margin-top: 0;
+  }
+
+  /* Blocks: a compact box pulled out into the margin, so its text lines up
+  with the text around it */
+  & div.block {
+    padding: var(--block-pad-y) var(--block-pad-x);
+    margin-left: calc(-1 * var(--block-pad-x));
+    margin-right: calc(-1 * var(--block-pad-x));
+  }
+
+  & div.block > h1 {
+    margin-top: 0;
+    margin-bottom: var(--space-item);
+  }
+
+  /* The `h2` title of a block is a header strip, stretched to the border */
+  & div.block > h2 {
+    padding: var(--block-pad-y) var(--block-pad-x);
+    margin: calc(-1 * var(--block-pad-y)) calc(-1 * var(--block-pad-x))
+      var(--space-item);
+  }
 }
 
 a.document-url {
