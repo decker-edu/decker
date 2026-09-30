@@ -36,19 +36,34 @@ body.index div.search-box {
 index and chatty answers. Plugin UIs appended to the deck body keep their own
 styles. `:where()` keeps the specificity of the plain element selectors. */
 :where(.reveal .slides, body:not(.deck), #chatty-dialog) {
-  /* Inline code */
+  /* Code, inline and in blocks */
   & code {
     font-size: 100%;
     color: var(--foreground-color);
     /* Recursive covers Latin only. Arrows, math symbols and Greek fall back
     to a system monospace font. */
-    font-family: "Recursive", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-family:
+      "Recursive", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-variation-settings:
       "MONO" 1,
       "CASL" var(--casl);
     font-weight: var(--code-font-weight);
     caret-color: var(--shade7);
-    padding: 0.2em;
+  }
+
+  /* Inline code. A translucent tint of the text color, so the fill follows
+  whatever is behind it (page, accent block, table row, dark mode). `:where()`
+  keeps the specificity low, the reference link chips still win. */
+  & :where(:not(pre, span.pre)) > code {
+    background-color: color-mix(
+      in srgb,
+      var(--foreground-color) 8%,
+      transparent
+    );
+    border: 1px solid
+      color-mix(in srgb, var(--foreground-color) 18%, transparent);
+    border-radius: var(--block-border-radius);
+    padding: 0 0.2em;
   }
 
   /* Bold stuff */
@@ -78,17 +93,53 @@ styles. `:where()` keeps the specificity of the plain element selectors. */
   /* Links. `:visited` and `:active` are needed to override style.css. */
   & a,
   & a:visited,
-  & a:active {
-    color: var(--accent5);
+  & a:active,
+  & a:hover {
+    color: var(--link-color);
   }
 
+  /* The hover fill is the mix of `--accentN-bbg` in colors.css, applied to
+  the link color. */
   & a:hover {
-    background-color: var(--accent5-bbg);
+    background-color: color-mix(
+      in srgb-linear,
+      var(--link-color),
+      var(--background-color) calc(2 * var(--contrast))
+    );
     border-radius: var(--block-border-radius);
     padding-left: 0.2em;
     padding-right: 0.2em;
     margin-left: -0.2em;
     margin-right: -0.2em;
+  }
+}
+
+/* Reference links (MDN, Wikipedia, RFC). Only the label is a chip, the link
+itself has no fill. The mixes are those of `--accentN-bbg` and `--accentN-fg`
+in colors.css. */
+a:is(.mdn, .wde, .rfc) {
+  --link-color: var(--reference-link-color);
+  background-color: transparent;
+
+  & :is(span, code) {
+    border-radius: var(--block-border-radius);
+    padding: 0 0.2em;
+    margin: 0 -0.2em;
+    background-color: var(--shade1);
+    color: var(--link-color);
+  }
+
+  &:hover :is(span, code) {
+    background-color: color-mix(
+      in srgb-linear,
+      var(--link-color),
+      var(--background-color) calc(2 * var(--contrast))
+    );
+    color: color-mix(
+      in srgb-linear,
+      var(--link-color),
+      var(--foreground-color) var(--contrast)
+    );
   }
 }
 
@@ -118,7 +169,20 @@ div.media {
 
 /* Colored spans. The fill extends 0.1em beyond the text on each side, less
 than half the width of a space, so fills of adjacent spans do not overlap. */
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7, .red, .green, .blue, .black) {
+span:is(
+  .accent0,
+  .accent1,
+  .accent2,
+  .accent3,
+  .accent4,
+  .accent5,
+  .accent6,
+  .accent7,
+  .red,
+  .green,
+  .blue,
+  .black
+) {
   border-radius: var(--block-border-radius);
   padding-left: 0.2em;
   padding-right: 0.2em;
@@ -160,23 +224,81 @@ use them. */
   --mono-accent: var(--accent7);
 }
 
-/* Blocks get a light accent background from style.css, the border and the
-block header the full accent. */
-div.block:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
-  border: var(--block-border-width) solid var(--mono-accent);
+/* Tints of the current accent, used by badges and blocks. They are declared
+on the accent element itself, next to `--mono-accent`, so that they resolve
+against its accent. */
+:is(
+  .accent0,
+  .accent1,
+  .accent2,
+  .accent3,
+  .accent4,
+  .accent5,
+  .accent6,
+  .accent7
+) {
+  /* Pale fill */
+  --mono-accent-wash: color-mix(
+    in srgb-linear,
+    var(--mono-accent),
+    var(--background-color) 80%
+  );
+  /* Stronger fill for block headers */
+  --mono-accent-wash-strong: color-mix(
+    in srgb-linear,
+    var(--mono-accent),
+    var(--background-color) 60%
+  );
+  /* Dark text of the same hue */
+  --mono-accent-ink: color-mix(
+    in srgb-linear,
+    var(--mono-accent),
+    var(--foreground-color) 60%
+  );
+}
+
+/* Blocks get a pale accent fill and an accent border, the header is set in
+the dark hue on the stronger wash. This replaces the `div.block.accentN`
+backgrounds of style.css. */
+div.block:is(
+    .accent0,
+    .accent1,
+    .accent2,
+    .accent3,
+    .accent4,
+    .accent5,
+    .accent6,
+    .accent7
+  ) {
+  background-color: var(--mono-accent-wash);
+  border: 1px solid var(--mono-accent);
+
+  & :is(h1, h2) {
+    color: var(--mono-accent-ink);
+  }
 
   & h2 {
-    color: var(--fill-text-color);
-    background-color: var(--mono-accent);
+    background-color: var(--mono-accent-wash-strong);
   }
 }
 
-/* Spans are filled with the accent color, `.fg` colors only the text. `.bg` is
-the same as the default. */
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+/* Spans are badges: pale fill, dark text of the same hue. `.fg` colors only
+the text. `.bg` is the same as the default. */
+span:is(
+  .accent0,
+  .accent1,
+  .accent2,
+  .accent3,
+  .accent4,
+  .accent5,
+  .accent6,
+  .accent7
+) {
   &:not(.fg) {
-    background-color: var(--mono-accent);
-    color: var(--fill-text-color);
+    background-color: var(--mono-accent-wash);
+    color: var(--mono-accent-ink);
+    border: 1px solid var(--mono-accent);
+    font-weight: var(--bold-font-weight);
   }
 
   &.fg {

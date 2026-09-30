@@ -8,8 +8,8 @@
   --bold-font-weight: 600;
   --header-font-weight: 700;
 
-  /* Text on accent fills (block headers, colored spans). Always dark, light
-     text on the palette accents is below 4.5:1 contrast. */
+  /* Text on full color fills (`.red.bg`, `.green.bg`, `.blue.bg` spans).
+     Always dark, light text on the palette accents is below 4.5:1 contrast. */
   --fill-text-color: var(--light-shade7);
 
   /* Line height of code blocks */
@@ -90,6 +90,11 @@
   --code-background-color: var(--shade1);
   --highlight-color: var(--accent5-bg);
   --focus-color: var(--accent1);
+
+  /* Text links. The hover fill and the hover text are derived from it. */
+  --link-color: var(--accent5);
+  /* Reference links: MDN, Wikipedia, RFC */
+  --reference-link-color: var(--accent6);
 
   --icon-active-color: var(--accent3);
   --icon-disabled-color: var(--shade2);
