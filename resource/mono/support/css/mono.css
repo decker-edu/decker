@@ -106,6 +106,12 @@ styles. `:where()` keeps the specificity of the plain element selectors. */
     text-underline-offset: 0.15em;
   }
 
+  /* Link text weight. Links in headers and other bold text keep the weight
+  around them. */
+  & a:not(:is(h1, h2, h3, h4, strong, th, summary) a) {
+    font-weight: var(--link-font-weight, inherit);
+  }
+
   & a:hover {
     background-color: color-mix(
       in srgb-linear,
@@ -153,6 +159,13 @@ a:is(.mdn, .wde, .rfc) {
       var(--background-color) 60%
     );
   }
+}
+
+/* Disabled links keep the link look, faded. Without pointer events there is
+no hover wash and no click. */
+a.off {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 body.deck :where(.reveal .slides) h1 {
