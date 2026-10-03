@@ -42,7 +42,8 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--header-color);
+  /* `--header-color` is the old name, still honored when set. */
+  color: var(--header-color, var(--heading-color));
 }
 
 h1 {

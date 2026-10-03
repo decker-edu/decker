@@ -60,7 +60,7 @@ palette:
 ``` css
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
-  --header-color: var(--shade6);
+  --heading-color: var(--shade6);
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
   --icon-active-color: var(--accent5);
