@@ -85,7 +85,7 @@ instance FromJSON Resources
 -- | Determine resource locations for the current run.
 deckerResources :: Meta -> IO Resources
 deckerResources meta = do
-  dr <- deckerResource
+  dr <- deckerResource meta
   pr <- packResource meta
   return (Resources dr pr)
 
@@ -94,14 +94,29 @@ deckerResources meta = do
 --  repository with `stack run -- decker`, resources are read from the local
 --  directory `resource/decker`. During normal operation resources are read from
 --  the executable.
-deckerResource :: IO Source
-deckerResource = do
+--
+--  The base pack can be replaced for testing with the meta value
+--  `resource-base` (set with `--resource-base=URI` on the command line). The URI
+--  has the same form as `resource-pack`.
+deckerResource :: Meta -> IO Source
+deckerResource meta =
+  devResource $
+    fromMaybe (DeckerExecutable "decker") $
+      lookupMeta "resource-base" meta
+        >>= parseURIReference
+        >>= parseSourceURI
+
+-- | Executable resources are read from the local source tree during a
+-- development run.
+devResource :: Source -> IO Source
+devResource (DeckerExecutable path) = do
   devRun <- isDevelopmentRun
   if devRun
     then do
       src <- devSourceDir
-      return $ LocalDir $ maybe "resource/decker" (</> "resource/decker") src
-    else return $ DeckerExecutable "decker"
+      return $ LocalDir $ maybe ("resource" </> path) (</> ("resource" </> path)) src
+    else return $ DeckerExecutable path
+devResource source = return source
 
 -- | On a development run resources live under `resource/` in the decker source
 -- tree. That tree is normally the CWD, but `--project-dir` changes the CWD to a
@@ -122,18 +137,11 @@ devSourceDir = do
 --  run, use the local resource dir.
 packResource :: Meta -> IO Source
 packResource meta = do
-  devRun <- isDevelopmentRun
   let source =
         lookupMeta "resource-pack" meta
           >>= parseURIReference
           >>= parseSourceURI
-  case source of
-    Just (DeckerExecutable path)
-      | devRun -> do
-        src <- devSourceDir
-        return $ LocalDir $ maybe ("resource" </> path) (</> ("resource" </> path)) src
-    Just source -> return source
-    Nothing -> return None
+  maybe (return None) devResource source
 
 readResource :: FilePath -> Source -> IO (Maybe ByteString)
 readResource path (DeckerExecutable epath) = do
@@ -199,7 +207,7 @@ publicSupportFiles meta = resourceFiles meta "support"
 
 resourceFiles :: Meta -> FilePath -> IO (Map FilePath Source)
 resourceFiles meta below = do
-  decker <- deckerResource
+  decker <- deckerResource meta
   pack <- packResource meta
   case (decker, pack) of
     (decker, pack) -> do

@@ -327,6 +327,11 @@ deckerFlags =
       "Change to DIR before locating the project root. Useful for building a project that lives elsewhere.",
     GetOpt.Option
       []
+      ["resource-base"]
+      (GetOpt.ReqArg (Right . MetaValueFlag "resource-base") "URI")
+      "Replace the base resource pack that `resource-pack` shadows (e.g. a local dir, a .zip, or exe:PATH). For testing modifications to the base pack. Same as '-m resource-base=URI'.",
+    GetOpt.Option
+      []
       ["prune-files"]
       (GetOpt.NoArg $ Right PruneFilesFlag)
       "With `chatty`: delete OpenAI file objects not attached to the vector store.",

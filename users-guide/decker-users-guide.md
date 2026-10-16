@@ -519,6 +519,21 @@ stack run -- decker --project-dir=/path/to/other-project html
 The directory is used verbatim, so the root is pinned even when it is nested
 inside a larger Git repository.
 
+## `--resource-base=URI`
+
+Replace the default base resource pack (`exe:decker`) with the pack at `URI`.
+The pack configured in `resource-pack` is still loaded on top of it. This is
+meant for testing changes to the base pack without touching the installed
+executable or the configured resource packs:
+
+``` {.sh}
+decker --resource-base=/path/to/modified-decker-pack html
+```
+
+`URI` takes the same forms as `resource-pack` (`exe:{name}`, `{path}` or
+`{path}.zip`). The option is shorthand for `-m resource-base=URI`. Rebuild with
+`decker clean` after switching back to the default base pack.
+
 ## `--prune-files`
 
 With `decker chatty`: after syncing, delete all assistant-purpose OpenAI file
@@ -578,6 +593,10 @@ In particular these are:
 -   The default resource pack `exe:decker` is always loded first. Resources
     extracted from the resource pack in `resource-pack` simly overwrite and
     augment the default resources.
+
+-   For testing, the default resource pack can be replaced with the
+    `resource-base` meta value, for example via the command line option
+    `--resource-base=URI`.
 
 ## Versioning
 
@@ -737,6 +756,11 @@ Both image paths reference the same image file.
 
 `publish.rsync.options`
 :   TODO
+
+`resource-base`
+:   URL of the base resource pack that `resource-pack` overrides. Defaults to
+    `exe:decker`. Intended for testing modifications to the base pack, usually
+    set with `--resource-base=URI`.
 
 `resource-pack`
 :   TODO

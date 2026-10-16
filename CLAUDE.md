@@ -68,6 +68,7 @@ Resources (templates, CSS, JS, vendor libs) live in `resource/decker/`. Template
 - Source formatting: [ormolu](https://github.com/tweag/ormolu) via Haskell Language Server
 - Output goes to `public/` directory; support resources to `public/support/`
 - Project config via `decker.yaml` in the project root
+- Never plumb configuration through environment variables. Pass it explicitly — CLI options become meta values (`MetaValueFlag`) or `Flags` in the `ActionContext`.
 
 ### Third-Party Resources
 
