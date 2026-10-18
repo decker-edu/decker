@@ -1372,6 +1372,128 @@ style, it does not do anything. (21. Jul 2020)
       style: plain
     ```
 
+## Live code
+
+Code blocks can be edited and executed right on the slide. Execution is done by
+a [codapi](https://codapi.org) server that runs the snippets in sandboxed Docker
+containers. Live code needs fragment templates to be enabled:
+
+``` yaml
+experiments:
+  fragment-templates: true
+```
+
+The server is declared once per deck, either with a link macro anywhere in the
+deck or with the meta data variable `codapi.server`:
+
+``` markdown
+[§live-code-server](https://example.com/codapi/v1)
+```
+
+A code block with the class `.live-code-` (the trailing dash is intentional, it
+marks a fragment template) becomes an editor with a *Run* button:
+
+```` markdown
+``` {.live-code- language="Python"}
+msg = "Hello, World!"
+print(msg)
+```
+````
+
+The following attributes are supported:
+
+`language`
+:   The language used for syntax highlighting and, if `sandbox` is not given,
+    the codapi sandbox.
+
+`sandbox`
+:   The codapi sandbox that runs the code, for example `ghci`.
+
+`height`
+:   The maximum height of the code box, for example `height="200px"`.
+
+`caption`
+:   A figure caption below the code box.
+
+`depends-on`
+:   The id of another live code block whose code is run before this one. Add
+    `.display-none` to a block that should only provide code for others.
+
+`template`
+:   A reference (`#` plus id) to a `.live-code-prelude-` block that wraps the
+    code. The prelude contains `##CODE##` where the code is inserted.
+
+`result`
+:   Where the result of a run is shown. See below.
+
+`result-height`
+:   The height of the result area for `result="reserve"`, default `6em`.
+
+### Result placement
+
+By default, the result of a run is placed so that the layout of the slide does
+not change. The `result` attribute selects the placement:
+
+`auto` (default)
+:   `split` for code boxes with at least six lines, `flip` for smaller ones.
+
+`split`
+:   The code box keeps its height. Code and result share it, the result takes
+    at most half of it. The code scrolls.
+
+`flip`
+:   The result replaces the code in the same box. ✕ flips back to the code,
+    *Output* shows the last result again without running the code.
+
+`overlay`
+:   The result covers the lower half of the code box. It fades out while the
+    code is edited.
+
+`float`
+:   The result floats over the content below the code box. If there is not
+    enough room on the slide, it opens upwards.
+
+`reserve`
+:   The result area is always shown with a fixed height (`result-height`), even
+    before the code is run.
+
+`below`
+:   The result is added below the code box. The slide grows, which may push
+    content off the slide.
+
+```` markdown
+``` {.live-code- language="Python" result="reserve" result-height="4em"}
+print(42)
+```
+````
+
+### Running your own server
+
+The codapi server must answer cross-origin requests from wherever the decks are
+served, including `http://localhost:<port>` during development. Browsers send
+the port as part of the `Origin` header, so the server can simply echo it. For a
+server behind Caddy:
+
+``` caddy
+(cors) {
+    @options method OPTIONS
+
+    header {
+        Access-Control-Allow-Origin {header.Origin}
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
+        Access-Control-Max-Age 3600
+        Vary Origin
+        defer
+    }
+
+    respond @options 204
+}
+```
+
+Import the snippet in the block that proxies to codapi, before the
+`reverse_proxy` directive.
+
 ## ThebeLab 🚧 {#thebelab}
 
 ## Sage
