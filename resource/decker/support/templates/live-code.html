@@ -1,5 +1,12 @@
 <div class="media">
-  <figure class="live-code $classes$">
+  <figure
+    class="live-code $classes$"
+    data-result="$if(result)$$result$$else$auto$endif$"
+    $if(result-height)$
+    style="--result-height&colon;$result-height$&semi;"
+    $endif$
+  >
+    <div class="live-code-frame">
     <div
       class="live-code"
       $if(height)$
@@ -21,6 +28,7 @@
       $attribs$
     >
     </codapi-snippet>
+    </div>
     <script type="module">
       // import dynamically because we need to construct the module selector. "./" is needed because
       // import selectors meant as file pathes cannot start just path component.
@@ -62,6 +70,61 @@
       code.style.overflowX = "scroll";
       code.style.overflowY = "scroll";
       code.style.tabSize = 2;
+
+      // Place the result so that the slide layout does not change. The mode
+      // comes from the result attribute: below, split, flip, overlay, float,
+      // reserve or auto (split for code boxes with at least six lines, flip
+      // for smaller ones).
+      let figure = code.closest("figure.live-code");
+      let frame = figure.querySelector("div.live-code-frame");
+      let snippet = figure.querySelector("codapi-snippet");
+
+      // Freeze the frame at its pre-run height before the output shows up.
+      let prepare = () => {
+        if (figure.dataset.result === "auto") {
+          let style = getComputedStyle(code);
+          let line =
+            parseFloat(style.lineHeight) || 1.2 * parseFloat(style.fontSize);
+          figure.dataset.result =
+            frame.offsetHeight >= 6 * line ? "split" : "flip";
+        }
+        if (figure.dataset.result === "split" && !frame.style.height) {
+          frame.style.height = frame.offsetHeight + "px";
+        }
+      };
+      snippet.addEventListener("click", prepare, true);
+      snippet.addEventListener("execute", prepare);
+
+      // Flip mode: switch back to a hidden result without running again.
+      let peek = document.createElement("button");
+      peek.className = "live-code-peek";
+      peek.textContent = "Output";
+      peek.addEventListener("click", () =>
+        snippet.querySelector("codapi-output").removeAttribute("hidden")
+      );
+      frame.appendChild(peek);
+
+      // Float mode: open downwards if there is room for a few lines, otherwise
+      // towards the side with more room. Keep the result on the slide.
+      let placed = () => {
+        frame.dataset.hasOutput = "";
+        if (figure.dataset.result !== "float") return;
+        let output = snippet.querySelector("codapi-output");
+        let slides = document.querySelector(".reveal .slides");
+        let limit = (slides ?? document.documentElement).getBoundingClientRect();
+        let box = frame.getBoundingClientRect();
+        // Reveal scales the slides, offsetHeight is unscaled.
+        let scale = box.height / frame.offsetHeight || 1;
+        let em = parseFloat(getComputedStyle(frame).fontSize);
+        let below = (limit.bottom - box.bottom) / scale - em;
+        let above = (box.top - limit.top) / scale - 3 * em;
+        let up = below < 6 * em && above > below;
+        if (up) figure.dataset.float = "up";
+        else delete figure.dataset.float;
+        output.style.maxHeight = Math.max(up ? above : below, 2 * em) + "px";
+      };
+      snippet.addEventListener("result", placed);
+      snippet.addEventListener("error", placed);
     </script>
     <figcaption>$caption$</figcaption>
   </figure>
