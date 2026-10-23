@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Request signing for the decker-chatty @/chatty/sync@ relay.
+-- | Request signing for the decker-chatty @/sync@ relay.
 --
 -- Decker does not hold an OpenAI API key. Vector-store requests go to the
 -- proxy instead, signed with the prompt's deck-config key from
@@ -37,7 +37,7 @@ import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (HeaderName)
 
--- | Where and as whom to sync: the relay URL (@chatty.server@ + @/chatty/sync@), the
+-- | Where and as whom to sync: the relay URL (@chatty.server@ + @/sync@), the
 -- prompt id, and that prompt's 32-byte deck-config key.
 data SyncClient = SyncClient
   { scBase :: String,

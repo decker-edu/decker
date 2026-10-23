@@ -3,7 +3,7 @@
 
 -- | Sync chatty/ markdown files to an OpenAI vector store.
 --
--- All OpenAI calls go through the decker-chatty proxy's signed @/chatty/sync@ relay
+-- All OpenAI calls go through the decker-chatty proxy's signed @/sync@ relay
 -- (see "Text.Decker.Chatty.Sync"), so decker never needs the OpenAI API key.
 -- The relay is found via chatty.server and chatty.prompt in decker.yaml; the
 -- signing key is that prompt's deck-config key from chatty-key.json. On first
@@ -126,7 +126,7 @@ syncClient meta = do
             Nothing ->
               return (Left ("no key for prompt '" <> T.unpack promptId <> "' in " <> chattyKeyFile))
             Just k ->
-              let base = T.unpack (T.dropWhileEnd (== '/') server) <> "/chatty/sync"
+              let base = T.unpack (T.dropWhileEnd (== '/') server) <> "/sync"
                in return (Right (SyncClient base promptId k))
 
 -- | Send one signed request to the relay. @path@ is relative to the relay root
