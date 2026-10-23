@@ -33,7 +33,9 @@ codapi-output pre {
   padding: 0em;
 }
 
-codapi-output pre {
+/* keep line breaks, even if the page sets white-space on inline code */
+codapi-output pre code {
+  white-space: inherit;
 }
 
 /* unfortunately the resizer cannot be resized */
