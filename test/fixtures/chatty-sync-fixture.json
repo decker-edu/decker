@@ -1,0 +1,20 @@
+{
+  "comment": "Frozen request-signing contract for the decker-chatty /sync relay. HMAC-SHA256(key, canonical), base64. canonical = 'decker-chatty-sync-v1' \\n promptId \\n timestamp \\n METHOD \\n path \\n hex(sha256(body)). Mirrored in decker-chatty test/sync.test.mjs and decker test/SyncTests.hs.",
+  "keyHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "promptId": "pmpt_fixture_0001",
+  "timestamp": 1700000000,
+  "cases": [
+    {
+      "method": "POST",
+      "path": "/vector_stores/vs_fixture_abc123/files",
+      "body": "{\"file_id\":\"file-abc\"}",
+      "signature": "lNzZtooSHqfiBfDJbBLRCodotMR+33MER2FrOu2zXWM="
+    },
+    {
+      "method": "GET",
+      "path": "/files?purpose=assistants&limit=10000",
+      "body": "",
+      "signature": "H45jpok0Q1npAjrf73kon+TPOpK+xV1lJDf7Llio6tg="
+    }
+  ]
+}

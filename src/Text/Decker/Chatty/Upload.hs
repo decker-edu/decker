@@ -3,9 +3,12 @@
 
 -- | Sync chatty/ markdown files to an OpenAI vector store.
 --
--- Reads OPENAI_API_KEY from the environment and chatty.vector-store-id
--- from decker.yaml. On first run (no store id), creates a store and prints
--- the id for the user to paste back into decker.yaml.
+-- All OpenAI calls go through the decker-chatty proxy's signed @/chatty/sync@ relay
+-- (see "Text.Decker.Chatty.Sync"), so decker never needs the OpenAI API key.
+-- The relay is found via chatty.server and chatty.prompt in decker.yaml; the
+-- signing key is that prompt's deck-config key from chatty-key.json. On first
+-- run (no chatty.vector-store-id), creates a store and prints the id for the
+-- user to paste back into decker.yaml.
 --
 -- In addition to the generated markdown under chatty/, every file in the
 -- directories listed in the chatty.extra meta variable is uploaded as is.
@@ -26,6 +29,7 @@ import Data.Aeson hiding ((.=), Options)
 import Data.Aeson.Lens (key, _Array, _Bool, _Integer, _String)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Digest.Pure.MD5 (md5)
 import Data.List (partition, sort, (\\))
 import qualified Data.Map.Strict as Map
@@ -33,11 +37,16 @@ import Data.Map.Strict (Map)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import Network.HTTP.Types.URI (urlEncode)
 import Network.Wreq
 import System.Directory
-import System.Environment (lookupEnv)
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath
+import Text.Decker.Chatty.MetaSeal (chattyKeyFile)
+import Text.Decker.Chatty.Seal (KeyFileResult (..), lookupKey, readKeyFile)
+import Text.Decker.Chatty.Sync (SyncClient (..), signedHeaders)
 import Text.Decker.Internal.Common (deckerMetaFile)
 import Text.Decker.Internal.Meta (lookupMetaOrElse)
 import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
@@ -98,45 +107,106 @@ hashLocal path = do
   return (T.pack (show (md5 bs)))
 
 -- ---------------------------------------------------------------------------
--- OpenAI API
+-- OpenAI API, via the proxy's signed sync relay
 
-openaiBase :: String
-openaiBase = "https://api.openai.com/v1"
+-- | Resolve the sync relay from @chatty.server@ and @chatty.prompt@, and the
+-- signing key from 'chattyKeyFile'.
+syncClient :: Meta -> IO (Either String SyncClient)
+syncClient meta = do
+  let server = T.strip (lookupMetaOrElse "" "chatty.server" meta)
+      promptId = T.strip (lookupMetaOrElse "" "chatty.prompt" meta)
+  if
+    | T.null server -> return (Left "chatty.server is not set in decker.yaml")
+    | T.null promptId -> return (Left "chatty.prompt is not set in decker.yaml")
+    | otherwise ->
+        readKeyFile chattyKeyFile >>= \case
+          KeyFileAbsent -> return (Left ("no " <> chattyKeyFile <> " at the project root"))
+          KeyFileError err -> return (Left err)
+          KeyFileOk kf -> case lookupKey promptId kf of
+            Nothing ->
+              return (Left ("no key for prompt '" <> T.unpack promptId <> "' in " <> chattyKeyFile))
+            Just k ->
+              let base = T.unpack (T.dropWhileEnd (== '/') server) <> "/chatty/sync"
+               in return (Right (SyncClient base promptId k))
 
-authOpts :: BS.ByteString -> Options
-authOpts apiKey =
-  defaults
-    & header "Authorization" .~ ["Bearer " <> apiKey]
+-- | Send one signed request to the relay. @path@ is relative to the relay root
+-- and includes the query string; @payload@ is an optional content type and
+-- body. A 401 always fails with a hint at the likely cause; any other error
+-- status fails only when @strict@ is set, so callers can inspect e.g. a 404.
+relay ::
+  SyncClient ->
+  Bool ->
+  BS.ByteString ->
+  String ->
+  Maybe (BS.ByteString, BS.ByteString) ->
+  IO (Response BSL.ByteString)
+relay client strict method path payload = do
+  now <- round <$> getPOSIXTime
+  let body = maybe "" snd payload
+      auth = signedHeaders client now method path body
+      opts =
+        defaults
+          & checkResponse ?~ (\_ _ -> return ())
+          & foldr (\(n, v) o -> o . (header n .~ [v])) id auth
+          & maybe id (\(ct, _) -> header "Content-Type" .~ [ct]) payload
+      url = scBase client <> path
+  r <- case payload of
+    Nothing -> customMethodWith (BS.unpack method) opts url
+    Just (_, b) -> customPayloadMethodWith (BS.unpack method) opts url b
+  let code = r ^. responseStatus . statusCode
+      detail = BS.unpack method <> " " <> path <> ": " <> BSL8.unpack (r ^. responseBody)
+  when (code == 401) $
+    fail $
+      "chatty proxy rejected the request for prompt '"
+        <> T.unpack (scPromptId client)
+        <> "' (does "
+        <> chattyKeyFile
+        <> " match the proxy's deckConfigKey? are both clocks correct?) "
+        <> detail
+  when (strict && code >= 400) $
+    fail $
+      "OpenAI via chatty proxy: status " <> show code <> " for " <> detail
+  return r
 
-jsonOpts :: BS.ByteString -> Options
-jsonOpts apiKey =
-  authOpts apiKey & header "Content-Type" .~ ["application/json"]
+relayGet :: SyncClient -> String -> IO (Response BSL.ByteString)
+relayGet client path = relay client True "GET" path Nothing
+
+relayJson :: SyncClient -> BS.ByteString -> String -> Value -> IO (Response BSL.ByteString)
+relayJson client method path v =
+  relay client True method path (Just ("application/json", BSL.toStrict (encode v)))
 
 -- | Whether the vector store with the given id still exists. A store deleted
 -- via the OpenAI GUI leaves a dangling id in decker.yaml; without this check
 -- every subsequent call would crash with a 404.
-vectorStoreExists :: BS.ByteString -> Text -> IO Bool
-vectorStoreExists apiKey storeId = do
-  let opts = authOpts apiKey & checkResponse ?~ (\_ _ -> return ())
-  r <- getWith opts (openaiBase <> "/vector_stores/" <> T.unpack storeId)
-  return (r ^. responseStatus . statusCode /= 404)
+vectorStoreExists :: SyncClient -> Text -> IO Bool
+vectorStoreExists client storeId = do
+  r <- relay client False "GET" ("/vector_stores/" <> T.unpack storeId) Nothing
+  let code = r ^. responseStatus . statusCode
+  when (code >= 400 && code /= 404) $
+    fail $
+      "OpenAI via chatty proxy: status " <> show code <> " checking vector store " <> T.unpack storeId
+  return (code /= 404)
 
-createVectorStore :: BS.ByteString -> Text -> IO Text
-createVectorStore apiKey name = do
-  r <- postWith (jsonOpts apiKey) (openaiBase <> "/vector_stores") (object ["name" .= name])
+createVectorStore :: SyncClient -> Text -> IO Text
+createVectorStore client name = do
+  r <- relayJson client "POST" "/vector_stores" (object ["name" .= name])
   case r ^? responseBody . key "id" . _String of
     Just sid -> return sid
     Nothing -> fail "OpenAI: no id in vector_stores response"
 
-uploadFile :: BS.ByteString -> FilePath -> IO Text
-uploadFile apiKey path = do
+-- | Upload a file as raw bytes; the proxy wraps it into OpenAI's multipart
+-- @purpose=assistants@ upload under the given file name.
+uploadFile :: SyncClient -> FilePath -> IO Text
+uploadFile client path = do
+  bytes <- BS.readFile path
+  let name = urlEncode True (TE.encodeUtf8 (T.pack (takeFileName path)))
   r <-
-    postWith
-      (authOpts apiKey)
-      (openaiBase <> "/files")
-      [ partString "purpose" "assistants",
-        partFileSource "file" path
-      ]
+    relay
+      client
+      True
+      "POST"
+      ("/files?filename=" <> BS.unpack name)
+      (Just ("application/octet-stream", bytes))
   case r ^? responseBody . key "id" . _String of
     Just fid -> return fid
     Nothing -> fail $ "OpenAI: no id in files response for " <> path
@@ -145,29 +215,28 @@ uploadFile apiKey path = do
 -- or attachment that is already gone is the desired end state, so a stale id
 -- (e.g. a duplicate purged in an earlier interrupted run) must not abort the
 -- sync. Other 4xx/5xx responses still raise, with the body for context.
-idempotentDelete :: BS.ByteString -> String -> IO ()
-idempotentDelete apiKey url = do
-  -- Suppress wreq's automatic status check so a 404 does not throw.
-  let opts = authOpts apiKey & checkResponse ?~ (\_ _ -> return ())
-  r <- deleteWith opts url
+idempotentDelete :: SyncClient -> String -> IO ()
+idempotentDelete client path = do
+  -- Non-strict relay so a 404 does not throw.
+  r <- relay client False "DELETE" path Nothing
   let code = r ^. responseStatus . statusCode
   when (code >= 400 && code /= 404) $
     fail $
-      "OpenAI: DELETE " <> url <> " failed with status " <> show code
+      "OpenAI: DELETE " <> path <> " failed with status " <> show code
 
-deleteFile :: BS.ByteString -> Text -> IO ()
-deleteFile apiKey fid =
-  idempotentDelete apiKey (openaiBase <> "/files/" <> T.unpack fid)
+deleteFile :: SyncClient -> Text -> IO ()
+deleteFile client fid =
+  idempotentDelete client ("/files/" <> T.unpack fid)
 
-detachFromStore :: BS.ByteString -> Text -> Text -> IO ()
-detachFromStore apiKey storeId fid =
+detachFromStore :: SyncClient -> Text -> Text -> IO ()
+detachFromStore client storeId fid =
   idempotentDelete
-    apiKey
-    (openaiBase <> "/vector_stores/" <> T.unpack storeId <> "/files/" <> T.unpack fid)
+    client
+    ("/vector_stores/" <> T.unpack storeId <> "/files/" <> T.unpack fid)
 
 -- | Attach a file to the store with attributes capturing its source path and md5.
-attachToStore :: BS.ByteString -> Text -> Text -> FilePath -> Text -> IO ()
-attachToStore apiKey storeId fid path hash = do
+attachToStore :: SyncClient -> Text -> Text -> FilePath -> Text -> IO ()
+attachToStore client storeId fid path hash = do
   let body =
         object
           [ "file_id" .= fid,
@@ -178,20 +247,21 @@ attachToStore apiKey storeId fid path hash = do
                 ]
           ]
   _ <-
-    postWith
-      (jsonOpts apiKey)
-      (openaiBase <> "/vector_stores/" <> T.unpack storeId <> "/files")
+    relayJson
+      client
+      "POST"
+      ("/vector_stores/" <> T.unpack storeId <> "/files")
       body
   return ()
 
 -- | Poll the store until no files are still being indexed.
-waitForIndexing :: BS.ByteString -> Text -> IO ()
-waitForIndexing apiKey storeId = loop (0 :: Int)
+waitForIndexing :: SyncClient -> Text -> IO ()
+waitForIndexing client storeId = loop (0 :: Int)
   where
     loop n
       | n > 120 = fail "OpenAI: vector store indexing did not complete within timeout"
       | otherwise = do
-          r <- getWith (authOpts apiKey) (openaiBase <> "/vector_stores/" <> T.unpack storeId)
+          r <- relayGet client ("/vector_stores/" <> T.unpack storeId)
           let inProgress = r ^? responseBody . key "file_counts" . key "in_progress" . _Integer
           let failed = r ^? responseBody . key "file_counts" . key "failed" . _Integer
           case (inProgress, failed) of
@@ -204,17 +274,16 @@ waitForIndexing apiKey storeId = loop (0 :: Int)
 -- than one file when earlier runs left duplicates behind; 'reconcileStore'
 -- prunes those. @orphanFileIds@ are files carrying no @path@ attribute (e.g.
 -- uploaded by an older decker or by hand) — these are removed too.
-listStoreFiles :: BS.ByteString -> Text -> IO (Map FilePath [(Text, Text)], [Text])
-listStoreFiles apiKey storeId = page Nothing Map.empty []
+listStoreFiles :: SyncClient -> Text -> IO (Map FilePath [(Text, Text)], [Text])
+listStoreFiles client storeId = page Nothing Map.empty []
   where
     page cursor acc orphans = do
       let url =
-            openaiBase
-              <> "/vector_stores/"
+            "/vector_stores/"
               <> T.unpack storeId
               <> "/files?limit=100"
               <> maybe "" (\c -> "&after=" <> T.unpack c) cursor
-      r <- getWith (authOpts apiKey) url
+      r <- relayGet client url
       let entries = r ^.. responseBody . key "data" . _Array . traverse
       let (acc', orphans') = foldr insertEntry (acc, orphans) entries
       let hasMore = r ^? responseBody . key "has_more" . _Bool
@@ -236,15 +305,14 @@ listStoreFiles apiKey storeId = page Nothing Map.empty []
 -- | List every @purpose=assistants@ file object in the project, as @(id, name)@.
 -- These are the files decker uploads; other purposes (fine-tune, batch, …) are
 -- left untouched.
-listAssistantFiles :: BS.ByteString -> IO [(Text, Text)]
-listAssistantFiles apiKey = page Nothing []
+listAssistantFiles :: SyncClient -> IO [(Text, Text)]
+listAssistantFiles client = page Nothing []
   where
     page cursor acc = do
       let url =
-            openaiBase
-              <> "/files?purpose=assistants&limit=10000"
+            "/files?purpose=assistants&limit=10000"
               <> maybe "" (\c -> "&after=" <> T.unpack c) cursor
-      r <- getWith (authOpts apiKey) url
+      r <- relayGet client url
       let entries = r ^.. responseBody . key "data" . _Array . traverse
       let acc' = acc ++ mapMaybe entry entries
       let hasMore = r ^? responseBody . key "has_more" . _Bool
@@ -263,35 +331,28 @@ listAssistantFiles apiKey = page Nothing []
 -- files that should survive; everything else (e.g. files orphaned when a store
 -- was deleted in the GUI) is removed. Destructive: this touches all
 -- assistant-purpose files in the OpenAI project, not just decker's.
-pruneOrphanFiles :: BS.ByteString -> Text -> IO ()
-pruneOrphanFiles apiKey storeId = do
-  (remote, orphans) <- listStoreFiles apiKey storeId
+pruneOrphanFiles :: SyncClient -> Text -> IO ()
+pruneOrphanFiles client storeId = do
+  (remote, orphans) <- listStoreFiles client storeId
   let attached = orphans ++ concatMap (map fst) (Map.elems remote)
-  all' <- listAssistantFiles apiKey
+  all' <- listAssistantFiles client
   let danglers = [(fid, name) | (fid, name) <- all', fid `notElem` attached]
   if null danglers
     then putStrLn "# prune: no dangling assistant files."
     else do
       forM_ danglers $ \(fid, name) -> do
         putStrLn $ "# prune file: " <> T.unpack name <> " (" <> T.unpack fid <> ")"
-        deleteFile apiKey fid
+        deleteFile client fid
       putStrLn $ "# pruned " <> show (length danglers) <> " file(s)."
 
 -- ---------------------------------------------------------------------------
 -- Entry point
 
--- | Look up the OpenAI API key from the environment.
-lookupApiKey :: IO (Maybe BS.ByteString)
-lookupApiKey =
-  lookupEnv "OPENAI_API_KEY" >>= \case
-    Just k | not (null k) -> return (Just (BS.pack k))
-    _ -> return Nothing
-
 -- | Detach a file from the store and delete the underlying file object.
-purgeFile :: BS.ByteString -> Text -> Text -> IO ()
-purgeFile apiKey storeId fid = do
-  detachFromStore apiKey storeId fid
-  deleteFile apiKey fid
+purgeFile :: SyncClient -> Text -> Text -> IO ()
+purgeFile client storeId fid = do
+  detachFromStore client storeId fid
+  deleteFile client fid
 
 -- | Reconcile the given local files (a map from store path to local file path)
 -- against the store so that, when finished, every local path is represented by
@@ -302,22 +363,22 @@ purgeFile apiKey storeId fid = do
 --   - delete orphan files that carry no path attribute,
 --   - leave unchanged files alone,
 -- then wait for indexing.
-reconcileStore :: BS.ByteString -> Text -> Map FilePath FilePath -> IO ()
-reconcileStore apiKey storeId files = do
+reconcileStore :: SyncClient -> Text -> Map FilePath FilePath -> IO ()
+reconcileStore client storeId files = do
   newHashes <- traverse hashLocal files
-  (remote, orphans) <- listStoreFiles apiKey storeId
+  (remote, orphans) <- listStoreFiles client storeId
 
   -- Files with no path attribute can never be matched against a local file;
   -- drop them so the store only holds files this tool manages.
   forM_ orphans $ \fid -> do
     putStrLn "# delete orphan (no path attribute)"
-    purgeFile apiKey storeId fid
+    purgeFile client storeId fid
 
   -- Paths present remotely but no longer local: remove every copy.
   let removals = Map.keys remote \\ Map.keys newHashes
   forM_ removals $ \p -> do
     putStrLn $ "# delete: " <> p
-    forM_ (remote Map.! p) $ \(fid, _) -> purgeFile apiKey storeId fid
+    forM_ (remote Map.! p) $ \(fid, _) -> purgeFile client storeId fid
 
   -- Each local path: keep a single matching copy if one exists, otherwise
   -- (re)upload; in both cases purge any other remote copies for that path.
@@ -330,15 +391,15 @@ reconcileStore apiKey storeId files = do
         -- Already present and current; drop any duplicate/stale copies.
         let dups = map fst (extras ++ stale)
         unless (null dups) $ putStrLn $ "# dedup: " <> p
-        forM_ dups $ purgeFile apiKey storeId
+        forM_ dups $ purgeFile client storeId
         return Unchanged
       [] -> do
         if null stale
           then putStrLn $ "# upload: " <> p
           else putStrLn $ "# replace: " <> p
-        forM_ (map fst stale) $ purgeFile apiKey storeId
-        fid <- uploadFile apiKey localPath
-        attachToStore apiKey storeId fid p h
+        forM_ (map fst stale) $ purgeFile client storeId
+        fid <- uploadFile client localPath
+        attachToStore client storeId fid p h
         return Uploaded
 
   let uploaded = length (filter (== Uploaded) results)
@@ -346,7 +407,7 @@ reconcileStore apiKey storeId files = do
 
   when (uploaded > 0) $ do
     putStrLn $ "# waiting for indexing of " <> show uploaded <> " file(s)..."
-    waitForIndexing apiKey storeId
+    waitForIndexing client storeId
 
   putStrLn $
     "# done. "
@@ -365,13 +426,13 @@ data Outcome = Unchanged | Uploaded deriving (Eq)
 -- objects left dangling, i.e. not attached to the store.
 runChatty :: Bool -> IO ()
 runChatty prune = do
-  apiKey <-
-    lookupApiKey >>= \case
-      Just k -> return k
-      Nothing -> do
-        putStrLn "# OPENAI_API_KEY is not set."
-        exitFailure
   meta <- readDeckerMetaIO deckerMetaFile
+  client <-
+    syncClient meta >>= \case
+      Right c -> return c
+      Left err -> do
+        putStrLn $ "# " <> err <> " — cannot reach the chatty proxy for vector store sync."
+        exitFailure
   let storeId = lookupMetaOrElse ("" :: Text) "chatty.vector-store-id" meta
   let storeName = lookupMetaOrElse ("decker" :: Text) "chatty.vector-store-name" meta
 
@@ -379,7 +440,7 @@ runChatty prune = do
     if T.null storeId
       then return True
       else do
-        ok <- vectorStoreExists apiKey storeId
+        ok <- vectorStoreExists client storeId
         unless ok $
           putStrLn $
             "# chatty.vector-store-id "
@@ -390,7 +451,7 @@ runChatty prune = do
   when missing $ do
     when (T.null storeId) $
       putStrLn "# No chatty.vector-store-id in decker.yaml — creating a new vector store..."
-    sid <- createVectorStore apiKey storeName
+    sid <- createVectorStore client storeName
     putStrLn ""
     putStrLn $ "# Created vector store: " <> T.unpack sid
     putStrLn "# Add the following to decker.yaml and run `decker chatty` again:"
@@ -408,13 +469,13 @@ runChatty prune = do
         <> "/ and no files in `chatty.extra`. Build first."
     exitFailure
 
-  reconcileStore apiKey storeId files
-  when prune $ pruneOrphanFiles apiKey storeId
+  reconcileStore client storeId files
+  when prune $ pruneOrphanFiles client storeId
 
 -- | Non-exiting sync for `decker publish`. Reconciles the generated markdown
 -- under 'chattyDir' plus the files in the configured `chatty.extra` directories
 -- against the vector store. Does nothing (apart from a note) when no store id or
--- API key is available, so it can never abort a publish run. The caller is
+-- no sync relay is configured, so it can never abort a publish run. The caller is
 -- expected to have (re)populated 'chattyDir' with exactly the set of generated
 -- files that should be present in the store.
 syncChattyToStore :: IO ()
@@ -424,10 +485,10 @@ syncChattyToStore = do
   if T.null storeId
     then putStrLn "# chatty.vector-store-id not set — skipping vector store sync."
     else
-      lookupApiKey >>= \case
-        Nothing -> putStrLn "# OPENAI_API_KEY is not set — skipping vector store sync."
-        Just apiKey -> do
-          exists <- vectorStoreExists apiKey storeId
+      syncClient meta >>= \case
+        Left err -> putStrLn $ "# " <> err <> " — skipping vector store sync."
+        Right client -> do
+          exists <- vectorStoreExists client storeId
           if not exists
             then
               putStrLn $
@@ -437,4 +498,4 @@ syncChattyToStore = do
                   <> "Run `decker chatty` to create a new store and update decker.yaml."
             else do
               files <- collectLocalFiles meta
-              reconcileStore apiKey storeId files
+              reconcileStore client storeId files
