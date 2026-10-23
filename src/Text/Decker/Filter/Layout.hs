@@ -89,12 +89,19 @@ renderLayout areaMap l = mapMaybe (renderRow (name l) areaMap) (rows l)
 
 slideAreas :: [Text] -> [Block] -> AreaMap
 slideAreas names blocks =
-  mapMaybe extract $
-    filter (not . null) $
-      split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
+  mergeAreas $
+    mapMaybe extract $
+      filter (not . null) $
+        split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
   where
     extract [] = Nothing
     extract area@(b : _) = firstClass names b >>= Just . (,area)
+
+-- | Areas that are declared more than once are concatenated in document
+-- order. Areas keep the position of their first declaration.
+mergeAreas :: AreaMap -> AreaMap
+mergeAreas areas =
+  [(n, concatMap snd $ filter ((n ==) . fst) areas) | n <- ordNub (map fst areas)]
 
 layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) [] dir) = return slide

@@ -87,7 +87,7 @@
      current palette. Colors can be set arbitrarily. */
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
-  --header-color: var(--shade5);
+  --heading-color: var(--shade5);
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
   --hover-color: var(--accent5-bg);

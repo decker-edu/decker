@@ -66,13 +66,15 @@ codapi-toolbar button::after {
 
 /* make the run button and the close link look and behave the same  */
 codapi-toolbar button:hover,
-codapi-output a[href="#close"]:hover {
+codapi-output a[href="#close"]:hover,
+button.live-code-peek:hover {
   background-color: var(--accent3-bg);
 }
 
 /* style the link and the button the same */
 codapi-toolbar button,
-codapi-output a[href="#close"] {
+codapi-output a[href="#close"],
+button.live-code-peek {
   cursor: pointer;
   z-index: 2;
 
@@ -157,4 +159,128 @@ figure.live-code:hover codapi-toolbar button {
 figure.live-code:hover div.live-code div.label {
     opacity: 1;
     transition:0s;
+}
+
+/*
+Result placement. The figure carries data-result (from the result attribute of
+the code block). All modes except below keep the slide layout unchanged when
+the result shows up.
+
+<figure class="live-code" data-result="split">
+  <div class="live-code-frame">
+    <div class="live-code"> <pre><code>…</code></pre> </div>
+    <codapi-snippet> <codapi-toolbar/> <codapi-output/> </codapi-snippet>
+    <button class="live-code-peek">
+  </div>
+</figure>
+*/
+
+/* anchor for toolbar, label and all positioned results */
+div.live-code-frame {
+  position: relative;
+}
+
+/* toolbar and output take part in the frame layout directly */
+figure.live-code codapi-snippet {
+  display: contents;
+}
+
+button.live-code-peek {
+  display: none;
+  top: auto;
+  bottom: 0.4em;
+}
+
+/* split: the frame keeps its pre-run height, code and result share it */
+figure.live-code[data-result="split"] div.live-code-frame {
+  display: flex;
+  flex-direction: column;
+}
+
+figure.live-code[data-result="split"] div.live-code {
+  flex: 1 1 auto;
+  min-height: 0;
+  resize: none;
+}
+
+figure.live-code[data-result="split"] codapi-output {
+  flex: 0 0 auto;
+  max-height: 50%;
+  resize: none;
+}
+
+/* flip: the result replaces the code, peek switches back to the result */
+figure.live-code[data-result="flip"] codapi-output {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  max-height: none;
+  resize: none;
+}
+
+figure.live-code[data-result="flip"]
+  div.live-code-frame[data-has-output]:has(codapi-output[hidden])
+  button.live-code-peek {
+  display: inline-block;
+}
+
+/* overlay: the result slides over the lower part of the code */
+figure.live-code[data-result="overlay"] codapi-output {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  margin: 0;
+  max-height: 50%;
+  resize: none;
+  box-shadow: 0 -0.2em 0.6em rgba(0, 0, 0, 0.25);
+  transition: opacity 0.2s;
+}
+
+/* get out of the way while editing */
+figure.live-code[data-result="overlay"]
+  div.live-code-frame:has(code:focus)
+  codapi-output {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* float: the result floats over the content below (or above) the code */
+figure.live-code[data-result="float"] codapi-output {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0.3em 0 0 0;
+  box-shadow: 0 0.2em 0.8em rgba(0, 0, 0, 0.3);
+}
+
+figure.live-code[data-result="float"][data-float="up"] codapi-output {
+  top: auto;
+  bottom: calc(100% + 2em);
+}
+
+/* reserve: the result area is always there and has a fixed height */
+figure.live-code[data-result="reserve"] codapi-output,
+figure.live-code[data-result="reserve"] codapi-output[hidden] {
+  display: block;
+  height: var(--result-height, 6em);
+  max-height: none;
+  min-height: 0;
+  resize: none;
+}
+
+figure.live-code[data-result="reserve"] codapi-output a[href="#close"] {
+  display: none;
+}
+
+figure.live-code[data-result="reserve"]
+  codapi-output:has(> pre > code:empty)::before {
+  content: "Output";
+  padding: 0.3em;
+  font-size: 80%;
+  color: var(--shade3);
 }

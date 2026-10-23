@@ -64,7 +64,7 @@
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
 
-  --header-color: var(--shade7);
+  --heading-color: var(--shade7);
 
   --primary-color: var(--accent6-fg);   /* JMU Anpassung */
   --secondary-color: var(--accent1);

@@ -72,6 +72,18 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y bzip2 libbz2-dev
 
+      # The macOS runner ships Command Line Tools with the macOS 27 SDK while
+      # xcode-select points at Xcode 26, whose old ld cannot parse the new SDK
+      # stubs ("unknown architecture arm64e.x1"). Use the CLT toolchain, which
+      # has a matching linker.
+      - name: Select Command Line Tools (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          echo "before: $(xcode-select -p)"
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+          echo "after: $(xcode-select -p), sdk: $(xcrun --show-sdk-path)"
+          ld -v
+
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
         with:
@@ -79,6 +91,8 @@ jobs:
           stack-no-global: true
           stack-version: latest
           stack-setup-ghc: true
+          # Match the GHC of the resolver in stack.yaml (lts-23.28).
+          ghc-version: "9.8.4"
 
       # On Windows GHC links against Stack's bundled MSYS2/mingw toolchain, so
       # bz2 must be installed there (after stack setup has provisioned MSYS2).
