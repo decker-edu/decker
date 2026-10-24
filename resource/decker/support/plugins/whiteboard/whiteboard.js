@@ -142,7 +142,8 @@ const germanLocalization = {
   toggle_autosave: "Automatisches Speichern umschalten",
   toggle_grid: "Raster ein-/ausblenden",
   add_page: "Whiteboard Seite hinzufügen",
-  select_or_change_pen: "Stiftmodus an- und umstellen",
+  pen_settings: "Stifteinstellungen",
+  pick_pen: "Stift auswählen",
   pick_eraser: "Radierer auswählen",
   pick_laserpointer: "Laserpointer auswählen",
   toggle_whiteboard_mode: "Whiteboardmodus umschalten",
@@ -170,7 +171,8 @@ const englishLocalization = {
   toggle_autosave: "Toggle Auto-Save",
   toggle_grid: "Toggle Grid",
   add_page: "Add Page",
-  select_or_change_pen: "Pick or Change Pen",
+  pen_settings: "Pen settings",
+  pick_pen: "Pick Pen",
   pick_eraser: "Pick Eraser",
   pick_laserpointer: "Pick Laserpointer",
   toggle_whiteboard_mode: "Toggle Whiteboard Mode",
@@ -225,6 +227,7 @@ let buttonGrid;
 let buttonAdd;
 let buttonUndo;
 let buttonPen;
+let buttonPenSettings;
 let buttonEraser;
 let buttonLaser;
 let colorPicker;
@@ -323,6 +326,15 @@ function createGUI() {
 
   buttonUndo = createActionButton("fas fa-undo", undo, l10n.undo);
 
+  buttonPenSettings = createActionButton(
+    "fas fa-palette",
+    () => {
+      if (tool !== PEN) selectTool(PEN);
+    },
+    l10n.pen_settings
+  );
+  buttonPenSettings.setAttribute("popovertarget", "whiteboardColorPicker");
+
   buttonPen = createRadioButton(
     "fas fa-pen radiobutton",
     () => {
@@ -331,17 +343,11 @@ function createGUI() {
         buttonPen.focus();
         return;
       }
-      if (tool != PEN) {
-        selectTool(PEN);
-      } else {
-        toggleColorPicker();
-      }
+      selectTool(PEN);
     },
     false,
-    l10n.select_or_change_pen
+    l10n.pick_pen
   );
-  buttonPen.style.position = "relative";
-
   buttonEraser = createRadioButton(
     "fas fa-eraser radiobutton",
     () => {
@@ -386,7 +392,8 @@ function createGUI() {
   // generate color picker container
   colorPicker = document.createElement("div");
   colorPicker.id = "whiteboardColorPicker";
-  buttonPen.appendChild(colorPicker);
+  colorPicker.setAttribute("popover", "auto");
+  buttons.appendChild(colorPicker);
 
   // color buttons
   penColors.forEach((color) => {
@@ -396,6 +403,9 @@ function createGUI() {
       selectPenColor(color);
       evt.stopImmediatePropagation();
     };
+    b.dataset.color = color;
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", String(color === penColor));
     b.title = l10n.pick_color;
     b.setAttribute("aria-label", l10n.pick_color);
     b.style.color = color;
@@ -412,6 +422,9 @@ function createGUI() {
       selectPenRadius(r);
       evt.stopImmediatePropagation();
     };
+    b.dataset.radius = r;
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", String(r === penWidth));
     b.title = l10n.pick_radius + ": " + radius;
     b.setAttribute("aria-label", l10n.pick_radius + ": " + radius);
     colorPicker.appendChild(b);
@@ -663,27 +676,31 @@ function toggleEraser() {
   else selectTool(ERASER);
 }
 
-function toggleColorPicker() {
-  colorPicker.classList.toggle("active");
-}
-
 function hideColorPicker() {
-  colorPicker.classList.remove("active");
+  if (colorPicker.matches(":popover-open")) colorPicker.hidePopover();
 }
 
 function selectPenColor(col) {
   penColor = col;
+  colorPicker.querySelectorAll("[data-color]").forEach((button) => {
+    const selected = button.dataset.color === col;
+    button.setAttribute("aria-checked", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
   buttonPen.style.color = penColor;
   createPenCursor();
   selectCursor(penCursor);
-  hideColorPicker();
 }
 
 function selectPenRadius(radius) {
   penWidth = radius;
+  colorPicker.querySelectorAll("[data-radius]").forEach((button) => {
+    const selected = Number(button.dataset.radius) === radius;
+    button.setAttribute("aria-checked", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
   createPenCursor();
   selectCursor(penCursor);
-  hideColorPicker();
 }
 
 function enableWhiteboard() {

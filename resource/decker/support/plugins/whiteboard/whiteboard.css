@@ -136,26 +136,27 @@ html.print-pdf #whiteboardButtons {
 
 /* container for color picker */
 #whiteboardColorPicker {
-  position: absolute;
-  top: 50%;
-  right: auto;
-  left: 2.5em;
-  bottom: auto;
+  position: fixed;
+  inset: auto;
+  position-area: right;
   padding: 5px;
-  margin: 0;
+  margin: 0 0 0 8px;
   z-index: 40;
   border-radius: calc(var(--icon-size) * 0.5);
   border: 1px solid var(--icon-active-color);
   background-color: var(--menu-background-color);
-  display: grid;
   gap: 2px;
   grid-template-columns: repeat(8, 1fr);
-  visibility: hidden;
-  transform: translateY(-50%);
 }
 
-#whiteboardColorPicker.active {
-  visibility: visible;
+#whiteboardColorPicker:popover-open {
+  display: grid;
+}
+
+#whiteboardColorPicker button[aria-checked="true"] {
+  background-color: var(--shade2);
+  box-shadow: inset 1px 1px 2px 1px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgb(from currentColor r g b / 0.6);
 }
 
 #whiteboardColorPicker button.whiteboard {
@@ -163,8 +164,6 @@ html.print-pdf #whiteboardButtons {
   padding: 0;
   text-align: center;
   vertical-align: middle;
-  /*  color: var(--shade6); */
-  background: transparent;
   width: calc(var(--icon-size) * 2);
   height: calc(var(--icon-size) * 2);
 }
