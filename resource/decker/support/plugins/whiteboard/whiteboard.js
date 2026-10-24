@@ -84,8 +84,6 @@ let currentFragmentIndex = 0;
 let undoHistory = [];
 const undoBufferSize = 10;
 
-let storedKeyboardConfig;
-
 // get configuration options from Reveal deck
 function readConfig() {
   config = Reveal.getConfig().whiteboard || {};
@@ -118,10 +116,10 @@ function readConfig() {
   slideZoom = slides.style.zoom || 1;
 
   // autosave is on by default
-  autosave = config.autosave || true;
+  autosave = config.autosave ?? true;
 
   // autotoggle is off by default
-  autoToggle = config.autotoggle || false;
+  autoToggle = config.autotoggle ?? false;
 }
 
 /************************************************************************
@@ -151,6 +149,8 @@ const germanLocalization = {
   undo: "Letzte Handlung rückgängig machen",
   paint_stroke: "Linie zeichnen",
   erase_stroke: "Linie radieren",
+  clear_slide: "Folie reinigen",
+  delete_confirmation: "Alle Whiteboard-Anmerkungen auf dieser Folie löschen?",
   pick_color: "Farbe auswählen",
   pick_radius: "Radius auswählen",
   keybinds: {
@@ -177,6 +177,8 @@ const englishLocalization = {
   undo: "Undo last action",
   paint_stroke: "paint stroke",
   erase_stroke: "erase stroke",
+  clear_slide: "clear slide",
+  delete_confirmation: "Delete all whiteboard annotations on this slide?",
   pick_color: "Pick Color",
   pick_radius: "Pick Radius",
   keybinds: {
@@ -191,13 +193,8 @@ const englishLocalization = {
   }
 };
 
-let l10n;
 const lang = Decker.meta.lang || navigator.language;
-if (lang === "de") {
-  l10n = germanLocalization;
-} else {
-  l10n = englishLocalization;
-}
+const l10n = lang === "de" ? germanLocalization : englishLocalization;
 
 /************************************************************************
  * Functionality
@@ -300,7 +297,7 @@ function createGUI() {
 
   buttonDownload = createActionButton(
     "fas fa-download",
-    saveAnnotations,
+    () => saveAnnotations(true),
     l10n.manual_save
   );
 
@@ -464,7 +461,7 @@ function setupSVG(slide, height) {
   if (!height) height = pageHeight;
   svg.style.height = height + "px";
 
-  // prevent accidential click, double-click, and context menu
+  // prevent accidental click, double-click, and context menu
   svg.oncontextmenu = killEvent;
   svg.onclick = killEvent;
   svg.ondblclick = killEvent;
@@ -711,6 +708,7 @@ function enableWhiteboard() {
 }
 
 function disableWhiteboard() {
+  stopStroke();
   whiteboardActive = false;
   clearTimeout(autoToggleTimer);
 
@@ -857,17 +855,21 @@ function setWhiteboardHeight(svgHeight) {
  * User wants to clear current slide (mapped to key Delete)
  */
 function clearSlide() {
-  if (!whiteboardActive) return;
+  if (!whiteboardActive || !svg) return;
   if (confirm(l10n.delete_confirmation)) {
+    stopStroke();
     let strokes = svg.querySelectorAll("svg>path");
-    if (strokes) {
+    let grid = getGridRect();
+    if (strokes.length || grid) {
+      pushUndoHistory(l10n.clear_slide);
+    }
+    if (strokes.length) {
       strokes.forEach((stroke) => {
         stroke.remove();
       });
       needToSave(true);
     }
 
-    let grid = svg.querySelector("svg>rect");
     if (grid) {
       grid.remove();
       buttonGrid.ariaPressed = false;
@@ -957,7 +959,10 @@ function pushUndoHistory(action) {
 
 function undo() {
   if (undoHistory.length) {
+    stopStroke();
     svg.innerHTML = undoHistory.pop().svg;
+    adjustWhiteboardHeight();
+    buttonGrid.ariaPressed = !!getGridRect();
 
     if (undoHistory.length) {
       let action = undoHistory[undoHistory.length - 1].action;
@@ -980,96 +985,50 @@ function undo() {
  * load scribbles from default URL
  * use Promise to ensure loading in init()
  */
-function loadAnnotationsFromURL() {
-  return new Promise(function (resolve) {
-    // determine scribble filename
-    let filename = annotationURL();
+async function loadAnnotations() {
+  const filename = annotationURL();
+  let response;
+  try {
+    response = await fetch(filename);
+  } catch (err) {
+    console.warn("Cannot load " + filename + ": " + err);
+    return;
+  }
 
-    // console.log("whiteboard load " + filename);
-    let xhr = new XMLHttpRequest();
+  // Annotation files are optional; HTTP errors must not block initialization.
+  if (!response.ok) return;
 
-    xhr.onloadend = function () {
-      if (xhr.status == 200 || xhr.status == 0) {
-        try {
-          const storage = JSON.parse(xhr.responseText);
-          parseAnnotations(storage);
-        } catch (err) {
-          console.error("Cannot parse " + filename + ": " + err);
+  try {
+    const storage = await response.json();
+
+    // create SVGs
+    if (storage.whiteboardVersion && storage.whiteboardVersion >= 2) {
+      storage.annotations.forEach((page) => {
+        let slide = document.getElementById(page.slide);
+        if (slide) {
+          // use global SVG
+          svg = setupSVG(slide);
+          if (svg) {
+            svg.innerHTML = page.svg;
+            svg.style.display = "none";
+          }
         }
-      }
-      // Don't dwell on it. 'Failed to load resource' is always shown anyways.
-      // } else {
-      //   console.warn("Failed to get file " + filename);
-      // }
+      });
+    } else {
+      console.warn("Old whiteboard annotations are not supported anymore");
+      return;
+    }
 
-      resolve();
-    };
-
-    xhr.open("GET", filename, true);
-    xhr.send();
-  });
-}
-
-/*
- * load scribbles from local file
- * use Promise to ensure loading in init()
- */
-function loadAnnotationsFromFile(filename) {
-  if (window.File && window.FileReader && window.FileList) {
-    var reader = new FileReader();
-
-    reader.onload = function (evt) {
-      try {
-        const storage = JSON.parse(evt.target.result);
-        parseAnnotations(storage);
-
-        // re-setup current slide
-        slideChanged();
-      } catch (err) {
-        console.error("Cannot parse " + filename + ": " + err);
-      }
-    };
-
-    reader.readAsText(filename);
-  } else {
-    console.error("Your browser does not support the File API");
-  }
-}
-
-/*
- * parse the annnotations blob loaded from URL or file
- */
-function parseAnnotations(storage) {
-  // create SVGs
-  if (storage.whiteboardVersion && storage.whiteboardVersion >= 2) {
-    storage.annotations.forEach((page) => {
-      let slide = document.getElementById(page.slide);
-      if (slide) {
-        // use global SVG
-        svg = setupSVG(slide);
-        if (svg) {
-          svg.innerHTML = page.svg;
-          svg.style.display = "none";
-        }
-      }
-    });
-    // console.log("whiteboard loaded");
-  }
-
-  // fix inconsistency for centered slides
-  if (storage.whiteboardVersion == 2 && Reveal.getConfig().center) {
-    document.querySelectorAll("svg.whiteboard path").forEach((path) => {
-      path.setAttribute("transform", "translate(0 40)");
-    });
-  }
-
-  // adjust height for PDF export
-  if (printMode) {
-    slides.querySelectorAll("svg.whiteboard").forEach((mysvg) => {
-      svg = mysvg;
-      svg.style.display = "block";
-      adjustWhiteboardHeight();
-    });
+    // adjust height for PDF export
+    if (printMode) {
+      slides.querySelectorAll("svg.whiteboard").forEach((mysvg) => {
+        svg = mysvg;
+        svg.style.display = "block";
+        adjustWhiteboardHeight();
+      });
+    }
+  } catch (err) {
+    console.error("Cannot parse " + filename + ": " + err);
   }
 }
 
@@ -1106,9 +1065,9 @@ function annotationURL() {
 }
 
 /*
- * return annotations as JSON object
+ * return annotations as Blob
  */
-function annotationData() {
+function annotationBlob() {
   let storage = { whiteboardVersion: 3.0, annotations: [] };
 
   slides.querySelectorAll("svg.whiteboard").forEach((svg) => {
@@ -1120,14 +1079,7 @@ function annotationData() {
     }
   });
 
-  return storage;
-}
-
-/*
- * return annotations as Blob
- */
-function annotationBlob() {
-  return new Blob([JSON.stringify(annotationData())], {
+  return new Blob([JSON.stringify(storage)], {
     type: "application/json"
   });
 }
@@ -1135,41 +1087,51 @@ function annotationBlob() {
 /*
  * save annotations to decker server
  */
-function saveAnnotations() {
+async function saveAnnotations(alsoDownload) {
+  if (!unsavedAnnotations && !alsoDownload) return;
+
   // cannot save annotations in electron app
   if (window.Decker.isElectron()) return;
 
   // clear remaining laser strokes
   clearLaserStrokes();
 
-  // also save to downloads folder (just to be save(r))
-  let a = document.createElement("a");
-  a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
-  document.body.appendChild(a);
-  try {
-    a.download = annotationFilename();
-    a.href = window.URL.createObjectURL(annotationBlob());
-    a.click();
-    needToSave(false);
-  } catch (error) {
-    console.error("whiteboard annotations could not be downloaded: " + error);
+  if (alsoDownload) {
+    // also save to downloads folder (just to be save(r))
+    let a = document.createElement("a");
+    a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
+    document.body.appendChild(a);
+    try {
+      a.download = annotationFilename();
+      a.href = window.URL.createObjectURL(annotationBlob());
+      a.click();
+      needToSave(false);
+    } catch (error) {
+      console.error("whiteboard annotations could not be downloaded: " + error);
+    }
+    document.body.removeChild(a);
   }
-  document.body.removeChild(a);
 
-  // save to decker server (and do not return)
-  let xhr = new XMLHttpRequest();
-  xhr.open("put", annotationURL(), true);
-  xhr.onloadend = function () {
-    if (xhr.status == 200) {
+  // save to decker server
+  try {
+    const response = await fetch(annotationURL(), {
+      method: "PUT",
+      body: annotationBlob()
+    });
+    if (response.ok) {
       console.log("whiteboard annotations saved to deck directory");
       needToSave(false);
     } else {
       console.warn(
-        "whiteboard annotation could not be save to decker, trying to download the file instead."
+        "whiteboard annotations could not be saved to decker: HTTP " +
+          response.status
       );
     }
-  };
-  xhr.send(annotationBlob());
+  } catch (error) {
+    console.warn(
+      "whiteboard annotations could not be saved to decker: " + error
+    );
+  }
 }
 
 /*****************************************************************
@@ -1258,13 +1220,15 @@ function startStroke(evt) {
   const mouseX = evt.offsetX / slideZoom;
   const mouseY = evt.offsetY / slideZoom;
 
+  // Snapshot the board before inserting the new stroke.
+  if (!isLaserStroke) pushUndoHistory(l10n.paint_stroke);
+
   // add stroke to SVG
   stroke = document.createElementNS("http://www.w3.org/2000/svg", "path");
   svg.appendChild(stroke);
   if (isLaserStroke) {
     stroke.classList.add("laser");
   } else {
-    pushUndoHistory(l10n.paint_stroke);
     stroke.style.stroke = penColor;
     stroke.style.strokeWidth = penWidth + "px";
   }
@@ -1299,7 +1263,10 @@ function continueStroke(evt) {
 
   // collect coalesced events
   let events = [evt];
-  if (evt.getCoalescedEvents) events = evt.getCoalescedEvents() || events;
+  if (evt.getCoalescedEvents) {
+    const coalescedEvents = evt.getCoalescedEvents();
+    if (coalescedEvents?.length) events = coalescedEvents;
+  }
 
   // process events
   for (let evt of events) {
@@ -1325,19 +1292,27 @@ function continueStroke(evt) {
  * stop current stroke:
  */
 function stopStroke(evt) {
-  // we need an active stroke
-  if (!stroke) return;
+  if (stroke) {
+    // Preserve the release position even below the movement threshold.
+    if (evt?.type === "pointerup") {
+      const finalPoint = [evt.offsetX / slideZoom, evt.offsetY / slideZoom];
+      points.push(finalPoint);
+      renderStroke(points, stroke);
+    }
 
-  // add timer to laser stroke
-  if (isLaserStroke) {
-    stroke.style.opacity = "0";
+    // add timer to laser stroke
+    if (isLaserStroke) {
+      stroke.style.opacity = "0";
+    }
+
+    // new stroke -> we have to save
+    needToSave(true);
   }
 
-  // reset stroke
+  // Always reset drawing state, including on interrupted input.
   stroke = null;
-
-  // new stroke -> we have to save
-  needToSave(true);
+  points = null;
+  isLaserStroke = false;
 }
 
 /*
@@ -1490,7 +1465,7 @@ function pointerup(evt) {
   if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
 
   // finish pen stroke
-  if (stroke) stopStroke(evt);
+  stopStroke(evt);
 
   // select cursor based on tool (NOT pointerMode!)
   switch (tool) {
@@ -1510,11 +1485,10 @@ function pointerup(evt) {
   // re-activate cursor hiding
   triggerHideCursor();
 
-  // deactive laser stroke
-  isLaserStroke = false;
-
   // don't propagate event any further
-  return killEvent(evt);
+  if (evt.cancelable) evt.preventDefault();
+  evt.stopPropagation();
+  return false;
 }
 
 /*****************************************************************
@@ -1560,6 +1534,12 @@ function preventPenScroll(evt) {
 
 // what to do when the slide changes
 function slideChanged(evt) {
+  stopStroke();
+
+  if (!printMode && autosave && unsavedAnnotations) {
+    void saveAnnotations(false);
+  }
+
   if (!printMode) {
     // hide pen dialog
     hideColorPicker();
@@ -1613,6 +1593,8 @@ function setupCallbacks() {
   slides.addEventListener("pointermove", pointermove);
   slides.addEventListener("pointerup", pointerup);
   slides.addEventListener("pointerout", pointerup);
+  slides.addEventListener("pointercancel", pointerup);
+  slides.addEventListener("lostpointercapture", pointerup);
 
   // autotoggle: turn on at pen-hover, turn off when stroke it stopped or pointer is lost
   if (autoToggle) {
@@ -1626,7 +1608,7 @@ function setupCallbacks() {
     if (unsavedAnnotations) {
       if (autosave) {
         console.log("whiteboard: auto-saving annotations");
-        saveAnnotations();
+        saveAnnotations(true);
       } else {
         evt.preventDefault();
         evt.returnValue = "You have unsaved annotations";
@@ -1654,10 +1636,22 @@ function setupCallbacks() {
   // doesn't work with Reveal's key bindings,
   // due to CTRL/CMD modifier.
   window.addEventListener("keydown", function (evt) {
+    const target = evt.composedPath()[0];
+    if (
+      evt.defaultPrevented ||
+      !whiteboardActive ||
+      !undoHistory.length ||
+      target?.closest?.("input, textarea, select") ||
+      target?.isContentEditable
+    ) {
+      return;
+    }
+
     if (
       (evt.ctrlKey || evt.metaKey) &&
       !evt.shiftKey &&
-      String.fromCharCode(evt.which).toLowerCase() == "z"
+      !evt.altKey &&
+      evt.key.toLowerCase() === "z"
     ) {
       undo();
       return killEvent(evt);
@@ -1800,7 +1794,7 @@ const Plugin = {
     slidesElement.addEventListener("keydown", suppressor);
 
     // load annotations
-    return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
+    return new Promise((resolve) => loadAnnotations().then(resolve));
   },
 
   saveAnnotations: saveAnnotations
