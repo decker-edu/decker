@@ -73,6 +73,7 @@ const printMode = /print-pdf/gi.test(window.location.search);
 let svg = null;
 let stroke = null;
 let points = null;
+let eraserUndo = false;
 
 // global whiteboard status
 let whiteboardActive = false;
@@ -1330,6 +1331,7 @@ function stopStroke(evt) {
   stroke = null;
   points = null;
   isLaserStroke = false;
+  eraserUndo = false;
 }
 
 /*
@@ -1337,6 +1339,9 @@ function stopStroke(evt) {
  * compute mouse position, compute "collision" with each stroke
  */
 function eraseStroke(evt) {
+  // A stylus can switch from drawing to erasing without a new pointerdown.
+  if (stroke) stopStroke();
+
   // mouse position
   const mouseX = evt.offsetX / slideZoom;
   const mouseY = evt.offsetY / slideZoom;
@@ -1344,7 +1349,10 @@ function eraseStroke(evt) {
 
   svg.querySelectorAll("path").forEach((stroke) => {
     if (isPointInStroke(stroke, point)) {
-      pushUndoHistory(l10n.erase_stroke);
+      if (!eraserUndo) {
+        pushUndoHistory(l10n.erase_stroke);
+        eraserUndo = true;
+      }
       stroke.remove();
       needToSave(true);
     }
@@ -1408,6 +1416,7 @@ function pointerdown(evt) {
         clearTimeout(hideCursorTimeout);
         showCursor(eraserCursor);
       }
+      eraserUndo = false;
       eraseStroke(evt);
       return killEvent(evt);
 
@@ -1432,7 +1441,8 @@ function pointermove(evt) {
   // only when whiteboard is active
   if (!whiteboardActive) return;
 
-  switch (pointerMode(evt)) {
+  const mode = pointerMode(evt);
+  switch (mode) {
     case MOVE:
       if (evt.pointerType == "pen") {
         clearTimeout(hideCursorTimeout);
@@ -1653,14 +1663,7 @@ function setupCallbacks() {
   // doesn't work with Reveal's key bindings,
   // due to CTRL/CMD modifier.
   window.addEventListener("keydown", function (evt) {
-    const target = evt.composedPath()[0];
-    if (
-      evt.defaultPrevented ||
-      !whiteboardActive ||
-      !undoHistory.length ||
-      target?.closest?.("input, textarea, select") ||
-      target?.isContentEditable
-    ) {
+    if (evt.defaultPrevented || !whiteboardActive || !undoHistory.length) {
       return;
     }
 
