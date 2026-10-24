@@ -13,6 +13,7 @@ module Text.Decker.Filter.Decker2  where
 import Data.Map.Strict as Map
 import Relude
 import Text.Decker.Filter.Header
+import Text.Decker.Filter.HtmlResources
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Util (oneImagePerLine, single)
 import Text.Decker.Internal.Common
@@ -102,6 +103,10 @@ mediaInlineListFilter inlines =
 
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
+-- Scan for resources if it's a RawBlock with HTML format
+mediaBlockFilter (RawBlock (Format "html") html) = do
+  newHtml <- scanHtmlResources html
+  return (RawBlock (Format "html") newHtml)
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [Image attr alt (url, title)])
   | unprocessed attr =
@@ -122,6 +127,10 @@ mediaBlockFilter block = return block
 
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
+-- Scan for resources if it's a RawInline with HTML format
+mediaInlineFilter (RawInline (Format "html") html) = do
+  newHtml <- scanHtmlResources html
+  return (RawInline (Format "html") newHtml)
 -- An inline image with a possible caption.
 mediaInlineFilter (Image attr alt (url, title))
   | unprocessed attr =
