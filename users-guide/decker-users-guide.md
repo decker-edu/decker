@@ -417,7 +417,13 @@ Builds the annotated Markdown for the project and syncs it to the configured
 OpenAI vector store, the same way `decker publish` does (see [`decker
 publish`](#-decker-publish) for the reconciliation rules and the
 `chatty.vector-store-id`, `chatty.vector-store-name` and `chatty.extra` meta
-variables). The `OPENAI_API_KEY` environment variable must be set.
+variables).
+
+Decker does not need an OpenAI API key for this. All vector store requests go
+through the decker-chatty proxy at `chatty.server`. Each request is signed with
+the deck-config key for `chatty.prompt` from `chatty-key.json`, the same key used
+to seal the chatty configuration. The proxy checks the signature and forwards the
+request to OpenAI with the API key it keeps for that prompt.
 
 If no `chatty.vector-store-id` is configured, or the configured store no longer
 exists, a new vector store is created and its id is printed for you to paste into

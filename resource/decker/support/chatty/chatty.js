@@ -243,7 +243,7 @@ async function send(userInput) {
           previous_response_id: previous_response_id,
           stream: true
         };
-    const response = await fetch(server.trim() + "/chatty", {
+    const response = await fetch(server.trim(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

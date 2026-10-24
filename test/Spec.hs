@@ -2,6 +2,7 @@ import Data.ByteString.Char8 qualified as B
 import GHC.IO.Encoding
 import MetaTests
 import SealTests
+import SyncTests
 import SelectTests
 import ShortLinkTests
 import System.FilePath.Posix
@@ -18,6 +19,7 @@ main = do
   hspec $ do
     shortLinkTests
     sealTests
+    syncTests
     metaTests
     watchTests
     selectTests
