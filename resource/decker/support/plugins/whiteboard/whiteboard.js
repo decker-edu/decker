@@ -1563,9 +1563,9 @@ function preventPenScroll(evt) {
 function slideChanged(evt) {
   stopStroke();
 
-  if (!printMode && autosave && unsavedAnnotations) {
-    void saveAnnotations(false);
-  }
+  // if (!printMode && autosave && unsavedAnnotations) {
+  //   void saveAnnotations(false);
+  // }
 
   if (!printMode) {
     // hide pen dialog
