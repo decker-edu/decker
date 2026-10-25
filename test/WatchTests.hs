@@ -17,6 +17,7 @@ watchTests =
         , "test/SelectTests.hs"
         , "test/ShortLinkTests.hs"
         , "test/Spec.hs"
+        , "test/SyncTests.hs"
         , "test/WatchTests.hs"
         ]
     it "globs just one file if root is a single file" $
