@@ -1105,8 +1105,8 @@ function annotationBlob() {
 /*
  * save annotations to decker server
  */
-async function saveAnnotations(alsoDownload) {
-  if (!unsavedAnnotations && !alsoDownload) return;
+async function saveAnnotations() {
+  if (!unsavedAnnotations) return;
 
   // cannot save annotations in electron app
   if (window.Decker.isElectron()) return;
@@ -1114,21 +1114,19 @@ async function saveAnnotations(alsoDownload) {
   // clear remaining laser strokes
   clearLaserStrokes();
 
-  if (alsoDownload) {
-    // also save to downloads folder (just to be save(r))
-    let a = document.createElement("a");
-    a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
-    document.body.appendChild(a);
-    try {
-      a.download = annotationFilename();
-      a.href = window.URL.createObjectURL(annotationBlob());
-      a.click();
-      needToSave(false);
-    } catch (error) {
-      console.error("whiteboard annotations could not be downloaded: " + error);
-    }
-    document.body.removeChild(a);
+  // also save to downloads folder (just to be save(r))
+  let a = document.createElement("a");
+  a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
+  document.body.appendChild(a);
+  try {
+    a.download = annotationFilename();
+    a.href = window.URL.createObjectURL(annotationBlob());
+    a.click();
+    needToSave(false);
+  } catch (error) {
+    console.error("whiteboard annotations could not be downloaded: " + error);
   }
+  document.body.removeChild(a);
 
   // save to decker server
   try {
