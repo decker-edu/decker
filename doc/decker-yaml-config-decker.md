@@ -328,6 +328,7 @@ showDeckerLink: true
 | `chatty.vector-store-id` | string | Existing vector store id for Chatty upload/sync; if absent, upload may create one. |
 | `chatty.vector-store-name` | string | Name used when creating a vector store; default is `decker`. |
 | `chatty.extra` | list of directories | Extra directories uploaded into the Chatty vector store. |
+| `chatty.exclude` | boolean | Skip generating Chatty Markdown for this document (default: `false`); does not affect publishing or files uploaded via `chatty.extra`. |
 | `chatty.greeting` | string | Runtime greeting fallback used by Chatty UI where present. |
 | `chatty.identity.name` | string | Display name used for Chatty button labels/tooltips; defaults to `Prof. Bot`. |
 | `chatty.identity.launcher.icon` | map | Launcher icon as `{ type, value }`; `type` is `fontawesome`, `image`, `text`, or `emoji`. |

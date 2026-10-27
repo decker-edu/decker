@@ -118,6 +118,7 @@ readMarkdownFile globalMeta path = readMarkdownFile' globalMeta path path
 -- is applied (dropping solution slides and boxes for upcoming lectures, see
 -- 'dropSolutionContent') before the document is written to @chatty\/<source>.md@.
 -- Drafts are expected to have been excluded from the input list by the caller.
+-- Sources with @chatty.exclude: true@ in their merged metadata are skipped.
 -- Used by `decker publish` and `decker chatty` to populate the directory synced
 -- to the OpenAI vector store.
 generateChattyMarkdown :: Meta -> [FilePath] -> Action ()
@@ -126,7 +127,8 @@ generateChattyMarkdown globalMeta = mapM_ generate
     generate path = do
       pandoc <- readMarkdownFile globalMeta path
       Pandoc mergedMeta _ <- mergeDocumentMeta globalMeta pandoc
-      writeToMarkdownFile path "chatty" path (dropSolutionContent mergedMeta pandoc)
+      unless (lookupMetaOrElse False "chatty.exclude" mergedMeta) $
+        writeToMarkdownFile path "chatty" path (dropSolutionContent mergedMeta pandoc)
 
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
 addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) = do

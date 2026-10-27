@@ -1158,9 +1158,7 @@ const Plugin = {
         startAudioSource = Decker.meta.quizzer.audio.start;
       }
       startAudio = new Audio(startAudioSource);
-      startAudio.volume = Decker.meta.quizzer.audio.volume
-        ? Decker.meta.quizzer.audio.volume
-        : 1.0;
+      startAudio.volume = Decker.meta.quizzer.audio.volume ?? 1.0;
     }
     if (Decker.meta.quizzer?.audio?.loop) {
       let loopAudioSource;
@@ -1172,9 +1170,7 @@ const Plugin = {
         loopAudioSource = Decker.meta.quizzer.audio.loop;
       }
       loopAudio = new Audio(loopAudioSource);
-      loopAudio.volume = Decker.meta.quizzer.audio.volume
-        ? Decker.meta.quizzer.audio.volume
-        : 1.0;
+      loopAudio.volume = Decker.meta.quizzer.audio.volume ?? 1.0;
     }
     if (Decker.meta.quizzer?.audio?.end) {
       let endAudioSource;
@@ -1186,9 +1182,7 @@ const Plugin = {
         endAudioSource = Decker.meta.quizzer.audio.end;
       }
       endAudio = new Audio(endAudioSource);
-      endAudio.volume = Decker.meta.quizzer.audio.volume
-        ? Decker.meta.quizzer.audio.volume
-        : 1.0;
+      endAudio.volume = Decker.meta.quizzer.audio.volume ?? 1.0;
     }
     reveal.on("ready", () => {
       reveal.on("slidechanged", onSlideChange);

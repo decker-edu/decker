@@ -168,6 +168,18 @@ and page and syncs it to the store. The exact same filtering is applied: drafts
 never reach the store, and for `upcoming` lectures published with `-l` the
 `.solution` content is stripped before upload.
 
+To keep a document published while excluding its generated Markdown from
+Chatty, set the following in its YAML front matter:
+
+``` yaml
+chatty:
+  exclude: true
+```
+
+This applies to both `decker chatty` and publishing, including `index.md`.
+The default is `false`. It does not exclude content included by another
+document, or files uploaded directly through `chatty.extra`.
+
 Additionally, the meta variable `chatty.extra:` may list directories whose files
 are uploaded to the same vector store as is, without any processing:
 
