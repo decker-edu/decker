@@ -540,7 +540,6 @@ deckerRules = do
               createPublicManifest
               let src = publicDir ++ "/"
               liftIO $ runExternal "rsync" src destination meta
-              liftIO $ runExternal "rsync" src destination meta
         Nothing -> putError "publish.rsync.destination not configured"
 
 createPublicManifest :: Action ()
