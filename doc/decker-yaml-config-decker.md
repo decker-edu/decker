@@ -327,7 +327,7 @@ showDeckerLink: true
 | `chatty.params` | map | JSON parameters sealed into Chatty config. |
 | `chatty.vector-store-id` | string | Existing vector store id for Chatty upload/sync; if absent, upload may create one. |
 | `chatty.vector-store-name` | string | Name used when creating a vector store; default is `decker`. |
-| `chatty.extra` | list of directories | Extra directories uploaded into the Chatty vector store. |
+| `chatty.extra` | list of directories | Extra directories uploaded into the Chatty vector store. Dotfiles and files with extensions OpenAI file search does not accept are skipped; supported: `.c .cpp .cs .css .doc .docx .go .html .java .js .json .md .pdf .php .pptx .py .rb .sh .tex .ts .txt`. |
 | `chatty.exclude` | boolean | Skip generating Chatty Markdown for this document (default: `false`); does not affect publishing or files uploaded via `chatty.extra`. |
 | `chatty.greeting` | string | Runtime greeting fallback used by Chatty UI where present. |
 | `chatty.identity.name` | string | Display name used for Chatty button labels/tooltips; defaults to `Prof. Bot`. |

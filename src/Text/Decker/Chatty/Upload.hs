@@ -11,7 +11,8 @@
 -- user to paste back into decker.yaml.
 --
 -- In addition to the generated markdown under chatty/, every file in the
--- directories listed in the chatty.extra meta variable is uploaded as is.
+-- directories listed in the chatty.extra meta variable is uploaded as is,
+-- except dotfiles and files whose type OpenAI file search does not accept.
 --
 -- Incremental: each attached vector-store file carries the source's relative
 -- path and md5 as attributes, so the remote store *is* the manifest. Each run:
@@ -31,7 +32,8 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Digest.Pure.MD5 (md5)
-import Data.List (partition, sort, (\\))
+import Data.Char (toLower)
+import Data.List (isPrefixOf, nub, partition, sort, (\\))
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
 import Data.Maybe (fromMaybe, mapMaybe)
@@ -68,22 +70,49 @@ findMarkdownFiles = do
     then Map.fromList . map (\p -> (makeRelative chattyDir p, p)) <$> walk (== ".md") chattyDir
     else return Map.empty
 
--- | All files under the given `chatty.extra` directory, to be uploaded as is.
--- The store path is the file's project-relative path (which equals the local
--- path), so files keep their identity across runs.
+-- | File extensions accepted by OpenAI file search. Files in `chatty.extra`
+-- directories with any other extension would fail to index (and fail the whole
+-- sync), so they are skipped.
+extraExtensions :: [String]
+extraExtensions =
+  [ ".c", ".cpp", ".cs", ".css", ".doc", ".docx", ".go", ".html", ".java",
+    ".js", ".json", ".md", ".pdf", ".php", ".pptx", ".py", ".rb", ".sh",
+    ".tex", ".ts", ".txt"
+  ]
+
+-- | All files with a supported extension (see 'extraExtensions') under the
+-- given `chatty.extra` directory, to be uploaded as is. The store path is the
+-- file's project-relative path (which equals the local path), so files keep
+-- their identity across runs.
 findExtraFiles :: FilePath -> IO (Map FilePath FilePath)
 findExtraFiles dir = do
   exists <- doesDirectoryExist dir
   if exists
-    then Map.fromList . map (\p -> (p, p)) <$> walk (const True) dir
+    then do
+      (keep, skip) <- partition supported <$> walk (const True) dir
+      unless (null skip) $
+        putStrLn $
+          "# chatty.extra: skipping "
+            <> show (length skip)
+            <> " file(s) with unsupported extensions in "
+            <> dir
+            <> ": "
+            <> unwords (nub (sort (map extensionLabel skip)))
+      return (Map.fromList (map (\p -> (p, p)) keep))
     else do
       putStrLn $ "# chatty.extra: directory does not exist, skipping: " <> dir
       return Map.empty
+  where
+    supported p = map toLower (takeExtension p) `elem` extraExtensions
+    extensionLabel p = case takeExtension p of
+      "" -> "(none)"
+      ext -> ext
 
 -- | Recursively collect files below `dir` whose extension passes `keep`.
+-- Dotfiles and dot directories (@.DS_Store@, @.git@, …) are skipped.
 walk :: (String -> Bool) -> FilePath -> IO [FilePath]
 walk keep dir = do
-  entries <- listDirectory dir
+  entries <- filter (not . isPrefixOf ".") <$> listDirectory dir
   fmap (sort . concat) . forM entries $ \e -> do
     let p = dir </> e
     isDir <- doesDirectoryExist p

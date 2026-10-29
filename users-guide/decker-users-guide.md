@@ -191,6 +191,18 @@ chatty:
     - resources/glossary
 ```
 
+Directories are searched recursively, relative to the project root. This is also
+the way to make source code, such as Java examples, available to Chatty. Two
+kinds of files are skipped:
+
+-   Dotfiles and dot directories (`.DS_Store`, `.git/`, ...).
+-   Files whose type OpenAI file search does not accept. Only these extensions
+    are uploaded: `.c`, `.cpp`, `.cs`, `.css`, `.doc`, `.docx`, `.go`,
+    `.html`, `.java`, `.js`, `.json`, `.md`, `.pdf`, `.php`, `.pptx`, `.py`,
+    `.rb`, `.sh`, `.tex`, `.ts`, `.txt`. Skipped files are summarized per
+    directory in the log, for example
+    `# chatty.extra: skipping 42 file(s) with unsupported extensions in code: .class .xml`.
+
 The store is reconciled on every run, so changed files are re-uploaded and files
 removed locally (from `chatty/` or from the `chatty.extra` directories) are
 removed from the store. Reconciliation keeps exactly one current version per
