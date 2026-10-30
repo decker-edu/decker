@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 to 5 are done, steps 6 to 9 are open.
+Status: steps 1 to 6 are done, steps 7 to 9 are open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -17,9 +17,10 @@ the guide for everything they leave out. This plan fills both, step by step.
 - **Unverifiable features.** A feature that cannot be shown working loses its
   heading and goes on a list for the maintainer. ThebeLab and Sage are the most
   likely candidates.
-- **Diagram examples.** They need external tools (`mmdc`, `d2`) that may be
-  missing when tests run. They stay untested unless the tests can skip them when
-  a tool is missing.
+- **Diagram examples.** They need external tools that may be missing when tests
+  run. An example with `requires="dot"` is skipped without the program and has to
+  run without an error with it. Mermaid and LaTeX examples are not tested: `mmdc`
+  also needs a browser that it can find, and LaTeX the `standalone` class.
 - **One commit per step.** A step changes the guide and the agent docs together.
 
 ## Measuring progress
@@ -184,6 +185,48 @@ Behaviour that is documented as it is, left for the maintainer to decide:
   headings into diagrams. Drafts: `doc/smart-image-urls-page.md`,
   `doc/media-filter-report-page.md`.
 - **Agent docs:** new `media` topic. Remove the remaining pointer in `decks`.
+
+Fixed on the way:
+
+- Videos, iframes, streams, 3D models and GeoGebra applets stayed empty on pages.
+  They only have a `data-src`, and nothing on a page loads it. `support/js/page.js`
+  would, but no template includes it and it calls `setAttribute` on the wrong object.
+  The filter now sets `src` on pages (`lazySrc` in `Filter/Media.hs`), so this file
+  can go.
+
+Checked in Chrome: images, rows, SVG, PDF, iframes, video, audio, both 3D viewers,
+GeoGebra, all diagram types, modules and charts. Streams were only checked as far as
+their HTML. In the test, the YouTube frame stayed black and Twitch refused.
+
+Behaviour that is documented as it is, left for the maintainer to decide:
+
+- A failing diagram program does not fail the build, not even with `--strict`. There
+  is no diagnostic, only `# ERROR:` on stdout and an SVG with the message. An agent
+  sees exit 0. It also stays after the program is installed, until `decker clean`.
+- `chart.defaults.plugins.colorschemes` in `default.yaml` has no effect, because the
+  plugin is not part of the vendored Chart.js.
+- Charts stay CSV text in handouts and on pages, since only `deck-plugins.html` loads
+  the plugin.
+- `align` only works on images. On everything else `data-align` ends up on another
+  element than the one `media.css` looks at. `test/decks/media-deck.md` and
+  `media-page.md` use it on diagrams and code.
+- `color` on a background image has no effect, although
+  `test/decks/background-image-deck.md` uses it.
+- A background video, iframe or stream in a handout or on a page goes through
+  `imageBlock`: Pandoc makes `<video>` or `<embed>` of it, and for a stream an `<img>`
+  with `src="youtube:..."`, which shows nothing.
+- `.log` replaces the scales of `.stackedBar-chart`, so the bars are no longer stacked.
+- `.tex` leaves its `.aux` and `.log` files in `public/.rendered-code`, and they get
+  published. The diagram sources are published as well.
+- Twitch embeds send a fixed `parent=localhost`, so the player refuses on any other
+  host, including `127.0.0.1`.
+- `veer` and `veer-photo` are stream schemes in `classifyMedia`, but `streamBlock` fails
+  on them with `Unsupported stream service`.
+- An unknown snippet name (`![](f.py#nope){.code}`) gives an empty block, without a
+  diagnostic.
+- `![](x.pdf){.image}` and the like do not give an `<img>`. Pandoc chooses the element
+  from the extension again, and writes `<embed>` or `<video>`.
+- `Filter/MarioMedia.hs` is imported nowhere and can go.
 
 ### Step 7: Interactive features
 

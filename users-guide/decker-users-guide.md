@@ -1320,7 +1320,7 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
 :   Options that are merged into `Chart.defaults` of Chart.js.
 
 `chart.colors`
-:   A list of colors for charts. Without it, the colors of the palette are used.
+:   A list of colors for [charts](#charts), as `#rrggbb`. Without it, Chart.js chooses.
 
 ### Index pages
 
@@ -1771,77 +1771,192 @@ the templates available in a project.
 
 ## Media handling
 
-External media files like images or movies can be included in a presentation in
-a variety of ways. The central mechanism is the standard Markdown inline image
-tag as used by Pandoc.
+All media use the Markdown image syntax. Decker chooses what to generate from the
+URL and the classes:
 
 ``` markdown
-![Image caption](/path/to/image.ext){width="100%"}
+![Caption](path/to/file.ext "Label"){#id .class width="50%"}
 ```
 
-Several parameters describing the image can be encoded:
+| Media                             | Extension or scheme                       | Class          |
+|-----------------------------------|-------------------------------------------|----------------|
+| [Image](#images)                  | `jpg` `jpeg` `png` `gif` `tif` `tiff` `bmp` `svg`, and everything unknown | `.image` |
+| [Video](#videos)                  | `mp4` `mov` `ogg` `avi` `webm`            | `.video`       |
+| [Iframe](#iframes)                | `html` `htm` `php`                        | `.iframe`      |
+| [PDF](#pdfs)                      | `pdf`                                     | `.pdf`         |
+| [3D model](#3d-polygonal-models)   | `off` `obj` `stl` `ply` `pmp` `xyz` `agi` | `.mview`       |
+| [3D model](#3d-polygonal-models)   | `gltf` `glb`                              | `.modelviewer` |
+| [GeoGebra](#geogebra)             | `ggb`                                     | `.geogebra`    |
+| [Audio](#audio)                   | `mp3` `aiff` `wav`                        | `.audio`       |
+| [Video stream](#video-streams)    | `youtube:` `vimeo:` `twitch:`             |                |
 
-`[Image caption]`
+If more than one row matches, the upper one wins. A class overrides the extension
+of a lower row, so `![](x.pdf){.iframe}` shows a PDF in an iframe. A URL without a known extension
+is an image, which is why a web page needs the class: `![](https://example.com/){.iframe}`.
 
-:   If the image caption inside the square brackets `[]` is provided, the image
-    will be set with the caption text right below the image. The caption text
-    may contain further Markdown markup.
+These classes come first and have their own meaning:
 
-    A caption can also be specified by beginning the immediately following
-    paragraph with the string `Caption:`. The rest of the paragraphs text is
-    used as the caption.
+| Class                    | Works with                  | Effect                                      |
+|--------------------------|-----------------------------|---------------------------------------------|
+| `.raw`                   | everything                  | A plain `<img>`, see [Images](#images)      |
+| `.code`                  | everything                  | The file as source code, see [Code blocks](#code-blocks) |
+| `.render`                | `dot` `gnuplot` `tex` `plantuml` `d2` `mmd` | A diagram, see [Graphs and diagrams](#graphs-and-diagrams) |
+| `.run`                   | `js`                        | A module, see [Javascript ES6 modules](#javascript-es6-modules) |
+| `.embed`                 | `svg`                       | The SVG inside the HTML, see [Images](#images) |
 
-`(/path/to/image.ext)`
-:   The image itself is referenced with an URL inside the round brackets `()`. A
-    relativ reference (as described in [RFC
-    3986](https://tools.ietf.org/html/rfc3986#section-4.2)) here is interpreted
-    as a path to a resource in the local file system that is either specified
-    relative to the project's root directory or relative to the file containing
-    the image tag.
-
-`.ext`
-:   The filename extension determines the media type of the image. Depending on
-    the extension and media type the referenced resource may further be
-    processed by decker to generate the final embedded media element.
-
-`{width="100%"}`
-:   The attributes annotation can be used to control various aspects of
-    processing and presentation for the image, for example the width of the
-    image relative to it's surrounding element (see [Local
-    Paths](#local-paths)).
+**Paths.** A local path is resolved as described in [Local paths](#local-paths).
+Decker copies the file to the same relative path below `public/`, and a missing file
+is a build error. Only the file itself is copied. Whatever it loads, such as the
+images of an iframe page, has to be listed in `static-resources` or located in one
+of the `static-resource-dirs`. Those are copied by `decker html`, `decker decks` and
+the other aggregate targets, but not when you build a single file. Remote URLs are
+passed on without a check. A query string stays part of the URL:
+`![](frame.html?x=1)` copies `frame.html`.
 
 ### Figures and captions
 
-Embedded media will be rendered as a figure with caption if either
+A medium with a caption is rendered as a figure. The caption comes from the square
+brackets, or from a paragraph directly below it that starts with `Caption:`. The
+paragraph wins if there are both. It also works for code blocks and block quotes.
 
--   the square brackets of the image tag contain a caption text.
+``` markdown
+![This is the caption text.](some/image.png)
 
-    ``` markdown
-    ![This is the caption text.](some/image.png)
-    ```
+![](some/image.png)
 
--   Or the image tag occurs on an otherwise empty paragraph followed directly by
-    another paragraph that starts with the string `Caption:`. The second
-    paragraph provides the text for the caption.
+Caption: This is the caption text, with *Markdown*.
+```
 
-    ``` markdown
-    ![](some/image.png)
+The title in the URL part (`"Label"`) is the `aria-label` for screen readers. Without
+a title, the text of the caption is used. Iframes also use it as their `title`.
 
-    Caption: This is the caption text.
-    ```
+### Size and attributes
+
+`width`, `height`
+:   CSS lengths. Without them, the medium fills the width of its block. With only
+    one of them, images and videos keep their aspect ratio.
+
+`w:h`, `aspect-ratio`
+:   The aspect ratio of an iframe, PDF, 3D model, GeoGebra applet or stream, for
+    example `w:h="4/3"`, with a default of `16/9`. They have no effect if both `width`
+    and `height` are set. On images and videos, they only matter in a
+    [row](#rows-of-media).
+
+`align`
+:   `left` or `right`, for images. Everything is centered by default, and other media
+    ignore this attribute.
+
+`css:property`
+:   A CSS property for the container, for example `css:border="1px solid red"`.
+
+`style`
+:   Goes to the container, for iframes, PDFs, 3D models and GeoGebra applets to the
+    element itself.
+
+The `id` and the classes go to the container, except that the classes of
+[fragments](#fragments) go to the figure. So `![](a.png){.fragment}` works as you
+would expect. All other attributes turn into `data-*` attributes.
 
 ### Images
 
-### Code blocks
+An image alone in a paragraph is a block, and an image among other text is part of
+the line. There, it needs a `height` to fit into the line:
 
-Source code snippets can be included from an external file by either using the
-image tag with a the `code` class or by using a Pandoc code block.
+``` {.markdown .decker-example file="images-deck.md" project="images"}
+---
+title: Images
+---
 
-An example for a Javascript including image tag:
+# Images
+
+![A figure](dot.svg){width="30%" align="right"}
+
+An icon ![](dot.svg){height="1em"} in the text.
+```
+
+``` {.xml .decker-example file="dot.svg" project="images"}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>
+```
+
+`.embed` inserts an SVG file into the HTML instead of loading it, so that its elements
+can be styled from the document. Elements in it with the class `fragment` become
+[fragments](#fragments).
+
+`.raw` skips all of this. The result is an `<img>` without a figure or a size, and
+attributes such as `width` or `style` stay on it. The caption is its `alt` text.
+
+### Rows of media
+
+A line block with one medium per line is a row. The columns are as wide as they need
+to be for all media to have the same height. Decker reads the aspect ratio of images
+from the file and of videos with `ffprobe`. For everything else, and if that fails,
+it is `16/9`, unless `w:h` says otherwise:
 
 ``` markdown
-![Some Javascript code](source/code.js){.code .javascript} 
+| ![First](a.png)
+| ![Second](b.mp4){.controls}
+| ![Third](model.off){w:h="1/1"}
+
+Caption: A caption for the whole row.
 ```
+
+### Slide backgrounds
+
+The last image in a level-1 heading becomes the background of the slide:
+
+``` markdown
+# Title ![](wallpaper.jpg){size="cover" opacity="0.5"}
+```
+
+| Medium       | Attributes                                    | Classes             |
+|--------------|-----------------------------------------------|---------------------|
+| Image        | `size`, `position`, `repeat`, `opacity`       |                     |
+| Video        | `size`, `opacity`                             | `.loop`, `.muted`   |
+| Iframe, PDF  |                                               | `.interactive`      |
+
+`.interactive` lets the clicks reach the iframe. Other media, such as streams, stay
+in the heading as they are.
+
+In a handout and on a page, the medium appears below the heading, with its caption,
+and without these attributes.
+
+To set a color, put it on the heading: `# Title {color="red"}`. It does not work on
+the image, but `data-background-color` on the heading can be combined with an image.
+`.inverse` uses the foreground color as background. The attributes of Reveal.js, such
+as `data-background-image`, also work on a heading, and Decker copies the file for
+them.
+
+### Code blocks
+
+Source code can be a Pandoc code block or a file. A file needs the class `.code`.
+Another class names the language for highlighting:
+
+``` markdown
+![Some Javascript code](source/code.js){.code .javascript}
+```
+
+A fragment selects a part of the file. It is dedented, and the markers themselves
+stay out:
+
+``` python
+# ---8<--- setup
+def setup():
+    return 1
+# --->8---
+
+# ---8<|--- teardown
+def teardown():
+    return 2
+
+print("not part of it")
+```
+
+- `![](f.py#setup){.code .python}`: everything from `---8<--- setup` up to `--->8---`
+  or the next `---8<---`.
+- `![](f.py#teardown){.code .python}`: everything from `---8<|--- teardown` up to the
+  next empty line.
+
+An unknown name yields an empty block.
 
 Standard Pandoc code blocks also work as expected:
 
@@ -1867,19 +1982,234 @@ highlighting:
 
 ### Pdfs
 
+A PDF is shown by the viewer of the browser, in an `<object>` element:
+
+``` markdown
+![The manual](manual.pdf){width="80%" height="500px"}
+```
+
+As the slide background (`# ![](manual.pdf)`), it is shown in an iframe.
+
 ### 3D polygonal models
+
+3D models are shown in an iframe with a viewer that Decker brings along. The file type
+decides on the viewer.
+
+``` markdown
+![The Utah teapot](teapot.off){width="600px" height="400px"}
+
+![A robot](robot.glb){width="600px" height="400px" autoplay="1" shadow="0"}
+```
+
+For `off`, `obj`, `stl`, `ply`, `pmp`, `xyz` and `agi`, this is
+[PMP](http://pmp-library.org). For `gltf` and `glb`, it is
+[model-viewer](https://modelviewer.dev/), with these attributes:
+
+`autoplay`
+:   Plays the animation of the model. `0` switches it off.
+
+`shadow`
+:   The intensity of the shadow, by default `1`.
+
+Viewers need WebGL, so a browser without it shows an empty frame.
 
 ### Iframes
 
+``` markdown
+![A local page](demo/index.html){w:h="2/1"}
+
+![A web page](https://example.com/){.iframe width="80%"}
+```
+
+The other attributes appear on the `<iframe>` as `data-*`, where the embedded page can
+read them from `window.frameElement`. In a deck, an iframe has a button that shows it
+in fullscreen and is loaded only when its slide comes up. A website can refuse to be
+embedded, and then the frame stays empty.
+
 ### Videos
+
+``` markdown
+![The perfect game](game.mp4){.controls .autoplay start="5" stop="30" width="60%"}
+```
+
+| Attribute or class | Effect                                                |
+|--------------------|-------------------------------------------------------|
+| `.controls`        | Shows the controls of the browser                     |
+| `.autoplay`        | Starts when the slide comes up. No effect on a page   |
+| `.loop`            | Starts over at the end                                |
+| `.muted`           | Without sound                                         |
+| `start`, `stop`    | The range to play, in seconds                         |
+| `poster`           | An image to show until the video plays. Decker copies the file |
+| `preload`          | The attribute of the `<video>` element                |
+
+Without `.controls` or `.autoplay`, nothing starts the video.
 
 ### Video streams
 
+The URL scheme names the service, and the path is the id of the video:
+
+``` {.markdown .decker-example file="streams-deck.md"}
+# Streams
+
+![From YouTube](youtube:TbppXMGrsvw){.autoplay start="750" width="60%"}
+
+![From Vimeo](vimeo:348290){start="17" width="60%"}
+
+![From Twitch](twitch:851645824){.muted width="60%"}
+```
+
+All of them take `.autoplay` and `start`, YouTube and Vimeo also `.loop`, and Vimeo and
+Twitch `.muted`. YouTube and Vimeo also know the [YouTube](https://developers.google.com/youtube/player_parameters) or
+[Vimeo](https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters)
+player parameters. Use a parameter as an attribute (`controls="0"`) or, to set it to
+`1`, as a class (`.controls`). Twitch has `start` as a time such as `14m`. It also wants to know the host that embeds the video, and Decker always says
+`localhost`, so expect the Twitch player to refuse anywhere else.
+
+With `.loop`, YouTube ignores `start`.
+
 ### Audio
+
+``` markdown
+![An interview](interview.mp3){.controls start="5" stop="30"}
+```
+
+Audio takes `.controls`, `.autoplay`, `.loop`, `.muted`, `start`, `stop` and `preload`.
+Without `.controls`, nothing is visible. Only the caption shows, if there is one.
 
 ### Graphs and diagrams
 
+A code block with the classes of a language and `.render` runs a program and shows the
+resulting SVG image as a figure, so captions and sizes work as for images. A file works
+as well, with `.render` alone:
+
+```` {.markdown .decker-example file="graph-deck.md" requires="dot"}
+# A graph
+
+``` {.dot .render width="40%"}
+digraph {
+  node [style = filled]
+  A [fillcolor = yellow]
+  A -> B
+  A -> C
+}
+```
+
+Caption: Rendered by Graphviz.
+````
+
+``` markdown
+![The same as a file](graph.dot){.render width="40%"}
+```
+
+| Class       | File        | Program                 | Language                              |
+|-------------|-------------|-------------------------|---------------------------------------|
+| `.dot`      | `.dot`      | `dot`                   | [Graphviz](https://graphviz.org/)     |
+| `.gnuplot`  | `.gnuplot`  | `gnuplot`               | [Gnuplot](http://www.gnuplot.info/)   |
+| `.plantuml` | `.plantuml` | `plantuml`              | [PlantUML](https://plantuml.com/)     |
+| `.mermaid`  | `.mmd`      | `mmdc`                  | [Mermaid](https://github.com/mermaid-js/mermaid-cli) |
+| `.d2`       | `.d2`       | `d2`                    | [D2](https://d2lang.com/)             |
+| `.tex`      | `.tex`      | `pdflatex` and `pdf2svg`| LaTeX, a complete document, usually with the class `standalone` |
+
+These programs are not part of Decker. `decker check` shows which ones it can find, and
+you can change how they are called in [`external-tools`](#external-tools). Mermaid also
+needs a browser. If `mmdc` complains that it cannot find Chromium, name one with `-p
+puppeteer.json` in the arguments of `external-tools.mermaid.<os>`, with a file that contains
+`{"executablePath": "/path/to/chrome"}`.
+
+The image of a diagram has the size that the program gives it, stretched to the width
+of its block, so a small graph can get very big and leave the slide. Set a `width` or a
+`height`.
+
+`.embed` uses an `<object>` element instead of an `<img>`, so that an SVG can load its
+own CSS file. Check the result in all browsers you need.
+
+**A failing program does not fail the build, not even with `--strict`.** Decker prints
+`# ERROR:` and generates an SVG that contains the message in red. If the fault is in the
+block, correcting it is all you need. If you install a program later on, run `decker
+clean`, because the image of the error otherwise stays.
+
+Decker writes the blocks to a directory `.rendered-code` next to the document. Their
+names contain a checksum of the content. `decker purge` removes these directories.
+
 ### Javascript ES6 modules
+
+A code block with the classes `.javascript` and `.run` runs as a module. The variable
+`anchor` is an empty `<div>` where the block is located:
+
+```` {.markdown .decker-example file="module-deck.md"}
+# A module
+
+``` {.javascript .run height="100px"}
+anchor.innerText = "Hello from Javascript";
+```
+
+Caption: Generated in the browser.
+````
+
+A `.js` file with the class `.run` also works. Such a module finds its element with
+`Decker.anchor(import.meta)`:
+
+``` markdown
+![Counting](counter.js){.run width="30%"}
+```
+
+``` javascript
+const element = Decker.anchor(import.meta);
+element.innerText = "Hello from a file";
+```
+
+An `import` in a code block is resolved by the browser against the URL of the document,
+and Decker does not copy the file. List it in `static-resources`.
+
+### GeoGebra
+
+``` markdown
+![The gradient](gradient.ggb){width="800px" height="500px" showToolBar="true"}
+```
+
+The applet runs in an iframe with GeoGebra, which Decker brings along. An attribute with
+the name of an [applet
+parameter](https://wiki.geogebra.org/en/Reference:Math_Apps_Embedding) is passed on,
+for example `showToolBar`, `showMenuBar`, `showAlgebraInput`, `enableShiftDragZoom` or
+`language`. By default, the applet hides its user interface. `app-width` and
+`app-height` set the size of the applet in pixels.
+
+### Charts
+
+A code block with one of the classes `.line-chart`, `.bar-chart`, `.stackedBar-chart`,
+`.horizontalBar-chart`, `.radar-chart`, `.doughnut-chart`, `.pie-chart` or
+`.polarArea-chart` becomes a chart, drawn by [Chart.js](https://www.chartjs.org/). The
+first line holds the labels, and each further line starts with the name of a data set:
+
+```` {.markdown .decker-example file="chart-deck.md"}
+# Sales
+
+``` {.bar-chart width="60%" title="Sales per month"}
+January, February, March
+Apples, 65, 59, 80
+Pears, 28, 48, 40
+```
+````
+
+Charts only work in decks. A handout or a page shows the block as text.
+
+| Attribute or class | Effect                                                |
+|--------------------|-------------------------------------------------------|
+| `width`, `height`  | The size of the chart                                 |
+| `title`            | The title of the chart                                |
+| `.fill`, `.nofill` | Fills the area below the lines of a chart, or does not |
+| `.log`             | A logarithmic y-axis. It does not work with `.stackedBar-chart` |
+
+An HTML comment with JSON in the block is passed on to Chart.js as `options` and `data`:
+
+``` markdown
+January, February
+Apples, 65, 59
+<!-- { "options": { "plugins": { "legend": { "position": "right" } } } } -->
+```
+
+`chart.colors` sets the colors of all charts, and `chart.defaults` merges into the
+defaults of Chart.js, see [Appearance](#appearance).
 
 ## Slide layout {#slide-layout}
 
@@ -2561,10 +2891,6 @@ Import the snippet in the block that proxies to codapi, before the
 ## ThebeLab 🚧 {#thebelab}
 
 ## Sage
-
-## GraphViz
-
-## Gnuplot
 
 # Chatty
 

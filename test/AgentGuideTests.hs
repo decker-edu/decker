@@ -8,7 +8,7 @@
 --
 -- An example is a fenced code block with the class @decker-example@:
 --
--- > ```markdown {.decker-example file="x-deck.md" project="p" expect="code"}
+-- > ```markdown {.decker-example file="x-deck.md" project="p" expect="code" requires="dot"}
 --
 -- @file@ is the path the block is written to. Blocks of one topic with the
 -- same @project@ are written into the same project; a block without
@@ -16,21 +16,23 @@
 -- are built with @--strict --diagnostics-json@. Without @expect@ the build must
 -- succeed without any diagnostic. With @expect="<code>"@ it must report
 -- exactly that code, with @expect="error"@ it must fail with a hard error.
+-- @requires@ lists programs. Without them, the example is skipped. With them, it
+-- must not print an error, because a failing program does not fail a build.
 module AgentGuideTests (agentGuideTests) where
 
 import Control.Concurrent (threadDelay)
 import Control.Exception (IOException, bracket, try)
-import Control.Monad (forM_, unless)
+import Control.Monad (filterM, forM_, unless)
 import Data.List (isInfixOf, isSuffixOf, nub, sort)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, isNothing, listToMaybe, mapMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import DeckerRun
 import Network.Socket
 import System.Console.GetOpt (OptDescr (..))
-import System.Directory (doesDirectoryExist, listDirectory)
+import System.Directory (doesDirectoryExist, findExecutable, listDirectory)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>))
 import System.Process (StdStream (..), proc, std_err, std_out, withCreateProcess)
@@ -45,6 +47,7 @@ data GuideExample = GuideExample
   { exFile :: FilePath,
     exProject :: Maybe Text,
     exExpect :: Maybe Text,
+    exRequires :: [Text],
     exBody :: Text
   }
   deriving (Eq, Show)
@@ -61,7 +64,7 @@ examples = go . T.lines
           let (body, after) = break (closes fence) rest
               others = go (drop 1 after)
            in if "decker-example" `elem` classes info
-                then GuideExample (T.unpack (attr "file" info)) (attrMaybe "project" info) (attrMaybe "expect" info) (T.unlines body) : others
+                then GuideExample (T.unpack (attr "file" info)) (attrMaybe "project" info) (attrMaybe "expect" info) (maybe [] T.words (attrMaybe "requires" info)) (T.unlines body) : others
                 else others
         Nothing -> go rest
     classes info = [T.drop 1 w | w <- T.words (T.filter (`notElem` ['{', '}']) info), "." `T.isPrefixOf` w]
@@ -106,7 +109,7 @@ undocumentedOptions = []
 -- | Sections of the users' guide without any content. Lower this number when a
 -- section is written. See doc/users-guide-plan.md.
 emptySectionCount :: Int
-emptySectionCount = 15
+emptySectionCount = 4
 
 -- | @TODO@ placeholders in the users' guide. Lower this number when one is
 -- filled in.
@@ -245,7 +248,7 @@ agentGuideTests = describe "Agent guide" $ do
     withProject [] $ \dir -> do
       run <- runDecker dir ["agent-guide"]
       runExit run `shouldBe` ExitSuccess
-      forM_ ["decks", "pages", "quests", "config", "templates"] $ \topic ->
+      forM_ ["decks", "media", "pages", "quests", "config", "templates"] $ \topic ->
         runStdout run `shouldContain` ("`decker agent-guide " <> topic <> "`")
 
   it "lists pack topics only for projects that use the pack" $ do
@@ -326,6 +329,74 @@ agentGuideTests = describe "Agent guide" $ do
       html `shouldSatisfy` T.isInfixOf "KEPT"
       html `shouldNotSatisfy` T.isInfixOf "GONE"
 
+  describe "media" $ do
+    it "chooses the element from the extension and the class" $ do
+      html <-
+        buildMedia
+          "![](m.mp4)\n\n![](s.mp3)\n\n![](d.pdf)\n\n![](f.html)\n\n![](o.off)\n\n![](r.glb)\n\n![](g.ggb)\n\n![](d.pdf){.iframe}\n\n![](https://example.com/x)\n\n![](https://example.com/){.iframe}\n\n![](youtube:ID)\n"
+      forM_
+        [ "data-src=\"m.mp4\"",
+          "<audio src=\"s.mp3\"",
+          "type=\"application/pdf\" data=\"d.pdf\"",
+          "data-src=\"f.html\"",
+          "data-model=\"o.off\"",
+          "data-src=\"support/mview/mview.html\"",
+          "data-model=\"r.glb\"",
+          "data-src=\"support/modelviewer/model-viewer.html\"",
+          "data-filename=\"../.././g.ggb\"",
+          "data-src=\"d.pdf\"",
+          "<img src=\"https://example.com/x\"",
+          "data-src=\"https://example.com\"",
+          "data-src=\"https://www.youtube.com/embed/ID?"
+        ]
+        $ \expected -> html `shouldSatisfy` T.isInfixOf expected
+
+    it "loads videos and iframes directly on a page" $
+      withProject (("a-page.md", "![](m.mp4)\n\n![](f.html)\n\n![](youtube:ID)\n") : mediaFiles) $ \dir -> do
+        run <- buildTargets dir ["a-page.md"]
+        runExit run `shouldBe` ExitSuccess
+        html <- T.readFile (dir </> "public/a-page.html")
+        html `shouldNotSatisfy` T.isInfixOf "data-src"
+        forM_ ["src=\"m.mp4\"", "src=\"f.html\"", "src=\"https://www.youtube.com/embed/ID?"] $ \expected ->
+          html `shouldSatisfy` T.isInfixOf expected
+
+    it "applies align only to images" $ do
+      html <- buildMedia "![](i.svg){align=\"right\"}\n\n![](m.mp4){align=\"left\"}\n"
+      html `shouldSatisfy` T.isInfixOf "<div class=\"media\" data-align=\"right\">"
+      html `shouldNotSatisfy` T.isInfixOf "<div class=\"media\" data-align=\"left\">"
+
+    it "turns the last image of a heading into the background" $ do
+      html <- buildMedia "# A ![](i.svg){size=\"cover\" color=\"red\"}\n\n# B {color=\"red\"}\n\n# C ![](m.mp4){.loop}\n\n# D ![](f.html){.interactive}\n"
+      forM_ ["data-background-image=\"i.svg\"", "data-background-size=\"cover\"", "data-background-color=\"red\"", "data-background-video=\"m.mp4\"", "data-background-video-loop=\"1\"", "data-background-iframe=\"f.html\"", "data-background-interactive=\"1\""] $ \expected ->
+        html `shouldSatisfy` T.isInfixOf expected
+      T.count "data-background-color" html `shouldBe` 1
+
+    it "includes the marked part of a source file, or nothing" $
+      withProject
+        [ ("code.py", "# ---8<--- one\n  a = 1\n# --->8---\nb = 2\n\n# ---8<|--- two\nc = 3\n\nd = 4\n"),
+          ("a-deck.md", "![](code.py#one){.code}\n\n![](code.py#two){.code}\n\n![](code.py#nope){.code}\n")
+        ]
+        $ \dir -> do
+          run <- buildTargets dir ["a-deck.md"]
+          runExit run `shouldBe` ExitSuccess
+          html <- T.readFile (dir </> "public/a-deck.html")
+          html `shouldSatisfy` T.isInfixOf "<code>a = 1\n</code>"
+          html `shouldSatisfy` T.isInfixOf "<code>c = 3\n</code>"
+          html `shouldSatisfy` T.isInfixOf "<code></code>"
+          html `shouldNotSatisfy` T.isInfixOf "b = 2"
+          html `shouldNotSatisfy` T.isInfixOf "d = 4"
+
+    it "does not fail the build if the program of a diagram fails" $
+      withProject
+        [ ("decker.yaml", "external-tools:\n  dot:\n    command: decker-test-no-such-program\n"),
+          ("a-deck.md", "``` {.dot .render}\ndigraph { a -> b }\n```\n")
+        ]
+        $ \dir -> do
+          run <- buildTargets dir ["a-deck.md"]
+          runExit run `shouldBe` ExitSuccess
+          codes run `shouldBe` []
+          runStdout run `shouldContain` "# ERROR:"
+
   it "fails on an unknown topic" $
     withProject [] $ \dir -> do
       run <- runDecker dir ["agent-guide", "no-such-topic"]
@@ -342,25 +413,52 @@ agentGuideTests = describe "Agent guide" $ do
       replaceSection "body" once `shouldBe` once
 
 checkProject :: [GuideExample] -> Expectation
-checkProject exs =
-  withProject [(exFile e, exBody e) | e <- exs] $ \dir -> do
-    run <- buildTargets dir (map exFile exs)
-    let report = "\nstdout:\n" <> runStdout run <> "\nstderr:\n" <> runStderr run
-    case nub (mapMaybe exExpect exs) of
-      [] -> do
-        unless (null (codes run)) $ expectationFailure ("unexpected diagnostics " <> show (codes run) <> report)
-        unless (runExit run == ExitSuccess) $ expectationFailure ("build failed" <> report)
-      ["error"] ->
-        unless ("Error when running Shake" `isInfixOf` (runStdout run <> runStderr run)) $
-          expectationFailure ("expected a hard error" <> report)
-      expected ->
-        unless (codes run == sort expected) $
-          expectationFailure ("expected " <> show expected <> ", got " <> show (codes run) <> report)
+checkProject exs = do
+  let required = nub (concatMap exRequires exs)
+  missing <- filterM (fmap isNothing . findExecutable . T.unpack) required
+  if not (null missing)
+    then pendingWith ("needs " <> T.unpack (T.unwords missing))
+    else withProject [(exFile e, exBody e) | e <- exs] $ \dir -> do
+      run <- buildTargets dir (map exFile exs)
+      let report = "\nstdout:\n" <> runStdout run <> "\nstderr:\n" <> runStderr run
+      unless (null required || not ("# ERROR:" `isInfixOf` runStdout run)) $
+        expectationFailure ("a program failed" <> report)
+      case nub (mapMaybe exExpect exs) of
+        [] -> do
+          unless (null (codes run)) $ expectationFailure ("unexpected diagnostics " <> show (codes run) <> report)
+          unless (runExit run == ExitSuccess) $ expectationFailure ("build failed" <> report)
+        ["error"] ->
+          unless ("Error when running Shake" `isInfixOf` (runStdout run <> runStderr run)) $
+            expectationFailure ("expected a hard error" <> report)
+        expected ->
+          unless (codes run == sort expected) $
+            expectationFailure ("expected " <> show expected <> ", got " <> show (codes run) <> report)
 
 -- | Builds a deck in a project with the given @decker.yaml@ and returns its HTML.
 buildDeck :: Text -> Text -> IO Text
 buildDeck config source =
   withProject [("decker.yaml", config), ("a-deck.md", source)] $ \dir -> do
+    run <- buildTargets dir ["a-deck.md"]
+    runExit run `shouldBe` ExitSuccess
+    T.readFile (dir </> "public/a-deck.html")
+
+-- | Placeholders for the media in the tests. A build only needs them to exist.
+mediaFiles :: [(FilePath, Text)]
+mediaFiles =
+  [ ("i.svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"/>\n"),
+    ("m.mp4", ""),
+    ("s.mp3", ""),
+    ("d.pdf", ""),
+    ("f.html", ""),
+    ("o.off", ""),
+    ("r.glb", ""),
+    ("g.ggb", "")
+  ]
+
+-- | Builds a deck with the given body and the placeholders, and returns its HTML.
+buildMedia :: Text -> IO Text
+buildMedia source =
+  withProject (("a-deck.md", source) : mediaFiles) $ \dir -> do
     run <- buildTargets dir ["a-deck.md"]
     runExit run `shouldBe` ExitSuccess
     T.readFile (dir </> "public/a-deck.html")

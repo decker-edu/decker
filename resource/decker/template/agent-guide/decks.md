@@ -232,7 +232,8 @@ $$
 ![Caption](image.png){width="50%"}
 ```
 
-A missing local media file is a **hard** error.
+A missing local media file is a **hard** error. Videos, diagrams, charts, backgrounds
+and everything else are described in `decker agent-guide media`.
 
 ## Citations
 
@@ -302,6 +303,3 @@ Look for:
 
 `.fragment` content is hidden until revealed. Step through the fragments
 (arrow keys) and check the last state, where most content is shown.
-
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Decker's Markdown*, for media and the
-remaining features.
