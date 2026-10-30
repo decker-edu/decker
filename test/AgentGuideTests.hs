@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- | Tests the examples in the agent guide topics against the decker
--- executable, so the guide cannot silently drift from the implementation.
+-- | Tests the examples in the agent guide topics and the users' guide against
+-- the decker executable, so they cannot silently drift from the implementation.
+-- Also tracks what the users' guide still lacks, see 'undocumentedCommands' and
+-- the numbers below it.
 --
 -- An example is a fenced code block with the class @decker-example@:
 --
@@ -27,6 +29,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import DeckerRun
 import Network.Socket
+import System.Console.GetOpt (OptDescr (..))
 import System.Directory (doesDirectoryExist, listDirectory)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>))
@@ -34,6 +37,7 @@ import System.Process (StdStream (..), proc, std_err, std_out, withCreateProcess
 import System.Timeout (timeout)
 import Test.Hspec
 import Text.Decker.Project.AgentDocs (replaceSection)
+import Text.Decker.Project.Shake (deckerCommands, deckerFlags)
 import Text.Regex.TDFA ((=~))
 import Text.Regex.TDFA.Text ()
 
@@ -60,24 +64,101 @@ examples = go . T.lines
                 then GuideExample (T.unpack (attr "file" info)) (attrMaybe "project" info) (attrMaybe "expect" info) (T.unlines body) : others
                 else others
         Nothing -> go rest
-    opening line =
-      let stripped = T.stripStart line
-          run c = T.takeWhile (== c) stripped
-       in listToMaybe
-            [ (fence, T.drop (T.length fence) stripped)
-              | c <- ['`', '~'],
-                let fence = run c,
-                T.length fence >= 3
-            ]
-    closes fence line =
-      let stripped = T.strip line
-       in T.length stripped >= T.length fence && T.all (== T.head fence) stripped
     classes info = [T.drop 1 w | w <- T.words (T.filter (`notElem` ['{', '}']) info), "." `T.isPrefixOf` w]
     attrMaybe key info =
       case info =~ (key <> "=\"([^\"]*)\"" :: Text) :: [[Text]] of
         [[_, value]] -> Just value
         _ -> Nothing
     attr key info = fromMaybe (error $ "example without " <> T.unpack key <> ": " <> T.unpack info) (attrMaybe key info)
+
+-- | The fence and the info string of a line that opens a fenced block.
+opening :: Text -> Maybe (Text, Text)
+opening line =
+  let stripped = T.stripStart line
+      run c = T.takeWhile (== c) stripped
+   in listToMaybe
+        [ (fence, T.drop (T.length fence) stripped)
+          | c <- ['`', '~'],
+            let fence = run c,
+            T.length fence >= 3
+        ]
+
+closes :: Text -> Text -> Bool
+closes fence line =
+  let stripped = T.strip line
+   in T.length stripped >= T.length fence && T.all (== T.head fence) stripped
+
+usersGuide :: FilePath
+usersGuide = "users-guide/decker-users-guide.md"
+
+usersGuideUrl :: Text
+usersGuideUrl = "https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md"
+
+-- | Commands that have no heading in the users' guide yet. Remove a command
+-- when its section is written.
+undocumentedCommands :: [String]
+undocumentedCommands = ["format", "serve"]
+
+-- | Long options that have no heading in the users' guide yet.
+undocumentedOptions :: [String]
+undocumentedOptions = ["lecture", "no-rebuild", "open", "poser", "single-thread", "stderr"]
+
+-- | Sections of the users' guide without any content. Lower this number when a
+-- section is written. See doc/users-guide-plan.md.
+emptySectionCount :: Int
+emptySectionCount = 29
+
+-- | @TODO@ placeholders in the users' guide. Lower this number when one is
+-- filled in.
+todoCount :: Int
+todoCount = 37
+
+-- | The lines of a document with every fenced block reduced to its fence, so
+-- that code is neither read as a heading nor mistaken for an empty section.
+proseLines :: Text -> [Text]
+proseLines = go . T.lines
+  where
+    go [] = []
+    go (line : rest) =
+      case opening line of
+        Just (fence, _) -> fence : go (drop 1 (dropWhile (not . closes fence) rest))
+        Nothing -> line : go rest
+
+data Section = Section
+  { secLevel :: Int,
+    secTitle :: Text,
+    secHasBody :: Bool
+  }
+
+sections :: Text -> [Section]
+sections = go . proseLines
+  where
+    go [] = []
+    go (line : rest)
+      | isHeading line =
+          let (body, after) = break isHeading rest
+           in Section (T.length (T.takeWhile (== '#') line)) (title line) (any (not . T.null . T.strip) body) : go after
+      | otherwise = go rest
+    isHeading line = line =~ ("^#{1,6} " :: Text)
+    title = T.strip . T.takeWhile (/= '{') . T.dropWhile (== '#')
+
+-- | The titles of the sections that have neither a body nor subsections.
+emptySections :: [Section] -> [Text]
+emptySections secs =
+  [ secTitle sec
+    | (sec, next) <- zip secs (map Just (drop 1 secs) <> [Nothing]),
+      not (secHasBody sec),
+      maybe True (\n -> secLevel n <= secLevel sec) next
+  ]
+
+-- | The sections of the users' guide that an agent topic refers to, as in
+-- "See the [users' guide](url), sections *One* and *Two*."
+guideReferences :: Text -> [Text]
+guideReferences content =
+  [ section
+    | [_, names] <- T.unwords (T.words content) =~ ("users' guide\\]\\([^)]*\\)[^.]*sections? ([^.]*)\\." :: Text) :: [[Text]],
+      [_, section] <- names =~ ("\\*([^*]+)\\*" :: Text) :: [[Text]]
+  ]
 
 -- | All topic files of Decker and of the bundled resource packs.
 topicFiles :: IO [FilePath]
@@ -100,12 +181,40 @@ projects exs =
 
 agentGuideTests :: Spec
 agentGuideTests = describe "Agent guide" $ do
-  files <- runIO topicFiles
-  forM_ files $ \topic -> do
+  topics <- runIO topicFiles
+  forM_ (usersGuide : topics) $ \topic -> do
     content <- runIO $ T.readFile topic
     describe topic $
       forM_ (projects (examples content)) $ \(name, exs) ->
         it ("example " <> T.unpack name) $ checkProject exs
+
+  describe "users' guide" $ do
+    guide <- runIO $ T.readFile usersGuide
+    let titles = map secTitle (sections guide)
+
+    it "has a heading for every command, except the known gaps" $ do
+      let documented command = any (=~ ("decker " <> T.pack command <> "([^a-z-]|$)" :: Text)) titles
+      filter (not . documented) (sort (["agent-guide", "info", "publish"] <> deckerCommands))
+        `shouldBe` undocumentedCommands
+
+    it "has a heading for every option, except the known gaps" $ do
+      let documented option = any (=~ ("--" <> T.pack option <> "([^a-z-]|$)" :: Text)) titles
+      filter (not . documented) (sort (concat [long | Option _ long _ _ <- deckerFlags]))
+        `shouldBe` undocumentedOptions
+
+    it "has the known number of empty sections" $
+      length (emptySections (sections guide)) `shouldBe` emptySectionCount
+
+    it "has the known number of TODOs" $
+      length (filter ("TODO" `T.isInfixOf`) (proseLines guide)) `shouldBe` todoCount
+
+    forM_ topics $ \topic ->
+      it ("is linked correctly from " <> topic) $ do
+        content <- T.readFile topic
+        let mentions = T.count "users' guide" content
+        T.count ("[users' guide](" <> usersGuideUrl <> ")") content `shouldBe` mentions
+        length (guideReferences content) `shouldSatisfy` (>= mentions)
+        forM_ (guideReferences content) $ \section -> titles `shouldContain` [section]
 
   it "documents a fixture for every diagnostic code in the index" $ do
     index <- T.readFile "resource/decker/template/agent-guide/index.md"

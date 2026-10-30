@@ -73,4 +73,4 @@ Templates are doctemplates (`$name$`, `$if(name)$…$endif$`). They receive:
 | `live-code-prelude`          | Code block `{#id .live-code-prelude-}` — wrapper containing `##CODE##`, used with `template="#id"` |
 | `grid`, `finegrid`, `canvas` | `[§grid](300px "Caption")` — empty drawing area; `url` is the height |
 
-See the users' guide, sections *Fragment templates* and *Live code*.
+See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Fragment templates* and *Live code*.

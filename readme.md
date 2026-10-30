@@ -311,9 +311,9 @@ document, depending on the file name.
     Prints the current Decker version and branch as well as the current pandoc
     version.
 
--   `decker help`
+-   `decker --help`
 
-    Prints a help document to stdout in Markdown format.
+    Lists all targets, commands and options.
 
 -   `decker info`
 
@@ -331,14 +331,9 @@ document, depending on the file name.
 
 -   `decker pdf`
 
-    Builds PDF versions of all documents.
-
--   `decker pdf-decks`
-
     Builds PDF versions of all slide decks.
 
-    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be
-    installed.\
+    To use `decker pdf`, Google Chrome has to be installed.\
     **Windows:** Currently `decker pdf` does not work on Windows. Please add
     `print: true` or `menu: true` to your slide deck and use the print button in
     the menu or on the title slide. **MacOS:** Follow the Google Chrome
@@ -356,9 +351,9 @@ document, depending on the file name.
 
 -   `decker --server`
 
-    Like `decker watch`. Additionally a local web server is started that serves
-    the generated HTML files. The `*-deck.html` file is openend in the browser.
-    Changed files are reloaded in the browser. (still requires `livereloadx`)
+    Like `decker --watch`. Additionally a local web server is started that serves
+    the generated HTML files. Changed files are reloaded in the browser. Add
+    `--open` to also open the browser.
 
 -   `decker example`
 
@@ -375,14 +370,14 @@ document, depending on the file name.
 
 -   `decker clean`
 
-    Recursively removes all generated files from the current directory (i.e. the
-    `public` folder). Also removes cached resources.
+    Removes the generated `public`, `private` and `chatty` directories. `decker
+    purge` also removes cached resources.
 
 -   `decker publish`
 
     Publish the generated files to a remote location using `rsync` if the
-    location is specified in the meta data. The keys `rsync-destination.host`
-    and `rsync-destination.path` specify the publishing destination.
+    location is specified in the meta data. The key `publish.rsync.destination`
+    specifies the publishing destination.
 
 ## Contributions
 

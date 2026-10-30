@@ -7,6 +7,7 @@ module Text.Decker.Project.Shake
   ( runDecker,
     runDeckerArgs,
     deckerFlags,
+    deckerCommands,
     calcSource,
     calcSource',
     currentlyServedPages,
@@ -91,9 +92,8 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder", "agent-docs"]
   case targets of
-    [command] | command `elem` commands -> runCommand context command rules
+    [command] | command `elem` deckerCommands -> runCommand context command rules
     -- These print machine-readable output on stdout and run without Shake.
     ("agent-guide" : topics) -> do
       meta <- commandMeta flags
@@ -324,6 +324,10 @@ commandMeta flags = do
   let base = addMetaFlags flags deckerMeta
   defaults <- readTemplateMetaIO base
   return $ mergePandocMeta base defaults
+
+-- | The targets that 'runCommand' handles itself.
+deckerCommands :: [String]
+deckerCommands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder", "agent-docs"]
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =

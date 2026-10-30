@@ -175,7 +175,7 @@ deckerRules = do
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
-  withTargetDocs "Build HTML versions of all question (*-quest.md)." $
+  withTargetDocs "Build HTML previews of all questions (*-quest.yaml)." $
     phony "questions" $ do
       need ["support"]
       getDeps >>= needTargets questions
@@ -191,7 +191,7 @@ deckerRules = do
       need ["support"]
       getDeps >>= needTargets decks
   --
-  withTargetDocs "Build HTML versions of all handouts (*-handout.md)." $
+  withTargetDocs "Build HTML versions of all handouts (from *-deck.md)." $
     phony "handouts" $ do
       need ["support", "questions"]
       getDeps >>= needTargets' [handouts]
@@ -457,7 +457,7 @@ deckerRules = do
       sources <- withIndexSource publishable
       generateChattyMarkdown meta sources
   --
-  withTargetDocs "Stop chrome remote session" $
+  withTargetDocs "Build PDF versions of all decks (*-deck.md)." $
     phony "pdf" $ do
       need ["pdf-start"]
 

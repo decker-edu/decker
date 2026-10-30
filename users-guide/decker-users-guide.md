@@ -390,17 +390,20 @@ Decks that have set `draft: true` or whose (feedback) deck ids are in the global
 
 # Commands
 
-Commands do not engage the global dependency checking and will not trigger
-rebuilds.
+Most commands do not engage the global dependency checking and will not trigger
+rebuilds. The exceptions are `pdf`, `chatty` and `exam-builder`, which build what
+they need first.
 
 ## `> decker clean`
 
-Removes the `public` directory.
+Removes the `public` and `private` directories and the generated `chatty`
+directory.
 
 ## `> decker purge`
 
-Removes the `public` directory and the `.decker` directory where many things are
-cached during compilation. Expect increased compilation times after a purge.
+Does what `decker clean` does and also removes the `.decker` directory, where
+many things are cached during compilation, and all rendered code directories.
+Expect increased compilation times after a purge.
 
 ## `> decker example`
 
@@ -425,7 +428,7 @@ Uses `whisper.cpp` to transcribe video recordings to the recorded language and
 English. Transcriptions are stored alongside the video files in `VTT` format and
 are automatically available during playback.
 
-[`whisper.cpp`]() needs to be installed locally (e.g. via homebrew) and configured accordingly in
+[`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) needs to be installed locally (e.g. via homebrew) and configured accordingly in
 `decker.yaml`. Configuration meta data variables are:
 
 ``` yaml
@@ -665,9 +668,12 @@ to the decker version that uses them.
 
 In particular these are:
 
-1.  Pandoc template files in `resource/template` (decker-run-time)
-2.  HTML support files in `resource/support` (deck-presentation-time)
-3.  Example presentation source files in `resource/example` (decker-run-time)
+1.  Pandoc template files in `template/` (decker-run-time)
+2.  HTML support files in `support/` (deck-presentation-time)
+3.  Example presentation source files in `example/` (decker-run-time)
+
+These directories are the top level of a resource pack. The base pack of Decker
+is `resource/decker/` in the Decker sources.
 
 ## Resource Packs
 
@@ -679,8 +685,8 @@ In particular these are:
 -   The data from `default.yaml` is available in the meta data during slide
     compilation and presentation
 
--   A resource pack packed is the entire contents of the `resource` folder that
-    must be made available during decker-run-time in one of three ways:
+-   A resource pack must be made available during decker-run-time in one of
+    three ways:
 
     1.  contained in the decker executable
     2.  contained in a local directory somewhere within a project
@@ -694,7 +700,7 @@ In particular these are:
     -   `{path}` the resource pack is located in a directory of the local file
         system within the project (ie. `resource-packs/tudo-official`)
     -   `{path}.zip` the resource pack is contained in a local ZIP archive
-        within the project (ie. `resource-packs/tudo-informal`)
+        within the project (ie. `resource-packs/tudo-informal.zip`)
 
 -   If localization, acquisition, unpacking or caching fails decker terminates
 
@@ -704,11 +710,11 @@ In particular these are:
     `decker.yaml` metadata file, ie.
 
     ``` yaml
-    resource-pack: `exe:tudo`
+    resource-pack: exe:tudo
     ```
 
--   The default resource pack `exe:decker` is always loded first. Resources
-    extracted from the resource pack in `resource-pack` simly overwrite and
+-   The default resource pack `exe:decker` is always loaded first. Resources
+    extracted from the resource pack in `resource-pack` simply overwrite and
     augment the default resources.
 
 -   For testing, the default resource pack can be replaced with the
@@ -717,43 +723,48 @@ In particular these are:
 
 ## Versioning
 
--   Resource bundles are always tied to a specific decker version
--   The exact decker version (MAJOR.MINOR.PATCH-LABEL) is always the last
-    component of the resource file name
--   If decker is used with a non-matching resource bundle decker is terminated
-    -   This can be down-graded to a warning with a meta data setting
+The resource packs inside the executable always match its version. Packs loaded
+from a directory or a ZIP archive carry no version, and Decker does not check
+them, so make sure they fit the Decker version in use.
+
+The meta data variable `decker-version` records the version a project was written
+for. It is currently not checked against the running Decker.
 
 # Meta Data
 
-Meta data variables are specified in YAML format and can be defined in four
+Meta data variables are specified in YAML format and can be defined in several
 different places. In order of increasing precedence these are:
 
--   the `default.yaml` file that is read from the selected resource pack
+-   the `default.yaml` file of the base resource pack
+-   the `default.yaml` file of the resource pack selected with `resource-pack`
 -   the mandatory `decker.yaml` file that is read from the project's root
     directory
+-   the files listed in `meta-data` in `decker.yaml`
 -   the `-m key=value` options on the `decker` command line
--   additional meta data files specified in the meta data variable `meta-data`
 -   the meta data sections of the slide source Markdown file
+-   the files listed in `meta-data` in the meta data section of that file
+
+Within a `meta-data` list, later files take precedence over earlier ones.
 
 Meta data is hierarchical but most variables are defined at the top level. A
 notable exception are variables that are used to set *local path* values (see
 [Local paths](#local-paths)) in the slide template (see [Variables for
 Reveal.js](#variables-revealjs)). These path values are located in the
-`template` namespace. For example, the value for the optional title teaser image
-is provided in the variable `template.title-teaser`.
+`template` namespace. For example, the favicon of a document is provided in the
+variable `template.favicon`.
 
 Inside a YAML file or a YAML section of a file hierarchical meta variable values
 are defined as follows:
 
 ``` yaml
 template:
-    title-teaser: /images/teaser.png
+    favicon: /images/favicon.png
 ```
 
 On the command line this can be specified as
 
 ``` sh
-decker -m 'template.title-teaser=/images/teaser.pn'
+decker -m 'template.favicon=/images/favicon.png'
 ```
 
 ## Local paths {#local-paths}
@@ -772,8 +783,8 @@ provided in several contexts. For example
     the bibliography database and the citation style definition
 
     ``` yaml
-    bibliography: /bib/bibliography.tex
-    csl: /bib/chicago-author-data.csl
+    bibliography: /bib/bibliography.bib
+    csl: /bib/chicago-author-date.csl
     ```
 
 In any case, path values for local file resources are interpreted either as
@@ -815,9 +826,6 @@ Both image paths reference the same image file.
 :   TODO
 
 `decker-version`
-:   TODO
-
-`decker.base-dir`
 :   TODO
 
 `decker.base-dir`
@@ -882,12 +890,6 @@ Both image paths reference the same image file.
 `resource-pack`
 :   TODO
 
-`rsync-destination.host`
-:   TODO
-
-`rsync-destination.path`
-:   TODO
-
 `runtime-path-variables`
 :   TODO
 
@@ -946,49 +948,20 @@ slide sets. Most if the variables used there are supported by decker.
 Additionally, there are several Decker specific variables that control various
 aspects of the generated slide sets.
 
-`align-global`
-:   default alignment for various slide elements (defaults to `left`)
-
-`template.base-css` 🚧
-:   the first CSS file that is loaded by the template (defaults to `''`)
-
 `template.css` 🚧
 :   a list of CSS files that is loaded after the default CSS files (defaults to
     `[]`)
 
-`template.title-header`
-:   a header image for the title slide (defaults to `''`)
+`reveal.checkOverflow`
+:   mark overflowing slides with a dashed red border when they are shown (defaults
+    to `false`)
 
-`template.title-teaser`
-:   an image that is placed below the title line on the title slide (defaults to
-    `''`)
-
-`template.affiliation-logo`
-:   an imge that is placed above the affiliation information on the title slide
-    (defaults to `''`)
-
-`template.include-js` 🚧
-:   a list of Javascript files that are included into the slide deck before
-    Reveal.js is initialized (defaults to `[]`)
-
-`style` 🚧
-
-:   a list of CSS styles that are inserted into the HTML header (defaults to
-    `[]`)
-
-    For example, to set the background color of a all H2 header elements to red
-    specify:
-
-    ``` yaml
-    style:
-      - 'h2 { backgroundColor: #f00; }' 
-    ```
-
-`checkOverflow`
-:   mark overrflowing slides with a red border (defaults to `false`)
-
-`vertical-slides`
+`reveal.vertical-slides`
 :   allow vertical slides (defaults to `true`)
+
+The `wburg` resource pack has variables of its own, among them
+`template.base-css`, `template.include-js` and `template.title-page.*`. They have
+no effect with other packs.
 
 ### Dictionary
 
@@ -1032,7 +1005,7 @@ A line of dashes directly below a line of text, without a blank line in
 between, is not a rule: Pandoc reads it as a setext heading and turns the text
 into a level-2 heading. Decker reports a `setext-heading` hint for it:
 
-``` markdown
+``` {.markdown .decker-example file="setext-deck.md" expect="setext-heading"}
 Some text
 ---
 ```
@@ -1088,20 +1061,20 @@ templates:
 Using this macro reduces the actual invocation to just:
 
 ``` markdown
-[@video](/videos/myvideo)
+[@video](myvideo)
 ```
 
 ### Link Macros
 
 Link Macros can be invoked by standard Markdown link expressions.
 
-Macro arguments are extracted from three different parts of the repurposed
-Markdown link syntax, a space separated list of positional arguments directly
-following the macro name in the square brackets, the *url* parameter specified
+The macro name is prefixed with `@`. Macro arguments are extracted from three
+different parts of the repurposed Markdown link syntax, a space separated list of
+positional arguments directly following the macro name in the square brackets, the *url* parameter specified
 in the parenthesis and the optional *title* parameter.
 
 ``` markdown
-    [macro_name arg1 arg2 ... argn](url "title")
+    [@macro_name arg1 arg2 ... argn](url "title")
 ```
 
 The positional parameters can be referenced in the macro definition as `:(1)`,
@@ -1110,23 +1083,26 @@ the others as `:(url)` and `:(title)` respectively. The actual arguments are
 inserted into the parsed Pandoc AST nodes of the definition by simple string
 replacement.
 
+Positional parameters are currently left unexpanded, because the macro filter
+does not accept parameter names that start with a digit. Use `:(args)` instead.
+
 For example, the following macro definition
 
-``` yaml
+``` {.yaml .decker-example file="decker.yaml" project="link-macro"}
 templates:
   test: ":(1) :(2) :(3) :(url) :(title) :(args)"
 ```
 
 invoked like this
 
-``` markdown
+``` {.markdown .decker-example file="link-macro-deck.md" project="link-macro"}
 [@test arg1 arg2 arg3 arg4](url "title")
 ```
 
 will produce this text:
 
 ``` markdown
-arg1 arg2 arg3 url title arg1 arg2 arg3 arg4
+:(1) :(2) :(3) url title arg1 arg2 arg3 arg4
 ```
 
 The *url* parameter is automatically URL-encoded by the Pandoc parser. This
@@ -1140,33 +1116,36 @@ The macro name is given as the value of the `macro` attribute on the code block.
 Macro arguments are extracted from two different parts of the repurposed
 Markdown code block syntax. All other attribute value pairs are used as named
 arguments and the classes are used as unnamed positional arguments. The contents
-of the code block available as paramter `:(code)`
+of the code block are available as parameter `:(code)`.
 
 ```` markdown
-``` {macro="name" .arg1 .arg2 ... .argn param1="value2" param2="value2"}
+``` {macro="name" .arg1 .arg2 ... .argn param1="value1" param2="value2"}
 code
 ```    
 ````
 
 The positional parameters can be referenced in the macro definition as `:(1)`,
 `:(2)`, `:(3)`, ... (or `:(args)` for a sequence of all positional parameters),
-the attributes as `:(param1)` and `:(param")`. The code block content is
+the attributes as `:(param1)` and `:(param2)`. The code block content is
 available as `:(code)`. `:(rnd-id)` is a for each macro invocation randomly
 generated identifier that is suitable as an `id` value for HTML elements. The
 arguments are inserted into the parsed Pandoc AST nodes of the definition by
 simple string replacement.
 
+Positional parameters are currently left unexpanded, because the macro filter
+does not accept parameter names that start with a digit. Use `:(args)` instead.
+
 For example, the following macro definition
 
-``` yaml
+``` {.yaml .decker-example file="decker.yaml" project="block-macro"}
 templates:
   test: ":(1) :(2) :(3) :(param1) :(param2) :(args) :(code)"
 ```
 
 invoked like this
 
-```` markdown
-``` {macro="test" .arg1 .arg2 .arg3 param1="value2" param2="value2"}
+```` {.markdown .decker-example file="block-macro-deck.md" project="block-macro"}
+``` {macro="test" .arg1 .arg2 .arg3 param1="value1" param2="value2"}
 The code
 ```    
 ````
@@ -1174,7 +1153,7 @@ The code
 will produce this text:
 
 ``` markdown
-arg1 arg2 arg3 value1 value2 arg1 arg2 arg3 The code
+:(1) :(2) :(3) value1 value2 arg1 arg2 arg3 The code
 ```
 
 ## Fragment templates
@@ -1348,13 +1327,13 @@ highlighting:
 ## Audience Feedback
 
 The audience of a deck can annotate slides with feedback. The feedback is
-aggregated on a server and are visible by all audience members and the author.
+aggregated on a server and is visible to all audience members and the author.
 
 The slide author can later choose to address the feedback by changing or
 extending the information in the deck.
 
 To enable this feature a deck must specify the URL of a Decker Engine server in
-the meta data by setting the variable `decker-engine.base-url`. For example:
+the meta data by setting the variable `feedback.base-url`. For example:
 
 ``` yaml
 feedback:
@@ -1411,7 +1390,7 @@ feedback:
   deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
 ```
 
-If `decker-engine.deck-id` is specified, it overrides the actual deck URL as far
+If `feedback.deck-id` is specified, it overrides the actual deck URL as far
 as deck identification for decker engine is concerned. The questions shown if
 the deck is served locally will be the questions that where added to the
 published deck.
@@ -1420,7 +1399,8 @@ published deck.
 
 ### Class definition
 
-For each question type you can use either of the three tags to create quizzes
+For each question type you can use any of the three equivalent classes to create
+quizzes
 
     .quiz-match-items, .quiz-mi, .qmi
 

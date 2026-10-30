@@ -212,5 +212,5 @@ Look for:
 `.fragment` content is hidden until revealed. Step through the fragments
 (arrow keys) and check the last state, where most content is shown.
 
-See the users' guide, section *Decker's Markdown*, for media, layout and
+See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Decker's Markdown*, for media, layout and
 the remaining features.

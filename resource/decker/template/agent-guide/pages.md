@@ -29,4 +29,4 @@ classes do not apply: a page is one continuous document.
 `public/index.html`. Without it, Decker generates an index of all decks and
 pages.
 
-See the users' guide, section *Decker's Markdown*.
+See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Decker's Markdown*.
