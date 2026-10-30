@@ -12,7 +12,10 @@ watchTests =
       sort <$>
       fastGlobFiles [] [".hs"] "test" `shouldReturn`
       sort
-        [ "test/MetaTests.hs"
+        [ "test/AgentGuideTests.hs"
+        , "test/DeckerRun.hs"
+        , "test/DiagnosticsTests.hs"
+        , "test/MetaTests.hs"
         , "test/SealTests.hs"
         , "test/SelectTests.hs"
         , "test/ShortLinkTests.hs"

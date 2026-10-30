@@ -16,6 +16,7 @@ import Text.Decker.Filter.Header
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Util (oneImagePerLine, single)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Diagnostics (Diagnostic, reportAll)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
 import Development.Shake (Action, need, putVerbose)
@@ -149,12 +150,21 @@ runFilter2 ::
   (a -> Filter a) ->
   Pandoc ->
   IO Pandoc
-runFilter2 dispo filter pandoc@(Pandoc meta _) = do
+runFilter2 dispo filter pandoc = fst <$> runFilterCollecting dispo filter pandoc
+
+-- | Like 'runFilter2', but also returns the diagnostics the filter recorded.
+runFilterCollecting ::
+  (Walkable a Pandoc) =>
+  Disposition ->
+  (a -> Filter a) ->
+  Pandoc ->
+  IO (Pandoc, [Diagnostic])
+runFilterCollecting dispo filter pandoc@(Pandoc meta _) = do
   mutex <- newMVar 0
   templates <- newTVarIO Map.empty
-  (Pandoc _ resultBlocks, FilterState resultMeta _ _ _) <-
-    runStateT (walkM filter pandoc) (FilterState meta dispo mutex templates)
-  return $ Pandoc resultMeta resultBlocks
+  (Pandoc _ resultBlocks, FilterState resultMeta _ _ _ diagnostics) <-
+    runStateT (walkM filter pandoc) (FilterState meta dispo mutex templates [])
+  return (Pandoc resultMeta resultBlocks, diagnostics)
 
 runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runNewFilter dispo filter docPath pandoc@(Pandoc docMeta blocks) = do
@@ -162,8 +172,9 @@ runNewFilter dispo filter docPath pandoc@(Pandoc docMeta blocks) = do
   let deckerMeta =
         setMetaValue "decker.doc-path" docPath
           $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta
-  (Pandoc resultMeta resultBlocks) <-
-    liftIO $ runFilter2 dispo filter (Pandoc deckerMeta blocks)
+  (Pandoc resultMeta resultBlocks, diagnostics) <-
+    liftIO $ runFilterCollecting dispo filter (Pandoc deckerMeta blocks)
+  reportAll docMeta diagnostics
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   --   putNormal $ lookupMetaOrElse [] "decker.filter.resources" resultMeta
   return (Pandoc docMeta resultBlocks)

@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "decker": "<decker>",
+  "directories": {
+    "private": "private",
+    "project": "<project>",
+    "public": "public",
+    "support": "public/support"
+  },
+  "resourcePack": {
+    "configured": null,
+    "resolved": "<resolved>"
+  },
+  "config": {
+    "bibliography": null,
+    "csl": null,
+    "excludeDirectories": [
+      "code"
+    ],
+    "experiments": {
+      "fragment-templates": true
+    },
+    "lang": "de",
+    "slideSize": {
+      "height": 720,
+      "width": 1280
+    },
+    "staticResourceDirs": [],
+    "strict": false
+  },
+  "targets": [
+    {
+      "source": "about-page.md",
+      "kind": "page",
+      "outputs": [
+        "public/about-page.html"
+      ]
+    },
+    {
+      "source": "index.md",
+      "kind": "index",
+      "outputs": [
+        "public/index.html"
+      ]
+    },
+    {
+      "source": "unit/07-deck.md",
+      "kind": "deck",
+      "outputs": [
+        "public/unit/07-deck.html",
+        "public/unit/07-handout.html"
+      ]
+    },
+    {
+      "source": "unit/x-quest.yaml",
+      "kind": "quest",
+      "outputs": [
+        "private/unit/x-quest.html"
+      ]
+    }
+  ],
+  "aggregates": {
+    "examCatalog": "public/exam-builder/questions.json",
+    "questionCatalog": "private/quest-catalog.html"
+  },
+  "fragmentTemplates": [
+    {
+      "name": "box",
+      "origin": "project",
+      "path": "templates/box.html"
+    },
+    {
+      "name": "canvas",
+      "origin": "decker"
+    },
+    {
+      "name": "finegrid",
+      "origin": "decker"
+    },
+    {
+      "name": "grid",
+      "origin": "decker"
+    },
+    {
+      "name": "live-code",
+      "origin": "decker"
+    },
+    {
+      "name": "live-code-prelude",
+      "origin": "decker"
+    },
+    {
+      "name": "live-code-server",
+      "origin": "decker"
+    },
+    {
+      "name": "wikipedia",
+      "origin": "decker"
+    }
+  ],
+  "guideTopics": [
+    "config",
+    "decks",
+    "pages",
+    "quests",
+    "templates"
+  ]
+}

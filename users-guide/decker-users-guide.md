@@ -479,43 +479,94 @@ The command keeps watching the project while the app is open: editing a
 `*-quest.yaml` (or a saved `*-exam.yaml`) rebuilds the catalog and refreshes the
 open app in place, preserving the current selection and scroll position.
 
-## `> decker agent-docs`
+## Agent support
 
-Writes two version-stamped documents that teach an AI coding agent how to author
-and validate Decker content (slide decks, pages and exam questions), so it builds
-and inspects the generated HTML instead of guessing at the syntax:
+Decker supports AI coding agents that author decks, pages and exam questions.
+The agent gets its knowledge from the installed `decker` binary, so it always
+matches the version that builds the project, and Decker reports content
+problems itself, so the agent does not have to inspect the generated HTML.
 
-- `.decker/agent-guide.md` — the full, self-contained syntax reference and
-  build/validation recipe. Like `targets.yaml` it is a **regenerable, gitignored**
-  artifact that lives with the Shake state, and `decker clean`/`purge` may remove
-  it. Regenerate it any time with `decker agent-docs`.
-- `.claude/skills/decker/SKILL.md` — a short Claude Code skill that points at the
-  guide. This one is meant to be **committed** so that any clone or new session
-  auto-discovers it without running anything first.
+### `> decker agent-guide [TOPIC]`
 
-Both files carry the running binary's version stamp (e.g. `0.15.0 (dev, branch
-develop)`), so stale copies are easy to spot — check with `decker version`.
-Re-running the command is idempotent: when the on-disk stamp already matches the
-binary, the file is left untouched (reported as `Up to date`) and the git tree
-stays clean.
+Prints the agent guide on standard output. Without a topic it prints the
+index: the build-and-check loop, the source-to-target mapping, the diagnostic
+codes, the commands an agent must not run, and the list of topics (`decks`,
+`pages`, `quests`, `config`, `templates`, plus any topics of the configured
+resource pack). `decker agent-guide decks` prints one topic, `decker
+agent-guide --all` prints everything.
 
-Options (all specific to this command):
+Layout problems such as overflowing slides or broken columns are not reported
+by the build. The `decks` topic tells the agent to check them visually: start
+`decker serve -p PORT` in the background on a free port, open single slides
+by id (`http://127.0.0.1:PORT/deck.html#/slide-id`) and take screenshots.
+Decks do not work from `file://` URLs. If the port is in use, `decker serve`
+exits with status 7.
 
-- `--no-skill` — do not write `.claude/skills/decker/SKILL.md`.
-- `--no-guide` — do not write `.decker/agent-guide.md`.
-- `--output PATH` — write the guide to `PATH` instead of the default location.
-- `--stdout` — print the guide to standard output and write no files.
+The topics are Markdown files in `template/agent-guide/` of the resources. A
+resource pack adds topics by shipping its own files there; a pack topic
+replaces a Decker topic with the same name. The examples in the topics are
+built by Decker's test suite, so they cannot drift from the implementation.
 
-With no options, both files are written to their default paths.
+### `> decker info --json`
 
-Because these two documents now own the generic Decker knowledge — syntax and the
-build/validation loop — a project's `CLAUDE.md` no longer needs to teach any of
-it. Strip generic Decker how-to out of `CLAUDE.md` and keep only
-**project-specific** context there (this repo's conventions, directory layout,
-naming rules, bibliography keys, publishing target). This keeps `CLAUDE.md` small
-and avoids two copies of the syntax drifting apart; the skill and guide are
-version-stamped, `CLAUDE.md` is not. A project with no special conventions may not
-need a `CLAUDE.md` at all.
+Prints project facts as one JSON document on standard output: every source
+with its kind and build targets, the configured and resolved resource pack, a
+curated part of the configuration (`lang`, `bibliography`, `csl`, `strict`,
+`experiments`, `exclude-directories`, `static-resource-dirs`), the aggregate
+targets, the available fragment templates with their origin (`project`,
+`pack` or `decker`) and the guide topics. Other meta data, for example chatty
+or publishing settings, is never included. `decker info` without `--json` is
+unchanged.
+
+### `> decker agent-docs`
+
+Installs two small pointer files that tell an agent to run `decker
+agent-guide`:
+
+- `.claude/skills/decker/SKILL.md` — a Claude Code skill.
+- A section in `AGENTS.md`, delimited by `<!-- decker:begin -->` and
+  `<!-- decker:end -->`. The file is created if it is missing; otherwise only
+  the delimited section is replaced (or appended).
+
+Both files are meant to be committed. Their content does not depend on the
+Decker version, so re-running the command after an upgrade changes nothing
+(reported as `Up to date`) and collaborators on different versions do not
+fight over them. A copy of the guide written by earlier versions
+(`.decker/agent-guide.md`) is deleted. Both pointer templates
+(`template/skill.md`, `template/agents-md.md`) can be overridden by a resource
+pack.
+
+Options: `--no-skill` skips the skill, `--no-agents-md` skips `AGENTS.md`.
+
+A project's `CLAUDE.md` or `AGENTS.md` should hold only project-specific
+context (conventions, directory layout, naming rules, publishing target);
+generic Decker knowledge comes from `decker agent-guide`.
+
+### Diagnostics and `--strict`
+
+Some mistakes do not fail a build, but produce wrong output. Decker reports
+them as diagnostics with a stable code:
+
+``` {.text}
+[WARNING] unit/07-deck.md: Citeproc: citation Foo not found [citation-not-found]
+```
+
+| Code                            | Problem                                                       |
+|---------------------------------|---------------------------------------------------------------|
+| `citation-not-found`            | A citation key is not in the bibliography.                    |
+| `citation-without-bibliography` | `[@key]` is used without a configured `bibliography`.         |
+| `fragment-templates-disabled`   | A fragment template is invoked, but `experiments.fragment-templates` is off. |
+| `quest-unknown-field`           | A question file has a field the parser ignores (a typo).      |
+| `setext-heading`                | Hint: a dash line directly below text makes it a heading (see [Slides](#slides)). |
+| `pandoc-*`                      | Any other pandoc warning, e.g. `pandoc-duplicate-note-reference`. |
+
+The diagnostics of a target are stored with the build state and reported
+again when a later build finds the target up to date. With `--strict` (or
+`strict: true` in `decker.yaml`) a build that leaves any warning exits with
+status 1; hints never fail a build. Strict mode does not apply while watching
+or serving. `--diagnostics-json` additionally prints every diagnostic on
+standard error as one JSON object per line, prefixed with
+`decker-diagnostic: `.
 
 # Options
 
@@ -530,6 +581,18 @@ Specifies meta data variables (see below).
 ## `-S`, `--server`
 
 Serve the public dir via HTTP (implies --watch).
+
+## `-p PORT`, `--port=PORT`
+
+The port of the HTTP server, default 8888. If it is in use, the server exits
+with status 7.
+
+## `-b ADDRESS`, `--bind=ADDRESS`
+
+The address the HTTP server listens on, default `127.0.0.1`. Use `0.0.0.0` to
+make the server reachable from other machines, or from outside a container.
+Decker still prints and opens `http://localhost:PORT` for the default address;
+browsers fall back from IPv6 to `127.0.0.1`.
 
 ## `-w`, `--watch`
 
@@ -563,6 +626,30 @@ decker --resource-base=/path/to/modified-decker-pack html
 `URI` takes the same forms as `resource-pack` (`exe:{name}`, `{path}` or
 `{path}.zip`). The option is shorthand for `-m resource-base=URI`. Rebuild with
 `decker clean` after switching back to the default base pack.
+
+## `--strict`
+
+Fail the build (exit status 1) if any content diagnostic is reported, see
+[Diagnostics and `--strict`](#diagnostics-and---strict). Same as
+`strict: true` in `decker.yaml`.
+
+## `--diagnostics-json`
+
+Also print each diagnostic as a JSON object on standard error, on a line
+prefixed with `decker-diagnostic: `.
+
+## `--json`
+
+With `decker info`: print the project facts as JSON.
+
+## `--all`
+
+With `decker agent-guide`: print all topics.
+
+## `--no-skill`, `--no-agents-md`
+
+With `decker agent-docs`: do not write the Claude skill, or the section in
+`AGENTS.md`.
 
 ## `--prune-files`
 
@@ -932,6 +1019,45 @@ This dictionary can be partially or completely redefined by the user.
 
 # Decker's Markdown
 
+## Slides {#slides}
+
+A new slide starts at every level-1 heading (`# ...`) and at every horizontal
+rule, a line of three or more dashes with blank lines around it. A rule
+directly followed by a heading counts as one slide break. A heading with the
+class `.sub` (`# Title {.sub}`) makes a vertical sub-slide below the previous
+slide. Level-2 headings inside a slide start blocks, which the layout classes
+(`.columns`, `.left`, `.right`, `.top`, `.bottom`, `grow="n"`) arrange.
+
+A line of dashes directly below a line of text, without a blank line in
+between, is not a rule: Pandoc reads it as a setext heading and turns the text
+into a level-2 heading. Decker reports a `setext-heading` hint for it:
+
+``` markdown
+Some text
+---
+```
+
+Always put a blank line before a slide separator.
+
+## Including files
+
+A paragraph that consists only of an include link is replaced by the content
+of another Markdown file:
+
+``` markdown
+[:include](../topic/intro.md)
+```
+
+- The link must be the only content of its paragraph.
+- A relative path is resolved against the including file, a path starting
+  with `/` against the project root.
+- The YAML front matter of the included file is ignored; only its body is
+  inserted.
+- Includes nest. A missing file is a build error.
+
+Markdown files without one of the suffixes `-deck.md` or `-page.md` produce no
+output of their own and can only be used this way.
+
 ## Template Macros
 
 Sometimes things get pretty repetitive. For example, required HTML for a custom
@@ -1050,6 +1176,58 @@ will produce this text:
 ``` markdown
 arg1 arg2 arg3 value1 value2 arg1 arg2 arg3 The code
 ```
+
+## Fragment templates
+
+Fragment templates are HTML snippets, written as Pandoc doctemplates, that are
+expanded from special links and code blocks. They are an experiment and have
+to be enabled:
+
+``` yaml
+experiments:
+  fragment-templates: true
+```
+
+A link whose text starts with `§` (or whose first word ends with a dash), and
+a code block with a class ending in a dash, invoke the template of that name:
+
+```` markdown
+[§wikipedia en](Haskell_(programming_language) "Haskell")
+
+[wikipedia- en](Lambda_calculus "Lambda calculus")
+
+``` {.live-code- language="Haskell"}
+main = print 42
+```
+````
+
+If the experiment is off, the invocations remain plain links and code blocks,
+and Decker reports `fragment-templates-disabled`.
+
+The template `<name>.html` is searched in this order:
+
+1. `<name>.html` relative to the directory of the document
+   (`decker.base-dir`),
+2. `templates/<name>.html` in the project,
+3. `support/templates/<name>.html` in the resource pack, then in Decker.
+
+An unknown name is a build error. The template receives these variables:
+
+| Variable                  | Value                                                  |
+|---------------------------|--------------------------------------------------------|
+| `url`, `title`            | Link target and title (link form)                      |
+| `arg1`, `arg2`, …, `args` | Words after the name in the link text; `argn` = count  |
+| `id`                      | The element id, or a random id                         |
+| `class1`, …, `classes`    | Classes of the link or code block                      |
+| `<key>`, `attribs`        | Key/value attributes (`data-` prefix removed)          |
+| `code`, `codeEsc`         | Code block content, raw and HTML-escaped (code form)   |
+| `rnd-id`, `caption`       | Random id and `caption` attribute (code form)          |
+| `meta`                    | The document's meta data                               |
+
+Decker ships `wikipedia`, `live-code`, `live-code-server`,
+`live-code-prelude`, `grid`, `finegrid` and `canvas` (see [Live
+code](#live-code)); resource packs can add more. `decker info --json` lists
+the templates available in a project.
 
 ## Media handling
 
@@ -1531,6 +1709,50 @@ Import the snippet in the block that proxies to codapi, before the
 ## GraphViz
 
 ## Gnuplot
+
+# Exam questions
+
+Each exam question is a YAML file `*-quest.yaml`. Decker renders a preview
+`private/<path>-quest.html` for each question and the catalog
+`public/exam-builder/questions.json` that the [exam
+builder](#decker-exam-builder) uses.
+
+``` yaml
+LectureId: functional
+TopicId: recursion
+Title: Base case
+Points: 1
+Difficulty: Easy            # Easy | Medium | Hard
+Comment: ""
+Question: |
+  What does `take 3 (iterate (*2) 1)` return?
+Answer:
+  tag: MultipleChoice
+  Choices:
+    - Correct: true
+      TheAnswer: "`[1,2,4]`"
+    - Correct: false
+      TheAnswer: "`[2,4,8]`"
+```
+
+`LectureId`, `TopicId`, `Title`, `Points`, `Question`, `Answer`, `Difficulty`
+and `Comment` are required. `Exam` (default `true`; `false` for polls and
+surveys) and `ShuffleAnswers` (default `true`) are optional. `Question` and
+the answer texts are Markdown. Unknown fields are reported as
+`quest-unknown-field`.
+
+The answer types are selected by `tag`:
+
+| `tag`             | Fields                                                   |
+|-------------------|----------------------------------------------------------|
+| `MultipleChoice`  | `Choices: [{TheAnswer, Correct}]` (`Correct`: boolean)   |
+| `MultipleAnswers` | `WidthInMm`, `Answers: [{Detail, Correct}]` (both text)  |
+| `FillText`        | `FillText`, `CorrectWords` (list of text)                |
+| `FreeForm`        | `HeightInMm`, `CorrectAnswer`                            |
+| `Numerical`       | `CorrectNumber` (integer)                                |
+
+Questions that share `LectureId` and `TopicId` are variants of each other; a
+generated exam draws one of them per student.
 
 # Hacking on Decker
 

@@ -35,6 +35,7 @@ import Text.Decker.Exam.Xml
 import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Diagnostics (reportFor, withDiagnostics)
 import Text.Decker.Internal.External (
     runExternal,
     runExternalForSVG,
@@ -144,6 +145,7 @@ runArgs args = do
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   addTargetInfoOracles getGlobalMeta
+  getQuestionSources <- addQuestionSourcesOracle getDeps
   transient <- liftIO transientDir
   devRun <- liftIO isDevelopmentRun
 
@@ -167,7 +169,9 @@ deckerRules = do
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
   addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
   addHelpSuffix "  - exam-builder - Browse exam questions and compose *-exam.yaml collections in a web app."
-  addHelpSuffix "  - agent-docs - Write version-stamped AI agent guide (.decker/agent-guide.md) and Claude skill (.claude/skills/decker/SKILL.md)."
+  addHelpSuffix "  - agent-guide [TOPIC] - Print the guide for AI agents that author Decker content (--all: every topic)."
+  addHelpSuffix "  - agent-docs - Write the Claude skill (.claude/skills/decker/SKILL.md) and an AGENTS.md section that point agents to `decker agent-guide`."
+  addHelpSuffix "  - info --json - Print project facts (targets, configuration, fragment templates) as JSON."
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
   --
@@ -309,30 +313,29 @@ deckerRules = do
       whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
         copyFile' (src <.> "map") (out <.> "map")
     --
-    privateDir <//> "*-quest.html" %> \out -> do
+    privateDir <//> "*-quest.html" %> \out -> withDiagnostics out $ do
       src <- lookupSource questions out <$> getDeps
       need [src]
+      liftIO (questionDiagnostics src) >>= mapM_ (reportFor (Just out))
       meta <- getGlobalMeta
       renderQuestion meta src out
     --
     privateDir <//> "quest-catalog.html" %> \out -> do
       meta <- getGlobalMeta
-      deps <- getDeps
-      let sources = Map.elems (deps ^. questions)
+      sources <- getQuestionSources
       need sources
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
-      deps <- getDeps
-      let sources = Map.elems (deps ^. questions)
+      sources <- getQuestionSources
       need sources
       qs <- liftIO $ mapM readQuestion sources
       renderXmlCatalog _qstExam qs out
     --
     privateDir <//> "*-exam.xml" %> \out -> do
       deps <- getDeps
+      questionSrcs <- getQuestionSources
       let examSrc = lookupSource exams out deps
-          questionSrcs = Map.elems (deps ^. questions)
       need (examSrc : questionSrcs)
       exam <- liftIO $ readExam examSrc
       qs <- liftIO $ mapM readQuestion questionSrcs
@@ -341,11 +344,11 @@ deckerRules = do
     phony "catalog" $ do
       need ["private/quest-catalog.html"]
     --
-    (publicDir </> "exam-builder" </> "questions.json") %> \out -> do
+    (publicDir </> "exam-builder" </> "questions.json") %> \out -> withDiagnostics out $ do
       meta <- getGlobalMeta
-      deps <- getDeps
-      let sources = Map.elems (deps ^. questions)
+      sources <- getQuestionSources
       need sources
+      liftIO (concat <$> mapM questionDiagnostics sources) >>= mapM_ (reportFor (Just out))
       renderQuestionCatalogJson meta sources out
     --
     phony "exam-builder" $ do
