@@ -174,7 +174,7 @@ deckerRules = do
   addHelpSuffix "  - agent-docs - Write the Claude skill (.claude/skills/decker/SKILL.md) and an AGENTS.md section that point agents to `decker agent-guide`."
   addHelpSuffix "  - info --json - Print project facts (targets, configuration, fragment templates) as JSON."
   addHelpSuffix ""
-  addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
+  addHelpSuffix "For additional information see: https://decker-edu.github.io/decker/users-guide/decker-users-guide.html"
   --
   withTargetDocs "Build HTML previews of all questions (*-quest.yaml)." $
     phony "questions" $ do

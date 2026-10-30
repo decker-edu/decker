@@ -227,5 +227,5 @@ anchor.innerText = "Hello";
 ```
 ````
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Media handling*, for all
+See the [users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html), section *Media handling*, for all
 attributes.

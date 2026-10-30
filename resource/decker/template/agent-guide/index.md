@@ -143,7 +143,7 @@ A project can make strict mode the default with `strict: true` in
 ## Topics
 
 <!-- decker:topics -->
-The [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md)
+The [users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html)
 is the full human reference; its sections *Targets*, *Commands*, *Options* and
 *Agent support* describe all commands. It follows the development branch, so it may be newer than the
 installed version. Where it disagrees with this guide, this guide is right.

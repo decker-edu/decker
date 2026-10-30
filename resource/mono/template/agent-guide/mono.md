@@ -97,4 +97,4 @@ main = print x
   defaults to `codapi`. Other attributes are passed through to
   `<codapi-snippet>`.
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Live code* and *mono*.
+See the [users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html), sections *Live code* and *mono*.

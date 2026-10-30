@@ -314,7 +314,7 @@ $ decker --server
 and make some changes to the Markdown files.
 
 `decker --help` lists all targets, commands and options, and the
-[users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md#targets)
+[users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html#targets)
 describes them.
 
 ## Contributions

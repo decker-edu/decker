@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 to 8 are done, step 9 is open.
+Status: all steps are done. What is left is on the lists for the maintainer.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -336,10 +336,37 @@ Behaviour that is documented as it is, left for the maintainer to decide:
 
 ### Step 9: Wrap-up
 
-- **Guide:** fill in or remove Conventions, ThebeLab and Sage. Publish the guide
-  and link it from `--help` in place of the old wiki link. Links to the headings of
-  commands use GitHub's anchors (`#-decker-publish`). Pandoc generates
-  `#decker-publish`, so they have to change if the guide is published with Pandoc.
-- **Agent docs:** switch the pointers from the GitHub URL to the published URL.
-- **Tests:** all numbers are zero and the lists are empty.
-- **Drafts:** delete the `doc/` drafts that the guide now replaces.
+- **Guide:** *Hacking on Decker* is written, Sage is documented and ThebeLab is removed.
+  The guide is published at
+  `https://decker-edu.github.io/decker/users-guide/decker-users-guide.html`, and `--help`
+  links there in place of the old wiki link.
+- **Agent docs:** the pointers and the readme use the published URL.
+- **Tests:** the numbers and lists are gone, the tests now require zero and empty. Internal
+  links of the guide must lead to a heading, with the identifiers of Pandoc.
+- **Drafts:** deleted, except `doc/decker-yaml-config-jmu-hci-drp.md`. That pack is not part
+  of this repository, so the guide does not replace it.
+
+**Publishing.** The URL was already live, through Jekyll in
+`.github/workflows/jekyll-gh-pages.yml`. Jekyll's kramdown does not accept fences with
+attributes (`` ``` yaml {.decker-example} ``), so it turned example code into real headings
+and broke links. The workflow now builds the guide with the `makefile` and Pandoc, which also
+gives a table of contents, and removes the source so that Jekyll only copies the HTML. The URL
+stays, the new page appears with the next push to `master`. The workflow step did not run yet:
+only the Pandoc command was run, with Pandoc 3.11, while the runner gets the version of Ubuntu.
+Links to command headings now use Pandoc's anchors (`#decker-publish`), so they do not work
+when reading the file on GitHub.
+
+Checked in Chrome: a `.sage` cell in a `mario` deck, evaluated on `sagecell.sagemath.org`. In
+`tudo` the cell only loaded and was not evaluated. The languages `python`, `rr` and `octave`
+are from the code.
+
+**Removed from the guide, because it cannot be shown working:** ThebeLab. The library was
+removed in 2021 (`8fad3d69`), and no template of any pack loads
+`support/plugins/thebelab/thebelab.js`, so `data-executable` blocks stay plain code. The plugin,
+`test/decks/thebe-lab-*-deck.md` and the section in `skeleton.yaml` can go.
+
+The deleted drafts also named Pandoc's template slots (`title-prefix`, `pagetitle`,
+`author-meta`, `date-meta`, `table-of-contents`, `reference-location`, `idprefix`,
+`highlighting-css`) and the keys of the removed `poll` plugin. The guide does not list them.
+`attic/MediaTests.hs` still names `doc/media-filter-report-page.md` as its output, but is not
+built.

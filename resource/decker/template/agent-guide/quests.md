@@ -93,4 +93,4 @@ Answer:
   is drawn per student exam. Keep variants equal in difficulty and number of
   choices.
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Exam questions*.
+See the [users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html), section *Exam questions*.

@@ -236,5 +236,5 @@ Answer:
 
 Whiteboard, recording and everything else that happens in the running deck need
 nothing in the source; see the
-[users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md),
+[users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html),
 sections *Quizzes*, *Live quizzes* and *During a presentation*.

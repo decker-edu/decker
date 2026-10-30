@@ -3,8 +3,7 @@
 
 -- | Tests the examples in the agent guide topics and the users' guide against
 -- the decker executable, so they cannot silently drift from the implementation.
--- Also tracks what the users' guide still lacks, see 'undocumentedCommands' and
--- the numbers below it.
+-- Also checks that the users' guide is complete.
 --
 -- An example is a fenced code block with the class @decker-example@:
 --
@@ -38,6 +37,8 @@ import System.FilePath ((</>))
 import System.Process (StdStream (..), proc, std_err, std_out, withCreateProcess)
 import System.Timeout (timeout)
 import Test.Hspec
+import Text.Pandoc (Block (Header), Inline (Link), def, pandocExtensions, readMarkdown, readerExtensions, runPure)
+import Text.Pandoc.Walk (query)
 import Text.Decker.Project.AgentDocs (replaceSection)
 import Text.Decker.Project.Shake (deckerCommands, deckerFlags)
 import Text.Regex.TDFA ((=~))
@@ -95,26 +96,7 @@ usersGuide :: FilePath
 usersGuide = "users-guide/decker-users-guide.md"
 
 usersGuideUrl :: Text
-usersGuideUrl = "https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md"
-
--- | Commands that have no heading in the users' guide yet. Remove a command
--- when its section is written.
-undocumentedCommands :: [String]
-undocumentedCommands = []
-
--- | Long options that have no heading in the users' guide yet.
-undocumentedOptions :: [String]
-undocumentedOptions = []
-
--- | Sections of the users' guide without any content. Lower this number when a
--- section is written. See doc/users-guide-plan.md.
-emptySectionCount :: Int
-emptySectionCount = 3
-
--- | @TODO@ placeholders in the users' guide. Lower this number when one is
--- filled in.
-todoCount :: Int
-todoCount = 0
+usersGuideUrl = "https://decker-edu.github.io/decker/users-guide/decker-users-guide.html"
 
 -- | Keys in the @default.yaml@ of the base pack that do not need a place in the
 -- reference: test values, and @progress@, which nothing reads.
@@ -168,6 +150,19 @@ guideReferences content =
       [_, section] <- names =~ ("\\*([^*]+)\\*" :: Text) :: [[Text]]
   ]
 
+-- | The internal links of a document without a heading to lead to. It uses the
+-- identifiers of Pandoc, which publishes the guide.
+brokenLinks :: Text -> [Text]
+brokenLinks guide =
+  case runPure (readMarkdown def {readerExtensions = pandocExtensions} guide) of
+    Left err -> [T.pack (show err)]
+    Right doc -> nub (filter (`notElem` query headerId doc) (query linkTarget doc))
+  where
+    headerId (Header _ (ident, _, _) _) = [ident]
+    headerId _ = []
+    linkTarget (Link _ _ (url, _)) | Just target <- T.stripPrefix "#" url = [target]
+    linkTarget _ = []
+
 -- | All topic files of Decker and of the bundled resource packs.
 topicFiles :: IO [FilePath]
 topicFiles = do
@@ -200,10 +195,10 @@ agentGuideTests = describe "Agent guide" $ do
     guide <- runIO $ T.readFile usersGuide
     let titles = map secTitle (sections guide)
 
-    it "has a heading for every command, except the known gaps" $ do
+    it "has a heading for every command" $ do
       let documented command = any (=~ ("decker " <> T.pack command <> "([^a-z-]|$)" :: Text)) titles
       filter (not . documented) (sort (["agent-guide", "info", "publish"] <> deckerCommands))
-        `shouldBe` undocumentedCommands
+        `shouldBe` []
 
     it "has a heading for every target" $ do
       rules <- T.readFile "app/Decker.hs"
@@ -212,16 +207,24 @@ agentGuideTests = describe "Agent guide" $ do
       targets `shouldNotBe` []
       filter (not . documented) targets `shouldBe` []
 
-    it "has a heading for every option, except the known gaps" $ do
+    it "has a heading for every option" $ do
       let documented option = any (=~ ("--" <> T.pack option <> "([^a-z-]|$)" :: Text)) titles
       filter (not . documented) (sort (concat [long | Option _ long _ _ <- deckerFlags]))
-        `shouldBe` undocumentedOptions
+        `shouldBe` []
 
-    it "has the known number of empty sections" $
-      length (emptySections (sections guide)) `shouldBe` emptySectionCount
+    it "has no empty sections" $
+      emptySections (sections guide) `shouldBe` []
 
-    it "has the known number of TODOs" $
-      length (filter ("TODO" `T.isInfixOf`) (proseLines guide)) `shouldBe` todoCount
+    it "has no TODOs" $
+      filter ("TODO" `T.isInfixOf`) (proseLines guide) `shouldBe` []
+
+    it "has only internal links that lead to a heading" $
+      brokenLinks guide `shouldBe` []
+
+    it "is linked from the help text" $
+      withProject [] $ \dir -> do
+        run <- runDecker dir ["--help"]
+        runStdout run `shouldContain` T.unpack usersGuideUrl
 
     it "explains every key of the base pack's defaults" $ do
       defaults <- T.readFile "resource/decker/template/default.yaml"

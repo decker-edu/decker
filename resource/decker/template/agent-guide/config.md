@@ -191,4 +191,4 @@ project/
 └── private/           # private build output, e.g. question previews
 ```
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Creating a project*, *Working on a project*, *Meta Data*, *Configuration reference* and *Resources*.
+See the [users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html), sections *Creating a project*, *Working on a project*, *Meta Data*, *Configuration reference* and *Resources*.

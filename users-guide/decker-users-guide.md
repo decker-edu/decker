@@ -5,10 +5,6 @@ title: Decker User's Guide
 toc-title: Contents
 ---
 
-🚧 Material that is only relevant for advanced users, developers, true Decker
-nerds and Mario is marked with a construction sign (🚧). Eltern haften für ihre
-Kinder.
-
 # Description
 
 ## Pandoc
@@ -63,7 +59,7 @@ Beyond what Pandoc and Reveal.js provide, Decker offers:
 
 - **Three kinds of output from one source.** A deck is built as a
   [presentation](#slides) and as a [handout](#notes-handouts-and-solutions), and
-  [`decker pdf`](#-decker-pdf) prints it to a PDF. Pages are ordinary web pages
+  [`decker pdf`](#decker-pdf) prints it to a PDF. Pages are ordinary web pages
   written in the same Markdown.
 - **Slide layouts.** Columns, grids, popups and fragments, see [Slide
   layout](#slide-layout).
@@ -76,8 +72,8 @@ Beyond what Pandoc and Reveal.js provide, Decker offers:
   code](#live-code), a [whiteboard](#whiteboard) and [audience
   feedback](#audience-feedback).
 - **Teaching material.** [Exam questions](#exam-questions) with a catalog and Moodle
-  export, recording of presentations with [transcription](#-decker-transcribe), a
-  [search index](#-decker-search-index) across all decks, and a
+  export, recording of presentations with [transcription](#decker-transcribe), a
+  [search index](#decker-search-index) across all decks, and a
   [chatbot](#chatty) that answers questions about the course material.
 - **A development server.** It rebuilds what has changed and reloads the open pages,
   see [Working on a project](#working-on-a-project).
@@ -154,7 +150,7 @@ project. Run this in an empty directory:
 > decker --server --open
 ```
 
-[`decker example`](#-decker-example) writes the two files `decker.yaml` and
+[`decker example`](#decker-example) writes the two files `decker.yaml` and
 `minimal-deck.md`. `decker --server` builds them, starts a local web server and keeps
 watching the project. `--open` opens `http://localhost:8888/index.html` in your
 browser. The browser can be faster than the first build, so reload if the page does
@@ -269,7 +265,7 @@ Some things to know about the project structure:
 - **The root.** You can run `decker` in any directory of the project. It goes up to
   the nearest directory that contains a `decker.yaml` or a `.git` directory, and uses
   that as the root. If that directory has no `decker.yaml`, the build fails with the
-  message above. [`--project-dir`](#-d-dir---project-dirdir) sets the root explicitly.
+  message above. [`--project-dir`](#d-dir---project-dirdir) sets the root explicitly.
 - **Generated files.** `public/` and `private/` are generated, and so is `chatty/` if
   you use [Chatty](#chatty). Do not edit them, and leave them out of version control.
 - **Excluded directories.** Decker searches the whole tree, except for `public`,
@@ -288,7 +284,7 @@ Some things to know about the project structure:
   A directory listed there has to exist, or the build fails.
 
 For a project that an AI agent works on, see also [`decker
-agent-docs`](#-decker-agent-docs).
+agent-docs`](#decker-agent-docs).
 
 ## Working on a project
 
@@ -302,8 +298,8 @@ Every change to a file in the project triggers a rebuild of whatever depends on 
 and open pages reload. New sources are picked up as well, and a change to `decker.yaml`
 rebuilds the documents. A page in presenter mode does not reload, so that a
 presentation is not interrupted. The server listens on port 8888 by default, use
-[`-p`](#-p-port---portport) to change that. Without a target, `--server` builds what
-[`decker html`](#-decker-html) builds, so name the targets if you need more:
+[`-p`](#p-port---portport) to change that. Without a target, `--server` builds what
+[`decker html`](#decker-html) builds, so name the targets if you need more:
 
 ``` sh
 > decker --server html handouts
@@ -315,10 +311,10 @@ Without the server, these are the most common things to run:
 |------------------------------------------|------------------------------------|
 | `decker`                                 | Builds all decks and pages         |
 | `decker public/lectures/01-intro-deck.html` | Builds just one file            |
-| `decker handouts`                        | Builds the [handouts](#-decker-handouts) |
-| `decker pdf`                             | Builds the [PDFs](#-decker-pdf), needs Chrome |
-| `decker check`                           | Shows which [external programs](#-decker-check) are found |
-| `decker clean`                           | [Removes](#-decker-clean) everything that was generated |
+| `decker handouts`                        | Builds the [handouts](#decker-handouts) |
+| `decker pdf`                             | Builds the [PDFs](#decker-pdf), needs Chrome |
+| `decker check`                           | Shows which [external programs](#decker-check) are found |
+| `decker clean`                           | [Removes](#decker-clean) everything that was generated |
 
 Decker reports problems that do not stop the build as warnings, and
 [`--strict`](#diagnostics-and---strict) turns them into errors. A slide that is too
@@ -363,7 +359,7 @@ deleted. To change this, set the arguments in `external-tools.rsync.arguments`,
 see [External tools](#external-tools).
 
 What is published depends on the lecture flag `-l`, see [`decker
-publish`](#-decker-publish).
+publish`](#decker-publish).
 
 # Targets
 
@@ -430,7 +426,7 @@ Builds Moodle XML for import into a question bank:
 - `private/quest-catalog.xml` holds all questions, except for those with
   `Exam: false`.
 - `private/<path>-exam.xml` holds the questions of the topics that are listed in
-  `<path>-exam.yaml`. [`decker exam-builder`](#-decker-exam-builder) writes these
+  `<path>-exam.yaml`. [`decker exam-builder`](#decker-exam-builder) writes these
   files.
 
 ## `> decker support`
@@ -464,7 +460,7 @@ search index.
 
 Prints the project, public, support and transient directories and where the
 resources come from. With `--json`, it prints the project facts instead, see
-[`decker info --json`](#-decker-info---json).
+[`decker info --json`](#decker-info---json).
 
 ## `> decker more-info`, `> decker even-more-info`
 
@@ -553,7 +549,7 @@ empty directory. To start exploring Decker:
 Starts just the HTTP server for the existing `public/` directory, on the address
 and port given by `-b` and `-p`. It builds nothing, does not watch any files and
 does not reload browsers, so run a build first. The server also receives recordings
-from the browser (see [`-P`](#-p---poser)). It runs until it is interrupted, and
+from the browser (see [`-P`](#p---poser)). It runs until it is interrupted, and
 exits with status 7 if the port is in use.
 
 To build, watch and serve at the same time, use `decker --server`.
@@ -759,7 +755,7 @@ Runs the build, then serves the public directory via HTTP on
 `http://localhost:8888` and watches for changes like `--watch`. Open pages reload
 after every rebuild. Stop it with `^C`. Without a target it builds `html`.
 
-To serve without building, use [`decker serve`](#-decker-serve).
+To serve without building, use [`decker serve`](#decker-serve).
 
 ## `-p PORT`, `--port=PORT`
 
@@ -798,7 +794,7 @@ is meant for H.264 video. Without the option, only `decker crunch` creates MP4 f
 
 ## `-l`, `--lecture`
 
-Enables lecture publishing, see [`decker publish`](#-decker-publish). The option also
+Enables lecture publishing, see [`decker publish`](#decker-publish). The option also
 works for builds: `decker -l html` builds documents with `lecture.status: upcoming`
 without their solutions, and the next build without `-l` brings them back.
 
@@ -2252,7 +2248,7 @@ A PDF is shown by the viewer of the browser, in an `<object>` element:
 
 As the slide background (`# ![](manual.pdf)`), it is shown in an iframe.
 
-### 3D polygonal models
+### 3D polygonal models {#3d-polygonal-models}
 
 3D models are shown in an iframe with a viewer that Decker brings along. The file type
 decides on the viewer.
@@ -3186,9 +3182,37 @@ server behind Caddy:
 Import the snippet in the block that proxies to codapi, before the
 `reverse_proxy` directive.
 
-## ThebeLab 🚧 {#thebelab}
-
 ## Sage
+
+The packs [`mario`](#mario) and [`tudo`](#tudo) load a plugin that makes code blocks
+editable and runs them on the public [SageMathCell](https://sagecell.sagemath.org)
+server. So the browser needs a connection to that server during the presentation.
+A div with the class `sageCell` holds the code. The class of the code block selects
+the language: `sage`, `python`, `rr` (for R) or `octave`.
+
+```` markdown {.decker-example file="a-deck.md" project="sage"}
+---
+title: Sage cells
+---
+
+# Evaluate this
+
+::: {.sageCell width="100%" height="400px"}
+``` sage
+print(6*7)
+```
+:::
+````
+
+The pack is selected in `decker.yaml`:
+
+``` yaml {.decker-example file="decker.yaml" project="sage"}
+resource-pack: exe:mario
+```
+
+The cell has an *Evaluate* button and a menu to change the language. `width` and
+`height` set the size of the cell, the defaults are `100%` and `500px`. With other
+packs, on pages and in handouts, the block stays a plain code block.
 
 # During a presentation
 
@@ -3221,7 +3245,7 @@ the current one marked, and has these buttons:
 - [search](#search)
 - color mode (disabled if `colorscheme` is set to `light` or `dark`)
 - fullscreen
-- printing to PDF, see [`decker pdf`](#-decker-pdf)
+- printing to PDF, see [`decker pdf`](#decker-pdf)
 - [handout mode](#notes-handouts-and-solutions) (`H` three times)
 - [presenter mode](#presenter-mode)
 - [recording](#recording)
@@ -3236,7 +3260,7 @@ The menu has no options. The plugin does not read a key `menu`.
 mode the keys open the search of the browser instead.
 
 This only searches the current deck. To search across all decks, see [`decker
-search-index`](#-decker-search-index).
+search-index`](#decker-search-index).
 
 ## Whiteboard
 
@@ -3269,7 +3293,7 @@ tip the eraser.
 Saving does two things. It puts `x-annot.json` of the deck `x-deck.md` into the
 downloads folder of the browser, and it uploads the same file next to the source of the
 deck. A deck loads this file when it starts. The next build copies it to `public/`, and
-[`decker pdf`](#-decker-pdf) prints the annotations too. To see saved annotations with
+[`decker pdf`](#decker-pdf) prints the annotations too. To see saved annotations with
 `decker serve`, build first, because it serves `public/` as it is.
 
 With auto-save, which is the default, this happens when you leave the deck, not on every
@@ -3385,8 +3409,8 @@ to its source and in the downloads folder of the browser. The times say which sl
 shown when.
 
 A recording in the browser's format is not what gets played. Turn it into
-`x-recording.mp4` with [`decker crunch`](#-decker-crunch), or at once with the option
-[`-P`](#-p---poser) of the server. [`decker transcribe`](#-decker-transcribe) then
+`x-recording.mp4` with [`decker crunch`](#decker-crunch), or at once with the option
+[`-P`](#p---poser) of the server. [`decker transcribe`](#decker-transcribe) then
 creates the captions. The next build copies all of it to `public/`.
 
 ### Playback
@@ -3463,7 +3487,8 @@ request to OpenAI with the API key it keeps for that prompt.
 
 If no `chatty.vector-store-id` is configured, or the configured store no longer
 exists, a new vector store is created and its id is printed for you to paste into
-`decker.yaml`.
+`decker.yaml`. `chatty.vector-store-name` sets the name of a new store (defaults to
+`decker`).
 
 With the `--prune-files` option, after the sync every assistant-purpose file
 object in the OpenAI project that is *not* attached to the store is deleted. This
@@ -3733,4 +3758,53 @@ generated exam draws one of them per student.
 
 # Hacking on Decker
 
+This chapter is for people who work on Decker itself. The
+[readme](https://github.com/decker-edu/decker/blob/master/readme.md) explains how to
+install it from source and how to use the dev container.
+
+## Building and testing
+
+``` sh
+stack build -j8                             # Build
+stack test -j1                              # Run the tests
+stack run -- decker --project-dir=DIR html  # Run the development build on a project
+make install                                # Clean build, install to ~/.local/bin
+make upgrade-third-party                    # Copy vendor resources after a submodule update
+```
+
+A development run serves support files directly from `resource/`. An installed Decker
+copies them, so check changes to resource packs with an installed Decker as well.
+
 ## Conventions
+
+- **Formatting.** Haskell code is formatted with
+  [ormolu](https://github.com/tweag/ormolu), through the Haskell Language Server.
+- **Language.** The language is `GHC2021` with `OverloadedStrings`, `QuasiQuotes` and
+  `MultiWayIf`. Many modules use `NoImplicitPrelude` with `Relude`.
+- **Package.** `decker.cabal` is generated by hpack and not checked in. Change
+  `package.yaml` instead.
+- **Versions.** Each feature increments the version in `package.yaml`. Breaking
+  changes increment the second number, fixes the third.
+- **Configuration.** Never pass configuration through environment variables. Command
+  line options become meta values or flags.
+- **Resources.** Templates and support files live in `resource/`, and each directory
+  there is a [pack](#bundled-packs). Third-party code comes from the submodules in
+  `third-party/`.
+
+## Documentation
+
+`stack test` keeps this guide and the agent topics in
+`resource/decker/template/agent-guide/` in step with the code:
+
+- Every command, target and option needs a heading in this guide.
+- Every key in the `default.yaml` of the base pack needs an explanation in this guide.
+- No section may be empty, and links within the guide must lead to a heading.
+- Code blocks with the class `decker-example` are built, in both the guide and the
+  topics. The tests in `test/AgentGuideTests.hs` describe their attributes.
+- A new diagnostic code needs a row in the table of the `index` topic and a fixture
+  in `test/fixtures/diagnostics/`.
+
+The guide is built with `make -C users-guide`, which needs Pandoc. A push to `master`
+publishes it through the workflow `.github/workflows/jekyll-gh-pages.yml`. The anchors
+of the links are therefore Pandoc's, and some differ from those on GitHub's rendering
+of the file: `#decker-publish` is `#-decker-publish` there.

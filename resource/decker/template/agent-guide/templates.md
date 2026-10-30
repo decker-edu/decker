@@ -136,4 +136,4 @@ main = print 42
 The build cannot tell whether the server or a sandbox exists. Running the code in a
 browser is the only check.
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Fragment templates* and *Live code*.
+See the [users' guide](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html), sections *Fragment templates* and *Live code*.
