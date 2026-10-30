@@ -13,7 +13,18 @@
   },
   "config": {
     "bibliography": null,
+    "codapiServer": null,
     "csl": null,
+    "deckerPlugins": {
+      "chatty": false,
+      "feedback": true,
+      "jingles": true,
+      "notes": true,
+      "quiz": true,
+      "quiz-wue": true,
+      "quizzer": false,
+      "zoom": true
+    },
     "excludeDirectories": [
       "code"
     ],
@@ -21,6 +32,10 @@
       "fragment-templates": true
     },
     "lang": "de",
+    "pageFeatures": {
+      "codapi": false,
+      "math-module": false
+    },
     "slideSize": {
       "height": 720,
       "width": 1280

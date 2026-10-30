@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: step 1 is done, steps 2 to 9 are open.
+Status: steps 1 and 2 are done, steps 3 to 9 are open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -55,9 +55,26 @@ Fix what is wrong, without writing new sections.
 - **Keys that are missing today:** `decker-plugins`, `page-features`, `chart`,
   `index.*`, `editor.link-prefix`, `external-tools`, the core `template.*` keys
   and the title slide keys (`teaser`, `logos`, `affiliation`).
-- **Decide:** `decker-version` is never checked, because `versionCheck` is not
-  called. Either call it or stop documenting the key.
-- **Agent docs:** expand `config`. Check whether `info --json` needs more keys.
+- **Decided:** `decker-version` is gone from the guide and `versionCheck` from the
+  code. It was not called, and it would warn on every project without the key and
+  on every version other than the exact one.
+- **Agent docs:** expand `config`. `info --json` now also reports
+  `decker-plugins`, `page-features` and `codapi.server`, because packs switch them
+  and a feature that needs one then fails silently.
+
+Keys that have no effect, left for the maintainer to remove:
+
+- `publish.rsync.options`: still in `replaceLists`, but `decker publish` takes its
+  options from `external-tools.rsync.arguments`. `skeleton.yaml` still shows it, and
+  also a `publish.destination` that does not exist.
+- `mathjax-url`: goes to a Pandoc writer option that no template uses.
+- `progress` (top level): `index.progress` is the one that is read.
+- `reveal.vertical-slides`: nothing reads it.
+- `whisper.options.ffmpeg`: nothing reads it.
+- `rpv-test.*` and `test`: test values in `default.yaml`, with their own TODOs.
+
+The base pack has `template.deck.css`, but no `template.page.css`, only the `tudo`
+pack does. This is documented as it is.
 
 ### Step 3: Slides and layout
 
@@ -117,3 +134,4 @@ Fix what is wrong, without writing new sections.
   and link it from `--help` in place of the old wiki link.
 - **Agent docs:** switch the pointers from the GitHub URL to the published URL.
 - **Tests:** all numbers are zero and the lists are empty.
+- **Drafts:** delete the `doc/` drafts that the guide now replaces.

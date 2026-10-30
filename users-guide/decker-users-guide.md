@@ -515,8 +515,8 @@ built by Decker's test suite, so they cannot drift from the implementation.
 Prints project facts as one JSON document on standard output: every source
 with its kind and build targets, the configured and resolved resource pack, a
 curated part of the configuration (`lang`, `bibliography`, `csl`, `strict`,
-`experiments`, `exclude-directories`, `static-resource-dirs`), the aggregate
-targets, the available fragment templates with their origin (`project`,
+`experiments`, `decker-plugins`, `page-features`, `codapi.server`,
+`exclude-directories`, `static-resource-dirs`), the aggregate targets, the available fragment templates with their origin (`project`,
 `pack` or `decker`) and the guide topics. Other meta data, for example chatty
 or publishing settings, is never included. `decker info` without `--json` is
 unchanged.
@@ -727,9 +727,6 @@ The resource packs inside the executable always match its version. Packs loaded
 from a directory or a ZIP archive carry no version, and Decker does not check
 them, so make sure they fit the Decker version in use.
 
-The meta data variable `decker-version` records the version a project was written
-for. It is currently not checked against the running Decker.
-
 # Meta Data
 
 Meta data variables are specified in YAML format and can be defined in several
@@ -746,11 +743,18 @@ different places. In order of increasing precedence these are:
 
 Within a `meta-data` list, later files take precedence over earlier ones.
 
+Values from several places are combined depending on their type. Maps are merged
+key by key. Lists are joined, with the values of lower precedence first and without
+duplicates, so a document adds to the `template.css` of `decker.yaml`. The lists
+`palette.colors.light`, `palette.colors.dark`, `index.links` and all lists below
+`external-tools` are replaced instead. For all other values, the one with the highest
+precedence wins.
+
 Meta data is hierarchical but most variables are defined at the top level. A
 notable exception are variables that are used to set *local path* values (see
-[Local paths](#local-paths)) in the slide template (see [Variables for
-Reveal.js](#variables-revealjs)). These path values are located in the
-`template` namespace. For example, the favicon of a document is provided in the
+[Local paths](#local-paths)) in the slide template (see
+[Appearance](#appearance)). These path values are located in the `template`
+namespace. For example, the favicon of a document is provided in the
 variable `template.favicon`.
 
 Inside a YAML file or a YAML section of a file hierarchical meta variable values
@@ -811,184 +815,468 @@ project
 
 Both image paths reference the same image file.
 
-## Almost all variables
+## Configuration reference
 
-`compiletime-path-variables`
-:   TODO
+This reference lists the keys that the Decker sources and the base resource pack
+read, grouped by purpose. The defaults are in
+`resource/decker/template/default.yaml`. Keys that only a bundled resource pack
+reads are listed in [Keys of bundled resource packs](#pack-keys).
 
-`css-dark-colors`
-:   TODO
+A complete `decker.yaml`, with the deck that uses it, might look like this:
 
-`css-light-colors`
-:   TODO
+``` yaml {.decker-example file="decker.yaml" project="config"}
+title: "Computer Graphics"
+lang: en
+exclude-directories:
+  - archive
+template:
+  favicon: img/logo.svg
+reveal:
+  width: 1600
+  height: 900
+index:
+  links:
+    - handout
+decker-plugins:
+  jingles: false
+short-links:
+  wiki: "https://en.wikipedia.org/wiki/@@"
+```
 
-`css-variables`
-:   TODO
+``` markdown {.decker-example file="intro-deck.md" project="config"}
+---
+title: Introduction
+subtitle: The first lecture
+date: today
+authors:
+  - name: Ada Lovelace
+    url: https://example.org/ada
+    affiliation:
+      name: Example University
+      url: https://example.org
+      logo:
+        uri: /img/logo.svg
+        height: 2rem
+logos:
+  - /img/logo.svg
+---
 
-`decker-version`
-:   TODO
+# Reading
 
-`decker.base-dir`
-:   TODO
+See [rendering](wiki:Rendering_(computer_graphics)).
+```
 
-`decker.filter.border`
-:   TODO
+``` xml {.decker-example file="img/logo.svg" project="config"}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1"/></svg>
+```
 
-`decker.filter.pretty`
-:   TODO
+### Project and build
 
-`decker.filter.resources`
-:   TODO
-
-`deckId`
-:   TODO
-
-`draft`
-:   TODO
-
-`exclude-directories`
-:   TODO
-
-`extra-highlight-syntax`
-:   TODO
-
-`feedback.deck-id`
-:   TODO
-
-`highlight-style`
-:   TODO
-
-`mathjax-url`
-:   TODO
-
-`meta-data`
-:   TODO
-
-`no-index`
-:   TODO
-
-`palette.colors.dark`
-:   TODO
-
-`palette.colors.light`
-:   TODO
-
-`palette.contrast`
-:   TODO
-
-`publish.rsync.destination`
-:   TODO
-
-`publish.rsync.options`
-:   TODO
+`resource-pack`
+:   The resource pack to use, see [Resource Packs](#resource-packs). Only read
+    from `decker.yaml` and the command line.
 
 `resource-base`
 :   URL of the base resource pack that `resource-pack` overrides. Defaults to
     `exe:decker`. Intended for testing modifications to the base pack, usually
     set with `--resource-base=URI`.
 
-`resource-pack`
-:   TODO
-
-`runtime-path-variables`
-:   TODO
-
-`short-links`
-:   TODO
-
-`static-resource-dirs`
-:   TODO
-
-`static-resources`
-:   TODO
-
-`subtitle`
-:   TODO
-
-`title`
-:   TODO
-
-`watch.exclude`
-:   TODO
-
-`whisper.lang`
-:   TODO
-
-`whisper.model`
-:   TODO
-
-`whisper.options.ffmpeg`
-:   TODO
-
-`write-back.enable`
-:   TODO
-
-`write-back.line-columns`
-:   TODO
-
-`write-back.line-wrap`
-:   TODO
-
-## Variables that can be defined in `decker.yaml`
-
-`static-resources`
-:   a list of files and directories that are copied to `public` without beeing
-    referenced detectably in a presentation. Mostly used for HTML apps that are
-    run inside of iFrame or `.htpasswd` files.
+`meta-data`
+:   A list of further YAML files to read, see the order above. These files can
+    list further files.
 
 `exclude-directories`
-:   a list of project directories that are not searched for `-deck.md` files.
+:   A list of directories that are not searched for sources and not watched.
+    Each entry is a path from the project root: `archive` excludes `archive/`,
+    but not `lectures/archive/`. `public`, `chatty`, `dist`, `.git`, `.vscode`
+    and `.stack-work` are always excluded, as is every file or directory with a
+    name that starts with a dot.
 
-## Variables that can be defined in the meta data section
+`static-resource-dirs`
+:   A list of directories that are copied to `public` as a whole.
 
-## Variables for Reveal.js {#variables-revealjs}
+`static-resources`
+:   A list of files and directories that are copied to `public`, although no
+    document references them. Mostly used for HTML apps that run inside an iframe
+    and for `.htpasswd` files.
 
-Decker uses a modified version of the standard pandoc template for reveal.js
-slide sets. Most if the variables used there are supported by decker.
-Additionally, there are several Decker specific variables that control various
-aspects of the generated slide sets.
+`watch.exclude`
+:   A list of glob patterns, matched against paths from the project root. Changes
+    to matching files do not trigger a rebuild in `--watch` and `--server` mode.
 
-`template.css` 🚧
-:   a list of CSS files that is loaded after the default CSS files (defaults to
-    `[]`)
+`strict`
+:   Like `--strict` on every build, see [Diagnostics and
+    `--strict`](#diagnostics-and---strict).
+
+`publish.rsync.destination`
+:   The target of `decker publish`, for example `user@example.org:/var/www/course/`.
+    To change the options of `rsync`, set `external-tools.rsync.arguments`.
+
+`runtime-path-variables`
+:   A list of keys whose values are paths of files needed when a document is
+    shown. Decker copies such a file to `public` and replaces the value with the
+    path relative to the document. The key can name a map or a list, then this
+    applies to all strings below it. A value that is not an existing file stays
+    as it is. The base pack lists `logos`, `affiliation`, `author`, `authors` and
+    `teaser`. `template` always applies.
+
+`compiletime-path-variables`
+:   A list of keys whose values are paths of files needed during the build.
+    Decker tracks them as dependencies. `csl`, `bibliography`, `meta-data`,
+    `static-resource-dirs`, `static-resources` and `extra-highlight-syntax` always
+    apply.
+
+`write-back.enable`
+:   Reformats the Markdown source files in place during the build (defaults to
+    `false`).
+
+`write-back.line-columns`
+:   The line width for `write-back` (defaults to `80`).
+
+`write-back.line-wrap`
+:   The line wrapping for `write-back`: `auto` (the default), `none` or
+    `preserve`.
+
+`whisper.model`
+:   The path of the model that `decker transcribe` uses.
+
+`whisper.lang`
+:   The language of the recordings for `decker transcribe` (defaults to `de`).
+
+`experiments.fragment-templates`
+:   Enables [fragment templates](#fragment-templates) (defaults to `false`).
+
+`experiments.add-document-path`
+:   Adds a link to the source file to every level 1 heading (defaults to
+    `false`).
+
+`editor.link-prefix`
+:   The start of the URLs that link to source files, followed by the absolute
+    path of the file (defaults to `zed://file`). Used by
+    `experiments.add-document-path` and by the previews of exam questions. For VS
+    Code use `vscode://file`.
+
+### Documents and title slide
+
+`title`, `subtitle`
+:   The title and the subtitle. `title` defaults to `false`, which omits it.
+
+`date`
+:   The date on the title slide. The value `today` is replaced with the date on
+    which the deck is shown.
+
+`author`, `authors`
+:   One author, or a list of them. Use only one of these keys. An author is a
+    string, or a map with the keys `name`, `url`, `photo` (a path) and
+    `affiliation`.
+
+`affiliation`
+:   A string, or a map with the keys `name`, `url` and `logo` (an image).
+
+`teaser`
+:   An image on the title slide.
+
+`logos`
+:   A list of images on the title slide.
+
+`copyright`
+:   A string, or a map with the keys `type` and `url`.
+
+`showDeckerLink`
+:   Shows a link to Decker on the title slide.
+
+`lang`
+:   The language of the document (defaults to `de`). It selects the entries of
+    the [dictionary](#dictionary) and is set as the HTML `lang` attribute.
+
+`dir`
+:   The text direction, set as the HTML `dir` attribute.
+
+`watermark`
+:   Text or HTML to show as a watermark on the deck.
+
+`keywords`, `description-meta`
+:   The content of the HTML `meta` tags `keywords` and `description`.
+
+`header-includes`, `include-before`, `include-after`
+:   Raw content for the start and the end of the HTML document.
+
+`bibliography`, `csl`
+:   The bibliography file and the citation style. Without `csl`, a default style
+    is used.
+
+`deckId`
+:   The identifier of the document in the generated lists `decks.by-id` and
+    `pages.by-id`.
+
+`draft`
+:   Marks a document as a draft. It is left out of the search index, of the
+    selection of `decker publish --lecture` and of `decker chatty`. It is still
+    built and still appears on a generated index page.
+
+`lecture.status`
+:   The value `draft` is the same as `draft: true`. The value `upcoming` removes
+    slides and boxes with the class `.solution` from the document for `decker
+    publish --lecture`.
+
+`no-index`
+:   A list of values of `feedback.deck-id`. Documents with one of these values are
+    treated like drafts for the search index and for `decker publish --lecture`.
+
+`short-links`
+:   Defines URL schemes for links. In the template, `@@` is replaced with the rest
+    of the link, and `@@@` with the rest of the link in URL encoding. With the
+    configuration below, `[a](wiki:Rendering)` links to
+    `https://en.wikipedia.org/wiki/Rendering`. A scheme can have several
+    templates, one of which is selected in `short-links.bind`:
+
+    ``` yaml
+    short-links:
+      wiki: "https://en.wikipedia.org/wiki/@@"
+      bind:
+        code: github
+      code:
+        github: "https://github.com/decker-edu/@@"
+        gitlab: "https://gitlab.com/decker-edu/@@"
+    ```
+
+An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the keys
+`uri`, `alt`, `width` and `height`.
+
+### Appearance
+
+`template.favicon`
+:   The icon of all generated documents.
+
+`template.css`
+:   A list of CSS files for all generated documents.
+
+`template.js`, `template.js-module`
+:   Lists of scripts, classic and ES6 modules, for decks and pages.
+
+`template.deck.css`, `template.deck.js`, `template.deck.js-module`
+:   Lists of CSS files and scripts for decks only.
+
+`template.page.js`, `template.page.js-module`
+:   Lists of scripts for pages only. The base pack has no `template.page.css`.
+
+`palette.colors.light`, `palette.colors.dark`
+:   Lists of 16 colors. The first 8 run from the background to the foreground color
+    and become the CSS variables `--shade0` to `--shade7`, the other 8 become
+    `--accent0` to `--accent7`. Both also have the names `--base00` to `--base0F`.
+    If only `light` is set it is used for both modes. If `light` is missing, the
+    built-in colors are used for both modes.
+
+`palette.contrast`
+:   A number from 0 to 1 that becomes the CSS variable `--contrast` as a percentage
+    (defaults to `0.25`).
+
+`css-variables`
+:   A map from names to values, which become CSS variables: `font-size-base: 28px`
+    declares `--font-size-base: 28px;`.
+
+`css-light-colors`, `css-dark-colors`
+:   Maps like `css-variables` for one color mode. They take precedence over the
+    colors derived from the palette.
+
+`highlight-style`
+:   The name of a Pandoc highlight style for code blocks (defaults to
+    `monochrome`).
+
+`highlightjs`
+:   Uses Highlight.js instead of Pandoc to highlight code blocks in decks. The
+    value is the name of a theme in `support/vendor/css`: `atom-one-dark`,
+    `atom-one-light`, `atom-one`, `decker`, `solarized-dark`, `solarized-light`,
+    `xcode` or `zenburn`. `highlight-style` is then ignored.
+
+`extra-highlight-syntax`
+:   A map from language names to Skylighting syntax definition files.
+
+`math.scale`
+:   The scale of formulas in decks (defaults to `1`).
+
+`math.macros`
+:   A map from names to MathJax macro definitions, for decks.
+
+`math.linebreaks`
+:   Set to `false` to disable automatic line breaks in inline formulas.
+
+`chart.defaults`
+:   Options that are merged into `Chart.defaults` of Chart.js.
+
+`chart.colors`
+:   A list of colors for charts. Without it, the colors of the palette are used.
+
+### Index pages
+
+`index.links`
+:   The links shown next to every deck on an index page, any of `a11y`, `handout`,
+    `pdf` and `presenter` (defaults to `a11y` and `handout`). Index pages
+    add them to the links that `index.selector` matches.
+
+`index.selector`
+:   A CSS selector for the links to decks (defaults to `a[href$='-deck.html']`).
+
+`index.progress`
+:   Shows how far a reader has got in each deck (defaults to `true`). As a map, the
+    key `insert` places the indicator relative to the link: `after` (the default),
+    `before` or `replace`.
+
+### Plugins and page features
+
+`decker-plugins`
+:   Switches the optional deck plugins on and off. Resource packs choose their own
+    defaults, and `decker info --json` shows the result.
+
+    | Key        | Default | Purpose                                        |
+    |------------|---------|------------------------------------------------|
+    | `zoom`     | `true`  | Zooming into a slide                           |
+    | `jingles`  | `true`  | Jingles that are played with a keyboard shortcut |
+    | `quiz`     | `true`  | [Quizzes](#quizzes)                            |
+    | `quiz-wue` | `true`  | An alternative quiz implementation             |
+    | `feedback` | `true`  | [Audience feedback](#audience-feedback)        |
+    | `notes`    | `true`  | Speaker view                                   |
+    | `chatty`   | `false` | Chat assistant, see `decker chatty`            |
+    | `quizzer`  | `false` | Live quizzes for the audience                  |
+
+    The other plugins are always loaded, except for the highlight plugin, which
+    needs `highlightjs`, and the poll plugin, which needs `poll`.
+
+`reveal-plugins`
+:   A list of additional Reveal.js plugins, each a map with the name of the plugin
+    in `name` and the path of its ES6 module in `url`.
+
+`page-features.codapi`
+:   Loads [Codapi](#live-code) on pages and index pages (defaults to `false`). Decks
+    always load it.
+
+`page-features.math-module`
+:   Loads MathJax on pages and index pages through `support/js/page-math.js`
+    instead of the inline configuration (defaults to `false`).
+
+`codapi.server`
+:   The URL of your own Codapi server, see [Running your own
+    server](#running-your-own-server).
+
+Plugins read their own options from a key with the name of the plugin, for example
+`zoom`, `whiteboard`, `explain` or `menu`.
+
+### Reveal.js {#variables-revealjs}
+
+All keys below `reveal` are passed to Reveal.js as they are, so all of its
+[configuration options](https://revealjs.com/config/) are available. These are the
+most important ones:
+
+`reveal.width`, `reveal.height`
+:   The size of a slide, which is scaled to the window (defaults to 1280 and 720).
+
+`reveal.margin`
+:   The empty space around the slide, as a fraction of its size (defaults to
+    `0.05`).
+
+`reveal.transition`
+:   The slide transition (defaults to `slide`).
 
 `reveal.checkOverflow`
-:   mark overflowing slides with a dashed red border when they are shown (defaults
-    to `false`)
+:   Marks slides that are too high with a dashed red border when they are shown and
+    logs a warning to the browser console (defaults to `false`).
 
-`reveal.vertical-slides`
-:   allow vertical slides (defaults to `true`)
+### External tools
 
-The `wburg` resource pack has variables of its own, among them
-`template.base-css`, `template.include-js` and `template.title-page.*`. They have
-no effect with other packs.
+`external-tools` defines the programs that Decker runs. The default definitions
+are `rsync`, `gnuplot`, `plantuml`, `chromeheadless`, `chrome`, `mermaid`, `dot`,
+`d2`, `pdf2svg`, `pdflatex`, `mp4towav`, `whisper`, `tomp4-copy`, `tomp4-transcode`
+and `tomp4-concat`. A definition has these keys:
 
-### Dictionary
+`command`
+:   The program to run.
 
-Decker has some content that can be adapted to the language of the presentation.
-This is a work-in-progress and is currently used for quizzes.
+`arguments`
+:   The list of arguments. `${input}`, `${output}` and `${tmpdir}` are replaced with
+    the input file, the output file and a directory for temporary files.
 
-The current default dictionary looks like this:
+`pipe`
+:   If `true`, the input file is passed on standard input and standard output is
+    written to the output file.
+
+`help`
+:   A hint that is shown when the program cannot be run.
+
+If a tool has different definitions per operating system, they are located below
+the keys `linux`, `macos` and `windows`, and take precedence over a definition
+without one. To change a default, set only what differs. A list replaces the
+default list:
+
+``` yaml
+external-tools:
+  rsync:
+    arguments:
+      - "--recursive"
+      - "--delete"
+      - "${input}"
+      - "${output}"
+```
+
+`decker check` shows which of these programs can be found.
+
+### Dictionary {#dictionary}
+
+Decker has some content that depends on the language of the document, currently
+the labels of quizzes and exam questions. The dictionary has one entry per
+language below `dictionary`, and `lang` selects one of them. Missing entries are
+taken from `en`. The complete default is in `default.yaml`, and can be redefined
+partially or completely. This is a part of it:
 
 ``` yaml
 dictionary:
-  de: 
-    quiz:
-      solution: Lösung zeigen
-      input-placeholder: Eingeben und 'Enter'
-      qmi-drag-hint: Objekte per Drag&Drop ziehen…
-      qmi-drop-hint: …und hier in die richtige Kategorie einsortieren.
-      ic-placeholder: Option auswählen…
   en:
     quiz:
       solution: Show Solution
+      reset-button: Reset
       input-placeholder: Type and press 'Enter'
       qmi-drag-hint: Drag items from here…
       qmi-drop-hint: …and put them here into the correct category.
       ic-placeholder: Select option…
+    exam:
+      solution: Solution
+      points: Points
 ```
 
-This dictionary can be partially or completely redefined by the user.
+### Keys of bundled resource packs {#pack-keys}
+
+These keys have no effect with other packs:
+
+| Key                                            | Packs                            |
+|------------------------------------------------|----------------------------------|
+| `template.base-css`                            | `mario`, `nwburg`, `wburg`       |
+| `template.include-js`                          | `wburg`                          |
+| `template.title-page.*`                        | `nwburg`, `wburg`                |
+| `template.index-page.banner`                   | `mario`, `nwburg`, `tudo`, `wburg` |
+| `template.page.css`, `template.index.css`, `template.font`, `includeTULogo` | `tudo` |
+| `template.teaser`                              | `mario`                          |
+
+### Generated values
+
+Decker sets these keys during the build, for use in templates. Do not set them
+yourself.
+
+`build-time`, `decker-meta-url`, `decker-support-dir`
+:   The time of the build, the file that holds the meta data of the document as
+    JSON, and the relative path to the support directory.
+
+`decker.base-dir`, `decker.doc-path`, `decker.filter.resources`, `decker.filter.links`
+:   The directory and the path of the document, and the local resources and links
+    that it uses.
+
+`css-declarations`, `css-light-color-declarations`, `css-dark-color-declarations`
+:   CSS variable declarations.
+
+`decks.by-*`, `pages.by-*`, `quests.by-*`
+:   The lists of all documents, for index pages. For example, `decks.by-title` lists
+    all decks by title.
+
+Two keys help when debugging the filters: `decker.filter.border` draws a border
+around generated media elements, and `decker.filter.pretty` indents their HTML.
 
 # Decker's Markdown
 

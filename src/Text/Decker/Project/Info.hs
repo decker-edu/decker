@@ -113,6 +113,10 @@ curatedConfig meta =
             "height" .= number "reveal.height"
           ],
       "experiments" .= experiments,
+      -- Packs switch these off, and a feature that needs one then fails silently.
+      "deckerPlugins" .= switches "decker-plugins",
+      "pageFeatures" .= switches "page-features",
+      "codapiServer" .= text "codapi.server",
       "excludeDirectories" .= (lookupMetaOrElse [] "exclude-directories" meta :: [Text]),
       "staticResourceDirs"
         .= ( lookupMetaOrElse [] "static-resource-dirs" meta
@@ -124,6 +128,7 @@ curatedConfig meta =
     text key = lookupMeta key meta :: Maybe Text
     -- YAML numbers are stored as strings like "1280.0".
     number key = round <$> (lookupMeta key meta :: Maybe Float) :: Maybe Int
+    switches key = lookupMetaOrElse Map.empty key meta :: Map.Map Text Bool
     -- Only boolean switches; the experiments map holds nothing else.
     experiments =
       object

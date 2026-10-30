@@ -106,12 +106,17 @@ undocumentedOptions = ["lecture", "no-rebuild", "open", "poser", "single-thread"
 -- | Sections of the users' guide without any content. Lower this number when a
 -- section is written. See doc/users-guide-plan.md.
 emptySectionCount :: Int
-emptySectionCount = 29
+emptySectionCount = 28
 
 -- | @TODO@ placeholders in the users' guide. Lower this number when one is
 -- filled in.
 todoCount :: Int
-todoCount = 37
+todoCount = 0
+
+-- | Keys in the @default.yaml@ of the base pack that do not need a place in the
+-- reference: test values, and @progress@, which nothing reads.
+unreferencedDefaults :: [Text]
+unreferencedDefaults = ["progress", "test"]
 
 -- | The lines of a document with every fenced block reduced to its fence, so
 -- that code is neither read as a heading nor mistaken for an empty section.
@@ -208,6 +213,12 @@ agentGuideTests = describe "Agent guide" $ do
     it "has the known number of TODOs" $
       length (filter ("TODO" `T.isInfixOf`) (proseLines guide)) `shouldBe` todoCount
 
+    it "explains every key of the base pack's defaults" $ do
+      defaults <- T.readFile "resource/decker/template/default.yaml"
+      let keys = [key | line <- T.lines defaults, [_, key] <- line =~ ("^([a-z][a-z-]*):" :: Text) :: [[Text]]]
+      keys `shouldNotBe` []
+      filter (\key -> not (("`" <> key) `T.isInfixOf` guide)) (filter (`notElem` unreferencedDefaults) keys) `shouldBe` []
+
     forM_ topics $ \topic ->
       it ("is linked correctly from " <> topic) $ do
         content <- T.readFile topic
@@ -249,6 +260,20 @@ agentGuideTests = describe "Agent guide" $ do
         waitForServer port
         second <- timeout 30000000 (runDecker dir ["serve", "-p", show port])
         fmap runExit second `shouldBe` Just (ExitFailure 7)
+
+  it "loads template.js-module on pages" $
+    withProject
+      [ ("decker.yaml", "template:\n  js:\n    - classic.js\n  js-module:\n    - module.js\n"),
+        ("classic.js", ""),
+        ("module.js", ""),
+        ("a-page.md", "---\ntitle: A\n---\n\nText\n")
+      ]
+      $ \dir -> do
+        run <- buildTargets dir ["a-page.md"]
+        runExit run `shouldBe` ExitSuccess
+        page <- T.readFile (dir </> "public/a-page.html")
+        page `shouldSatisfy` T.isInfixOf "<script type=\"module\" src=\"module.js\">"
+        T.count "src=\"classic.js\"" page `shouldBe` 1
 
   it "fails on an unknown topic" $
     withProject [] $ \dir -> do
