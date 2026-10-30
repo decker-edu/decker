@@ -4,11 +4,52 @@ Applies when the project uses the `mono` resource pack
 (`resource-pack: exe:mono`; check `resourcePack` in `decker info --json`). The
 pack enables `experiments.fragment-templates` and `page-features.codapi` by
 default, so fragment templates and live code work without further
-configuration.
+configuration. Slides are 1920 by 1080.
 
 ```yaml {.decker-example file="decker.yaml" project="mono"}
 resource-pack: exe:mono
 ```
+
+## Differences from the defaults
+
+- **Quizzes do not react**: `decker-plugins.quiz-wue` is off, as are `zoom`, `jingles`,
+  `feedback`, `notes` and `quiz`. `chatty` and `quizzer` are on. Turn on what the deck
+  needs:
+
+  ```yaml {.decker-example file="decker.yaml" project="quiz"}
+  resource-pack: exe:mono
+  decker-plugins:
+    quiz-wue: true
+  ```
+
+  ```markdown {.decker-example file="quiz-deck.md" project="quiz"}
+  # Question
+
+  ## {.qmc}
+
+  - [X] Right
+  - [ ] Wrong
+  ```
+
+- **Source links**: `experiments.add-document-path` adds a link to the source file to
+  each level 1 heading, with the absolute path of the build machine. Plain `decker
+  publish` publishes it, so set the key to `false` for published material.
+- **Live quizzes** need `quizzer.url` in the project, the pack only sets `poll-server`.
+- **Accent order**: `.accent0` is magenta and `.accent1` red, one off from other packs.
+  `--redish` and the other named variables are still correct.
+
+## Additions to the styles
+
+```markdown {.decker-example file="styles-deck.md" project="mono"}
+# Styles
+
+[badge]{.accent1} [text color only]{.accent1 .fg} [red text]{.red} [filled]{.red .bg}
+
+[not published yet](https://example.com){.off}
+```
+
+`document-spacing` in `css-variables` scales the vertical spacing of pages and the
+index.
 
 ## Additional fragment templates
 
@@ -56,4 +97,4 @@ main = print x
   defaults to `codapi`. Other attributes are passed through to
   `<codapi-snippet>`.
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Live code*.
+See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Live code* and *mono*.

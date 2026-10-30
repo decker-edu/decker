@@ -74,7 +74,7 @@ and the `meta-data` files of the front matter.
 
 | Key                    | Meaning                                                      |
 |------------------------|--------------------------------------------------------------|
-| `resource-pack`        | Resource pack, e.g. `exe:mono` (bundled: `exe:mono`, `exe:mario`, `exe:tudo`, `exe:wburg`, `exe:nwburg`) |
+| `resource-pack`        | Resource pack: `exe:NAME` (bundled: `mono`, `mario`, `tudo`, `nwburg`, `wburg`) or a path. Without `exe:`, `mono` means a directory. Only read from `decker.yaml` and `-m`. `wburg` cannot build handouts |
 | `meta-data`            | List of further YAML files merged into the meta data         |
 | `exclude-directories`  | Paths from the project root, not a name to match anywhere: `archive` keeps `lectures/archive/` |
 | `static-resource-dirs`, `static-resources` | Directories, or files and directories, copied to `public/` |
@@ -88,7 +88,7 @@ and the `meta-data` files of the front matter.
 | `template.deck.css`, `template.deck.js`, `template.deck.js-module` | The same for decks only |
 | `template.page.js`, `template.page.js-module` | Scripts for pages only     |
 | `template.favicon`     | Icon of all generated documents                              |
-| `css-variables`        | `font-size-base: 28px` declares `--font-size-base: 28px;`    |
+| `css-variables`        | `block-border-radius: 1em` declares `--block-border-radius: 1em;` |
 | `math.macros`          | MathJax macros for decks                                     |
 | `index.links`          | Links next to each deck on an index page: `a11y`, `handout`, `pdf`, `presenter` |
 | `short-links`          | URL schemes: with `wiki: "https://en.wikipedia.org/wiki/@@"`, `[a](wiki:Foo)` is a link |
@@ -98,9 +98,57 @@ and the `meta-data` files of the front matter.
 
 `decker-plugins` switches `zoom`, `jingles`, `quiz`, `quiz-wue`, `feedback`, `notes`,
 `chatty` and `quizzer`. `page-features` switches `codapi` and `math-module` for pages
-and index pages. Packs choose their own defaults. `mono` turns `quiz` off, for
-example, so its decks do not load the quiz plugin. Check `config.deckerPlugins` and
-`config.pageFeatures` in `decker info --json` before you use such a feature.
+and index pages. Check `config.deckerPlugins` and `config.pageFeatures` in `decker info
+--json` before you use such a feature.
+
+- `quiz-wue` is what makes quizzes work. `quiz` has no effect.
+- `mono` has other defaults. It turns `quiz-wue` off, among others, so its quizzes do
+  not react until you set `decker-plugins.quiz-wue: true`.
+- Only the base pack and `mono` read these keys. `mario`, `tudo`, `nwburg` and `wburg`
+  load a fixed list of plugins, although `decker info --json` still reports the keys.
+
+## Theming
+
+```yaml {.decker-example file="decker.yaml" project="theme"}
+palette:
+  contrast: 0.4                  # strength of the -bg and -fg color mixes
+  colors:
+    light: ["#fbf7f0", "#efe9dd", "#d8d0c0", "#a39b8b", "#6f675a", "#4f483c", "#2e2a23", "#1a1712",
+            "#b3261e", "#c75a11", "#a67c00", "#3f7d20", "#1f7a7a", "#1d5fa8", "#6a4c93", "#7a5230"]
+css-variables:                   # both color modes
+  block-border-radius: 0.5em
+css-light-colors:                # one mode, also replaces single palette colors
+  heading-color: "#1d5fa8"
+template:
+  deck:
+    css:
+      - /theme.css
+```
+
+```css {.decker-example file="theme.css" project="theme"}
+:root { --root-font-size: 32px; }
+```
+
+```markdown {.decker-example file="intro-deck.md" project="theme"}
+# First slide
+```
+
+- A palette has 16 `#rrggbb` colors, anything else fails the build. The first 8 run
+  from background to foreground (`--shade0` to `--shade7`), the others are accents
+  (`--accent0` to `--accent7`, in the order red, orange, yellow, green, teal, blue,
+  violet, brown). `light` and `dark` replace the lists of the pack one by one.
+- Use `--background-color`, `--foreground-color`, `--heading-color`, `--primary-color`
+  and `--code-background-color` for colors, and `--accent0-bg` or `--accent0-fg` for
+  mixes.
+- `css-variables` cannot change a variable that a later stylesheet sets. The text size
+  of slides, `--root-font-size`, is one, so it needs a stylesheet as above. A variable
+  that nothing reads, such as `--font-size-base` in most packs, has no effect and no
+  diagnostic.
+- Stylesheets load in this order: `variables.css`, the declarations from the keys above,
+  `deck.css`, `pack.css` of the pack, `template.css`, `template.deck.css`.
+- A local pack is a directory with `template/default.yaml` and `support/`, the path
+  relative to the root. List it in `exclude-directories`. Do not use a ZIP archive,
+  its support files are not copied.
 
 ## Title slide
 

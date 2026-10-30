@@ -877,71 +877,330 @@ to date, `-k` to keep going after an error, `-V` for more and `-q` for less outp
 
 # Resources
 
-Decker needs a lot of resources that are not contained in the decker source
-file. Resource are all local data files that are required for proper operation
-at *decker-run-time* or *deck-presentation-time*. Resources are highly specific
-to the decker version that uses them.
-
-In particular these are:
-
-1.  Pandoc template files in `template/` (decker-run-time)
-2.  HTML support files in `support/` (deck-presentation-time)
-3.  Example presentation source files in `example/` (decker-run-time)
-
-These directories are the top level of a resource pack. The base pack of Decker
-is `resource/decker/` in the Decker sources.
+Decker needs more than its executable: templates for the build, support files
+for the browser, and an example project. These files form a *resource pack*. The
+base pack, `exe:decker` (`resource/decker/` in the Decker sources), is always
+loaded. A project can select one more pack on top of it, which is how it gets a
+different look and different defaults.
 
 ## Resource Packs
 
--   Template, support and example resources are combined into a *resource pack*
+A pack is a directory, or a ZIP archive of one, with this layout:
 
--   A resource pack may contain a `default.yaml` file with meta information
-    regarding pack author etc. and default values for decker operation
+| Path                      | Purpose                                              |
+|---------------------------|------------------------------------------------------|
+| `template/default.yaml`   | Default meta data. Required, but it can be empty     |
+| `template/*.html`         | Pandoc templates (`deck.html`, `page.html`, `handout.html`, `index.html`) and the partials they include |
+| `template/agent-guide/*.md` | Additional topics for `decker agent-guide`         |
+| `support/`                | Files for the browser, copied to `public/support`    |
+| `support/css/pack.css`    | Styles of the pack, see [Own stylesheets](#own-stylesheets) |
+| `support/templates/*.html` | [Fragment templates](#fragment-templates)           |
+| `example/`                | The project that `decker example` writes             |
 
--   The data from `default.yaml` is available in the meta data during slide
-    compilation and presentation
+### Selecting a pack
 
--   A resource pack must be made available during decker-run-time in one of
-    three ways:
+`resource-pack` in `decker.yaml`, or `-m resource-pack=...` for one build, selects
+the pack. It has no effect in the front matter of a document.
 
-    1.  contained in the decker executable
-    2.  contained in a local directory somewhere within a project
-    3.  contained in a local ZIP archive somewhere within a project
+| Value           | Pack                                                         |
+|-----------------|--------------------------------------------------------------|
+| `exe:NAME`      | A pack inside the executable, see [Bundled packs](#bundled-packs) |
+| `PATH`          | A directory, relative to the project root                    |
+| `PATH.zip`      | A ZIP archive, relative to the project root                  |
 
--   Resource packs are located at run-time via their URL, three protocol schemes
-    are supported:
+``` yaml
+resource-pack: exe:mono
+```
 
-    -   `exe:{name}` the `name` named resource pack that is located in the
-        currently running executable (ie. `exe:tudo`)
-    -   `{path}` the resource pack is located in a directory of the local file
-        system within the project (ie. `resource-packs/tudo-official`)
-    -   `{path}.zip` the resource pack is contained in a local ZIP archive
-        within the project (ie. `resource-packs/tudo-informal.zip`)
+Without `exe:`, the value is a path: `resource-pack: mono` looks for a directory
+`mono` in the project. If the pack or its `template/default.yaml` cannot be found,
+the build fails with `file does not exist and no rule available`. Any other URL, such
+as one starting with `https:`, is ignored without a message, and no pack is
+loaded. `decker info` shows where the resources come from.
 
--   If localization, acquisition, unpacking or caching fails decker terminates
+### How packs combine
 
--   The local cache can be cleared with `decker purge`
+The pack is searched first, then the base pack, file by file. So a pack only
+contains what it changes:
 
--   The URL of the resource pack can be specified at runtime in the global
-    `decker.yaml` metadata file, ie.
+- A template or partial of the pack replaces the one of the base pack. This also
+  applies to a partial that a base template includes.
+- A file below `support/` replaces the file with the same path, and all other files
+  stay available.
+- `template/default.yaml` is merged with the one of the base pack, see [Meta
+  Data](#meta-data). Everything in `decker.yaml` takes precedence over it.
 
-    ``` yaml
-    resource-pack: exe:tudo
-    ```
+For testing changes to the base pack itself, `--resource-base=URI` replaces it. Such
+a pack needs all templates, not just the changed ones.
 
--   The default resource pack `exe:decker` is always loaded first. Resources
-    extracted from the resource pack in `resource-pack` simply overwrite and
-    augment the default resources.
+### Writing a pack
 
--   For testing, the default resource pack can be replaced with the
-    `resource-base` meta value, for example via the command line option
-    `--resource-base=URI`.
+This pack has a palette, a larger corner radius for blocks and a stylesheet:
+
+``` yaml {.decker-example file="decker.yaml" project="pack"}
+resource-pack: packs/course
+exclude-directories:
+  - packs
+```
+
+``` yaml {.decker-example file="packs/course/template/default.yaml" project="pack"}
+palette:
+  contrast: 0.4
+css-variables:
+  block-border-radius: 0.5em
+```
+
+``` css {.decker-example file="packs/course/support/css/pack.css" project="pack"}
+.reveal h1 { text-transform: uppercase; }
+```
+
+``` markdown {.decker-example file="intro-deck.md" project="pack"}
+# First slide
+```
+
+Things to keep in mind:
+
+- List a pack inside the project in `exclude-directories`. Otherwise Decker searches
+  it for sources like any other directory.
+- A directory pack needs a `support` directory, and its path has to be relative. An
+  installed Decker fails with `does not exist` or `InvalidRelDir` otherwise.
+- **Use a directory if the pack has support files.** Decker reads the templates and
+  `default.yaml` from a ZIP archive, but does not copy its `support` files to
+  `public/support`.
+- An installed Decker copies support files once. After changing them, or after
+  selecting a different pack, run `decker clean`. Otherwise old files stay in
+  `public/support`.
+
+## Bundled packs
+
+| Pack     | Slide size  | Templates      | Use                                       |
+|----------|-------------|----------------|-------------------------------------------|
+| `decker` | 1280 × 720  | its own        | The base pack, used without `resource-pack` |
+| `mono`   | 1920 × 1080 | those of `decker` | Compact look, live code and live quizzes |
+| `mario`  | 1280 × 720  | its own, except handouts | Lato, many math macros          |
+| `tudo`   | 1280 × 720  | its own        | TU Dortmund: logo, captions, live quizzes, index with search |
+| `nwburg` | 1244 × 700  | its own        | University of Würzburg: Roboto, banner on the title slide |
+| `wburg`  | 1280 × 720  | its own        | Older version of `nwburg`. **Handouts cannot be built** |
+
+`decker-plugins` and `page-features` are only read by the templates of `decker`, so
+they work with `decker` and `mono`. The deck templates of the other packs load a
+fixed list of plugins, and these keys have no effect there, although `decker info
+--json` still reports them.
+
+### mono
+
+`mono` has no templates of its own. It changes the defaults and replaces the styles,
+with the Recursive font and the [OKSolar](https://meat.io/oksolar) palette.
+
+- **Plugins:** `chatty` and `quizzer` are on. `zoom`, `jingles`, `quiz`, `quiz-wue`,
+  `feedback` and `notes` are off.
+- **Quizzes stay static**, because `quiz-wue` is off. The questions appear, but do not
+  react. Set `decker-plugins.quiz-wue: true` to use them.
+- **Features:** `experiments.fragment-templates`, `page-features.codapi` and
+  `page-features.math-module` are on.
+- **Source links:** `experiments.add-document-path` is on, so every level 1 heading
+  links to its source file. The link contains the absolute path on the build machine,
+  and plain `decker publish` publishes it. Only `--lecture` leaves it out. Set the key
+  to `false` for material that you publish.
+- **Polls:** `poll-server` points to a server at BHT Berlin and `save-polls` is on.
+  [Live quizzes](#live-quizzes) need your own `quizzer.url`.
+- **Reveal.js:** `help` is off and `backgroundTransition` is `slide`.
+
+The accents are in a different order than in the other packs: `.accent0` is magenta,
+`.accent1` red, and so on up to `.accent7` violet. The named variables, such as
+`--redish`, still mean what they say. Further additions:
+
+| Addition                       | Effect                                       |
+|--------------------------------|----------------------------------------------|
+| `[text]{.accent1}`             | A badge. `.fg` colors only the text          |
+| `[text]{.red}`, `.green`, `.blue`, `.black` | Colored text. `.bg` fills the background |
+| `[link](url){.off}`            | A faded link that cannot be clicked          |
+| `document-spacing` in `css-variables` | Scales the vertical spacing of pages and the index |
+
+Its [fragment templates](#fragment-templates) are:
+
+| Template                             | Invocation                              | Result                |
+|--------------------------------------|-----------------------------------------|-----------------------|
+| `wen`, `wde`                         | `[§wen](Article_Name "Display Text")`   | English or German Wikipedia link |
+| `wp`                                 | `[§wp en](Article_Name "Display Text")` | Wikipedia link, language as argument (default `de`) |
+| `wp-cc`                              | `[§wp-cc sa 4.0](File_Name.png)`        | Wikimedia file with a CC BY license note |
+| `mdn`                                | `[§mdn](CSS/display "display")`         | Link to the German MDN Web Docs |
+| `unit`, `subunit`, `assign`          | `[§unit](07 "Title")`                   | Links to `unit/07-deck.html`, `unit/07/07-deck.html` and `assignments/07-page.html` |
+| `unit-nl`, `subunit-nl`, `assign-nl` | `[§unit-nl](07 "Title")`                | The same entries without a link |
+| `nop`                                | `[§nop](x)`                             | Nothing               |
+
+### mario
+
+Own templates for decks, pages and the index. Text is centered, there is no progress
+bar and no slide overview, and the transition is `none`. `highlightjs` is `xcode`,
+`math.scale` is `0.9`, and `math.macros` defines `\R`, `\vec`, `\mat`, `\norm`,
+`\diff`, `\pdiff` and more.
+
+The deck template reads only `template.css` and `template.teaser`, an image on the
+title slide. `template.deck.css` and the `template.*js` keys have no effect on decks.
+
+### tudo
+
+Own templates for all documents, in the design of TU Dortmund. There is no slide
+overview, and the transition is `none`.
+
+- **Title slide:** `includeTULogo` (defaults to `true`) shows the logo of the
+  university, and `showDeckerLink` is on.
+- **Live features:** [live captions](#live-captions) are on, with `caption-server` and
+  `speech-recognition-language` set, and `quizzer.url` points to `quiz.jetzt`.
+- **Recording:** `explain` sets the sizes of the recording and of the camera.
+- **Styles:** `template.font` names a stylesheet below `support/fonts`, `lato` (the
+  default) or `atkinson`. `template.page.css` and `template.index.css` add styles to pages and
+  to the index.
+- **Decks:** `hide-quizzes` hides all quizzes. The macro `[@deck](name)` links to the
+  HTML and PDF version of a deck.
+- **Index:** `index.manual` shows a manual, and `index.search` a search box.
+  `index.searchShowsDeckTitle`, `index.searchShowsDeckSubtitle`,
+  `index.listShowsDeckTitle` and `index.listShowsDeckSubtitle` choose what its results
+  and the list of decks show. `index.links` also contains `pdf`.
+
+### nwburg and wburg
+
+Own templates, with `template.title-page.banner` as an image above the title. `nwburg`
+also has `template.title-page.teaser-img` and `template.title-page.affiliation-logo`
+as maps with the keys `file` and `height`, and for the teaser `margin`. In `wburg`,
+they are plain paths.
+
+`wburg` cannot build handouts, because its `handout.html` does not compile. It also has
+a larger `example` directory, which `decker example` writes. Its pages and handouts do
+not read the palette.
+
+Other packs are maintained outside of Decker and can be used as a directory, like the
+one in [Writing a pack](#writing-a-pack).
+
+## Theming
+
+A project changes the look of its documents with a palette, CSS variables and its
+own stylesheets. All of this also works in `default.yaml` of a pack, and in the front
+matter of a single document.
+
+``` yaml {.decker-example file="decker.yaml" project="theme"}
+palette:
+  contrast: 0.4
+  colors:
+    light:
+      - "#fbf7f0"
+      - "#efe9dd"
+      - "#d8d0c0"
+      - "#a39b8b"
+      - "#6f675a"
+      - "#4f483c"
+      - "#2e2a23"
+      - "#1a1712"
+      - "#b3261e"
+      - "#c75a11"
+      - "#a67c00"
+      - "#3f7d20"
+      - "#1f7a7a"
+      - "#1d5fa8"
+      - "#6a4c93"
+      - "#7a5230"
+css-variables:
+  block-border-radius: 0.5em
+css-light-colors:
+  heading-color: "#1d5fa8"
+template:
+  deck:
+    css:
+      - /theme.css
+```
+
+``` css {.decker-example file="theme.css" project="theme"}
+:root { --root-font-size: 32px; }
+```
+
+``` markdown {.decker-example file="intro-deck.md" project="theme"}
+# First slide
+```
+
+### Palette
+
+A palette has 16 colors. The first 8 are shades that run from the background to the
+foreground color, the other 8 are accents. Use the `#rrggbb` form, anything else fails
+the build with `sRGB24read: no parse`.
+
+| Variables                         | Value                                     |
+|-----------------------------------|-------------------------------------------|
+| `--shade0` ... `--shade7`         | The shades of the current color mode      |
+| `--accent0` ... `--accent7`       | The accents of the current color mode     |
+| `--base00` ... `--base0F`         | All 16 colors under their Base16 names    |
+| `--accent0-bg`, `--accent0-bbg`   | The color mixed with the background, once or twice |
+| `--accent0-fg`, `--accent0-ffg`   | The color mixed with the foreground, once or twice |
+| `--contrast`                      | `palette.contrast` as a percentage, the strength of these mixes |
+| `--light-shade0`, `--dark-shade0`, ... | The colors of a specific mode        |
+
+`palette.colors.light` and `palette.colors.dark` each replace the list of the pack, so
+setting only `light` keeps the dark colors of the pack. If neither the project nor the
+pack sets `light`, the built-in colors are used, even if `dark` is set.
+
+In the base pack, the accents are expected in this order, because named variables and
+classes are derived from it: red, orange, yellow, green, teal, blue, violet, brown.
+
+### CSS variables
+
+`css-variables` declares variables for both color modes, without the leading `--`.
+`css-light-colors` and `css-dark-colors` do it for one mode only, and also replace
+single colors of the palette. These declarations take precedence over everything in
+`support/css/variables.css`, whose most useful variables are:
+
+| Variable                                  | Default                       |
+|-------------------------------------------|-------------------------------|
+| `--background-color`, `--foreground-color` | `--shade0`, `--shade7`       |
+| `--heading-color`                         | `--shade6`                    |
+| `--primary-color`, `--secondary-color`    | `--accent5`, `--accent1`      |
+| `--code-background-color`                 | `--shade1`                    |
+| `--highlight-color`, `--hover-color`      | `--accent5-bg`                |
+| `--focus-color`                           | `--accent1`                   |
+| `--redish`, `--orangeish`, `--yellowish`, `--greenish`, `--tealish`, `--blueish`, `--violetish`, `--brownish` | `--accent0` ... `--accent7` |
+| `--color-error`, `--color-alert`, `--color-warn`, `--color-success`, `--color-info` | The named colors |
+| `--block-border-width`, `--block-border-radius`, `--block-outset` | Blocks |
+| `--vertical-margin`                       | Space below block elements    |
+| `--code-block-max-height`                 | `700px`                       |
+
+**`css-variables` cannot change variables that a later stylesheet sets**, such as
+`--root-font-size` in `deck.css`, which determines the size of all text on a slide. Use
+an own stylesheet for them, as in the example above.
+
+### Light and dark mode
+
+A document follows the color mode of the system. The menu of a deck has a button to
+change it for the current session, which puts the class `light` or `dark` on the
+`html` element. Decker's stylesheets, and your own, can use these classes.
+
+### Own stylesheets {#own-stylesheets}
+
+Decks load their stylesheets in this order, and later ones win:
+
+1. `support/css/variables.css`
+2. The declarations from `palette`, `css-variables`, `css-light-colors` and
+   `css-dark-colors`
+3. `support/css/deck.css` and the styles of the plugins
+4. `support/css/pack.css` of the pack
+5. The files in `template.css`, then those in `template.deck.css`
+
+Pages, handouts and the index follow the same scheme with their own stylesheets, and
+without `template.deck.css`. A pack that needs other values for the variables of the
+base pack replaces `support/css/variables.css`, as `mono` does. Such a file has to
+define all of them.
+
+### Plugins and tools
+
+[`decker-plugins`](#plugins-and-page-features) switches deck plugins, and
+[`external-tools`](#external-tools) defines the programs that Decker runs. Both can
+be set in `decker.yaml` and in `default.yaml` of a pack. `decker info --json` shows
+the plugins that result, and `decker check` the programs that are found.
 
 ## Versioning
 
-The resource packs inside the executable always match its version. Packs loaded
-from a directory or a ZIP archive carry no version, and Decker does not check
-them, so make sure they fit the Decker version in use.
+The packs inside the executable always match its version. Packs loaded from a
+directory or a ZIP archive carry no version, and Decker does not check them, so make
+sure they fit the Decker version in use. Templates and variables change between
+versions: compare a pack with `resource/decker/` when you upgrade.
 
 # Meta Data
 
@@ -1288,8 +1547,8 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
     (defaults to `0.25`).
 
 `css-variables`
-:   A map from names to values, which become CSS variables: `font-size-base: 28px`
-    declares `--font-size-base: 28px;`.
+:   A map from names to values, which become CSS variables: `block-border-radius: 1em`
+    declares `--block-border-radius: 1em;`. See [Theming](#theming).
 
 `css-light-colors`, `css-dark-colors`
 :   Maps like `css-variables` for one color mode. They take precedence over the
@@ -1341,7 +1600,8 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
 ### Plugins and page features
 
 `decker-plugins`
-:   Switches the optional deck plugins on and off. Resource packs choose their own
+:   Switches the optional deck plugins on and off, with the templates of the base
+    pack and `mono`. Other [bundled packs](#bundled-packs) ignore it. `mono` has other
     defaults, and `decker info --json` shows the result.
 
     | Key        | Default | Purpose                                        |
@@ -1364,11 +1624,11 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
     in `name` and the path of its ES6 module in `url`.
 
 `page-features.codapi`
-:   Loads [Codapi](#live-code) on pages and index pages (defaults to `false`). Decks
+:   Works like `decker-plugins`, only with these packs. Loads [Codapi](#live-code) on pages and index pages (defaults to `false`). Decks
     always load it.
 
 `page-features.math-module`
-:   Loads MathJax on pages and index pages through `support/js/page-math.js`
+:   Works like `decker-plugins`, only with these packs. Loads MathJax on pages and index pages through `support/js/page-math.js`
     instead of the inline configuration (defaults to `false`).
 
 `codapi.server`
@@ -1461,7 +1721,7 @@ dictionary:
 
 ### Keys of bundled resource packs {#pack-keys}
 
-These keys have no effect with other packs:
+These keys have no effect with other packs, see [Bundled packs](#bundled-packs):
 
 | Key                                            | Packs                            |
 |------------------------------------------------|----------------------------------|
@@ -1469,7 +1729,7 @@ These keys have no effect with other packs:
 | `template.include-js`                          | `wburg`                          |
 | `template.title-page.*`                        | `nwburg`, `wburg`                |
 | `template.index-page.banner`                   | `mario`, `nwburg`, `tudo`, `wburg` |
-| `template.page.css`, `template.index.css`, `template.font`, `includeTULogo` | `tudo` |
+| `template.page.css`, `template.index.css`, `template.font`, `includeTULogo`, `hide-quizzes`, `index.manual`, `index.search`, `index.searchShowsDeckTitle`, `index.searchShowsDeckSubtitle`, `index.listShowsDeckTitle`, `index.listShowsDeckSubtitle` | `tudo` |
 | `template.teaser`                              | `mario`                          |
 
 ### Generated values

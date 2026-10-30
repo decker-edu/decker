@@ -433,6 +433,63 @@ agentGuideTests = describe "Agent guide" $ do
           codes run `shouldBe` []
           runStdout run `shouldContain` "# ERROR:"
 
+  describe "resource packs and theming" $ do
+    let deck = ("a-deck.md", "# S\n") :: (FilePath, Text)
+    let plugins config = withProject [("decker.yaml", config), deck] $ \dir -> do
+          run <- buildTargets dir ["a-deck.md"]
+          runExit run `shouldBe` ExitSuccess
+          T.readFile (dir </> "public/a-deck.html")
+
+    it "declares the palette and the CSS variables" $ do
+      html <- plugins "palette:\n  contrast: 0.5\ncss-variables:\n  my-var: 7px\ncss-light-colors:\n  accent0: \"#010203\"\n"
+      forM_ ["--my-var: 7px;", "--contrast: 50%;", "--accent0: #010203;"] $ \expected ->
+        html `shouldSatisfy` T.isInfixOf expected
+
+    it "replaces the palette of a pack one mode at a time" $ do
+      html <- plugins "resource-pack: exe:mono\npalette:\n  colors:\n    light: [\"#111111\", \"#222222\"]\n"
+      html `shouldSatisfy` T.isInfixOf "--light-shade0: #111111"
+      html `shouldSatisfy` T.isInfixOf "--dark-shade0: #171f27"
+
+    it "fails on a color that is not in the form #rrggbb" $
+      withProject [("decker.yaml", "palette:\n  colors:\n    light: [red, \"#000000\"]\n"), deck] $ \dir -> do
+        run <- buildTargets dir ["a-deck.md"]
+        runExit run `shouldSatisfy` (/= ExitSuccess)
+
+    it "reads the defaults and the partials of a directory pack" $
+      withProject
+        [ ("decker.yaml", "resource-pack: packs/my\nexclude-directories:\n  - packs\n"),
+          ("packs/my/template/default.yaml", "css-variables:\n  from-pack: 1px\n"),
+          ("packs/my/template/deck-title.html", "<section>MYTITLE</section>\n"),
+          ("a-deck.md", "---\ntitle: T\n---\n\n# S\n")
+        ]
+        $ \dir -> do
+          run <- buildTargets dir ["a-deck.md"]
+          runExit run `shouldBe` ExitSuccess
+          html <- T.readFile (dir </> "public/a-deck.html")
+          html `shouldSatisfy` T.isInfixOf "--from-pack: 1px;"
+          html `shouldSatisfy` T.isInfixOf "MYTITLE"
+
+    it "fails if a pack has no default.yaml" $
+      withProject [("decker.yaml", "resource-pack: mono\n"), deck] $ \dir -> do
+        run <- buildTargets dir ["a-deck.md"]
+        runExit run `shouldSatisfy` (/= ExitSuccess)
+        (runStdout run <> runStderr run) `shouldContain` "mono/template/default.yaml"
+
+    it "ignores resource-pack in the front matter" $
+      withProject [("decker.yaml", ""), ("a-deck.md", "---\nresource-pack: exe:mono\n---\n\n# S\n")] $ \dir -> do
+        run <- buildTargets dir ["a-deck.md"]
+        runExit run `shouldBe` ExitSuccess
+        html <- T.readFile (dir </> "public/a-deck.html")
+        html `shouldNotSatisfy` T.isInfixOf "#171f27"
+
+    it "switches plugins with mono, but not with packs that have own templates" $ do
+      mono <- plugins "resource-pack: exe:mono\n"
+      mono `shouldNotSatisfy` T.isInfixOf "import quizWuePlugin"
+      monoQuiz <- plugins "resource-pack: exe:mono\ndecker-plugins:\n  quiz-wue: true\n"
+      monoQuiz `shouldSatisfy` T.isInfixOf "import quizWuePlugin"
+      tudo <- plugins "resource-pack: exe:tudo\ndecker-plugins:\n  quiz-wue: false\n"
+      tudo `shouldSatisfy` T.isInfixOf "quizWuePlugin"
+
   it "fails on an unknown topic" $
     withProject [] $ \dir -> do
       run <- runDecker dir ["agent-guide", "no-such-topic"]

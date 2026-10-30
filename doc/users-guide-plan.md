@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 to 7 are done, steps 8 and 9 are open.
+Status: steps 1 to 8 are done, step 9 is open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -297,6 +297,42 @@ Behaviour that is documented as it is, left for the maintainer to decide:
   `decker-plugins`, `external-tools` and each bundled pack. Drafts:
   `doc/decker-yaml-config-{mario,mono,tudo,jmu-hci-drp}.md`.
 - **Agent docs:** review `mono.md`. Add theming to `config`.
+
+Corrected on the way: the guide said that any failure to load a pack terminates Decker
+and that `decker purge` clears a pack cache (there is no cache). The guide and `config`
+used `--font-size-base` as the example for `css-variables`, which only `nwburg` reads.
+The drafts wrote `resource-pack: mono`, which looks for a directory.
+
+Checked in Chrome: decks of `mono`, `mario` and `nwburg` with blocks and accents, and the
+computed values of the palette and CSS variables in both color modes. Decks of `tudo` and
+`wburg` were only seen without blocks and accents. Pages and the index of the packs were
+built, but not looked at. That quizzes react in `mono` with `quiz-wue: true` is only
+checked as far as the plugin being imported. Local packs were also built with an installed
+Decker, because a development run does not copy support files. The draft for
+`jmu-hci-drp` is not used: that pack is not part of this repository, and it could not
+be checked.
+
+Behaviour that is documented as it is, left for the maintainer to decide:
+
+- `wburg/template/handout.html` does not compile (`unexpected end of input`), so `wburg`
+  cannot build handouts. Its pages and handouts also use `css-color-declarations`, which
+  nothing sets. `wburg` and `nwburg` can go if `jmu-hci-drp` replaces them.
+- `decker-plugins` and `page-features` only work with the base templates, but `decker info
+  --json` reports them for all packs, and an agent is told to trust that output.
+- `extractFast` in `app/Decker.hs` ignores `LocalZip`, so the support files of a ZIP pack
+  are not copied. It also uses `parseRelDir`, so an absolute pack path fails, and
+  `copyDirRecur`, so a pack without `support/` fails. A development run has none of these
+  failures, because it serves support files directly.
+- Support files are copied once per commit of Decker, so changes to a directory pack need
+  `decker clean`. Selecting another pack keeps the files of the old one.
+- A URL as `resource-pack` is ignored without a message (`parseSourceURI` returns `None`).
+- `mono` publishes absolute source paths through `experiments.add-document-path`, unless
+  `--lecture` is used.
+- `mono`'s `support/js/mono.js`, `block-manip.js` and `block-manip.css` are not loaded by
+  anything. `poll-server` in `mono` points to a personal server.
+- `resource/decker/template/palette/*.yaml` is not read. The files also use the old
+  `palette.colors` list, which would select the built-in colors.
+- An invalid palette color fails with `sRGB24read: no parse`, without naming the key.
 
 ### Step 9: Wrap-up
 

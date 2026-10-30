@@ -4,6 +4,10 @@ Quizzes are questions on a slide that the audience answers in the browser. They
 **only work in decks**. In a handout and on a page, a quiz is a plain list with
 the correct answers checked, so never put secret answers on a page.
 
+Quizzes need `decker-plugins.quiz-wue`. It is on by default, but off with `resource-pack:
+exe:mono`, where questions appear and do not react. Check `config.deckerPlugins` in
+`decker info --json`.
+
 Each question is a level 2 heading (it can be empty) or a fenced div with one of
 these classes:
 
