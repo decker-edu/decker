@@ -452,13 +452,6 @@ async function combineUserInputAndSlideInfo(userInput) {
     }
   }
 
-  if (!slideHasAnnotations) {
-    input.push({
-      role: "user",
-      content: "The current slide does not contain hand-written annotations."
-    });
-  }
-
   // add user input
   input.push({
     role: "user",
