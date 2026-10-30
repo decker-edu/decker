@@ -106,7 +106,7 @@ undocumentedOptions = []
 -- | Sections of the users' guide without any content. Lower this number when a
 -- section is written. See doc/users-guide-plan.md.
 emptySectionCount :: Int
-emptySectionCount = 20
+emptySectionCount = 15
 
 -- | @TODO@ placeholders in the users' guide. Lower this number when one is
 -- filled in.
@@ -256,6 +256,14 @@ agentGuideTests = describe "Agent guide" $ do
       run <- runDecker dir ["agent-guide", "mono"]
       runExit run `shouldBe` ExitSuccess
       runStdout run `shouldContain` "# Resource pack `mono`"
+
+  it "writes an example project that builds without diagnostics" $
+    withProject [] $ \dir -> do
+      written <- runDecker dir ["example"]
+      runExit written `shouldBe` ExitSuccess
+      run <- buildTargets (dir </> "example") ["minimal-deck.md"]
+      runExit run `shouldBe` ExitSuccess
+      codes run `shouldBe` []
 
   it "exits decker serve with status 7 if the port is in use" $
     withProject [] $ \dir -> do

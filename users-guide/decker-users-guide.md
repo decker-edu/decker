@@ -26,7 +26,62 @@ adds to Pandoc's Markdown.
 
 ## Reveal.js
 
+The slide decks that Decker generates are [Reveal.js](https://revealjs.com)
+presentations: single HTML pages that run in a web browser. Decker brings its own
+copy of Reveal.js, so there is nothing to install. A slide has a fixed size of 1280
+by 720 pixels and is scaled to fit the window. All keys below `reveal` in the meta
+data go to Reveal.js unchanged, see [Reveal.js](#variables-revealjs) in the
+configuration reference.
+
+These keys work in every deck:
+
+| Key                        | Action                                  |
+|----------------------------|-----------------------------------------|
+| `Space`, `N`               | Next slide or fragment                  |
+| `Shift`+`Space`            | Previous slide or fragment              |
+| Arrow keys                 | Move in that direction                  |
+| `Home`, `End`              | First and last slide                    |
+| `Esc`, `O`                 | Overview of all slides                  |
+| `G`                        | Jump to a slide                         |
+| `F`                        | Fullscreen                              |
+| `B`, `.`                   | Pause and black out the screen          |
+| `S`                        | Speaker view, if the `notes` plugin is on |
+| `?`                        | Help, with all keys of the current deck |
+
+Decker adds its own keys, and they take precedence. The Reveal.js documentation lists
+`P`, `H` and `L` for navigation, but in a Decker deck `P` and `H` do nothing unless
+pressed three times in quick succession, which toggles presenter mode and handout
+mode. `L` is the laser pointer of the [whiteboard](#whiteboard). The help shows what
+applies.
+
+The button with the three bars opens Decker's menu with the list of slides, a link
+to the index page, the search, the color mode, fullscreen and printing.
+
 ## Features
+
+Beyond what Pandoc and Reveal.js provide, Decker offers:
+
+- **Three kinds of output from one source.** A deck is built as a
+  [presentation](#slides) and as a [handout](#notes-handouts-and-solutions), and
+  [`decker pdf`](#-decker-pdf) prints it to a PDF. Pages are ordinary web pages
+  written in the same Markdown.
+- **Slide layouts.** Columns, grids, popups and fragments, see [Slide
+  layout](#slide-layout).
+- **Media.** Images, videos, audio, PDFs, 3D models and iframes all use the Markdown
+  image syntax, see [Media handling](#media-handling).
+- **Reuse.** [Includes](#including-files), [template macros](#template-macros),
+  [project-wide meta data](#meta-data) and [resource packs](#resource-packs) for the
+  look of a whole course.
+- **Interaction.** [Quizzes](#quizzes), [live code](#live-code), a
+  [whiteboard](#whiteboard) and [audience feedback](#audience-feedback).
+- **Teaching material.** [Exam questions](#exam-questions) with a catalog and Moodle
+  export, recording of presentations with [transcription](#-decker-transcribe), a
+  [search index](#-decker-search-index) across all decks, and a
+  [chatbot](#chatty) that answers questions about the course material.
+- **A development server.** It rebuilds what has changed and reloads the open pages,
+  see [Working on a project](#working-on-a-project).
+- **Support for AI agents.** Decker explains itself to coding agents, see [Agent
+  support](#agent-support).
 
 ## Installation
 
@@ -86,9 +141,200 @@ for platform-specific details, including Windows.
 
 ## Using Decker
 
+Decker is a command line program that works on a *project*: a directory tree with
+the configuration file `decker.yaml` at its root. You write Markdown in a text
+editor of your choice. Decker turns it into HTML in the directory `public/`, and you
+look at the result in a web browser. The fastest way to see this is the example
+project. Run this in an empty directory:
+
+``` sh
+> decker example
+> cd example
+> decker --server --open
+```
+
+[`decker example`](#-decker-example) writes the two files `decker.yaml` and
+`minimal-deck.md`. `decker --server` builds them, starts a local web server and keeps
+watching the project. `--open` opens `http://localhost:8888/index.html` in your
+browser. The browser can be faster than the first build, so reload if the page does
+not come up. Follow the link on the index page to the deck, then change something in
+`minimal-deck.md` and save it. The deck reloads with your change. `^C` stops the
+server.
+
+Always look at the output through a web server, not by opening the HTML file
+directly: decks load their code as JavaScript modules, which browsers do not load
+from `file://` URLs.
+
+The language defaults to German, which is also the language of the buttons and labels
+that Decker generates. Put `lang: en` into `decker.yaml` for English.
+
 ## Creating a project
 
+A project needs a file `decker.yaml` in its root directory, and it can be empty.
+Without it, a build stops with:
+
+``` txt
+Error, file does not exist and no rule available:
+  decker.yaml
+```
+
+Sources can be located anywhere below the root, and the name of a file decides what
+it is, see the table in [Targets](#targets). The suffix counts, including the dash:
+`intro-deck.md` is a deck, `deck.md` is not. Here is a small course:
+
+``` txt
+course
+├── decker.yaml
+├── syllabus-page.md
+├── code
+│   └── ...
+├── lectures
+│   ├── 01-intro-deck.md
+│   └── img
+│       └── logo.svg
+└── static
+    └── data.txt
+```
+
+`decker.yaml` holds what all documents have in common, see the [configuration
+reference](#configuration-reference):
+
+``` yaml {.decker-example file="decker.yaml" project="course"}
+title: "Computer Graphics"
+lang: en
+exclude-directories:
+  - code
+static-resource-dirs:
+  - static
+```
+
+`lectures/01-intro-deck.md` is the first deck. A new slide starts at each level-1
+heading, see [Slides](#slides):
+
+``` markdown {.decker-example file="lectures/01-intro-deck.md" project="course"}
+---
+title: Introduction
+subtitle: The first lecture
+---
+
+# Welcome
+
+![The logo of the course](img/logo.svg)
+
+# Overview
+
+- Light
+- Geometry
+```
+
+``` xml {.decker-example file="lectures/img/logo.svg" project="course"}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1"/></svg>
+```
+
+`syllabus-page.md` becomes an ordinary web page:
+
+``` markdown {.decker-example file="syllabus-page.md" project="course"}
+---
+title: Syllabus
+---
+
+# Topics
+
+The [first lecture](lectures/01-intro-deck.html) is about light.
+```
+
+``` txt {.decker-example file="static/data.txt" project="course"}
+Measurements
+```
+
+Running `decker` in this project writes:
+
+``` txt
+public
+├── index.html
+├── syllabus-page.html
+├── lectures
+│   ├── 01-intro-deck.html
+│   └── img
+│       └── logo.svg
+├── static
+│   └── data.txt
+└── support
+    └── ...
+```
+
+Some things to know about the project structure:
+
+- **The root.** You can run `decker` in any directory of the project. It goes up to
+  the nearest directory that contains a `decker.yaml` or a `.git` directory, and uses
+  that as the root. If that directory has no `decker.yaml`, the build fails with the
+  message above. [`--project-dir`](#-d-dir---project-dirdir) sets the root explicitly.
+- **Generated files.** `public/` and `private/` are generated, and so is `chatty/` if
+  you use [Chatty](#chatty). Do not edit them, and leave them out of version control.
+- **Excluded directories.** Decker searches the whole tree, except for `public`,
+  `chatty`, `dist`, `.git`, `.vscode`, `.stack-work` and whatever is listed in
+  `exclude-directories`. Use this for directories with code or old material, or
+  anything else that contains files with these suffixes.
+- **Nested projects.** A `decker.yaml` further down does not stop the search. A
+  project below another project, such as `example/` after running `decker example` in
+  the root of a project, is also built as part of the outer project.
+- **The index page.** `public/index.html` is generated with links to all decks and
+  pages, unless there is an `index.md` in the root. Then it is built from that file,
+  and the generated list moves to `public/index-generated.html`.
+- **Media files.** Files that a document refers to, like `img/logo.svg`, are copied to
+  `public/` automatically, to the same relative path. All other files have to be
+  listed in `static-resources` or be located in one of the `static-resource-dirs`.
+  A directory listed there has to exist, or the build fails.
+
+For a project that an AI agent works on, see also [`decker
+agent-docs`](#-decker-agent-docs).
+
 ## Working on a project
+
+While you are working on a project, keep the server running:
+
+``` sh
+> decker --server
+```
+
+Every change to a file in the project triggers a rebuild of whatever depends on it,
+and open pages reload. New sources are picked up as well, and a change to `decker.yaml`
+rebuilds the documents. A page in presenter mode does not reload, so that a
+presentation is not interrupted. The server listens on port 8888 by default, use
+[`-p`](#-p-port---portport) to change that. Without a target, `--server` builds what
+[`decker html`](#-decker-html) builds, so name the targets if you need more:
+
+``` sh
+> decker --server html handouts
+```
+
+Without the server, these are the most common things to run:
+
+| Command                                  | What it does                       |
+|------------------------------------------|------------------------------------|
+| `decker`                                 | Builds all decks and pages         |
+| `decker public/lectures/01-intro-deck.html` | Builds just one file            |
+| `decker handouts`                        | Builds the [handouts](#-decker-handouts) |
+| `decker pdf`                             | Builds the [PDFs](#-decker-pdf), needs Chrome |
+| `decker check`                           | Shows which [external programs](#-decker-check) are found |
+| `decker clean`                           | [Removes](#-decker-clean) everything that was generated |
+
+Decker reports problems that do not stop the build as warnings, and
+[`--strict`](#diagnostics-and---strict) turns them into errors. A slide that is too
+large for the window is not reported. Set `reveal.checkOverflow` to mark such slides,
+see [Reveal.js](#variables-revealjs).
+
+Removing a source does not remove its output. The document disappears from the
+generated index page, but its HTML file stays in `public/`, and `decker publish`
+copies it to the server. Run `decker clean` before publishing if you have removed or
+renamed anything.
+
+To exclude a document that is not finished yet from the search index, from `decker
+publish -l` and from `decker chatty`, set `draft: true` in its front matter. It is
+still built and can be viewed locally.
+
+`public/support` contains Decker's runtime files. It is about 200 MB in size, and it
+is the same for every project.
 
 ## Publishing
 
@@ -291,8 +537,9 @@ purge.
 
 Writes a small example project to the directory `example` below the project root.
 Files of an earlier example are overwritten. The current directory is the project
-root if neither it nor any directory above it has a `decker.yaml` or `.git`. To
-start exploring Decker:
+root if neither it nor any directory above it has a `decker.yaml` or `.git`. Inside
+an existing project the example therefore becomes a part of that project, so use an
+empty directory. To start exploring Decker:
 
 ``` sh
 > decker example

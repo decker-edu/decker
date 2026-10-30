@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 to 4 are done, steps 5 to 9 are open.
+Status: steps 1 to 5 are done, steps 6 to 9 are open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -160,6 +160,21 @@ Behaviour that is documented as it is, left for the maintainer to decide:
 - **Guide:** write Reveal.js, Features, Using Decker, Creating a project and
   Working on a project, built around `decker example`.
 - **Agent docs:** add a short project-setup section to `config`.
+- **Tests:** `decker example` writes a project that builds without diagnostics.
+
+Behaviour that is documented as it is, left for the maintainer to decide:
+
+- A project without `decker.yaml` fails with Shake's `file does not exist and no rule
+  available`, which does not tell a new user what to do. This includes a `.git`
+  directory without `decker.yaml`.
+- `decker example` writes below the project root, and the outer project then builds
+  the example as well, because a nested `decker.yaml` does not stop the search.
+- The output of a removed source stays in `public/` and gets published. Only the index
+  page drops it.
+- `lang` defaults to `de` in the base pack, so a new project has German labels. The
+  example project does not set it either.
+- In a deck, the keys `P` and `H` of Reveal.js do nothing on a single press, because
+  Decker binds them to triple clicks. `?` still lists what Decker binds.
 
 ### Step 6: Media
 
@@ -187,7 +202,9 @@ Behaviour that is documented as it is, left for the maintainer to decide:
 ### Step 9: Wrap-up
 
 - **Guide:** fill in or remove Conventions, ThebeLab and Sage. Publish the guide
-  and link it from `--help` in place of the old wiki link.
+  and link it from `--help` in place of the old wiki link. Links to the headings of
+  commands use GitHub's anchors (`#-decker-publish`). Pandoc generates
+  `#decker-publish`, so they have to change if the guide is published with Pandoc.
 - **Agent docs:** switch the pointers from the GitHub URL to the published URL.
 - **Tests:** all numbers are zero and the lists are empty.
 - **Drafts:** delete the `doc/` drafts that the guide now replaces.

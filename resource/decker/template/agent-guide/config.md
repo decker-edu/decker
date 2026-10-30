@@ -20,6 +20,43 @@ strict: true                   # fail builds that leave warnings
 A single value can be set for one build with `-m key=value`, e.g.
 `decker -m lang=de public/unit/07-deck.html`.
 
+## Setting up a project
+
+A project is a directory with a `decker.yaml`, which may be empty. Without one, a
+build fails with `file does not exist and no rule available: decker.yaml`. A minimal
+project is that file and one source:
+
+```yaml {.decker-example file="decker.yaml" project="setup"}
+lang: en
+```
+
+```markdown {.decker-example file="lectures/01-intro-deck.md" project="setup"}
+---
+title: Introduction
+---
+
+# First slide
+```
+
+`decker` then writes `public/lectures/01-intro-deck.html` and `public/index.html`.
+`decker --server` also serves `public/` on `http://localhost:8888` and rebuilds on
+every change. Look at decks through a server, they do not work from `file://`.
+
+- `lang` defaults to `de`, also for generated labels. Set it for any other language.
+- Any directory below the root is searched for sources, except `public`, `chatty`,
+  `dist`, `.git`, `.vscode`, `.stack-work` and `exclude-directories`. Exclude
+  directories whose files have these suffixes by accident.
+- The root is the nearest directory upwards with a `decker.yaml` or `.git`. A nested
+  `decker.yaml` does not end the search of the outer project, so `decker example`
+  inside a project adds its deck to that project. Use `--project-dir` in scripts.
+- Files that a document refers to are copied to `public/`, others are not. List
+  those in `static-resource-dirs` or `static-resources`. A listed directory has to
+  exist, or the build fails.
+- `public/`, `private/` and `chatty/` are generated. Do not edit them, and add them to
+  `.gitignore`.
+- Output of a removed source stays in `public/` until `decker clean`.
+- `decker agent-docs` writes the instructions for agents into the project.
+
 ## How values combine
 
 In order of increasing precedence: the defaults of the base pack, the defaults
@@ -106,4 +143,4 @@ project/
 └── private/           # private build output, e.g. question previews
 ```
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Meta Data*, *Configuration reference* and *Resources*.
+See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Creating a project*, *Working on a project*, *Meta Data*, *Configuration reference* and *Resources*.
