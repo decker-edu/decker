@@ -72,8 +72,9 @@ Beyond what Pandoc and Reveal.js provide, Decker offers:
 - **Reuse.** [Includes](#including-files), [template macros](#template-macros),
   [project-wide meta data](#meta-data) and [resource packs](#resource-packs) for the
   look of a whole course.
-- **Interaction.** [Quizzes](#quizzes), [live code](#live-code), a
-  [whiteboard](#whiteboard) and [audience feedback](#audience-feedback).
+- **Interaction.** [Quizzes](#quizzes), [live quizzes](#live-quizzes), [live
+  code](#live-code), a [whiteboard](#whiteboard) and [audience
+  feedback](#audience-feedback).
 - **Teaching material.** [Exam questions](#exam-questions) with a catalog and Moodle
   export, recording of presentations with [transcription](#-decker-transcribe), a
   [search index](#-decker-search-index) across all decks, and a
@@ -576,9 +577,9 @@ this purpose, so the port has to be free. Use `-p` if it is not.
 
 Google Chrome has to be installed. On macOS it must be located in `/Applications`
 or `/Users/<username>/Applications`, on Linux `chrome` has to be on the `PATH`.
-`decker pdf` does not work on Windows: add `print: true` or `menu: true` to the
-deck and use the print button on the title slide. A message `thread killed` at the
-end of the run is normal, it is how the browser gets stopped.
+`decker pdf` does not work on Windows: use the print button in the [menu](#menu) of the
+deck. A message `thread killed` at the end of the run is normal, it is how the browser
+gets stopped.
 
 This may well be a little time consuming, so it is best called only right
 before `decker publish`.
@@ -658,8 +659,8 @@ problems itself, so the agent does not have to inspect the generated HTML.
 Prints the agent guide on standard output. Without a topic it prints the
 index: the build-and-check loop, the source-to-target mapping, the diagnostic
 codes, the commands an agent must not run, and the list of topics (`decks`,
-`pages`, `quests`, `config`, `templates`, plus any topics of the configured
-resource pack). `decker agent-guide decks` prints one topic, `decker
+`media`, `quizzes`, `pages`, `quests`, `config`, `templates`, plus any topics of the
+configured resource pack). `decker agent-guide decks` prints one topic, `decker
 agent-guide --all` prints everything.
 
 Layout problems such as overflowing slides or broken columns are not reported
@@ -1347,15 +1348,16 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
     |------------|---------|------------------------------------------------|
     | `zoom`     | `true`  | Zooming into a slide                           |
     | `jingles`  | `true`  | Jingles that are played with a keyboard shortcut |
-    | `quiz`     | `true`  | [Quizzes](#quizzes)                            |
-    | `quiz-wue` | `true`  | An alternative quiz implementation             |
+    | `quiz-wue` | `true`  | [Quizzes](#quizzes)                            |
+    | `quiz`     | `true`  | An old implementation. It is loaded, but not started, and has no effect |
     | `feedback` | `true`  | [Audience feedback](#audience-feedback)        |
     | `notes`    | `true`  | Speaker view                                   |
     | `chatty`   | `false` | Chat assistant, see [Chatty](#chatty)          |
-    | `quizzer`  | `false` | Live quizzes for the audience                  |
+    | `quizzer`  | `false` | [Live quizzes](#live-quizzes)                  |
 
     The other plugins are always loaded, except for the highlight plugin, which
-    needs `highlightjs`, and the poll plugin, which needs `poll`.
+    needs `highlightjs`, and [live captions](#live-captions), which need
+    `live-captions`.
 
 `reveal-plugins`
 :   A list of additional Reveal.js plugins, each a map with the name of the plugin
@@ -1374,7 +1376,7 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
     server](#running-your-own-server).
 
 Plugins read their own options from a key with the name of the plugin, for example
-`zoom`, `whiteboard`, `explain` or `menu`.
+`zoom`, [`whiteboard`](#whiteboard) or [`explain`](#recording).
 
 ### Reveal.js {#variables-revealjs}
 
@@ -2528,243 +2530,279 @@ Inside the first one, because it follows its heading.
 :::
 ```
 
-## Whiteboard
-
-## Audience Feedback
-
-The audience of a deck can annotate slides with feedback. The feedback is
-aggregated on a server and is visible to all audience members and the author.
-
-The slide author can later choose to address the feedback by changing or
-extending the information in the deck.
-
-To enable this feature a deck must specify the URL of a Decker Engine server in
-the meta data by setting the variable `feedback.base-url`. For example:
-
-``` yaml
-feedback:
-  base-url: 'https://tramberend.bht-berlin.de/decker'
-```
-
-### Endpoints with authorization
-
-There are two modes of operation depending on the deployment details of the
-server, *authorized* and *public*.
-
-If the server is running behind a proxy with Basic Authentication enabled,
-questions can only be added if the user has been authenticated by the proxy.
-Administrators are recognized automatically, no further authorization is
-necessary.
-
-The `de-api` endpoint works that way:
-
-``` yaml
-feedback:
-  base-url: 'https://tramberend.bht-berlin.de/de-api'
-```
-
-### Public endpoints
-
-If the server is publicly available without authentication, the user is assigned
-a token that allows her to later delete or edit all questions that where added
-using that token. The token can be entered by hand or stored in the browser's
-local storage. Administrators need to authenticate with a username and a
-password.
-
-The `decker` endpoint works that way:
-
-``` yaml
-feedback:
-  base-url: 'https://tramberend.bht-berlin.de/decker'
-```
-
-### Admistrators
-
-Users that are authorized as administrators can answer, edit or delete all
-questions in a set.
-
-### Deck Identification
-
-Decks are identified by their public URL. This can be problematic if a deck is
-served locally, for example from
-`http://localhost:8888/test/decks/engine-deck.html` during video recording, but
-is supposed to show the questions on the published version. For this situation
-the public URL of a deck can be set in the meta data.
-
-``` yaml
-feedback:
-  deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
-```
-
-If `feedback.deck-id` is specified, it overrides the actual deck URL as far
-as deck identification for decker engine is concerned. The questions shown if
-the deck is served locally will be the questions that where added to the
-published deck.
-
 ## Quizzes
 
-### Class definition
+A quiz is a question on a slide that the audience answers in the browser. Nothing
+leaves the browser and nothing is stored. For questions that the whole audience
+answers at the same time, see [Live quizzes](#live-quizzes).
 
-For each question type you can use any of the three equivalent classes to create
-quizzes
+Quizzes only work in decks. In the handout `x-handout.html` a quiz is the plain list,
+with the correct answers checked. On a page it is also a plain list. Do not put
+answers on a page that are supposed to stay secret.
 
-    .quiz-match-items, .quiz-mi, .qmi
+### Question types
 
-    .quiz-multiple-choice, .quiz-mc, .qmc
+Every type has three equivalent classes:
 
-    .quiz-insert-choices, .quiz-ic, .qic 
+| Type                                     | Classes                                     |
+|------------------------------------------|---------------------------------------------|
+| [Multiple choice](#multiple-choice)      | `.qmc`, `.quiz-mc`, `.quiz-multiple-choice` |
+| [Matching](#matching)                    | `.qmi`, `.quiz-mi`, `.quiz-match-items`     |
+| [Insert choices](#insert-choices)        | `.qic`, `.quiz-ic`, `.quiz-insert-choices`  |
+| [Free text](#free-text)                  | `.qft`, `.quiz-ft`, `.quiz-free-text`       |
 
-    .quiz-free-text, .quiz-ft, .qft
+The class goes on a level 2 heading, which can be empty, or on a fenced div:
 
-### Basic syntax
+``` markdown
+# Slide title
 
-The quiz syntax is based on the markdown task list syntax. A markdown task list
-looks like this
+## The question {.qmc}
 
-    - [ ] This box is not checked
-    - [X] This box is checked
-    - [ ] Another unchecked box
+Some text that belongs to the question.
 
-Questions are defined by level 2 headers. That means creating a question
-**needs**
+- [ ] Wrong
+  - Shown as a tooltip for this answer.
+- [X] Correct
+  - Shown as a tooltip for this answer.
 
-    ## Question title {.qmc}
+# Another slide
 
-(where `.qmc` can be replaced by any of the other quiz classes)
+::: qmc
+- [ ] Wrong
+- [X] Correct
+:::
+```
 
-You can add tooltips by creating a nested list e.g.
+A question must be on a slide, so it needs a level 1 heading above it. Answers are a
+task list. A nested list is the tooltip of an answer. Each of its items is one line of
+the tooltip.
 
-    - [ ] A
-      - tooltip A
-    - [X] B
-      - tooltip B
+### Multiple choice
 
-### Fenced Divs Syntax
+Each answer is a box. Clicking it shows whether the answer is right or wrong, along
+with its tooltip. Several answers can be correct.
 
-Alternatively, quizzes can be defined using the **fenced divs** syntax:
+### Matching
 
-    ::: qmc
-    - [ ] A
-      - tooltip A
-    - [X] B
-      - tooltip B
-    :::
+The audience sorts items into buckets by drag and drop. *Show Solution* marks the
+result, and complains if no item was moved yet. The question uses a [definition
+list](https://pandoc.org/MANUAL.html#definition-lists): the terms are the buckets, the
+definitions are their items. An exclamation mark makes a distractor, which belongs in
+no bucket, or an empty bucket:
 
-### Matching Questions
+``` markdown
+## Sort these {.qmi}
 
-These questions generate quizzes where a user can drag and drop items to sort
-them into "buckets".
+Question text
 
-This uses the Pandoc [definition list
-syntax](https://pandoc.org/MANUAL.html#definition-lists).
+Bucket A
+: Item 1
+: Item 2
 
-You can provide distractor items (items not belonging to any bucket) or empty
-buckets (no item belonging in those empty buckets) by using the exclamation mark
-"!".
+Bucket B
+: Item 3
 
-    ## Matching Question {.qmi}
+!
+: A distractor
 
-    Question text
+Empty bucket
+: !
+```
 
-    BucketA
-    : A1
-    : A2
+With `.plain`, the items are a lettered list, and each bucket gets a selection box
+instead.
 
-    BucketB
-    : B1
+### Insert choices
 
-    !
-    : Distractor
+A text with selection boxes in it. Each task list becomes one selection box at its
+place in the text, and the choice is judged at once. A list with one item is still a
+selection box, with that one option. Paragraphs of a question are joined into running
+text.
 
-    Empty Bucket
-    : !
+``` markdown
+## {.qic}
 
-### Multiple Choice Questions
+- [X] Haskell
+  - Because of Pandoc.
+- [ ] Java
 
-Classic multiple choice questions
+is what Decker is written in. It builds upon
 
-    ## Multiple Choice Question {.qmc}
+- [X] Pandoc
+- [ ] PowerPoint
 
-    Question text
+.
+```
 
-    - [ ] A
-      - nope
-    - [X] B
-      - yes
+### Free text
 
-### InsertChoices Questions
+An input field. The answer is judged on `Enter`, ignoring case and surrounding space.
+In a plain list **every** item is a correct answer. To name wrong answers, for example
+because they deserve a comment, use a task list:
 
-This will create a sort of blank text questions. If multiple items are provided
-in the task list, they will be rendered as a drop down menu where the user can
-click answers.
+``` markdown
+## {.qft}
 
-If only one item/solution is provided it will be rendered as a blank.
+What is the fourth letter of the alphabet?
 
-    ## Insert Choices Question {.qic}
+- [ ] C
+  - One too early.
+- [X] D
+  - Right.
+```
 
-    - [X] A
-      - of course
-    - [ ] B 
-      - uhm ...
+Any answer that is not listed counts as wrong. *Show Solution* lists the answers,
+*Reset* clears the field.
 
-    is the first letter in the ABC. The second one is
+### Style
 
-    - [ ] B
-      - yep
+The default style is `fancy`. `plain` is more compact, and also has the variant
+`.inline` for multiple choice, which puts the answers in a row. The classes `.plain`
+and `.fancy` choose it for one question, `quiz.style` for a whole document or project:
 
-### FreeText questions
-
-This will create a simple input field/text box where the user can write their
-answer.
-
-    ## FreeText Question TL {.qft}
-
-    What's the first letter in the alphabet?
-
-    - A
-      - yep
-    - B
-      - nope
-
-    ## {.qft}
-
-    What's the fourth letter?
-
-    - [ ] C
-    - [X] D
-
-### Quiz Styling
-
-The default style of quizzes includes decorative and interactive features. To
-switch to a plain style, specify in YAML metadata, or use the `.plain` tag in
-the question header.
-
-``` .yaml
-quiz: 
+``` yaml
+quiz:
   style: plain
 ```
 
-    # Question 1
+``` markdown
+## {.qmc .plain .inline}
 
-    ## {.qmc .plain}
+- [X] 4
+- [ ] 5
+```
 
-### Quiz Meta
+The labels of the buttons and fields come from the [dictionary](#dictionary), in the
+language of `lang`.
 
-Add a `YAML` code block to a question to provide meta information on the
-specific question.
+### Options of one question
 
-This is work in progress. Currently apart from `lang: de` or `lang: en` and quiz
-style, it does not do anything. (21. Jul 2020)
+A YAML code block in a question sets its options. The block is not shown. `lang`
+chooses the language of its labels, `quiz.style` its style.
 
-    ``` {.yaml}
-    lang: de
-    score: 5
-    category: FP
-    lectureId: fp1
-    topic: Functional Programming Introduction
-    quiz:
-      style: plain
-    ```
+```` markdown
+## {.qft}
+
+``` yaml
+lang: de
+quiz:
+  style: plain
+```
+
+Which letter comes first?
+
+- A
+````
+
+So a question cannot show a YAML code block as part of its text. The fields `score`,
+`category`, `lectureId` and `topic` are accepted, but nothing uses them.
+
+## Live quizzes
+
+In a live quiz the whole audience answers on their phones and the results appear on
+the slide. It needs a quizzer server, which is not part of Decker, and the `quizzer`
+plugin:
+
+``` yaml
+decker-plugins:
+  quizzer: true
+quizzer:
+  url: https://quiz.example.com/
+```
+
+The `tudo` and `mono` packs load the plugin. `tudo` also sets the server, with `mono` the
+project has to.
+
+A slide can have one live quiz. A second one replaces the slide with an error message.
+A quiz is a div with one of these classes:
+
+| Type      | Classes                                                                   |
+|-----------|---------------------------------------------------------------------------|
+| Choice    | `.quizzer`, `.quizzer.choice`, `.quizzer-choice`, `.quizzer-mc`, `.quizzer-multiple-choice` |
+| Selection | `.quizzer.selection`, `.quizzer-selection`, `.quizzer-ic`, `.quizzer-item-choice` |
+| Free text | `.quizzer.freetext`, `.quizzer-freetext`, `.quizzer-free-text`, `.quizzer-ft` |
+| Matching  | `.quizzer.assignment`, `.quizzer-assignment`, `.quizzer-match-items`, `.quizzer-mi` |
+
+``` markdown
+# Choice
+
+::: {.quizzer .choice}
+Which of these is not arithmetic?
+
+- [ ] `x + y`
+  - The reason, shown with the result.
+- [x] `x ^ y`
+:::
+
+# A survey
+
+::: quizzer-mc
+Which semester are you in?
+
+- [ ] 1 to 2
+- [ ] 3 to 4
+:::
+```
+
+- **Choice.** With more than one correct answer, the audience can pick several. Without
+  a correct answer it is a survey.
+- **Selection and free text.** `[#1]`, `[#2]` and so on in the text mark where the fields
+  go, and a list provides the answers of each. Fields without a mark are added at the
+  end. A horizontal rule separates two lists. `placeholder` on the div sets the hint in
+  the input field of free text.
+- **Matching.** A definition list as for [matching](#matching), with `!` for distractors.
+
+``` markdown
+::: quizzer-ic
+Decker is written in [#1] and uses [#2].
+
+- [x] Haskell
+- [ ] Java
+
+---
+
+- [x] Pandoc
+- [ ] Word
+:::
+
+::: {.quizzer-ft placeholder="Your answer"}
+The result is [#1].
+
+- [x] 4
+- [x] four
+:::
+```
+
+Without presenter mode, a live quiz works like a normal quiz for whoever opens the
+deck. In [presenter mode](#presenter-mode), a slide with a quiz shows a poll button at
+the bottom, and a dot for the connection to the server. The first click starts the poll
+and shows a QR code with the session id. The audience joins with it. A counter shows
+how many have answered. The second click ends the poll and shows the result: a chart,
+a word cloud for free text, a flow diagram for matching. Changing the slide also ends
+the poll.
+
+`quizzer.audio` plays sounds during a poll. `start`, `loop` and `end` each take a URL or
+`default` for the built-in sound, `volume` is a number up to `1.0`.
+
+### Polls on exam questions
+
+An [exam question](#exam-questions) in a deck can be used as a poll. This is independent
+of the `quizzer` plugin and needs its own server in `poll-server`. `mono` sets it.
+
+``` markdown
+---
+poll-server: wss://polls.example.com/quiz
+---
+
+# A question
+
+![](recursion-quest.yaml){.question .poll}
+```
+
+In presenter mode the question gets the buttons *QRCode*, *Poll* and *Stop*. Only
+`MultipleChoice` questions can be polled. With `save-polls: true` and a running Decker
+server, the votes of the deck `x-deck.md` are stored in `x-<session>-poll.json` next to
+it.
 
 ## Live code
 
@@ -2891,6 +2929,257 @@ Import the snippet in the block that proxies to codapi, before the
 ## ThebeLab 🚧 {#thebelab}
 
 ## Sage
+
+# During a presentation
+
+Everything in this chapter happens in the browser, in a running deck. The plugins are
+part of Decker, and most of them need no configuration.
+
+Some features write files into the project. These only work if the deck is served by
+Decker, either with `decker --server` or with `decker serve`. The files end up next to
+the source of the deck, and the next build copies them to `public/`, so that they can
+be published. Only the file types that Decker expects can be uploaded.
+
+## Presenter mode
+
+Press `P` three times in quick succession, or use the menu, to switch presenter mode on
+and off. It hides nothing from the slides, but shows the tools for the person in front
+of the room. The [whiteboard](#whiteboard), [live quizzes](#live-quizzes) and [live
+captions](#live-captions) only appear in it. It also keeps the display awake and stops
+the page from reloading on a rebuild. The URL parameter `?presenter` starts a deck in
+presenter mode.
+
+The link `presenter` in [`index.links`](#index-pages) of an index page opens a deck this
+way.
+
+## Menu
+
+The button with the three bars at the top left opens the menu. It lists all slides, with
+the current one marked, and has these buttons:
+
+- back to the index page
+- [search](#search)
+- color mode (disabled if `colorscheme` is set to `light` or `dark`)
+- fullscreen
+- printing to PDF, see [`decker pdf`](#-decker-pdf)
+- [handout mode](#notes-handouts-and-solutions) (`H` three times)
+- [presenter mode](#presenter-mode)
+- [recording](#recording)
+- [accessibility](#accessibility)
+
+The menu has no options. The plugin does not read a key `menu`.
+
+## Search
+
+`Ctrl`+`F` or `Cmd`+`F` opens the search in a deck, as does the button in the menu.
+`Enter` goes from one match to the next, also across slides. `Esc` closes it. In handout
+mode the keys open the search of the browser instead.
+
+This only searches the current deck. To search across all decks, see [`decker
+search-index`](#-decker-search-index).
+
+## Whiteboard
+
+The whiteboard draws on slides and on extra pages below them. It only works in
+[presenter mode](#presenter-mode).
+
+`W`, or the button at the bottom left, switches drawing on and off. While it is on, that
+corner shows the current tool. A click on it opens the panel with all of them:
+
+| Button          | Key                 | Action                                        |
+|-----------------|---------------------|-----------------------------------------------|
+| Pen             |                     | Draw. Pen settings has the colors and widths. |
+| Eraser          | `E`                 | Erase strokes. `E` switches back to the pen.  |
+| Laser pointer   | `L`                 | Strokes that fade. `L` switches back.         |
+| Undo            | `Ctrl`/`Cmd`+`Z`    | Undo, up to 10 steps                          |
+| Add page        |                     | Add an empty page below the slide             |
+| Grid            |                     | Show a grid on the extra pages                |
+| Auto-save       |                     | Switch automatic saving on and off            |
+| Save            |                     | Save now                                      |
+|                 | `Delete`            | Delete everything on the current slide        |
+|                 | `1` to `7`          | Pen color                                     |
+|                 | `8`, `9`, `0`       | Pen width                                     |
+
+With a mouse, the right button is the laser pointer and the middle button the eraser
+while the pen is selected. With a stylus, its button is the laser pointer and its eraser
+tip the eraser.
+
+### Saving
+
+Saving does two things. It puts `x-annot.json` of the deck `x-deck.md` into the
+downloads folder of the browser, and it uploads the same file next to the source of the
+deck. A deck loads this file when it starts. The next build copies it to `public/`, and
+[`decker pdf`](#-decker-pdf) prints the annotations too. To see saved annotations with
+`decker serve`, build first, because it serves `public/` as it is.
+
+With auto-save, which is the default, this happens when you leave the deck, not on every
+change. Without it, the browser warns about unsaved annotations when you leave. Without
+a Decker server only the download works, and the file has to be copied next to the
+source by hand.
+
+### Options
+
+``` yaml
+whiteboard:
+  colors: ["var(--base07)", "red", "#00ff00"]  # the colors of the pen settings
+  autosave: false       # default is true
+  autotoggle: true      # switch on when a stylus hovers, default is false
+```
+
+The keys `1` to `7` expect the 16 default colors, so they do not fit a list of your own.
+For extra pages in a PDF, set `reveal.pdfMaxPagesPerSlide` to a sufficiently large
+value.
+
+## Audience Feedback
+
+The audience of a deck can ask questions about each slide, and vote on the questions of
+others. The questions are stored on a server and are visible to everybody who opens the
+deck. The author can answer them there, or change the deck.
+
+The plugin needs a server, the Decker Engine, which is not part of Decker. Without a URL
+nothing appears:
+
+``` yaml
+feedback:
+  base-url: https://engine.example.com/feedback/
+```
+
+The deck then shows a button that opens the list of questions of the current slide.
+Questions are written in Markdown and sent with `Shift`+`Enter`. The `decker-plugins`
+key `feedback` switches the plugin off altogether.
+
+### Endpoints with authorization
+
+There are two modes of operation, depending on how the server is deployed.
+
+If the server runs behind a proxy with Basic Authentication, questions can only be added
+by a user that the proxy has authenticated. Administrators are recognized automatically,
+no further authorization is necessary.
+
+### Public endpoints
+
+If the server is publicly available, a user is assigned a token. It allows them to later
+edit or delete all questions that were added with that token. The token can be entered
+by hand or stored in the local storage of the browser. Administrators log in with a
+username and a password.
+
+### Administrators
+
+Administrators can answer, edit or delete all questions of a deck, and mark them as
+answered.
+
+### Deck Identification
+
+Decks are identified by their public URL. This is a problem if a deck is served
+locally, for example from `http://localhost:8888/lecture/intro-deck.html` during a
+recording, but is supposed to show the questions of the published version. For this
+situation, set an id that stays the same:
+
+``` yaml
+feedback:
+  deck-id: https://example.com/lecture/intro-deck.html
+```
+
+Any text will do. The questions shown locally are then the ones added to the published
+deck. The id also connects a deck to [`no-index`](#documents-and-title-slide).
+
+## Accessibility
+
+Accessibility mode adapts a deck for screen readers and keyboard use. It is switched by
+pressing `A` three times in quick succession, by the button in the menu, or with the URL
+parameter `?a11y`, which is what the link `a11y` on an [index page](#index-pages) does.
+The parameter is also added to the URL while the mode is on, so a bookmark keeps it.
+
+In this mode:
+
+- Videos and audio get controls and stop playing by themselves.
+- Formulas get MathJax's menu and semantic enrichment. With the URL parameter, also its
+  speech and Braille output.
+- [Recordings](#recording) start with their captions switched on.
+
+These apply to every deck, in any mode:
+
+- Screen readers hear the number of the slide before its title.
+- Slides that are not visible can not be reached with the tab key.
+- Images get their label from the [title of the image](#figures-and-captions), or else
+  from its caption, so write one of them.
+
+## Recording
+
+A deck can record the screen, a microphone and a camera while you present, and play the
+result back on the slides.
+
+### Making a recording
+
+1. Serve the deck with `decker --server` or `decker serve`.
+2. Press `R`, or use the menu. The browser asks what to share and for permission to use
+   the devices. A panel at the side has the selection of microphone and camera and the
+   recording level. `V` shows the camera.
+3. Press `R` to start. If there is a recording already, you choose between adding to it
+   and replacing it.
+4. Press `R` to pause and resume.
+5. Press `Z` three times in quick succession to stop.
+
+The result is `x-recording.webm` and `x-times.json` for the deck `x-deck.md`, both next
+to its source and in the downloads folder of the browser. The times say which slide was
+shown when.
+
+A recording in the browser's format is not what gets played. Turn it into
+`x-recording.mp4` with [`decker crunch`](#-decker-crunch), or at once with the option
+[`-P`](#-p---poser) of the server. [`decker transcribe`](#-decker-transcribe) then
+creates the captions. The next build copies all of it to `public/`.
+
+### Playback
+
+A deck with `x-recording.mp4` and `x-times.json` gets a play button on the slides that
+are part of the recording. Playback starts at the current slide. Captions from
+`x-recording-en.vtt` and `x-recording-<lang>.vtt` are offered in the player, where
+`<lang>` is `whisper.lang`.
+
+### Options
+
+``` yaml
+explain:
+  video: https://example.com/intro-recording.mp4 # instead of x-recording.mp4
+  times: https://example.com/intro-times.json    # instead of x-times.json
+  recWidth: 1920      # size requested for the screen
+  recHeight: 1080
+  camWidth: 1280      # size requested for the camera
+  camHeight: 720
+```
+
+The camera image can have a green screen removed:
+
+``` yaml
+explain:
+  useGreenScreen: true
+  greenScreenBackground: images/background.jpg
+  greenScreenKey: { r: 0, g: 255, b: 0 }
+  greenScreenSimilarity: 0.4
+  greenScreenSmoothness: 0.08
+  greenScreenSpill: 0.1
+```
+
+## Live captions
+
+Live captions turn your speech into text during a presentation, with the speech
+recognition of the browser, in a window of their own. This needs a browser with the Web
+Speech API, such as Chrome. Depending on the browser, the speech goes to a service of its
+vendor, and Decker asks you to agree to that first.
+
+``` yaml
+live-captions: true
+speech-recognition-language: en-US # default is the language of the browser
+caption-server: https://captions.example.com
+```
+
+In [presenter mode](#presenter-mode) a button appears at the top right. It opens the
+window with the text, which you can move to the projector. Closing the window does not
+stop the captions, the button does.
+
+`caption-server` is optional, and such a server is not part of Decker. With one, Decker
+shows a QR code, and the audience can read the captions on their own devices. The `tudo`
+pack sets all three keys.
 
 # Chatty
 

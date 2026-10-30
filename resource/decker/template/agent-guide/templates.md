@@ -73,4 +73,67 @@ Templates are doctemplates (`$name$`, `$if(name)$…$endif$`). They receive:
 | `live-code-prelude`          | Code block `{#id .live-code-prelude-}` — wrapper containing `##CODE##`, used with `template="#id"` |
 | `grid`, `finegrid`, `canvas` | `[§grid](300px "Caption")` — empty drawing area; `url` is the height |
 
+## Live code
+
+A `.live-code-` block is an editor with a *Run* button on the slide. The code runs on
+a [Codapi](https://codapi.org) server, so it needs one. Set it once per deck, in the
+meta data or with a link anywhere in the deck. On a page, it also needs
+`page-features.codapi`; decks always load Codapi.
+
+```yaml {.decker-example file="decker.yaml" project="live-code"}
+experiments:
+  fragment-templates: true
+codapi:
+  server: https://example.com/codapi/v1
+```
+
+`language` selects the highlighting and, without `sandbox`, the sandbox on the server.
+`result` says where the output goes: `auto` (default), `split`, `flip`, `overlay`,
+`float`, `reserve` (with `result-height`) or `below`, which is the only one that makes
+the slide grow.
+
+A hidden block with `.display-none` can provide code for another one through
+`depends-on`. A `.live-code-prelude-` block wraps code, with `##CODE##` where the code
+goes, through `template="#id"`. `height`, `caption` and `sandbox` are further attributes.
+
+````markdown {.decker-example file="code-deck.md" project="live-code"}
+# Running code
+
+``` {.live-code- language="Python" result="reserve" result-height="4em"}
+print(42)
+```
+
+# Depending on another block
+
+``` {#setup .live-code- .display-none language="Python"}
+answer = 42
+```
+
+``` {.live-code- language="Python" depends-on="setup"}
+print(answer)
+```
+
+# With a wrapper
+
+``` {#wrap .live-code-prelude-}
+def main():
+    ##CODE##
+
+main()
+```
+
+``` {.live-code- language="Python" template="#wrap"}
+print("wrapped")
+```
+
+# A sandbox of a different name
+
+``` {.live-code- language="Haskell" sandbox="ghci" height="200px" caption="Try it"}
+main = print 42
+```
+````
+
+The build cannot tell whether the server or a sandbox exists. Running the code in a
+browser is the only check.
+
 See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), sections *Fragment templates* and *Live code*.

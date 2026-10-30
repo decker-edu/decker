@@ -159,7 +159,7 @@ const germanLocalization = {
     clear: "Whiteboard: Folie reinigen",
     laserpointer: "Whiteboard: Laserpointer umschalten",
     eraser: "Whiteboard: Radierer umschalten",
-    whitebard: "Whiteboard: An-/Abschalten",
+    whiteboard: "Whiteboard: An-/Abschalten",
     color: "Whiteboard: Farbe ",
     radius2: "Whiteboard: Stiftgröße Radius 2",
     radius4: "Whiteboard: Stiftgröße Radius 4",
@@ -188,7 +188,7 @@ const englishLocalization = {
     clear: "Whiteboard: Clear slide",
     laserpointer: "Whiteboard: Toggle laserpointer",
     eraser: "Whiteboard: Toggle eraser",
-    whitebard: "Whiteboard: De-/Activate",
+    whiteboard: "Whiteboard: De-/Activate",
     color: "Whiteboard: Color ",
     radius2: "Whiteboard: Pen radius 2",
     radius4: "Whiteboard: Pen radius 4",
@@ -380,7 +380,6 @@ function createGUI() {
   buttonWhiteboard = createActionButton(
     "fas fa-edit checkbox",
     toggleWhiteboard,
-    false,
     l10n.toggle_whiteboard_mode
   );
   buttonWhiteboard.id = "whiteboardButton";

@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 to 6 are done, steps 7 to 9 are open.
+Status: steps 1 to 7 are done, steps 8 and 9 are open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -234,6 +234,62 @@ Behaviour that is documented as it is, left for the maintainer to decide:
   whiteboard (it changed in October 2026, so check its README against the code),
   feedback, a11y, search, menu, recording and live captions.
 - **Agent docs:** new `quizzes` topic. Add a live-code section to `templates`.
+
+The guide has a new chapter *During a presentation*. *Whiteboard* and *Audience
+Feedback* moved there.
+
+Fixed on the way:
+
+- A YAML block in a question was shown on the slide and had no effect, because the
+  media filter wraps code blocks before `handleQuizzes` runs (`Filter/Quiz.hs`).
+- The `W` key had no description in the help (`whitebard`), and the whiteboard toggle
+  button no tooltip (`whiteboard.js`).
+- The guide said that a list with one item in `.qic` becomes a blank (it is a selection
+  box with one option), and suggested `- B` as a wrong answer in `.qft` (every item of
+  a plain list is correct). It also named `print: true` and `menu: true`, which do
+  nothing. The print button is always in the menu.
+
+Checked in Chrome: all quiz types, the whiteboard with saving and auto-save, a11y,
+search, menu, and recording up to the upload, with fake devices. The live quizzer was
+checked up to the start of a poll with QR code on `quiz.jetzt`, without voters, so its
+results were not seen. Polls on exam questions were checked up to the session on
+`tramberend.bht-berlin.de`. Feedback was checked up to the button, with the server of TU
+Dortmund. Live captions were checked up to the button, because headless Chrome hears
+nothing. Green screen and playback are from the code only.
+
+**Removed from the guide, because it cannot be shown working:** the `poll` plugin (`poll:
+true`, `{.poll}` on a slide). `poll.js` has `polls.hci.informatik.uni-wuerzburg.de` hard
+coded, and it timed out on 2026-10-30. The overlay stays on its loading animation. Also,
+its YAML block has no effect and the labels of its chart are empty, because
+`Filter/Poll.hs` expects a slide structure that changed. `test/decks/poll-deck.md` shows
+it. The plugin, `Filter/Poll.hs` and the deck can go, or the plugin needs a server.
+
+Behaviour that is documented as it is, left for the maintainer to decide:
+
+- `decker-plugins.quiz` loads `quiz/quiz.js`, but `deck-plugins.html` never adds it to
+  `plugins`, so it does not start. Only its top-level code runs. `.quiz` lists
+  (`test/decks/ar-deck.md`), `polling.server`, `polling.selection` and `disable-quizzes`
+  have no effect. The plugin can go. `decker-plugins.quiz-wue` is the one that matters.
+- In a handout, the answers of a quiz are visible as checked boxes, which also applies to
+  pages. `deckerPipeline` only runs `handleQuizzes` for decks.
+- `quiz.solution`, on a document or a question, only adds its value as a class to the
+  question. `score`, `category`, `lectureId` and `topic` are parsed and never used.
+- `Show Solution` on a matching question without any moved item gives a browser `alert`.
+- The flash message of a11y mode says *Accessible Colors*, but no CSS looks at the class
+  `a11y`, so no color changes.
+- Presenter mode tries to open a poll session in every deck, also without `poll-server`,
+  and logs `[Examiner][Poll] Cannot connect` on the console.
+- `Reveal.getConfig().menu` is passed to the menu plugin, which does not read it.
+- A second live quiz on a slide is only an error message in the browser. The build does
+  not report it.
+- The quizzer uses `http://localhost:3000/` without `quizzer.url`, and `mono` only sets
+  `poll-server`. So with `mono`, a live quiz needs `quizzer.url` in the project.
+- A question without a level 1 heading above it breaks the slide structure, without a
+  diagnostic.
+- The whiteboard saves into the downloads folder and to the server on each save, so a
+  presenter gets a new download per save and page leave.
+- `tudo`, `nwburg` and `mario` load the quizzer in their own templates, so
+  `decker-plugins.quizzer` has no effect there.
 
 ### Step 8: Packs and theming
 

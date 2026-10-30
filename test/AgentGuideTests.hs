@@ -109,7 +109,7 @@ undocumentedOptions = []
 -- | Sections of the users' guide without any content. Lower this number when a
 -- section is written. See doc/users-guide-plan.md.
 emptySectionCount :: Int
-emptySectionCount = 4
+emptySectionCount = 3
 
 -- | @TODO@ placeholders in the users' guide. Lower this number when one is
 -- filled in.
@@ -248,7 +248,7 @@ agentGuideTests = describe "Agent guide" $ do
     withProject [] $ \dir -> do
       run <- runDecker dir ["agent-guide"]
       runExit run `shouldBe` ExitSuccess
-      forM_ ["decks", "media", "pages", "quests", "config", "templates"] $ \topic ->
+      forM_ ["decks", "media", "pages", "quests", "quizzes", "config", "templates"] $ \topic ->
         runStdout run `shouldContain` ("`decker agent-guide " <> topic <> "`")
 
   it "lists pack topics only for projects that use the pack" $ do
@@ -328,6 +328,42 @@ agentGuideTests = describe "Agent guide" $ do
       html <- buildDeck "" "# S\n\nKEPT\n\n``` comment\nGONE\n```\n"
       html `shouldSatisfy` T.isInfixOf "KEPT"
       html `shouldNotSatisfy` T.isInfixOf "GONE"
+
+  describe "quizzes" $ do
+    it "renders all question types in a deck" $
+      withProject [("a-deck.md", "# A\n\n## {.qmc}\n\n- [X] R\n  - Tip\n- [ ] W\n\n# B\n\n## {.qmi}\n\nB1\n: I1\n\n!\n: D\n\nB2\n: !\n\n# C\n\n## {.qic}\n\n- [X] R\n\ntext\n\n- [X] S\n\n# D\n\n## {.qft}\n\n- R\n\n# E\n\n::: qft\n- [ ] W\n- [X] R\n:::\n")] $ \dir -> do
+        run <- buildTargets dir ["a-deck.md"]
+        runExit run `shouldBe` ExitSuccess
+        html <- T.readFile (dir </> "public/a-deck.html")
+        forM_ ["ul class=\"choices\"", "class=\"matchItem distractor\"", "class=\"bucket distractor\"", "<select", "class=\"quiz-ftinput\"", "class=\"quiz-tooltip\""] $ \expected ->
+          html `shouldSatisfy` T.isInfixOf expected
+        T.count "<select" html `shouldBe` 2
+        T.count "class=\"quiz-ftinput\"" html `shouldBe` 2
+
+    it "takes a plain list in free text as correct answers" $ do
+      html <- buildMedia "# S\n\n## {.qft}\n\n- R\n- S\n"
+      T.count "<li class=\"correct\">" html `shouldBe` 2
+
+    it "applies the YAML block of a question and does not show it" $ do
+      html <- buildMedia "---\nlang: en\n---\n\n# S\n\n## {.qft}\n\n``` yaml\nlang: de\nquiz:\n  style: plain\n```\n\nQ?\n\n- R\n"
+      html `shouldSatisfy` T.isInfixOf "qft columns plain"
+      html `shouldSatisfy` T.isInfixOf "Eingeben"
+      html `shouldNotSatisfy` T.isInfixOf "<pre class=\"sourceCode"
+
+    it "keeps other code blocks of a question" $ do
+      html <- buildMedia "# S\n\n## {.qft}\n\n``` python\nkeptcode(1)\n```\n\n- R\n"
+      html `shouldSatisfy` T.isInfixOf "keptcode"
+
+    it "leaves a quiz on a page and in a handout as a plain list" $
+      withProject [("a-page.md", "## {.qmc}\n\n- [X] R\n"), ("b-deck.md", "# A\n\n## {.qmc}\n\n- [X] R\n")] $ \dir -> do
+        run <- buildTargets dir ["a-page.md"]
+        runExit run `shouldBe` ExitSuccess
+        run2 <- runDecker dir ["public/b-handout.html"]
+        runExit run2 `shouldBe` ExitSuccess
+        forM_ ["public/a-page.html", "public/b-handout.html"] $ \file -> do
+          html <- T.readFile (dir </> file)
+          html `shouldSatisfy` T.isInfixOf "task-list"
+          html `shouldNotSatisfy` T.isInfixOf "ul class=\"choices\""
 
   describe "media" $ do
     it "chooses the element from the extension and the class" $ do
