@@ -1286,8 +1286,8 @@ A new slide starts at every level-1 heading (`# ...`) and at every horizontal
 rule, a line of three or more dashes with blank lines around it. A rule
 directly followed by a heading counts as one slide break. A heading with the
 class `.sub` (`# Title {.sub}`) makes a vertical sub-slide below the previous
-slide. Level-2 headings inside a slide start blocks, which the layout classes
-(`.columns`, `.left`, `.right`, `.top`, `.bottom`, `grow="n"`) arrange.
+slide. Level-2 headings inside a slide start blocks, see [Slide
+layout](#slide-layout).
 
 A line of dashes directly below a line of text, without a blank line in
 between, is not a rule: Pandoc reads it as a setext heading and turns the text
@@ -1352,6 +1352,23 @@ Using this macro reduces the actual invocation to just:
 [@video](myvideo)
 ```
 
+The form of the definition decides how it is inserted. A template in
+`decker.yaml` is a plain string, and it is inserted as raw HTML, without any
+Markdown processing. A template in the front matter of a document is read as
+Markdown first.
+
+### Parameters
+
+`:(name)` in a template is replaced by the argument of that name.
+
+- A parameter without an argument is replaced by its own name: `:(3)` becomes
+  `3` if the macro got only two positional arguments.
+- `:(a|b)` takes the first of the names that has an argument. If none has one,
+  it is replaced by the last name, which makes this a default value:
+  `:(lang|en)` is `en` if there is no argument `lang`.
+- A link macro always has the arguments `url` and `title`, even if they are
+  empty. `:(title|url)` is empty for a link without a title.
+
 ### Link Macros
 
 Link Macros can be invoked by standard Markdown link expressions.
@@ -1371,8 +1388,17 @@ the others as `:(url)` and `:(title)` respectively. The actual arguments are
 inserted into the parsed Pandoc AST nodes of the definition by simple string
 replacement.
 
-Positional parameters are currently left unexpanded, because the macro filter
-does not accept parameter names that start with a digit. Use `:(args)` instead.
+Instead of the `@` prefix, the name can end with a colon:
+
+``` markdown
+    [macro_name: arg1 arg2 ... argn](url "title")
+```
+
+Use this form in documents with a bibliography. There, Pandoc reads `[@name ...]`
+as a citation before the macro is expanded. The macro stays unexpanded and
+Decker reports `citation-not-found`.
+
+A link whose name has no template remains a normal link.
 
 For example, the following macro definition
 
@@ -1390,7 +1416,7 @@ invoked like this
 will produce this text:
 
 ``` markdown
-:(1) :(2) :(3) url title arg1 arg2 arg3 arg4
+arg1 arg2 arg3 url title arg1 arg2 arg3 arg4
 ```
 
 The *url* parameter is automatically URL-encoded by the Pandoc parser. This
@@ -1420,8 +1446,9 @@ generated identifier that is suitable as an `id` value for HTML elements. The
 arguments are inserted into the parsed Pandoc AST nodes of the definition by
 simple string replacement.
 
-Positional parameters are currently left unexpanded, because the macro filter
-does not accept parameter names that start with a digit. Use `:(args)` instead.
+`:(attribs)` holds all attributes as `key="value"` pairs. `:(id)` is the id of the
+code block or, without one, the same value as `:(rnd-id)`. The prefix `data-` is
+removed from attribute names.
 
 For example, the following macro definition
 
@@ -1441,7 +1468,38 @@ The code
 will produce this text:
 
 ``` markdown
-:(1) :(2) :(3) value1 value2 arg1 arg2 arg3 The code
+arg1 arg2 arg3 value1 value2 arg1 arg2 arg3 The code
+```
+
+## Built-in macros
+
+These macros are links whose text starts with a colon. They work in every
+document type.
+
+| Macro                 | Result                                                     |
+|-----------------------|------------------------------------------------------------|
+| `[:fa](name)`         | The Font Awesome solid icon `name`, the same as `[:fas]`   |
+| `[:far](name)`        | The regular icon `name`                                    |
+| `[:fab](name)`        | The brand icon `name`                                      |
+| `[:hspace](width)`    | Horizontal space of a CSS width                            |
+| `[:vspace](height)`   | Vertical space of a CSS height                             |
+| `[:meta](key)`        | The value of a meta data key, struck through if it is unset |
+
+The icon name has no `fa-` prefix. Classes and a `style` attribute on the link are
+passed on to the icon:
+
+``` {.markdown .decker-example file="macros-deck.md"}
+---
+title: Macros
+---
+
+# Icons and space
+
+[:fa](ghost){style="color: red;"} [:fab](github)
+
+[:vspace](2em)
+
+This deck is called [:meta](title).
 ```
 
 ## Fragment templates
@@ -1608,7 +1666,322 @@ highlighting:
 
 ### Javascript ES6 modules
 
-## Slide layout
+## Slide layout {#slide-layout}
+
+Everything on this page and in the next section applies to decks and handouts.
+Pages have no slides: there, these classes and the `. . .` pause have no effect
+and the content stays visible.
+
+The body of a slide is a list of *blocks*. A block is a level-2 heading and
+everything up to the next level-2 heading. Content in front of the first level-2
+heading forms a block without a title, and so does an empty heading (`##`
+followed by attributes only).
+
+Attributes on the level-2 heading apply to the block:
+
+| Attribute                                  | Effect                                    |
+|--------------------------------------------|-------------------------------------------|
+| `.accent0` ... `.accent7`                  | Block in an accent colour                 |
+| `align="left"`, `"center"`, `"right"`      | Text alignment, also works on a slide     |
+| `width="30%"`                              | CSS width of the block                    |
+| `popup="center"`                           | Overlay, see [Popups](#popups)            |
+
+### Area layouts
+
+The class `.columns` or `.grid` on a slide (or `layout="columns"`,
+`layout="grid"`) assigns blocks to named areas. A block with the name of an area
+as a class starts that area. The blocks after it belong to the same area, up to
+the next block with an area class.
+
+``` {.markdown .decker-example file="columns-deck.md"}
+---
+title: Columns
+---
+
+# Two columns and a footer {.columns}
+
+## Left {.left grow="2"}
+
+The wider column.
+
+## Also left
+
+This block is in the left column, too.
+
+## Right {.right}
+
+The narrower column.
+
+## Footer {.bottom}
+
+The full width of the slide.
+```
+
+The two layouts have these areas, always in this position:
+
+| Layout     | Row 1                           | Row 2                     | Row 3                                 |
+|------------|---------------------------------|---------------------------|---------------------------------------|
+| `.columns` | `top` (full width)              | `left`, `center`, `right` | `bottom` (full width)                 |
+| `.grid`    | `top-left`, `top`, `top-right`  | `left`, `center`, `right` | `bottom-left`, `bottom`, `bottom-right` |
+
+- Unused areas take no space, the other columns of a row share its width.
+- `grow="2"` up to `grow="6"` on the first block of an area sets the relative
+  width of its column. It has no effect on a full-width row.
+- Using an area twice joins the blocks in document order.
+- **Only level-2 headings can start an area.** A `::: left` div or an image with
+  the class `.left` is ordinary block content.
+- **Content in front of the first area is removed from the slide without a
+  warning.** This includes any text directly below the slide heading.
+
+### Grid columns
+
+A div with the class `.columns-N-M...` lays out its child elements in columns
+with the given proportions. It can have any number of columns, can be nested and
+can be used inside a block. `width` and `height` attributes on a div become CSS
+sizes.
+
+``` {.markdown .decker-example file="grid-columns-deck.md"}
+---
+title: Grid columns
+---
+
+# Three columns
+
+Text above the columns.
+
+::: columns-2-3-2
+::: {}
+First column, with two paragraphs.
+
+The second paragraph.
+:::
+
+::: {align="center"}
+The wide second column.
+:::
+
+::: {width="50%"}
+Half of the third column.
+:::
+:::
+```
+
+Each direct child is one cell, so wrap several paragraphs in a div.
+
+### Flowing columns
+
+The class `.split` on a level-2 heading flows that block and the following ones
+into two columns. A block with the class `.join` ends them.
+
+``` {.markdown .decker-example file="split-deck.md"}
+---
+title: Split
+---
+
+# Split and join
+
+## First {.split}
+
+Flows into the two columns.
+
+## Second
+
+Also in the two columns.
+
+## Third {.join}
+
+Back to the full width.
+```
+
+### Columns from a heading
+
+If the first element on a slide is a level-2 heading that consists of two numbers,
+the next two elements become columns with these proportions. A level-3 heading
+with three numbers does the same for three elements. Wrap several elements in a
+div.
+
+``` {.markdown .decker-example file="number-columns-deck.md"}
+---
+title: Number columns
+---
+
+# One to three
+
+## 1 3
+
+The narrow column.
+
+The wide column.
+```
+
+### Popups {#popups}
+
+A block with the attribute `popup` lies on top of the slide with a shadow, usually
+together with `.fragment`. The values are `center`, and `center-up` and
+`center-down`, which also tilt the block. Handouts show it as a normal block.
+
+``` {.markdown .decker-example file="popup-deck.md"}
+---
+title: Popup
+---
+
+# Popups
+
+## Normal content
+
+Stays below the popup.
+
+## Surprise {.fragment popup="center" width="40%"}
+
+Appears on top after a click.
+```
+
+### Fragments
+
+Fragments appear one at a time. There are several ways to create them:
+
+- `.fragment` on a level-2 heading, an image or a span. The effect classes of
+  [Reveal.js](https://revealjs.com/fragments/) work as well, for example
+  `{.fragment .fade-out}`, and so does `data-fragment-index`.
+- A paragraph `. . .` shows everything up to the next one as one fragment. Use it
+  only between normal content: a level-2 heading after it ends up inside the
+  fragment and does not start a block.
+- `.incremental` on a level-2 heading or a div shows the list items one by one.
+- `.incremental` on a slide does this for all lists, and also makes every block a
+  fragment.
+- `.nonincremental` on a block or div exempts its lists. The block itself remains a
+  fragment on an incremental slide.
+
+``` {.markdown .decker-example file="fragments-deck.md"}
+---
+title: Fragments
+---
+
+# One after the other
+
+Always visible.
+
+. . .
+
+After the first click.
+
+. . .
+
+[This word]{.fragment .highlight-red} after the second click.
+
+# List items {.incremental}
+
+## Block and items
+
+- One
+- Two
+
+## Block only {.nonincremental}
+
+- All at once
+- With the block
+```
+
+## Notes, handouts and solutions
+
+The classes below select where content appears. They only work on level-1 and
+level-2 headings, and apply to the whole slide or block. **On divs, spans and images
+they have no effect, and the content appears everywhere.**
+
+| Class       | Deck              | Handout |
+|-------------|-------------------|---------|
+| `.deck`     | yes               | no      |
+| `.handout`  | no                | yes     |
+| `.comment`  | no                | no      |
+| `.notes`    | as speaker notes  | no      |
+
+A fenced code block with the class `.comment` is removed everywhere, too.
+
+``` {.markdown .decker-example file="selection-deck.md"}
+---
+title: Selection
+---
+
+# Only in the deck {.deck}
+
+Not in the handout.
+
+# Mixed
+
+## For everyone
+
+Everywhere.
+
+## In the handout {.handout}
+
+More detail for reading.
+
+## Note to self {.comment}
+
+Nowhere.
+```
+
+### Speaker notes
+
+Speaker notes are visible in the speaker view (key `s`). There are three ways to
+write them:
+
+- A block: `## Remember {.notes}`.
+- A slide: `# Remember {.notes}` is no slide of its own. It becomes the notes of
+  the slide before it.
+- A div: `::: notes`. Unlike the other two, **it stays visible in handouts**.
+
+`[text]{.notes}` on a span is not a speaker note, the text stays on the slide.
+
+``` {.markdown .decker-example file="notes-deck.md"}
+---
+title: Notes
+---
+
+# A slide
+
+Visible content.
+
+## Remember {.notes}
+
+Mention the example.
+
+# More notes {.notes}
+
+These belong to the slide above.
+```
+
+### Solutions
+
+`.solution` on a slide or block has no effect of its own. It marks content that
+`decker publish --lecture` removes from a deck with `lecture.status: upcoming`.
+
+`# Task {.dupsub}` adds a copy of the slide as a vertical sub-slide below it, with
+the class `.solution`, for example to work out the solution on the whiteboard. Both
+slides have the same id. The copy is not removed by `--lecture`.
+
+### Collapsible content
+
+`.details` on a level-2 heading turns the block into a collapsed element with the
+heading as its summary. A div also works, with the summary in an attribute. On pages
+it works on headings of any level. `.details .popup` on a heading opens the content
+as an overlay.
+
+``` {.markdown .decker-example file="details-deck.md"}
+---
+title: Details
+---
+
+# Collapsed
+
+## Click to read more {.details}
+
+- Hidden at first
+
+::: {.details summary="Also hidden"}
+Inside the first one, because it follows its heading.
+:::
+```
 
 ## Whiteboard
 

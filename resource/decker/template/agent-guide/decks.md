@@ -71,11 +71,102 @@ Appears at the bottom after a click.
 | `.left`, `.right`                                  | Place block in a column               |
 | `.top`, `.bottom`                                  | Place block above / below the columns |
 | `grow="n"`                                         | Relative column width                 |
+| `.grid` (also `.top-left`, `.bottom-right`, …)     | Three rows of three areas             |
 | `.fragment`                                        | Reveal on click                       |
 | `.incremental`                                     | Reveal list items one by one          |
 | `.accent0` … `.accent7`                            | Accent colour                         |
-| `.solution`                                        | Mark a block as solution              |
+| `width="30%"`                                      | Block width                           |
+| `.split`, `.join`                                  | Start / end two flowing columns       |
 | `popup="center"` (also `center-up`, `center-down`) | Show block as overlay                 |
+| `.details`                                         | Collapsed block, heading is summary   |
+
+**Gotchas in a `.columns` or `.grid` slide:**
+
+- Content before the first area is **removed without a warning**, including
+  text directly below the slide heading. Start with an area block.
+- Only level-2 headings start an area. `::: left` or an image with `.left` is
+  ordinary content.
+
+## Other layouts and fragments
+
+`::: columns-N-M` makes a column grid; each direct child is one cell. A paragraph
+`. . .` starts a fragment; do not put a level-2 heading after it, the heading
+would not start a block.
+
+```markdown {.decker-example file="grid-columns-deck.md"}
+# Grid columns
+
+::: columns-1-2
+::: {}
+Narrow, two paragraphs.
+
+The second one.
+:::
+
+::: {align="center"}
+Wide.
+:::
+:::
+
+. . .
+
+Appears after a click.
+```
+
+## Decks, handouts and notes
+
+These classes only work on level-1 and level-2 headings. On divs, spans and images
+they do nothing, and the content appears everywhere.
+
+| Class      | Deck          | Handout |
+|------------|---------------|---------|
+| `.deck`    | yes           | no      |
+| `.handout` | no            | yes     |
+| `.comment` | no            | no      |
+| `.notes`   | speaker notes | no      |
+
+`# Heading {.notes}` becomes the notes of the slide before it. A `::: notes` div is
+also a speaker note, but it stays visible in handouts. `[text]{.notes}` stays on the
+slide. `.solution` only matters to `decker publish --lecture`, which removes it from
+decks with `lecture.status: upcoming`.
+
+```markdown {.decker-example file="selection-deck.md"}
+# Slide
+
+Content for everyone.
+
+## Reminder {.notes}
+
+Speaker notes for this slide.
+
+# For reading only {.handout}
+
+Not shown in the deck.
+```
+
+Pages have no slides, so none of this applies there: the classes, `. . .` and
+`columns-N-M` do nothing and the content stays visible.
+
+## Icons and macros
+
+`[:fa](ghost)` is a Font Awesome icon (also `:far`, `:fab`), `[:vspace](2em)` and
+`[:hspace](2em)` add space, `[:meta](title)` inserts a meta value.
+
+Your own macros are defined under `templates:`. `:(1)`, `:(2)`, … are the words after
+the name, `:(url)` and `:(title)` the link target, and `:(lang|en)` is a parameter
+with a default. Prefer the form `[name: ...]`: in a document with a bibliography,
+`[@name ...]` is read as a citation.
+
+```yaml {.decker-example file="decker.yaml" project="macro"}
+templates:
+  shout: "<strong>:(1) :(url)</strong>"
+```
+
+```markdown {.decker-example file="macro-deck.md" project="macro"}
+# Macro
+
+[shout: Hello](World)
+```
 
 ## Including other files
 
@@ -212,5 +303,5 @@ Look for:
 `.fragment` content is hidden until revealed. Step through the fragments
 (arrow keys) and check the last state, where most content is shown.
 
-See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Decker's Markdown*, for media, layout and
-the remaining features.
+See the [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md), section *Decker's Markdown*, for media and the
+remaining features.

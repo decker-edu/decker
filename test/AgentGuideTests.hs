@@ -106,7 +106,7 @@ undocumentedOptions = ["lecture", "no-rebuild", "open", "poser", "single-thread"
 -- | Sections of the users' guide without any content. Lower this number when a
 -- section is written. See doc/users-guide-plan.md.
 emptySectionCount :: Int
-emptySectionCount = 28
+emptySectionCount = 27
 
 -- | @TODO@ placeholders in the users' guide. Lower this number when one is
 -- filled in.
@@ -275,6 +275,42 @@ agentGuideTests = describe "Agent guide" $ do
         page `shouldSatisfy` T.isInfixOf "<script type=\"module\" src=\"module.js\">"
         T.count "src=\"classic.js\"" page `shouldBe` 1
 
+  describe "template macros" $ do
+    it "expands positional parameters, defaults and the colon form" $ do
+      html <-
+        buildDeck
+          "templates:\n  m: \":(1)-:(2)-:(3)-:(lang|en)\"\n"
+          "---\ntitle: T\n---\n\n# S\n\n[@m a b](u)\n\n[m: c d](u)\n"
+      html `shouldSatisfy` T.isInfixOf "a-b-3-en"
+      html `shouldSatisfy` T.isInfixOf "c-d-3-en"
+
+    it "does not insert the document for a code block macro in the front matter" $ do
+      html <-
+        buildDeck
+          ""
+          "---\ntitle: T\ntemplates:\n  m: \"X :(1) :(code)\"\n---\n\n# First\n\nMARKER\n\n# Second\n\n``` {macro=\"m\" .a}\nthe code\n```\n"
+      T.count "MARKER" html `shouldBe` 1
+      html `shouldSatisfy` T.isInfixOf "X a the code"
+
+  describe "slide layout" $ do
+    it "keeps a level-3 heading of three words" $ do
+      html <- buildDeck "" "# S\n\n### Foo bar baz\n\nA\n\nB\n\nC\n"
+      html `shouldSatisfy` T.isInfixOf "Foo bar baz"
+
+    it "makes columns from a heading of numbers" $ do
+      html <- buildDeck "" "# S\n\n### 1 1 2\n\nA\n\nB\n\nC\n"
+      html `shouldSatisfy` T.isInfixOf "width:50%;float:left"
+
+    it "removes content in front of the first area" $ do
+      html <- buildDeck "" "# S {.columns}\n\nGONE\n\n## L {.left}\n\nKEPT\n"
+      html `shouldSatisfy` T.isInfixOf "KEPT"
+      html `shouldNotSatisfy` T.isInfixOf "GONE"
+
+    it "removes code blocks with the class comment" $ do
+      html <- buildDeck "" "# S\n\nKEPT\n\n``` comment\nGONE\n```\n"
+      html `shouldSatisfy` T.isInfixOf "KEPT"
+      html `shouldNotSatisfy` T.isInfixOf "GONE"
+
   it "fails on an unknown topic" $
     withProject [] $ \dir -> do
       run <- runDecker dir ["agent-guide", "no-such-topic"]
@@ -305,6 +341,14 @@ checkProject exs =
       expected ->
         unless (codes run == sort expected) $
           expectationFailure ("expected " <> show expected <> ", got " <> show (codes run) <> report)
+
+-- | Builds a deck in a project with the given @decker.yaml@ and returns its HTML.
+buildDeck :: Text -> Text -> IO Text
+buildDeck config source =
+  withProject [("decker.yaml", config), ("a-deck.md", source)] $ \dir -> do
+    run <- buildTargets dir ["a-deck.md"]
+    runExit run `shouldBe` ExitSuccess
+    T.readFile (dir </> "public/a-deck.html")
 
 -- | A port that is free right now.
 freePort :: IO Int

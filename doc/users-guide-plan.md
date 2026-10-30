@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 and 2 are done, steps 3 to 9 are open.
+Status: steps 1 to 3 are done, steps 4 to 9 are open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -83,12 +83,36 @@ pack does. This is documented as it is.
   `.notes`, `.handout`/`.deck`/`.comment`, `.details`, `.solution`, `.dupsub`,
   and the built-in macros (`[:fa]`, `[:vspace]`, `[:youtube]` and friends).
 - **Macros:** cover the `name:` invocation form and `:(a|b)` alternatives.
-- **Decide:** positional macro parameters (`:(1)`) never expand, because the
-  pattern in `Filter/Template.hs` rejects names that start with a digit, although
-  the filter builds those arguments. Either fix the pattern or remove them from
-  the guide, which currently describes the behaviour as it is.
+- **Decided:** positional macro parameters (`:(1)`) expand now. The pattern in
+  `Filter/Template.hs` accepts names that start with a digit.
 - **Agent docs:** expand `decks` with tested examples and remove its pointer to
   the guide for layout.
+
+Fixed on the way:
+
+- A code block macro with a one-line template from the front matter inserted the
+  whole document (`Filter/Template.hs`).
+- A level-3 heading of any three words was treated as column proportions: the
+  heading disappeared and the next three elements became columns
+  (`Filter/MarioCols.hs`).
+
+Behaviour that is documented as it is, left for the maintainer to decide:
+
+- Content in front of the first area of a `.columns` or `.grid` slide is dropped
+  without a diagnostic. `::: left` and images with `.left` do not start an area,
+  although `test/decks/column-deck.md` claims they do.
+- `.deck`, `.handout`, `.comment` and `.solution` have no effect on divs, spans
+  and images, and `.notes` none on spans, although
+  `test/decks/handout-deck.md` claims it.
+- `::: notes` stays visible in handouts, unlike notes blocks and notes slides.
+- `[@name]` link macros fail in a document with a bibliography, because
+  `processCites` runs before `expandTemplateMacros`.
+- The `.solution` copy that `.dupsub` makes is not removed by `--lecture`, because
+  `filterSelectedSlides` runs before `dupSub`. Both slides have the same id.
+- `[:youtube]`, which this plan used to list, is not a macro and stays a plain
+  link. Web videos are a topic of step 6.
+- `width` on a `.details` heading has no effect, although
+  `test/decks/detail-deck.md` uses it.
 
 ### Step 4: CLI reference
 
