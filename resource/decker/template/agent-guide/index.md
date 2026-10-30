@@ -106,6 +106,19 @@ These never return. Never run them in the foreground:
 - `decker exam-builder` — never; it opens a browser. To build its data, build
   `public/exam-builder/questions.json`.
 
+## Commands with effects outside the project
+
+Run these only when the user asks for exactly that:
+
+- `decker publish` copies `public/` to the configured destination, drafts
+  included, and deletes what else is there. `decker publish -l` also removes
+  `public/` and `private/` first and syncs the Chatty vector store.
+- `decker chatty` syncs the project to the Chatty vector store. With
+  `--prune-files` it deletes files in the OpenAI project.
+
+`decker clean` removes `public/`, `private/` and `chatty/`, and `decker purge`
+also the build caches. Both are safe, but the next build takes longer.
+
 ## Command reference
 
 | Purpose                              | Command                                          |
@@ -114,7 +127,10 @@ These never return. Never run them in the foreground:
 | Preview one question                 | `decker --strict private/<path>-quest.html`      |
 | Build the exam question catalog      | `decker --strict public/exam-builder/questions.json` |
 | Build all decks and pages            | `decker --strict html`                           |
-| Serve `public/` for a layout check   | `decker serve -p <free port>` (in the background) |
+| Build one kind of document           | `decker --strict decks` (or `pages`, `handouts`, `questions`) |
+| Build Moodle XML                     | `decker --strict moodle-xml`                     |
+| Build PDFs of all decks (needs Chrome) | `decker pdf`, on a free port: `decker pdf -p <port>` |
+| Serve `public/` for a layout check   | `decker serve -p <free port>` (in the background, builds nothing) |
 | Project facts as JSON                | `decker info --json`                             |
 | One guide topic / everything         | `decker agent-guide <topic>` / `--all`           |
 | Check external tools                 | `decker check`                                   |
@@ -128,6 +144,6 @@ A project can make strict mode the default with `strict: true` in
 
 <!-- decker:topics -->
 The [users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md)
-is the full human reference; its section *Agent support* describes these
-commands. It follows the development branch, so it may be newer than the
+is the full human reference; its sections *Targets*, *Commands*, *Options* and
+*Agent support* describe all commands. It follows the development branch, so it may be newer than the
 installed version. Where it disagrees with this guide, this guide is right.

@@ -1,6 +1,6 @@
 # Plan: complete the users' guide and the agent docs
 
-Status: steps 1 to 3 are done, steps 4 to 9 are open.
+Status: steps 1 to 4 are done, steps 5 to 9 are open.
 
 `users-guide/decker-users-guide.md` has empty sections, placeholder entries and
 statements that no longer match the code. The agent topics in
@@ -122,6 +122,38 @@ Behaviour that is documented as it is, left for the maintainer to decide:
   `publish` into its own chapter.
 - **Agent docs:** update the command table in `index`.
 - **Readme:** cut the target list down to a link to the guide.
+- **Tests:** every `phony` target in `app/Decker.hs` needs a heading.
+
+Fixed on the way:
+
+- `decker pdf` ignored `-m` and used the `-m` values of the previous build
+  (`Project/Shake.hs`).
+- `decker pdf -p PORT` started the server on `PORT`, but loaded the decks from port
+  8888, and failed with `ConnectionClosed` (`app/Decker.hs`).
+- The guide said that plain `decker publish` cleans `public/`, leaves out drafts and
+  syncs the vector store. Commit `f0b788b4` removed all of that on purpose, so that
+  PDFs survive. It also said that the mirror needs `publish.rsync.options`, which
+  has no effect, and `--delete` is a default.
+- `--help` shows `catalog` and `moodle-xml` with a description, and tells the three
+  `info` targets apart.
+
+Behaviour that is documented as it is, left for the maintainer to decide:
+
+- `decker crunch` looks for `x*.webm` next to `x-deck.md`, so the recording of
+  `x-deck.md` also contains that of `x-extra-deck.md` in the same directory.
+  Matching `x-recording*.webm` would prevent it.
+- `decker observed` does the same as `decker support`, because the code that registers
+  open pages is commented out in `Server/Server.hs`. Its `watch` flag is not read
+  either. The target can go.
+- `decker --open` opens the browser before the first build and before the server
+  starts (`runTargets`), so the first page load can fail.
+- `decker publish` without a destination prints a message, but exits with status 0.
+- `decker pdf` loads pages from whatever already listens on the port, which could be
+  a server of a different project.
+- Plain `decker publish` publishes drafts, and `-l` deletes PDFs and handouts at the
+  destination. Neither mode publishes PDFs without drafts.
+- The targets `*-handout.pdf` and `*-page.pdf` are computed in `Targets`, but no rule
+  builds them.
 
 ### Step 5: Getting started
 

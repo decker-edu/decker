@@ -226,7 +226,7 @@ docker context update podman --docker \
 
 To interactively work on the template, CSS and Javascript files in
 `resource/template` and `resource/support` run Decker as
-`stack run decker server`. This will automatically incorporate all changes and
+`stack run -- decker --server`. This will automatically incorporate all changes and
 reload the documents in the browser.
 
 ## External tools
@@ -285,99 +285,37 @@ following command in a terminal window:
 *Decker* behaves very much like a build tool. It works recursively on the
 current directory and all subdirectories. Markdown files ending on `.md` in
 those directories are processed and converted to either a
-[Reveal.js](https://revealjs.com) slide show, a HTML document, or a PDF
-document, depending on the file name.
+[Reveal.js](https://revealjs.com) slide show or a HTML document, depending on
+the file name.
 
 -   `*-deck.md`
 
-    Files with this ending are processed as silde decks. From one source file
-    potentially four different targets can be generated:
+    Files with this ending are processed as slide decks. From one source file
+    potentially three different targets can be generated:
 
     -   `*-deck.html` A reveal.js based slide show
     -   `*-handout.html` A HTML document containing the speaker notes to the
         slide show.
     -   `*-deck.pdf` A PDF version of the slide show
-    -   `*-handout.pdf` A PDF version of the handout
 
 -   `*-page.md`
 
     Markdown files ending on `*-page.md` are translated into corresponding HTML
-    or PDF documents.
+    documents.
 
-## *Decker* targets
+To start exploring Decker type
 
--   `decker version`
+``` bash
+$ decker example
+$ cd example
+$ decker --server
+```
 
-    Prints the current Decker version and branch as well as the current pandoc
-    version.
+and make some changes to the Markdown files.
 
--   `decker --help`
-
-    Lists all targets, commands and options.
-
--   `decker info`
-
-    Prints information about the current project's directories, the targets
-    (files which will be generated) and the meta data options which are found in
-    top level `decker.yaml` file.
-
--   `decker html`
-
-    Builds HTML versions of all available documents.
-
--   `decker decks`
-
-    Builds only HTML slide decks.
-
--   `decker pdf`
-
-    Builds PDF versions of all slide decks.
-
-    To use `decker pdf`, Google Chrome has to be installed.\
-    **Windows:** Currently `decker pdf` does not work on Windows. Please add
-    `print: true` or `menu: true` to your slide deck and use the print button in
-    the menu or on the title slide. **MacOS:** Follow the Google Chrome
-    installer instructions. **Google Chrome.app** has to be located in either
-    `/Applications/Google Chrome.app` or
-    `/Users/username/Applications/Google Chrome.app` Alternatively you can add
-    `chrome` to `$PATH`.\
-    **Linux:** `chrome` has to be on `$PATH`.
-
--   `decker --watch`
-
-    Builds HTML versions of all documents and then watches for document changes.
-    Each change to a watched document triggers a rebuild. Watching can be
-    terminated with `^C`.
-
--   `decker --server`
-
-    Like `decker --watch`. Additionally a local web server is started that serves
-    the generated HTML files. Changed files are reloaded in the browser. Add
-    `--open` to also open the browser.
-
--   `decker example`
-
-    Write a few example files to the current directory. To start exploring
-    Decker type
-
-    ``` bash
-    $ decker example
-    $ cd example
-    $ decker --server
-    ```
-
-    and make some changes to the Markdown files.
-
--   `decker clean`
-
-    Removes the generated `public`, `private` and `chatty` directories. `decker
-    purge` also removes cached resources.
-
--   `decker publish`
-
-    Publish the generated files to a remote location using `rsync` if the
-    location is specified in the meta data. The key `publish.rsync.destination`
-    specifies the publishing destination.
+`decker --help` lists all targets, commands and options, and the
+[users' guide](https://github.com/decker-edu/decker/blob/develop/users-guide/decker-users-guide.md#targets)
+describes them.
 
 ## Contributions
 

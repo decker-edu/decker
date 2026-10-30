@@ -97,16 +97,16 @@ usersGuideUrl = "https://github.com/decker-edu/decker/blob/develop/users-guide/d
 -- | Commands that have no heading in the users' guide yet. Remove a command
 -- when its section is written.
 undocumentedCommands :: [String]
-undocumentedCommands = ["format", "serve"]
+undocumentedCommands = []
 
 -- | Long options that have no heading in the users' guide yet.
 undocumentedOptions :: [String]
-undocumentedOptions = ["lecture", "no-rebuild", "open", "poser", "single-thread", "stderr"]
+undocumentedOptions = []
 
 -- | Sections of the users' guide without any content. Lower this number when a
 -- section is written. See doc/users-guide-plan.md.
 emptySectionCount :: Int
-emptySectionCount = 27
+emptySectionCount = 20
 
 -- | @TODO@ placeholders in the users' guide. Lower this number when one is
 -- filled in.
@@ -201,6 +201,13 @@ agentGuideTests = describe "Agent guide" $ do
       let documented command = any (=~ ("decker " <> T.pack command <> "([^a-z-]|$)" :: Text)) titles
       filter (not . documented) (sort (["agent-guide", "info", "publish"] <> deckerCommands))
         `shouldBe` undocumentedCommands
+
+    it "has a heading for every target" $ do
+      rules <- T.readFile "app/Decker.hs"
+      let targets = [target | [_, target] <- rules =~ ("phony \"([a-z-]+)\"" :: Text) :: [[Text]], target /= "pdf-start"]
+      let documented target = any (=~ ("decker " <> target <> "([^a-z-]|$)" :: Text)) titles
+      targets `shouldNotBe` []
+      filter (not . documented) targets `shouldBe` []
 
     it "has a heading for every option, except the known gaps" $ do
       let documented option = any (=~ ("--" <> T.pack option <> "([^a-z-]|$)" :: Text)) titles

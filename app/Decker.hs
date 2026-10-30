@@ -43,7 +43,7 @@ import Text.Decker.Internal.External (
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.PdfExport
-import Text.Decker.Project.ActionContext (Flags (LectureFlag, ProjectDirFlag), actionContext, extra)
+import Text.Decker.Project.ActionContext (Flags (LectureFlag, PortFlag, ProjectDirFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -52,6 +52,7 @@ import Text.Decker.Chatty.Upload (syncChattyToStore)
 import Text.Decker.Reader.Markdown (generateChattyMarkdown)
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
+import Text.Decker.Server.Server (aPort)
 import Text.Decker.Writer.Layout
 import Text.Groom
 import Text.Pandoc (Meta)
@@ -126,7 +127,7 @@ removeFileA target = do
 
 serverPort = 8888
 
-serverUrl = "http://localhost:" ++ show serverPort
+serverUrl port = "http://localhost:" ++ show port
 
 generatedIndex = publicDir </> "index-generated.html"
 
@@ -272,7 +273,9 @@ deckerRules = do
         exists <- doesFileExist annot
         when exists $ need [annot]
         need [src]
-        let url = serverUrl </> makeRelative publicDir src
+        context <- actionContext
+        let PortFlag port = fromMaybe (PortFlag serverPort) $ find aPort (context ^. extra)
+        let url = serverUrl port </> makeRelative publicDir src
         withResource chromeResource 1 $ do
           putInfo $ "# chrome started ... (for " <> out <> ")"
           liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
@@ -341,8 +344,9 @@ deckerRules = do
       qs <- liftIO $ mapM readQuestion questionSrcs
       renderXmlCatalog (matchesExam exam) qs out
     --
-    phony "catalog" $ do
-      need ["private/quest-catalog.html"]
+    withTargetDocs "Build a browsable page of all questions (private/quest-catalog.html)." $
+      phony "catalog" $ do
+        need ["private/quest-catalog.html"]
     --
     (publicDir </> "exam-builder" </> "questions.json") %> \out -> withDiagnostics out $ do
       meta <- getGlobalMeta
@@ -356,9 +360,10 @@ deckerRules = do
       -- public/, then render the question catalog the web app consumes.
       need ["html", publicDir </> "exam-builder" </> "questions.json"]
     --
-    phony "moodle-xml" $ do
-      deps <- getDeps
-      need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
+    withTargetDocs "Build Moodle XML of all questions and exams (private/quest-catalog.xml, private/*-exam.xml)." $
+      phony "moodle-xml" $ do
+        deps <- getDeps
+        need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
     --
     indexFile %> \out -> do
       targetsPath <- liftIO targetsFile
@@ -471,7 +476,7 @@ deckerRules = do
       deps <- getDeps
       need $ Map.keys (deps ^. static)
   --
-  withTargetDocs "Provide information about project parameters, sources and targets" $
+  withTargetDocs "Print the directories of the project and where its resources come from." $
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
       meta <- getGlobalMeta
@@ -484,7 +489,7 @@ deckerRules = do
         putStrLn $ "transient directory: " ++ transient
         putStrLn $ "template source: " <> show resources
   --
-  withTargetDocs "Provide information about project parameters, sources and targets" $
+  withTargetDocs "Like info, and also print the global meta data." $
     phony "more-info" $ do
       need ["info"]
       meta <- getGlobalMeta
@@ -492,7 +497,7 @@ deckerRules = do
         putStrLn "\ntop level meta data:\n"
         putStrLn (groom meta)
   --
-  withTargetDocs "Provide information about project parameters, sources and targets" $
+  withTargetDocs "Like more-info, and also print all sources and targets." $
     phony "even-more-info" $ do
       need ["more-info"]
       deps <- getDeps

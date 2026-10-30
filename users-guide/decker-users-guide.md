@@ -93,7 +93,7 @@ for platform-specific details, including Windows.
 ## Publishing
 
 Decker can use a locally installed [Rsync](https://rsync.samba.org) to publish
-the entire project to a remote location with the command
+the project to a remote location with the command
 
 ``` sh
 > decker publish
@@ -110,289 +110,169 @@ publish:
     destination: author@public.server.com:/var/www/html/cg-lectures
 ```
 
-To more precisely control the behaviour of Rsync, a list of options can be
-specified in the variable `publish.rsync.options`. For example, to *mirror* (as
-opposed to *copy* ) the public directory to the destination the setting would
-be:
+The default arguments of Rsync contain `--delete`, so the destination becomes a
+*mirror* of the public directory: a file that exists only at the destination is
+deleted. To change this, set the arguments in `external-tools.rsync.arguments`,
+see [External tools](#external-tools).
 
-``` yaml
-publish:
-  rsync:
-    destination: author@public.server.com:/var/www/html/cg-lectures
-    options: 
-      - --delete
-```
+What is published depends on the lecture flag `-l`, see [`decker
+publish`](#-decker-publish).
 
 # Targets
 
-Decker uses [Shake](https://shakebuild.com) as it's underlying build and
-dependency tracking system.
+``` sh
+> decker [options] [target] ...
+```
 
-## `> decker version`
+Decker uses [Shake](https://shakebuild.com) as its underlying build and
+dependency tracking system. A target is one of the names in this chapter or a
+file to be built. Only what is out of date gets built. Without a target, Decker
+builds `html`. Several targets can be given at once:
 
-## `> decker decks`
+``` sh
+> decker decks handouts
+```
+
+These are the files that can be given as a target:
+
+| Source                 | File target                                          |
+|------------------------|------------------------------------------------------|
+| `unit/x-deck.md`       | `public/unit/x-deck.html`, `public/unit/x-handout.html` |
+| `unit/x-page.md`       | `public/unit/x-page.html`                            |
+| `index.md`             | `public/index.html`                                  |
+| `unit/x-quest.yaml`    | `private/unit/x-quest.html`                          |
+| `unit/x-exam.yaml`     | `private/unit/x-exam.xml`                            |
+| all `*-quest.yaml`     | `private/quest-catalog.html`, `private/quest-catalog.xml`, `public/exam-builder/questions.json` |
+
+Most targets build the index page, which reads all questions. A question file
+that does not parse therefore fails them, including `decks` and `pages`. Only
+`static-files`, `search-index` and the `info` targets are not affected.
 
 ## `> decker html`
 
+The default target. Builds all decks and pages, the question previews, the index
+page and the support files. It does not build handouts or PDFs.
+
+## `> decker decks`
+
+Builds all decks (`*-deck.md`), the index page and the support files.
+
+## `> decker pages`
+
+Builds all pages (`*-page.md`) and the question previews, the index page and the
+support files.
+
+## `> decker handouts`
+
+Builds the handouts of all decks (`public/*-handout.html`), the question
+previews, the index page and the support files.
+
+## `> decker questions`
+
+Builds a preview for each question (`*-quest.yaml`) in `private/`, the index page
+and the support files.
+
+## `> decker catalog`
+
+Builds `private/quest-catalog.html`, a browsable page of all questions.
+
+## `> decker moodle-xml`
+
+Builds Moodle XML for import into a question bank:
+
+- `private/quest-catalog.xml` holds all questions, except for those with
+  `Exam: false`.
+- `private/<path>-exam.xml` holds the questions of the topics that are listed in
+  `<path>-exam.yaml`. [`decker exam-builder`](#-decker-exam-builder) writes these
+  files.
+
+## `> decker support`
+
+Builds the index page, copies the static files and extracts Decker's runtime
+files to `public/support`. The other build targets include this one.
+
+## `> decker static-files`
+
+Copies the directories listed in `static-resource-dirs` to `public/`.
+
 ## `> decker observed`
 
-## `> decker info`
-
-## `> decker check`
-
-## `> decker publish`
-
-Cleans the `public/` directory, rebuilds the project and copies it to the
-configured destination with Rsync (see [Publishing](#publishing)). Two modes are
-available, depending on whether the lecture flag `-l` (`--lecture`) is given.
-
-`> decker publish`
-
-:   Publishes the whole project. Slide decks marked `draft: true` (or
-    `lecture.status: draft`) are never built or published; all other decks and
-    all pages are published unchanged.
-
-`> decker publish -l`
-
-:   *Lecture publishing.* In addition to the draft rule above, the value of the
-    `lecture.status` meta variable controls what is published:
-
-    - `draft` --- the deck is not published.
-    - `done` --- the deck is published completely.
-    - `upcoming` --- the deck is published, but all slides and slide fragments
-      that carry the CSS class `.solution` are stripped from the output.
-
-If a vector store is configured (meta variable `chatty.vector-store-id:`),
-`decker publish` also generates the annotated Markdown for every published deck
-and page and syncs it to the store. The exact same filtering is applied: drafts
-never reach the store, and for `upcoming` lectures published with `-l` the
-`.solution` content is stripped before upload.
-
-To keep a document published while excluding its generated Markdown from
-Chatty, set the following in its YAML front matter:
-
-``` yaml
-chatty:
-  exclude: true
-```
-
-This applies to both `decker chatty` and publishing, including `index.md`.
-The default is `false`. It does not exclude content included by another
-document, or files uploaded directly through `chatty.extra`.
-
-Additionally, the meta variable `chatty.extra:` may list directories whose files
-are uploaded to the same vector store as is, without any processing:
-
-``` yaml
-chatty:
-  vector-store-id: vs_...
-  extra:
-    - handouts
-    - resources/glossary
-```
-
-Directories are searched recursively, relative to the project root. This is also
-the way to make source code, such as Java examples, available to Chatty. Two
-kinds of files are skipped:
-
--   Dotfiles and dot directories (`.DS_Store`, `.git/`, ...).
--   Files whose type OpenAI file search does not accept. Only these extensions
-    are uploaded: `.c`, `.cpp`, `.cs`, `.css`, `.doc`, `.docx`, `.go`,
-    `.html`, `.java`, `.js`, `.json`, `.md`, `.pdf`, `.php`, `.pptx`, `.py`,
-    `.rb`, `.sh`, `.tex`, `.ts`, `.txt`. Skipped files are summarized per
-    directory in the log, for example
-    `# chatty.extra: skipping 42 file(s) with unsupported extensions in code: .class .xml`.
-
-The store is reconciled on every run, so changed files are re-uploaded and files
-removed locally (from `chatty/` or from the `chatty.extra` directories) are
-removed from the store. Reconciliation keeps exactly one current version per
-file: stale duplicates and files lacking decker's bookkeeping attributes are
-removed. If the configured store no longer exists (for example because it was
-deleted in the OpenAI dashboard), `decker publish` skips the sync with a warning
-instead of failing; run `decker chatty` to create a fresh store.
-
-Note that deleting a vector store in the OpenAI dashboard does *not* delete the
-underlying uploaded file objects, which then linger in the project's file
-storage. Use `decker chatty --prune-files` to clean them up (see below).
-
-### Chatty system prompt and sealed config
-
-The chat assistant's system prompt, model and model parameters are authored in
-meta and **sealed into the published deck** at compile time. This replaces
-OpenAI's deprecated stored prompts. The work is split so each side changes at its
-own pace:
-
-- **Deck author (changes often):** the system prompt, model and params, written
-  in markdown and re-sealed on every `decker` build.
-- **Sysadmin (changes rarely):** the OpenAI API key and the encryption key, held
-  only in the `decker-chatty` proxy.
-
-How it flows at runtime:
-
-1. Decker encrypts the author config into `chatty.sealed-config` and strips the
-   plaintext, so the system prompt never appears in `public/`.
-2. The browser forwards the opaque blob to the proxy on every chat request and
-   does no crypto itself.
-3. The proxy decrypts the blob, then calls OpenAI with the sealed model,
-   instructions and `file_search` tool — ignoring any model/instructions/tools a
-   client tries to supply.
-
-The blob is AES-256-GCM with the `chatty.prompt` value bound as authenticated
-data, so a client can neither read the prompt nor move a blob between decks. (It
-does **not** protect against prompt-injection extraction once the chat is live.)
-
-#### Author configuration (meta)
-
-Set these under `chatty:` in `decker.yaml` (project-wide) or in a deck's YAML
-frontmatter:
-
-``` yaml
-chatty:
-  prompt: pmpt_tutor                 # selector into the proxy config (see below)
-  server: "https://example.org/chatty"
-  greeting: |
-    I'm **Prof. Bot**, your AI tutor for this course.
-  identity:
-    name: Prof. Bot
-    launcher:
-      icon: { type: fontawesome, value: fa-robot }
-    bot:
-      icon: { type: emoji, value: "🤖" }
-    user:
-      icon: { type: emoji, value: "🤔" }
-  instructions: ./prompts/tutor.md   # path to a file, or inline prompt text
-  model: gpt-4.1
-  params:
-    temperature: 0.2
-  vector-store-id: vs_abc123         # the file_search store, sealed into the blob
-```
-
-| Key                | Required | Meaning |
-|--------------------|----------|---------|
-| `prompt`           | yes      | A name that selects an entry in the proxy's `config.json`. **No longer an OpenAI stored-prompt id** — pick any stable string, e.g. `pmpt_tutor`. Also used as the encryption AAD. |
-| `server`           | yes      | URL of the `decker-chatty` proxy endpoint the deck POSTs to. |
-| `greeting`         | no       | Markdown greeting shown as the first Chatty message. |
-| `identity`         | no       | Name, launcher tooltip and launcher/bot/user icons. Icons use `{ type, value }` with `fontawesome`, `image`, `text`, or `emoji`. |
-| `instructions`     | yes      | The system prompt. If the value names an existing file (e.g. `./prompts/tutor.md`) its contents are used; otherwise the value is taken as inline text. |
-| `model`            | no       | OpenAI model id. Defaults to `gpt-4.1`. |
-| `params`           | no       | Extra Responses-API parameters merged into the request (e.g. `temperature`, `max_output_tokens`). Defaults to none. |
-| `vector-store-id`  | no       | The vector store used for `file_search` (the same id `decker chatty` uploads to). Omit to run without retrieval. |
-
-`instructions`, `model`, `params` and `vector-store-id` are sealed and then
-**removed** from the published meta. `prompt` and `server` remain (the client
-needs them); `chatty.sealed-config` is added.
-
-#### The encryption key (`chatty-key.json`)
-
-The key lives in a git-controlled **`chatty-key.json`** at the project root. It is
-read directly by the sealing code — never via `decker.yaml`, and never copied to
-`public/`. The simplest form is a single 32-byte key written straight to the file:
-
-``` bash
-openssl rand -base64 32 > chatty-key.json
-```
-
-That bare base64 line is accepted as-is. Equivalently you may quote it as a JSON
-string:
-
-``` json
-"Yk3v...base64-32-bytes...=="
-```
-
-Or, when one project serves several prompts, use a per-prompt JSON map:
-
-``` json
-{
-  "pmpt_tutor": "Yk3v...==",
-  "pmpt_grader": "Qp9a...=="
-}
-```
-
-The key must decode to exactly 32 bytes. If `chatty-key.json` is absent — or
-present but unparseable — sealing is skipped and the deck falls back to the
-legacy path; the build log says which, and the plaintext chatty config is still
-stripped from the output so the prompt never leaks.
-
-Decker logs, per chatty deck, whether it was **SEALED** (with a model /
-instructions / vector-store summary) or left in **LEGACY** mode (with the reason).
-Watch for the `# chatty:` lines during a build to confirm sealing actually ran.
-
-#### Proxy configuration (`decker-chatty`)
-
-The proxy's `config.json` maps each `prompt` id to its two secrets:
-
-``` json
-{
-  "port": 3000,
-  "prompts": {
-    "pmpt_tutor": {
-      "apiKey": "sk-...",
-      "deckConfigKey": "Yk3v...=="
-    }
-  }
-}
-```
-
-- `apiKey` — the OpenAI API key used for that prompt's requests.
-- `deckConfigKey` — **must be byte-for-byte the same** base64 key the author put
-  in `chatty-key.json` for that prompt id. Keys are validated (32 bytes) at
-  startup, so a mismatch in length fails fast; a content mismatch surfaces as a
-  `400 invalid sealed config` per request.
-
-Run it (typically behind a reverse proxy that terminates TLS and handles client
-authentication):
-
-``` bash
-cd decker-chatty
-npm install
-npm start          # or install the systemd service, see its README
-npm test           # optional: crypto-contract + body-assembly unit tests
-```
-
-#### End-to-end setup checklist
-
-1. **Generate a key:** `openssl rand -base64 32`.
-2. **Author side:** put the key in `chatty-key.json` at the project root; add the
-   `chatty:` block (above) to `decker.yaml`; keep the repo private to authors.
-3. **Proxy side:** add a `prompts.<prompt>` entry to the proxy `config.json` with
-   the OpenAI `apiKey` and the same key as `deckConfigKey`; start the proxy and
-   expose `server` over HTTPS.
-4. **Vector store (optional):** run `decker chatty` to create/sync the store and
-   set `chatty.vector-store-id`.
-5. **Build & publish:** `decker publish`. Verify the published
-   `public/<hash>.json` contains `chatty.sealed-config` and **not** the prompt
-   text, then open a deck and start a chat.
-
-#### Rotation and security notes
-
-- Rotating the **OpenAI `apiKey`** is free: edit the proxy `config.json`, no deck
-  recompile needed (the payoff of keeping the two secrets separate).
-- Rotating the **`deckConfigKey`** requires updating both `chatty-key.json` and
-  the proxy, then **recompiling** every deck that uses that prompt id.
-- `chatty-key.json` grants no more than repo read access already does — it does
-  **not** expose the OpenAI API key, which lives only in the proxy. Still, keep
-  any repo carrying it restricted to authors; if it is ever made public, rotate
-  the key and recompile.
-- Old decks published before this change (no sealed blob) keep working through a
-  legacy pass-through in the proxy, until OpenAI removes stored prompts.
+Meant to build only the pages that are open in a connected browser. No page is
+ever registered as open at the moment, so this does the same as `decker support`.
 
 ## `> decker search-index`
 
-Builds an inverted index over all Markdown source files and stores it in JSON in
+Builds an inverted index over all decks and stores it in JSON in
 `public/index.json`. The index can be used to implement incremental live-search
-over all slides inside a Decker project.
+over all slides inside a Decker project. Pages are not included.
 
-This may well be a little time consuming, so it ist best called only right
-before `decker publish`.
+This may well be a little time consuming, so it is best called only right
+before `decker publish`. `decker publish -l` builds the index itself.
 
-Decks that have set `draft: true` or whose (feedback) deck ids are in the global
-`no-index:` list are removed from the search index.
+Decks that have set `draft: true` or `lecture.status: draft`, or whose
+(feedback) deck ids are in the global `no-index:` list, are removed from the
+search index.
+
+## `> decker info`
+
+Prints the project, public, support and transient directories and where the
+resources come from. With `--json`, it prints the project facts instead, see
+[`decker info --json`](#-decker-info---json).
+
+## `> decker more-info`, `> decker even-more-info`
+
+`decker more-info` also prints the global meta data, as Decker sees it after
+merging all sources. `decker even-more-info` also prints all sources and targets.
+
+## `> decker publish`
+
+Builds the project and copies the directory `public/` to the configured
+destination with Rsync (see [Publishing](#publishing)). `public/manifest.json`
+lists all published files with their modification times and sizes. If no
+destination is configured, Decker prints a message and exits with status 0.
+Two modes are available, depending on whether the lecture flag `-l`
+(`--lecture`) is given.
+
+`> decker publish`
+
+:   Builds all decks and pages and copies everything in `public/`. Nothing is
+    filtered: **drafts are published**, and so are all files of earlier builds. To
+    publish handouts and PDFs, build them first with `decker handouts` and `decker
+    pdf`. The Chatty vector store is not touched.
+
+`> decker publish -l`
+
+:   *Lecture publishing.* Removes `public/`, `private/` and `chatty/` first and
+    then builds only the search index and the decks and pages that are not drafts.
+    A draft is a document with `draft: true` or `lecture.status: draft`. Handouts
+    and PDFs are not built, so with the default Rsync arguments they disappear from
+    the destination. The value of the `lecture.status` meta variable controls what
+    is published:
+
+    - `draft` --- the document is not published.
+    - `done` --- the document is published completely.
+    - `upcoming` --- the document is published, but [solutions](#solutions) are
+      removed from the output.
+
+    If a vector store is configured, it is synced as well, see
+    [Vector store](#vector-store).
 
 # Commands
 
-Most commands do not engage the global dependency checking and will not trigger
-rebuilds. The exceptions are `pdf`, `chatty` and `exam-builder`, which build what
-they need first.
+A command must be the only target: `decker clean html` fails. Most commands do
+not engage the global dependency checking and will not trigger rebuilds. The
+exceptions are `pdf`, `chatty` and `exam-builder`, which build what they need
+first.
+
+## `> decker version`
+
+Prints the versions of Decker, with branch, commit and build date, and of Pandoc.
+
+## `> decker check`
+
+Lists the programs defined in [`external-tools`](#external-tools), each with the
+path where it was found, or `-` if it is missing. It only reports, and its exit
+status is always 0.
 
 ## `> decker clean`
 
@@ -401,35 +281,88 @@ directory.
 
 ## `> decker purge`
 
-Does what `decker clean` does and also removes the `.decker` directory, where
-many things are cached during compilation, and all rendered code directories.
-Expect increased compilation times after a purge.
+Does what `decker clean` does and also removes the project's transient directory,
+where many things are cached during compilation, and all `.rendered-code`
+directories. The transient directory is located in the temporary directory of the
+system, `decker info` shows where. Expect increased compilation times after a
+purge.
 
 ## `> decker example`
 
+Writes a small example project to the directory `example` below the project root.
+Files of an earlier example are overwritten. The current directory is the project
+root if neither it nor any directory above it has a `decker.yaml` or `.git`. To
+start exploring Decker:
+
+``` sh
+> decker example
+> cd example
+> decker --server --open
+```
+
+## `> decker serve`
+
+Starts just the HTTP server for the existing `public/` directory, on the address
+and port given by `-b` and `-p`. It builds nothing, does not watch any files and
+does not reload browsers, so run a build first. The server also receives recordings
+from the browser (see [`-P`](#-p---poser)). It runs until it is interrupted, and
+exits with status 7 if the port is in use.
+
+To build, watch and serve at the same time, use `decker --server`.
+
+## `> decker format`
+
+Reads Decker Markdown from standard input and writes it to standard output in a
+normalized form, for use from a text editor. It needs no project.
+
+Decker's own syntax passes through unchanged, but be aware that this is a rewrite
+by Pandoc: the keys of the front matter are sorted, list markers and rules are
+normalized, footnotes move to the end, emoji codes become emoji and
+`<span class="x">` becomes `[...]{.x}`.
+
 ## `> decker pdf`
 
-Compiles PDF documents for all HTML decks. It starts a headless Chrome browser
-and uses it's printing capabilities to do that.
+Builds all decks (drafts as well) and compiles a PDF document for each one
+(`public/*-deck.pdf`). It starts a headless Chrome browser and uses its printing
+capabilities to do that. The decks are loaded from a server that Decker starts for
+this purpose, so the port has to be free. Use `-p` if it is not.
 
-This may well be a little time consuming, so it ist best called only right
+Google Chrome has to be installed. On macOS it must be located in `/Applications`
+or `/Users/<username>/Applications`, on Linux `chrome` has to be on the `PATH`.
+`decker pdf` does not work on Windows: add `print: true` or `menu: true` to the
+deck and use the print button on the title slide. A message `thread killed` at the
+end of the run is normal, it is how the browser gets stopped.
+
+This may well be a little time consuming, so it is best called only right
 before `decker publish`.
 
 ## `> decker crunch`
 
-Uses `ffmpeg` to concatenate and transcode raw video recordings of presentation
-sessions. All WebM video segments for a presentation are combined and trancoded
-into a single MP4 container that uses considerably less space on disk and in
-transit.
+Uses `ffmpeg` to transcode raw video recordings of presentation sessions into MP4
+files that use considerably less space on disk and in transit. A recording
+`x-recording.webm` of the deck `x-deck.md` becomes `x-recording.mp4`. A recording in
+several segments (`x-recording-0.webm`, `x-recording-1.webm`, ...) is transcoded
+segment by segment and then combined into `x-recording.mp4`. Only what is older than
+its source is redone, and the WebM files stay in place.
+
+The segments are found by name: all files `x*.webm` next to the deck. Decks whose
+names start with the name of another deck, such as `x-deck.md` and `x-extra-deck.md`,
+must therefore be located in different directories, or the recording of `x-deck.md`
+will contain the other one too.
 
 ## `> decker transcribe`
 
-Uses `whisper.cpp` to transcribe video recordings to the recorded language and
-English. Transcriptions are stored alongside the video files in `VTT` format and
-are automatically available during playback.
+Uses `whisper.cpp` to transcribe the recording `x-recording.mp4` of each deck, so run
+`decker crunch` first. The results are stored alongside the video files in `VTT`
+format and are automatically available during playback:
 
-[`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) needs to be installed locally (e.g. via homebrew) and configured accordingly in
-`decker.yaml`. Configuration meta data variables are:
+- `x-recording-en.vtt`, translated to English if the recording is in another language.
+- `x-recording-<lang>.vtt`, in the language of the recording.
+
+Only what is older than the recording is redone. [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp)
+needs to be installed locally (e.g. via homebrew). The programs are defined by the
+tools `mp4towav` and `whisper` in [`external-tools`](#external-tools). Configuration
+meta data variables are:
 
 ``` yaml
 # whisper.cpp transcription settings
@@ -438,30 +371,14 @@ whisper:
   lang: de
 ```
 
+The values shown are the defaults.
+
 ## `> decker chatty`
 
 Builds the annotated Markdown for the project and syncs it to the configured
-OpenAI vector store, the same way `decker publish` does (see [`decker
-publish`](#-decker-publish) for the reconciliation rules and the
-`chatty.vector-store-id`, `chatty.vector-store-name` and `chatty.extra` meta
-variables).
-
-Decker does not need an OpenAI API key for this. All vector store requests go
-through the decker-chatty proxy at `chatty.server`. Each request is signed with
-the deck-config key for `chatty.prompt` from `chatty-key.json`, the same key used
-to seal the chatty configuration. The proxy checks the signature and forwards the
-request to OpenAI with the API key it keeps for that prompt.
-
-If no `chatty.vector-store-id` is configured, or the configured store no longer
-exists, a new vector store is created and its id is printed for you to paste into
-`decker.yaml`.
-
-With the `--prune-files` option, after the sync every assistant-purpose file
-object in the OpenAI project that is *not* attached to the store is deleted. This
-removes files left dangling in the project's file storage, for instance after a
-vector store was deleted in the OpenAI dashboard. This is destructive and
-operates on all assistant-purpose files in the project, not only those uploaded
-by decker.
+OpenAI vector store, see [Vector store](#vector-store). With `--prune-files`, it
+also deletes the file objects in the OpenAI project that are not attached to the
+store.
 
 ## `> decker exam-builder`
 
@@ -579,11 +496,22 @@ List all decker commands, targets and options.
 
 ## `-m key=value`, `--meta="key=value"`
 
-Specifies meta data variables (see below).
+Sets a [meta data](#meta-data) variable for this run. It overrides `decker.yaml`, but
+not the meta data section of a document. The key can be compound, and the value must
+not contain a `=`. `True` and `False` become boolean values, everything else is a
+string:
+
+``` sh
+> decker -m lang=fr -m feedback.deck-id=intro html
+```
 
 ## `-S`, `--server`
 
-Serve the public dir via HTTP (implies --watch).
+Runs the build, then serves the public directory via HTTP on
+`http://localhost:8888` and watches for changes like `--watch`. Open pages reload
+after every rebuild. Stop it with `^C`. Without a target it builds `html`.
+
+To serve without building, use [`decker serve`](#-decker-serve).
 
 ## `-p PORT`, `--port=PORT`
 
@@ -599,7 +527,41 @@ browsers fall back from IPv6 to `127.0.0.1`.
 
 ## `-w`, `--watch`
 
-Watch changes to source files and rebuild current target if necessary.
+Runs the build, then watches for changes to files in the project and builds the
+given targets again. Stop it with `^C`.
+
+## `-n`, `--no-rebuild`
+
+With `--server` or `--watch`: after a change, only reload the open pages and do not
+build anything. The first build still runs.
+
+## `-o`, `--open`
+
+Opens `index.html` on the HTTP server in the default browser (`open` on macOS,
+`xdg-open` on Linux, elsewhere the URL is printed). Use it with `--server`. The
+browser opens before the first build is done and before the server runs, so the page
+may have to be reloaded.
+
+## `-P`, `--poser`
+
+With a running server: as soon as a recording arrives from the browser, convert it
+to MP4 next to the WebM file. The video stream is copied, so this is quick, but it
+is meant for H.264 video. Without the option, only `decker crunch` creates MP4 files.
+
+## `-l`, `--lecture`
+
+Enables lecture publishing, see [`decker publish`](#-decker-publish). The option also
+works for builds: `decker -l html` builds documents with `lecture.status: upcoming`
+without their solutions, and the next build without `-l` brings them back.
+
+## `-e`, `--stderr`
+
+Prints errors on standard error, turns off colors and keeps building the other
+targets after an error. The exit status is still 1.
+
+## `-t`, `--single-thread`
+
+Builds with one thread instead of one per CPU core. This is the same as `-j1`.
 
 ## `-d DIR`, `--project-dir=DIR`
 
@@ -658,6 +620,12 @@ With `decker agent-docs`: do not write the Claude skill, or the section in
 
 With `decker chatty`: after syncing, delete all assistant-purpose OpenAI file
 objects that are not attached to the vector store.
+
+## Options of Shake
+
+`decker --help` also lists the options of Shake, the build system. Useful ones are
+`-j[N]` for the number of threads, `-B` to build everything regardless of what is up
+to date, `-k` to keep going after an error, `-V` for more and `-q` for less output.
 
 # Resources
 
@@ -1136,7 +1104,7 @@ An image, as used by `logo`, `teaser` and `logos`, is a path or a map with the k
     | `quiz-wue` | `true`  | An alternative quiz implementation             |
     | `feedback` | `true`  | [Audience feedback](#audience-feedback)        |
     | `notes`    | `true`  | Speaker view                                   |
-    | `chatty`   | `false` | Chat assistant, see `decker chatty`            |
+    | `chatty`   | `false` | Chat assistant, see [Chatty](#chatty)          |
     | `quizzer`  | `false` | Live quizzes for the audience                  |
 
     The other plugins are always loaded, except for the highlight plugin, which
@@ -2350,6 +2318,252 @@ Import the snippet in the block that proxies to codapi, before the
 ## GraphViz
 
 ## Gnuplot
+
+# Chatty
+
+Chatty is a chat assistant for decks. Its answers come from OpenAI, and it can
+search the course material in an OpenAI vector store. The browser talks to the
+`decker-chatty` proxy, which holds the OpenAI API key. Enable it with
+`decker-plugins`, see [Plugins and page features](#plugins-and-page-features).
+
+## Vector store
+
+`decker chatty` builds annotated Markdown from all decks and pages that are not
+drafts, writes it to the directory `chatty/` and syncs it to the vector store.
+Without a `chatty.server` it stops after writing the Markdown, with exit
+status 1.
+
+Decker does not need an OpenAI API key for this. All vector store requests go
+through the decker-chatty proxy at `chatty.server`. Each request is signed with
+the deck-config key for `chatty.prompt` from `chatty-key.json`, the same key used
+to seal the chatty configuration. The proxy checks the signature and forwards the
+request to OpenAI with the API key it keeps for that prompt.
+
+If no `chatty.vector-store-id` is configured, or the configured store no longer
+exists, a new vector store is created and its id is printed for you to paste into
+`decker.yaml`.
+
+With the `--prune-files` option, after the sync every assistant-purpose file
+object in the OpenAI project that is *not* attached to the store is deleted. This
+removes files left dangling in the project's file storage, for instance after a
+vector store was deleted in the OpenAI dashboard. This is destructive and
+operates on all assistant-purpose files in the project, not only those uploaded
+by decker.
+
+If a vector store is configured (meta variable `chatty.vector-store-id:`),
+`decker publish -l` also generates the annotated Markdown for every published
+deck and page and syncs it to the store. The exact same filtering is applied: drafts
+never reach the store, and for `upcoming` lectures the `.solution` content is
+stripped before upload. Plain `decker publish` does not touch the store.
+
+To keep a document published while excluding its generated Markdown from
+Chatty, set the following in its YAML front matter:
+
+``` yaml
+chatty:
+  exclude: true
+```
+
+This applies to both `decker chatty` and `decker publish -l`, including
+`index.md`.
+The default is `false`. It does not exclude content included by another
+document, or files uploaded directly through `chatty.extra`.
+
+Additionally, the meta variable `chatty.extra:` may list directories whose files
+are uploaded to the same vector store as is, without any processing:
+
+``` yaml
+chatty:
+  vector-store-id: vs_...
+  extra:
+    - handouts
+    - resources/glossary
+```
+
+Directories are searched recursively, relative to the project root. This is also
+the way to make source code, such as Java examples, available to Chatty. Two
+kinds of files are skipped:
+
+-   Dotfiles and dot directories (`.DS_Store`, `.git/`, ...).
+-   Files whose type OpenAI file search does not accept. Only these extensions
+    are uploaded: `.c`, `.cpp`, `.cs`, `.css`, `.doc`, `.docx`, `.go`,
+    `.html`, `.java`, `.js`, `.json`, `.md`, `.pdf`, `.php`, `.pptx`, `.py`,
+    `.rb`, `.sh`, `.tex`, `.ts`, `.txt`. Skipped files are summarized per
+    directory in the log, for example
+    `# chatty.extra: skipping 42 file(s) with unsupported extensions in code: .class .xml`.
+
+The store is reconciled on every run, so changed files are re-uploaded and files
+removed locally (from `chatty/` or from the `chatty.extra` directories) are
+removed from the store. Reconciliation keeps exactly one current version per
+file: stale duplicates and files lacking decker's bookkeeping attributes are
+removed. If the configured store no longer exists (for example because it was
+deleted in the OpenAI dashboard), `decker publish -l` skips the sync with a warning
+instead of failing; run `decker chatty` to create a fresh store.
+
+Note that deleting a vector store in the OpenAI dashboard does *not* delete the
+underlying uploaded file objects, which then linger in the project's file
+storage. Use `decker chatty --prune-files` to clean them up (see below).
+
+## System prompt and sealed config
+
+The chat assistant's system prompt, model and model parameters are authored in
+meta and **sealed into the published deck** at compile time. This replaces
+OpenAI's deprecated stored prompts. The work is split so each side changes at its
+own pace:
+
+- **Deck author (changes often):** the system prompt, model and params, written
+  in markdown and re-sealed on every `decker` build.
+- **Sysadmin (changes rarely):** the OpenAI API key and the encryption key, held
+  only in the `decker-chatty` proxy.
+
+How it flows at runtime:
+
+1. Decker encrypts the author config into `chatty.sealed-config` and strips the
+   plaintext, so the system prompt never appears in `public/`.
+2. The browser forwards the opaque blob to the proxy on every chat request and
+   does no crypto itself.
+3. The proxy decrypts the blob, then calls OpenAI with the sealed model,
+   instructions and `file_search` tool — ignoring any model/instructions/tools a
+   client tries to supply.
+
+The blob is AES-256-GCM with the `chatty.prompt` value bound as authenticated
+data, so a client can neither read the prompt nor move a blob between decks. (It
+does **not** protect against prompt-injection extraction once the chat is live.)
+
+### Author configuration (meta)
+
+Set these under `chatty:` in `decker.yaml` (project-wide) or in a deck's YAML
+frontmatter:
+
+``` yaml
+chatty:
+  prompt: pmpt_tutor                 # selector into the proxy config (see below)
+  server: "https://example.org/chatty"
+  greeting: |
+    I'm **Prof. Bot**, your AI tutor for this course.
+  identity:
+    name: Prof. Bot
+    launcher:
+      icon: { type: fontawesome, value: fa-robot }
+    bot:
+      icon: { type: emoji, value: "🤖" }
+    user:
+      icon: { type: emoji, value: "🤔" }
+  instructions: ./prompts/tutor.md   # path to a file, or inline prompt text
+  model: gpt-4.1
+  params:
+    temperature: 0.2
+  vector-store-id: vs_abc123         # the file_search store, sealed into the blob
+```
+
+| Key                | Required | Meaning |
+|--------------------|----------|---------|
+| `prompt`           | yes      | A name that selects an entry in the proxy's `config.json`. **No longer an OpenAI stored-prompt id** — pick any stable string, e.g. `pmpt_tutor`. Also used as the encryption AAD. |
+| `server`           | yes      | URL of the `decker-chatty` proxy endpoint the deck POSTs to. |
+| `greeting`         | no       | Markdown greeting shown as the first Chatty message. |
+| `identity`         | no       | Name, launcher tooltip and launcher/bot/user icons. Icons use `{ type, value }` with `fontawesome`, `image`, `text`, or `emoji`. |
+| `instructions`     | yes      | The system prompt. If the value names an existing file (e.g. `./prompts/tutor.md`) its contents are used; otherwise the value is taken as inline text. |
+| `model`            | no       | OpenAI model id. Defaults to `gpt-4.1`. |
+| `params`           | no       | Extra Responses-API parameters merged into the request (e.g. `temperature`, `max_output_tokens`). Defaults to none. |
+| `vector-store-id`  | no       | The vector store used for `file_search` (the same id `decker chatty` uploads to). Omit to run without retrieval. |
+
+`instructions`, `model`, `params` and `vector-store-id` are sealed and then
+**removed** from the published meta. `prompt` and `server` remain (the client
+needs them); `chatty.sealed-config` is added.
+
+### The encryption key (`chatty-key.json`)
+
+The key lives in a git-controlled **`chatty-key.json`** at the project root. It is
+read directly by the sealing code — never via `decker.yaml`, and never copied to
+`public/`. The simplest form is a single 32-byte key written straight to the file:
+
+``` bash
+openssl rand -base64 32 > chatty-key.json
+```
+
+That bare base64 line is accepted as-is. Equivalently you may quote it as a JSON
+string:
+
+``` json
+"Yk3v...base64-32-bytes...=="
+```
+
+Or, when one project serves several prompts, use a per-prompt JSON map:
+
+``` json
+{
+  "pmpt_tutor": "Yk3v...==",
+  "pmpt_grader": "Qp9a...=="
+}
+```
+
+The key must decode to exactly 32 bytes. If `chatty-key.json` is absent — or
+present but unparseable — sealing is skipped and the deck falls back to the
+legacy path; the build log says which, and the plaintext chatty config is still
+stripped from the output so the prompt never leaks.
+
+Decker logs, per chatty deck, whether it was **SEALED** (with a model /
+instructions / vector-store summary) or left in **LEGACY** mode (with the reason).
+Watch for the `# chatty:` lines during a build to confirm sealing actually ran.
+
+### Proxy configuration (`decker-chatty`)
+
+The proxy's `config.json` maps each `prompt` id to its two secrets:
+
+``` json
+{
+  "port": 3000,
+  "prompts": {
+    "pmpt_tutor": {
+      "apiKey": "sk-...",
+      "deckConfigKey": "Yk3v...=="
+    }
+  }
+}
+```
+
+- `apiKey` — the OpenAI API key used for that prompt's requests.
+- `deckConfigKey` — **must be byte-for-byte the same** base64 key the author put
+  in `chatty-key.json` for that prompt id. Keys are validated (32 bytes) at
+  startup, so a mismatch in length fails fast; a content mismatch surfaces as a
+  `400 invalid sealed config` per request.
+
+Run it (typically behind a reverse proxy that terminates TLS and handles client
+authentication):
+
+``` bash
+cd decker-chatty
+npm install
+npm start          # or install the systemd service, see its README
+npm test           # optional: crypto-contract + body-assembly unit tests
+```
+
+### End-to-end setup checklist
+
+1. **Generate a key:** `openssl rand -base64 32`.
+2. **Author side:** put the key in `chatty-key.json` at the project root; add the
+   `chatty:` block (above) to `decker.yaml`; keep the repo private to authors.
+3. **Proxy side:** add a `prompts.<prompt>` entry to the proxy `config.json` with
+   the OpenAI `apiKey` and the same key as `deckConfigKey`; start the proxy and
+   expose `server` over HTTPS.
+4. **Vector store (optional):** run `decker chatty` to create/sync the store and
+   set `chatty.vector-store-id`.
+5. **Build & publish:** `decker publish`. Verify the published
+   `public/<hash>.json` contains `chatty.sealed-config` and **not** the prompt
+   text, then open a deck and start a chat.
+
+### Rotation and security notes
+
+- Rotating the **OpenAI `apiKey`** is free: edit the proxy `config.json`, no deck
+  recompile needed (the payoff of keeping the two secrets separate).
+- Rotating the **`deckConfigKey`** requires updating both `chatty-key.json` and
+  the proxy, then **recompiling** every deck that uses that prompt id.
+- `chatty-key.json` grants no more than repo read access already does — it does
+  **not** expose the OpenAI API key, which lives only in the proxy. Still, keep
+  any repo carrying it restricted to authors; if it is ever made public, rotate
+  the key and recompile.
+- Old decks published before this change (no sealed blob) keep working through a
+  legacy pass-through in the proxy, until OpenAI removes stored prompts.
 
 # Exam questions
 

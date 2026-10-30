@@ -296,6 +296,7 @@ runCommand context command rules = do
     "agent-docs" -> runAgentDocs meta (agentDocsOptsFromFlags (context ^. extra))
     "pdf" -> do
       putStrLn (toString pdfMsg)
+      extractMetaIntoFile (context ^. extra)
       id <- forkServer context
       runShake context rules
       killThread id
