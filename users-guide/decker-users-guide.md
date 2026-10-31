@@ -666,10 +666,19 @@ by id (`http://127.0.0.1:PORT/deck.html#/slide-id`) and take screenshots.
 Decks do not work from `file://` URLs. If the port is in use, `decker serve`
 exits with status 7.
 
-The topics are Markdown files in `template/agent-guide/` of the resources. A
-resource pack adds topics by shipping its own files there; a pack topic
-replaces a Decker topic with the same name. The examples in the topics are
-built by Decker's test suite, so they cannot drift from the implementation.
+An unknown topic prints the available topics and exits with status 1.
+
+The command writes no files and starts no build. It reads `decker.yaml` and the
+`-m` options of the same call to find the resource pack.
+
+The guide is not generated from the code. Each topic is a hand-written Markdown
+file, `template/agent-guide/<topic>.md`, in the resources: the base pack holds
+them in `resource/decker/template/agent-guide/` in the Decker sources, and an
+installed Decker reads them from the executable. Decker adds two things when it
+prints a topic: a comment with the topic names and the Decker version as the first
+line, and the list of topics in the index. A resource pack can [add or replace
+topics](#agent-guide-topics-in-a-pack). The examples in the topics are built by
+Decker's test suite, so they cannot drift from the implementation.
 
 ### `> decker info --json`
 
@@ -697,14 +706,27 @@ Decker version, so re-running the command after an upgrade changes nothing
 (reported as `Up to date`) and collaborators on different versions do not
 fight over them. A copy of the guide written by earlier versions
 (`.decker/agent-guide.md`) is deleted. Both pointer templates
-(`template/skill.md`, `template/agents-md.md`) can be overridden by a resource
-pack.
+(`template/skill.md`, `template/agents-md.md`) can be [overridden by a resource
+pack](#agent-guide-topics-in-a-pack).
 
 Options: `--no-skill` skips the skill, `--no-agents-md` skips `AGENTS.md`.
 
+The files only tell the agent where to look. They do not contain the guide, so they
+are no use without a `decker` on the `PATH`, and `decker agent-guide` works without
+them.
+
 A project's `CLAUDE.md` or `AGENTS.md` should hold only project-specific
 context (conventions, directory layout, naming rules, publishing target);
-generic Decker knowledge comes from `decker agent-guide`.
+generic Decker knowledge comes from `decker agent-guide`. How the command treats
+these files:
+
+- `CLAUDE.md` is neither read nor written. Claude Code finds the Decker instructions
+  through the skill.
+- In `AGENTS.md`, text outside the markers is kept.
+- Edits inside the markers, and any edits to `SKILL.md`, are overwritten by the next
+  run.
+- A marker without its partner is treated as text. The command appends a new section
+  and leaves the stray marker in place, so delete it by hand.
 
 ### Diagnostics and `--strict`
 
@@ -887,7 +909,8 @@ A pack is a directory, or a ZIP archive of one, with this layout:
 |---------------------------|------------------------------------------------------|
 | `template/default.yaml`   | Default meta data. Required, but it can be empty     |
 | `template/*.html`         | Pandoc templates (`deck.html`, `page.html`, `handout.html`, `index.html`) and the partials they include |
-| `template/agent-guide/*.md` | Additional topics for `decker agent-guide`         |
+| `template/agent-guide/*.md` | [Topics for `decker agent-guide`](#agent-guide-topics-in-a-pack) |
+| `template/skill.md`, `template/agents-md.md` | The files that [`decker agent-docs`](#decker-agent-docs) writes |
 | `support/`                | Files for the browser, copied to `public/support`    |
 | `support/css/pack.css`    | Styles of the pack, see [Own stylesheets](#own-stylesheets) |
 | `support/templates/*.html` | [Fragment templates](#fragment-templates)           |
@@ -966,6 +989,49 @@ Things to keep in mind:
 - An installed Decker copies support files once. After changing them, or after
   selecting a different pack, run `decker clean`. Otherwise old files stay in
   `public/support`.
+
+### Agent guide topics in a pack
+
+A pack can tell AI agents about its own conventions. Each Markdown file in
+`template/agent-guide/` of the pack is a topic of [`decker
+agent-guide`](#decker-agent-guide-topic), named after the file. This adds a topic to
+the pack from the previous section:
+
+``` markdown {.decker-example file="packs/course/template/agent-guide/course.md" project="pack"}
+# Course conventions
+
+Name decks `week-NN/topic-deck.md`.
+```
+
+`decker agent-guide course` now prints this file, and the index lists it as
+`` `decker agent-guide course` — Course conventions ``. The rules are the same as for
+other pack files, and they also apply to a ZIP archive:
+
+- **A new name adds a topic.** It also appears in `decker agent-guide --all` and
+  under `guideTopics` in `decker info --json`.
+- **An existing name replaces the topic.** A `decks.md` in the pack replaces all of
+  the `decks` topic, not just part of it, so copy what should stay.
+- **`index.md` replaces the index**, which is what `decker agent-guide` prints without
+  a topic. The list of topics appears where the file contains
+  `<!-- decker:topics -->`. Without that marker, the agent does not learn about the
+  topics.
+- **Start each topic with a level 1 heading.** The index takes the title of the topic
+  from it. Without one, the entry has no title.
+
+The pack is read each time the command runs, so a change to a topic in a directory or
+ZIP pack needs neither a build nor `decker clean`. A pack inside the executable
+(`exe:NAME`) changes only with a new Decker binary. `exe:mono` has an example in
+`resource/mono/template/agent-guide/mono.md`.
+
+The same mechanism overrides what [`decker agent-docs`](#decker-agent-docs) writes:
+`template/skill.md` replaces the skill, and `template/agents-md.md` replaces the text
+of the section in `AGENTS.md`. The markers are added by Decker, so the file does not
+contain them. Both are plain Markdown; `skill.md` needs the `name` and `description`
+front matter of a Claude Code skill. Keep these files free of version numbers, so that
+re-running the command after an upgrade still changes nothing.
+
+Decker's test suite only builds the examples of its own guide and bundled packs. The
+`decker-example` blocks in the topics of your pack are not checked.
 
 ## Bundled packs
 

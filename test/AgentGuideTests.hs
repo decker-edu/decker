@@ -507,6 +507,19 @@ agentGuideTests = describe "Agent guide" $ do
     it "is idempotent" $ do
       let once = replaceSection "body" "# Own\n"
       replaceSection "body" once `shouldBe` once
+    it "keeps text after a begin marker without an end marker" $ do
+      let damaged = "a\n<!-- decker:begin -->\nmine\n"
+          repaired = "a\n<!-- decker:begin -->\nmine\n\n<!-- decker:begin -->\nbody\n<!-- decker:end -->\n"
+      replaceSection "body" damaged `shouldBe` repaired
+      replaceSection "body" repaired `shouldBe` repaired
+    it "replaces only the section closest to the end marker" $
+      replaceSection "new" "<!-- decker:begin -->\nmine\n<!-- decker:begin -->\nold\n<!-- decker:end -->\nb\n"
+        `shouldBe` "<!-- decker:begin -->\nmine\n<!-- decker:begin -->\nnew\n<!-- decker:end -->\nb\n"
+    it "keeps text around an end marker without a begin marker" $ do
+      replaceSection "body" "a\n<!-- decker:end -->\nb\n"
+        `shouldBe` "a\n<!-- decker:end -->\nb\n\n<!-- decker:begin -->\nbody\n<!-- decker:end -->\n"
+      replaceSection "new" "a\n<!-- decker:end -->\nb\n<!-- decker:begin -->\nold\n<!-- decker:end -->\n"
+        `shouldBe` "a\n<!-- decker:end -->\nb\n<!-- decker:begin -->\nnew\n<!-- decker:end -->\n"
 
 checkProject :: [GuideExample] -> Expectation
 checkProject exs = do

@@ -165,20 +165,32 @@ runAgentDocs meta opts = do
         >>= maybe (fail $ "Missing resource: " <> path) (return . decodeUtf8)
 
 -- | Replaces the delimited Decker section in a file's content, or appends it if
--- there is none. Everything outside the section is left alone.
+-- there is none. Everything outside the section is left alone, including a
+-- stray marker that a user left behind.
 replaceSection :: Text -> Text -> Text
 replaceSection section current =
-  case Text.breakOn sectionBegin current of
-    (before, rest)
-      | not (Text.null rest),
-        (_, after) <- Text.breakOn sectionEnd rest,
-        not (Text.null after) ->
-          before <> delimited <> Text.drop (Text.length sectionEnd) after
-    _
+  case surroundingSection current of
+    Just (before, after) -> before <> delimited <> after
+    Nothing
       | Text.null (Text.strip current) -> delimited <> "\n"
       | otherwise -> Text.stripEnd current <> "\n\n" <> delimited <> "\n"
   where
     delimited = sectionBegin <> "\n" <> Text.strip section <> "\n" <> sectionEnd
+
+-- | The text before and after the first delimited section. A section has no
+-- marker inside it, so a begin marker that is followed by another one before the
+-- next end marker is not part of a section. Text after such a stray marker belongs
+-- to the user and must not be taken for the content of the section.
+surroundingSection :: Text -> Maybe (Text, Text)
+surroundingSection content = do
+  let (before, fromBegin) = Text.breakOn sectionBegin content
+  guard $ not (Text.null fromBegin)
+  let body = Text.drop (Text.length sectionBegin) fromBegin
+      (inner, fromEnd) = Text.breakOn sectionEnd body
+  guard $ not (Text.null fromEnd)
+  if sectionBegin `Text.isInfixOf` inner
+    then first ((before <> sectionBegin) <>) <$> surroundingSection body
+    else Just (before, Text.drop (Text.length sectionEnd) fromEnd)
 
 -- | Write @contents@ to @path@, creating parent directories. Idempotent: if the
 -- file already holds exactly these contents, nothing is written, so re-running
