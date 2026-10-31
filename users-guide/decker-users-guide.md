@@ -454,11 +454,12 @@ exists, a new vector store is created and its id is printed for you to paste int
 `decker.yaml`.
 
 With the `--prune-files` option, after the sync every assistant-purpose file
-object in the OpenAI project that is *not* attached to the store is deleted. This
-removes files left dangling in the project's file storage, for instance after a
-vector store was deleted in the OpenAI dashboard. This is destructive and
-operates on all assistant-purpose files in the project, not only those uploaded
-by decker.
+object in the OpenAI project that is *not* attached to any vector store in the
+project is deleted. This removes files left dangling in the project's file
+storage, for instance after a vector store was deleted in the OpenAI dashboard.
+Files attached to other vector stores, such as those of other lectures sharing
+the project, are kept. This is destructive and operates on all assistant-purpose
+files in the project, not only those uploaded by decker.
 
 ## `> decker exam-builder`
 
@@ -567,7 +568,7 @@ decker --resource-base=/path/to/modified-decker-pack html
 ## `--prune-files`
 
 With `decker chatty`: after syncing, delete all assistant-purpose OpenAI file
-objects that are not attached to the vector store.
+objects that are not attached to any vector store in the project.
 
 # Resources
 

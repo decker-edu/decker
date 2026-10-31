@@ -334,7 +334,7 @@ deckerFlags =
       []
       ["prune-files"]
       (GetOpt.NoArg $ Right PruneFilesFlag)
-      "With `chatty`: delete OpenAI file objects not attached to the vector store.",
+      "With `chatty`: delete OpenAI file objects not attached to any vector store in the project.",
     GetOpt.Option
       []
       ["no-skill"]

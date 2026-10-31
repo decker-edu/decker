@@ -20,7 +20,7 @@
 --   - detaches and deletes files that vanished locally,
 --   - leaves unchanged files alone,
 --   - waits for indexing to complete.
-module Text.Decker.Chatty.Upload (runChatty, syncChattyToStore) where
+module Text.Decker.Chatty.Upload (danglingFiles, runChatty, syncChattyToStore) where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens hiding ((.=))
@@ -37,6 +37,7 @@ import Data.List (isPrefixOf, nub, partition, sort, (\\))
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
 import Data.Maybe (fromMaybe, mapMaybe)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -355,17 +356,52 @@ listAssistantFiles client = page Nothing []
       let name = v ^? key "filename" . _String
       return (fid, fromMaybe fid name)
 
--- | Delete every @assistants@ file object that is not currently attached to the
--- given vector store. Run after 'reconcileStore' so the store holds exactly the
--- files that should survive; everything else (e.g. files orphaned when a store
--- was deleted in the GUI) is removed. Destructive: this touches all
--- assistant-purpose files in the OpenAI project, not just decker's.
+-- | The ids of all vector stores in the OpenAI project. Proxies predating this
+-- route answer 404; that aborts the caller, so nothing is pruned on a partial
+-- view of the project.
+listVectorStores :: SyncClient -> IO [Text]
+listVectorStores client = page Nothing []
+  where
+    page cursor acc = do
+      let path = "/vector_stores?limit=100" <> maybe "" (\c -> "&after=" <> T.unpack c) cursor
+      r <- relay client False "GET" path Nothing
+      let code = r ^. responseStatus . statusCode
+      when (code == 404) $
+        fail "the chatty proxy cannot list vector stores; update decker-chatty to use --prune-files"
+      when (code >= 400) $
+        fail $
+          "OpenAI via chatty proxy: status " <> show code <> " listing vector stores"
+      let acc' = acc ++ r ^.. responseBody . key "data" . _Array . traverse . key "id" . _String
+      let hasMore = r ^? responseBody . key "has_more" . _Bool
+      let lastId = r ^? responseBody . key "last_id" . _String
+      case (hasMore, lastId) of
+        (Just True, Just lid) -> page (Just lid) acc'
+        _ -> return acc'
+
+-- | The ids of all files attached to the given vector store.
+attachedFileIds :: SyncClient -> Text -> IO [Text]
+attachedFileIds client storeId = do
+  (remote, orphans) <- listStoreFiles client storeId
+  return (orphans ++ concatMap (map fst) (Map.elems remote))
+
+-- | The files, given as @(id, name)@, that are not in the attached set.
+danglingFiles :: [Text] -> [(Text, Text)] -> [(Text, Text)]
+danglingFiles attached = filter ((`Set.notMember` Set.fromList attached) . fst)
+
+-- | Delete every @assistants@ file object that is not attached to any vector
+-- store in the OpenAI project, e.g. files orphaned when a store was deleted in
+-- the GUI. Files attached to other stores (other lectures sharing the project)
+-- are kept. Destructive: this touches all assistant-purpose files in the
+-- project, not just decker's.
+--
+-- Files are listed before attachments: a file that another sync attaches while
+-- this runs then shows up as attached rather than dangling.
 pruneOrphanFiles :: SyncClient -> Text -> IO ()
 pruneOrphanFiles client storeId = do
-  (remote, orphans) <- listStoreFiles client storeId
-  let attached = orphans ++ concatMap (map fst) (Map.elems remote)
   all' <- listAssistantFiles client
-  let danglers = [(fid, name) | (fid, name) <- all', fid `notElem` attached]
+  stores <- listVectorStores client
+  attached <- concat <$> mapM (attachedFileIds client) (nub (storeId : stores))
+  let danglers = danglingFiles attached all'
   if null danglers
     then putStrLn "# prune: no dangling assistant files."
     else do
@@ -452,7 +488,7 @@ data Outcome = Unchanged | Uploaded deriving (Eq)
 
 -- | Sync the local chatty files to the configured vector store. When @prune@ is
 -- set (the @--prune-files@ flag), also delete any assistant-purpose OpenAI file
--- objects left dangling, i.e. not attached to the store.
+-- objects left dangling, i.e. not attached to any store in the project.
 runChatty :: Bool -> IO ()
 runChatty prune = do
   meta <- readDeckerMetaIO deckerMetaFile
