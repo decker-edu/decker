@@ -17,6 +17,7 @@ import Text.Blaze.Internal (ChoiceString (..), MarkupM (..), StaticString, getSt
 import Text.Decker.Chatty.MetaSeal (sealChattyMeta)
 import Text.Decker.Filter.Util (hash9String)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Diagnostics (withDiagnostics)
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
@@ -63,10 +64,12 @@ getHighlightSyntax meta = do
         Right syntax -> return $ Just (key, syntax)
 
 markdownToHtml :: Disposition -> Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
-markdownToHtml disp meta getTemplate markdownFile out = do
+markdownToHtml disp globalMeta getTemplate markdownFile out = withDiagnostics out $ do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
-  pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp meta markdownFile
+  -- Diagnostics are collected for the target named in decker.target.
+  let targetMeta = setMetaValue "decker.target" out globalMeta
+  pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp targetMeta markdownFile
   template <- getTemplate (templateFile disp)
   syntaxMap <- getHighlightSyntax meta
   let options =

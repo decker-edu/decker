@@ -9,21 +9,16 @@ module Text.Decker.Project.Version
     deckerGitCommitId,
     deckerGitVersionTag,
     isDevelopmentVersion,
-    versionCheck,
     deckerBuildDate,
   )
 where
 
-import Control.Monad
-import Data.List.Extra as List
 import Data.Maybe
 import Data.Text qualified as Text
 import Data.Version (showVersion, versionBranch)
-import Development.Shake
 import Paths_decker (version)
 import Relude
 import Text.Decker.Internal.CompileTime
-import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
 import Text.Regex.TDFA
 
@@ -85,24 +80,3 @@ isVersionTagMatching =
 -- entry in `package.yaml`. Everything else is a development version.
 isDevelopmentVersion :: Bool
 isDevelopmentVersion = not (deckerGitBranch == "master" && isVersionTagMatching)
-
-versionCheck :: Meta -> Action ()
-versionCheck meta =
-  unless isDevelopmentVersion $ do
-    let version = lookupMeta "decker-version" meta
-    case version of
-      Just version -> check version
-      _ ->
-        putWarn
-          $ "  - Document version unspecified. This is decker version "
-          ++ deckerVersion
-          ++ "."
-  where
-    check version =
-      when (List.trim version /= List.trim deckerVersion)
-        $ putWarn
-        $ "  - Document version "
-        ++ version
-        ++ ". This is decker version "
-        ++ deckerVersion
-        ++ ". Expect problems."

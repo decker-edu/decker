@@ -2,7 +2,7 @@
 
 This document lists YAML keys defined or specifically used by the external `jmu-hci-drp` pack at `/Users/marc/repositories/development/jmu-hci-drp`. This pack is intended as the replacement for deprecated `wburg` and `nwburg`; those deprecated packs were not analyzed here.
 
-All core keys from `decker-yaml-config-decker.md` remain available.
+All core keys from the [configuration reference](https://decker-edu.github.io/decker/users-guide/decker-users-guide.html#configuration-reference) remain available.
 
 ## Selecting The Pack
 

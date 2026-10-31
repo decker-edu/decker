@@ -54,7 +54,7 @@ expandTemplateMacros (Pandoc meta blocks) = do
       template <- lookupMeta ("templates." <> name) meta
       let result =
             case template of
-              MetaInlines inlines -> splice name $ walk (substituteInline arguments) blocks
+              MetaInlines inlines -> splice name $ walk (substituteInline arguments) inlines
               MetaBlocks [Plain blocks] -> splice name $ walk (substituteInline arguments) blocks
               MetaBlocks [Para blocks] -> splice name $ walk (substituteInline arguments) blocks
               MetaBlocks blocks -> splice name $ walk (substituteInline arguments) $ walk (substituteBlock arguments) blocks
@@ -120,7 +120,7 @@ expandTemplateMacros (Pandoc meta blocks) = do
     substitute :: [(Text, Text)] -> Text -> Text
     substitute args intext =
       let (before, _, after, groups) :: (Text, Text, Text, [Text]) =
-            intext =~ ([r|:\(([a-z][-|_a-z0-9]*)\)|] :: Text)
+            intext =~ ([r|:\(([a-z0-9][-|_a-z0-9]*)\)|] :: Text)
        in case viaNonEmpty head groups >>= findValue args of
             Just value -> substitute args $ Text.intercalate value [before, after]
             Nothing -> intext

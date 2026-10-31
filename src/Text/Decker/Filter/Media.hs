@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 -- TODO: Background movies do not work (unclear tags compile correctly)
@@ -361,6 +362,14 @@ codeBlock code caption = do
     $ wrapFigure figureAttr caption
     $ mkPre codeAttr code
 
+-- | The attribute that holds the source of a video or an iframe. Reveal.js and
+-- the handout plugin set `src` from `data-src` when the element comes into view.
+-- Nothing does that on a page.
+lazySrc :: Attrib Text
+lazySrc = do
+  disp <- lift $ gets dispo
+  return $ if layout disp == Page then "src" else "data-src"
+
 -- |  Compiles the image data to an iframe.
 iframeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 iframeBlock uri title caption = do
@@ -369,7 +378,7 @@ iframeBlock uri title caption = do
   xformRersourceAttribs ["image"]
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
-    injectAttribute ("data-src", turl)
+    lazySrc >>= injectAttribute . (,turl)
     injectAttribute ("allow", "fullscreen")
     takeAttributes ["style"]
     takeData
@@ -454,7 +463,7 @@ streamBlock uri title caption = do
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
     takeAutoplay
-    injectAttribute ("data-src", renderUriDecode streamUri)
+    lazySrc >>= injectAttribute . (,renderUriDecode streamUri)
     injectAttribute ("allow", "fullscreen")
     injectStyles innerSizes
     extractAttr
@@ -534,7 +543,7 @@ videoBlock uri title caption = do
   xformRersourceAttribs ["poster"]
   (innerSizes, outerSizes) <- calcImageSizes
   videoAttr <- do
-    injectAttribute ("data-src", videoUri)
+    lazySrc >>= injectAttribute . (,videoUri)
     injectStyles innerSizes
     takeAutoplay
     takeVideoClasses

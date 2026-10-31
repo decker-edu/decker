@@ -13,9 +13,10 @@ import Data.Text qualified as Text
 import Development.Shake.FilePath ((</>))
 import Relude
 import System.FilePath ((<.>))
-import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta)
+import Text.Decker.Filter.Monad (Filter, FilterState (templates), meta, reportF)
 import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common (projectDir)
+import Text.Decker.Internal.Diagnostics (warning)
 import Text.Decker.Internal.Exception (DeckerException (..))
 import Text.Decker.Internal.Meta (fromPandocMeta, lookupMetaOrElse)
 import Text.Decker.Internal.URI (makeProjectPath)
@@ -31,14 +32,41 @@ import Text.Pandoc
   )
 import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.Walk (Walkable (walkM))
+import Text.Pandoc.Walk qualified as Walk
 import Text.Regex.TDFA.Text ()
 
 expandFragmentTemplates :: Pandoc -> Filter Pandoc
 expandFragmentTemplates document@(Pandoc meta blocks) =
   if lookupMetaOrElse False "experiments.fragment-templates" meta
     then Pandoc meta <$> (walkM expandBlockM blocks >>= walkM expandLinkM)
-    else return document
+    else do
+      reportDisabled
+      return document
   where
+    -- Invocations stay in the output as plain links or code blocks when the
+    -- experiment is off. The trailing-dash link form is not checked, it has too
+    -- many false positives.
+    reportDisabled = do
+      let names = ordNub $ Walk.query linkNames document <> Walk.query codeNames document
+      unless (null names)
+        $ reportF
+        $ warning
+          "fragment-templates-disabled"
+          (lookupMetaOrElse "" "decker.doc-path" meta)
+          Nothing
+          ( "fragment template invocations ("
+              <> Text.intercalate ", " names
+              <> ") are not expanded: experiments.fragment-templates is off"
+          )
+    linkNames (Link _ inlines _)
+      | Just invocation <- Text.stripPrefix "§" (stringify inlines),
+        (name : _) <- Text.words invocation =
+          ["§" <> name]
+    linkNames _ = []
+    codeNames (CodeBlock (_, cls, _) _) =
+      ["." <> c | c <- cls, "-" `Text.isSuffixOf` c, Text.length c > 1]
+    codeNames _ = []
+
     -- Expands macro links in block contexts
     expandBlockM :: Block -> Filter Block
     expandBlockM (Para [link]) = do
@@ -166,7 +194,8 @@ readTemplateFile filename = do
         Nothing ->
           throw (ResourceException $ "Cannot find template '" <> filename <> "'. Searched:\n"
             <> List.intercalate "\n" (map ("  - " <>) searchPaths)
-            <> "\n  - resource:" <> resourcePath)
+            <> "\n  - resource:" <> resourcePath
+            <> "\n[fragment-template-not-found]")
 
 firstJustM :: (Monad m) => (a -> m (Maybe b)) -> [a] -> m (Maybe b)
 firstJustM _ [] = return Nothing

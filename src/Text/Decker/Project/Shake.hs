@@ -7,6 +7,7 @@ module Text.Decker.Project.Shake
   ( runDecker,
     runDeckerArgs,
     deckerFlags,
+    deckerCommands,
     calcSource,
     calcSource',
     currentlyServedPages,
@@ -48,13 +49,16 @@ import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crrrunch
+import Text.Decker.Internal.Diagnostics
 import Text.Decker.Internal.External (checkExternal)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
-import Text.Decker.Internal.MetaExtra (readDeckerMetaIO)
+import Text.Decker.Internal.MetaExtra (readDeckerMetaIO, readMetaDataIO)
+import Text.Decker.Resource.Template (readTemplateMetaIO)
 import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
-import Text.Decker.Project.AgentDocs (AgentDocsOpts (..), defaultAgentDocsOpts, runAgentDocs)
+import Text.Decker.Project.AgentDocs (AgentDocsOpts (..), defaultAgentDocsOpts, runAgentDocs, runAgentGuide)
+import Text.Decker.Project.Info (printProjectInfo)
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
@@ -70,7 +74,8 @@ import Text.Pandoc.Definition (nullMeta)
 runDecker :: Rules () -> IO ()
 runDecker rules = do
   devRun <- isDevelopmentRun
-  when devRun $ putStrLn "DEVELOPMENT RUN"
+  -- stderr, so machine-readable stdout (info --json, agent-guide) stays clean
+  when devRun $ BS.hPutStrLn stderr "DEVELOPMENT RUN"
   args <- getArgs
   runDeckerArgs args rules
 
@@ -87,9 +92,13 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- fromRight nullMeta <$> readMetaDataFile deckerMetaFile
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder", "agent-docs"]
   case targets of
-    [command] | command `elem` commands -> runCommand context command rules
+    [command] | command `elem` deckerCommands -> runCommand context command rules
+    -- These print machine-readable output on stdout and run without Shake.
+    ("agent-guide" : topics) -> do
+      meta <- commandMeta flags
+      runAgentGuide meta (AllFlag `elem` flags) topics
+    ["info"] | JsonFlag `elem` flags -> commandMeta flags >>= printProjectInfo
     otherwise -> do
       warnVersion
       runTargets context targets rules
@@ -105,7 +114,11 @@ runTargets context targets rules = do
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
 
   -- Always run at least once
-  runShake context rules
+  sink <- runShakeCollecting context rules
+  failing <- finishDiagnostics context sink
+  when (failing > 0 && isStrict context && not (watching flags)) $ do
+    BS.hPutStrLn stderr $ "# strict: " <> show failing <> " diagnostic(s), failing the build"
+    exitWith (ExitFailure 1)
 
   if
     | ServerFlag `elem` flags -> do
@@ -119,16 +132,52 @@ runTargets context targets rules = do
       Notify.withManager $ \manager -> do
         startWatcher manager context
         runShakeForever Nothing context rules
+    watching flags = ServerFlag `elem` flags || WatchFlag `elem` flags
+
+-- | Strict mode fails a build that leaves warnings. Set with @--strict@ or the
+-- meta value @strict: true@.
+isStrict :: ActionContext -> Bool
+isStrict context =
+  StrictFlag `elem` (context ^. extra)
+    || lookupMetaOrElse False "strict" (context ^. globalMeta)
+
+-- | Reports again the diagnostics of the targets that Shake found up to date,
+-- prints a summary and returns the number of failing (non-hint) diagnostics of
+-- all targets of the run.
+finishDiagnostics :: ActionContext -> DiagnosticSink -> IO Int
+finishDiagnostics context sink = do
+  live <- liveFile
+  exists <- Dir.doesFileExist live
+  liveTargets <- if exists then lines . decodeUtf8 <$> readFileBS live else return []
+  replayed <- replayDiagnostics sink (map toString liveTargets)
+  fresh <- concat . toList <$> sinkDiagnostics sink
+  let (hints, failing) = counts (fresh <> replayed)
+  when (hints + failing > 0)
+    $ putStrLn
+    $ "# diagnostics: "
+    <> show failing
+    <> " warning(s), "
+    <> show hints
+    <> " hint(s)"
+    <> if isStrict context then "" else " (use --strict to fail the build)"
+  return failing
 
 runShake :: ActionContext -> Rules () -> IO ()
-runShake context rules = do
+runShake context rules = void $ runShakeCollecting context rules
+
+-- | Runs Shake once and returns the sink holding the diagnostics reported by
+-- the targets that were rebuilt.
+runShakeCollecting :: ActionContext -> Rules () -> IO DiagnosticSink
+runShakeCollecting context rules = do
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
   targets <- targetsFile
   scanTargetsToFile meta targets
 
-  options <- deckerShakeOptions context
+  sink <- newDiagnosticSink (DiagnosticsJsonFlag `elem` (context ^. extra))
+  options <- deckerShakeOptions context sink
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
+  return sink
 
 _runShakeSlyly :: ActionContext -> Rules () -> IO ()
 _runShakeSlyly context rules = do
@@ -139,7 +188,8 @@ _runShakeSlyly context rules = do
 
   let flags = context ^. extra
   extractMetaIntoFile flags
-  options <- deckerShakeOptions context
+  sink <- newDiagnosticSink False
+  options <- deckerShakeOptions context sink
   transient <- transientDir
   shakeArgsWith (options {shakeFiles = transient </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 
@@ -171,6 +221,8 @@ runShakeForever last context rules = do
         _ -> return msg
     debouncedMessage _ = atomically $ readTChan (context ^. actionChan)
 
+-- | The loop of @decker serve@. Exits like 'runShakeForever' if the server
+-- fails, e.g. because the port is in use.
 handleUploads :: ActionContext -> IO ()
 handleUploads context = do
   forever $ do
@@ -179,6 +231,9 @@ handleUploads context = do
       UploadComplete operation -> do
         let transcode = PoserFlag `elem` (context ^. extra)
         applyVideoOperation transcode operation
+      ServerExit reason -> do
+        BS.hPutStrLn stderr $ UTF8.fromString $ "# Server: " <> reason
+        exitWith (ExitFailure 7)
       _ -> return ()
 
 applyVideoOperation transcode op@(Replace tmp destination) = do
@@ -194,7 +249,6 @@ startWatcher manager context = do
   -- excludeDirs' <- mapM canonicalizePath $ excludeDirs meta
   let excludeDirs' = excludeDirs meta
   inDir <- makeAbsolute projectDir
-  options <- deckerShakeOptions context
   void
     $ Notify.watchTree manager inDir (filter inDir excludeDirs' excludeGlob')
     $ \event ->
@@ -242,6 +296,7 @@ runCommand context command rules = do
     "agent-docs" -> runAgentDocs meta (agentDocsOptsFromFlags (context ^. extra))
     "pdf" -> do
       putStrLn (toString pdfMsg)
+      extractMetaIntoFile (context ^. extra)
       id <- forkServer context
       runShake context rules
       killThread id
@@ -257,11 +312,23 @@ runCommand context command rules = do
 agentDocsOptsFromFlags :: [Flags] -> AgentDocsOpts
 agentDocsOptsFromFlags flags =
   defaultAgentDocsOpts
-    { adoStdout = AgentStdoutFlag `elem` flags,
-      adoSkill = NoSkillFlag `notElem` flags,
-      adoGuide = NoGuideFlag `notElem` flags,
-      adoOutput = listToMaybe [path | AgentOutputFlag path <- flags]
+    { adoSkill = NoSkillFlag `notElem` flags,
+      adoAgentsMd = NoAgentsMdFlag `notElem` flags
     }
+
+-- | The global meta data for commands that run without Shake: @decker.yaml@,
+-- the @-m@ flags of this invocation and the resource pack defaults. Unlike
+-- 'readDeckerMetaIO' it ignores the meta flags saved by an earlier run.
+commandMeta :: [Flags] -> IO Meta
+commandMeta flags = do
+  deckerMeta <- readMetaDataIO nullMeta deckerMetaFile
+  let base = addMetaFlags flags deckerMeta
+  defaults <- readTemplateMetaIO base
+  return $ mergePandocMeta base defaults
+
+-- | The targets that 'runCommand' handles itself.
+deckerCommands :: [String]
+deckerCommands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check", "format", "chatty", "exam-builder", "agent-docs"]
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -309,7 +376,7 @@ deckerFlags =
       ['b']
       ["bind"]
       (GetOpt.ReqArg (Right . BindFlag) "BIND")
-      "Bind the HTTP server to given address.",
+      "Bind the HTTP server to given address (default: 127.0.0.1).",
     GetOpt.Option
       ['P']
       ["poser"]
@@ -337,24 +404,34 @@ deckerFlags =
       "With `chatty`: delete OpenAI file objects not attached to any vector store in the project.",
     GetOpt.Option
       []
+      ["strict"]
+      (GetOpt.NoArg $ Right StrictFlag)
+      "Fail the build if any content diagnostic (e.g. an unresolved citation) is reported. Same as 'strict: true' in decker.yaml.",
+    GetOpt.Option
+      []
+      ["diagnostics-json"]
+      (GetOpt.NoArg $ Right DiagnosticsJsonFlag)
+      "Also print each diagnostic as a JSON object on stderr, on a line prefixed with 'decker-diagnostic: '.",
+    GetOpt.Option
+      []
       ["no-skill"]
       (GetOpt.NoArg $ Right NoSkillFlag)
       "With `agent-docs`: do not write .claude/skills/decker/SKILL.md.",
     GetOpt.Option
       []
-      ["no-guide"]
-      (GetOpt.NoArg $ Right NoGuideFlag)
-      "With `agent-docs`: do not write .decker/agent-guide.md.",
+      ["no-agents-md"]
+      (GetOpt.NoArg $ Right NoAgentsMdFlag)
+      "With `agent-docs`: do not write the decker section of AGENTS.md.",
     GetOpt.Option
       []
-      ["stdout"]
-      (GetOpt.NoArg $ Right AgentStdoutFlag)
-      "With `agent-docs`: print the guide to stdout and write nothing.",
+      ["all"]
+      (GetOpt.NoArg $ Right AllFlag)
+      "With `agent-guide`: print all topics.",
     GetOpt.Option
       []
-      ["output"]
-      (GetOpt.ReqArg (Right . AgentOutputFlag) "PATH")
-      "With `agent-docs`: override the guide output path."
+      ["json"]
+      (GetOpt.NoArg $ Right JsonFlag)
+      "With `info`: print project facts as JSON on stdout."
   ]
 
 parsePortArg :: String -> Either String Flags
@@ -425,19 +502,29 @@ watchChangesAndRepeatIO context = do
 -- | Outputs errors to stderr if the `-e` flag is provided. Otherwise everything
 -- goes to stdout.
 outputMessage :: Bool -> Verbosity -> String -> IO ()
-outputMessage mode verbosity text = do
-  let stream = if mode && verbosity == Error then stderr else stdout
-  BS.hPutStrLn stream $ UTF8.fromString text
+outputMessage mode verbosity text =
+  -- The live list is only written for 'finishDiagnostics'; don't announce it.
+  unless ("Writing live list to " `List.isInfixOf` text) $ do
+    let stream = if mode && verbosity == Error then stderr else stdout
+    BS.hPutStrLn stream $ UTF8.fromString text
 
-deckerShakeOptions :: ActionContext -> IO ShakeOptions
-deckerShakeOptions ctx = do
+deckerShakeOptions :: ActionContext -> DiagnosticSink -> IO ShakeOptions
+deckerShakeOptions ctx sink = do
   let single = ThreadFlag `elem` (ctx ^. extra)
   let toStderr = ErrorFlag `elem` (ctx ^. extra)
   transient <- transientDir
+  live <- liveFile
   return
     $ shakeOptions
       { shakeFiles = transient,
-        shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
+        shakeExtra =
+          HashMap.fromList
+            [ (actionContextKey, toDyn ctx),
+              (diagnosticSinkKey, toDyn sink)
+            ],
+        -- The live files tell 'finishDiagnostics' which up-to-date targets
+        -- belong to the run.
+        shakeLiveFiles = [live],
         shakeThreads = if single then 1 else 0,
         shakeColor = not toStderr,
         shakeStaunch = toStderr,

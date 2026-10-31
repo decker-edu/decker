@@ -1,0 +1,13 @@
+LectureId: l
+TopicId: t
+Title: Typo
+Points: 1
+Difficulty: Easy
+Comment: ""
+ShuffleAnswer: false
+Question: Which?
+Answer:
+  tag: MultipleChoice
+  Choices:
+    - Correct: true
+      TheAnswer: "yes"

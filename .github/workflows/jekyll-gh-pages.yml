@@ -29,6 +29,14 @@ jobs:
         uses: actions/checkout@v5
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      # Jekyll cannot read the fenced code blocks of the guide. Build it with
+      # Pandoc and remove the source, so that Jekyll only copies the HTML.
+      - name: Build the users' guide
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+          make -C users-guide decker-users-guide.html
+          rm users-guide/decker-users-guide.md
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
