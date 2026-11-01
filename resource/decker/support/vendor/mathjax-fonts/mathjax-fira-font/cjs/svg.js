@@ -99,7 +99,7 @@ var MathJaxFiraFont = (function (_super) {
         return _this;
     }
     MathJaxFiraFont.NAME = 'MathJaxFira';
-    MathJaxFiraFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-fira-font/svg/dynamic' });
+    MathJaxFiraFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-fira-font/js/svg/dynamic' });
     MathJaxFiraFont.defaultDelimiters = delimiters_js_1.delimiters;
     MathJaxFiraFont.defaultChars = {
         'normal': normal_js_1.normal,

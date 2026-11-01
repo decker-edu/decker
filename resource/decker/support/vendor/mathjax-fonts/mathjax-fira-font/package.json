@@ -1,6 +1,6 @@
 {
   "name": "@mathjax/mathjax-fira-font",
-  "version": "4.1.0",
+  "version": "4.1.3",
   "description": "MathJax-Fira font for MathJax v4",
   "license": "Apache-2.0",
   "repository": {
@@ -56,7 +56,7 @@
     "cjs:compile": "pnpm -s compile:all cjs && pnpm -s cjs:package",
     "cjs:package": "pnpm log:msg 'Creating package.json'; echo '{\n  \"type\": \"commonjs\"\n}' > cjs/package.json",
     "======================================================================== make": "",
-    "make:one": "one() { pnpm log:msg \"Building $1\"; echo; ../node_modules/@mathjax/src/components/bin/makeAll --$2 $3 $4 build/$1; }; one",
+    "make:one": "one() { pnpm log:msg \"Building $1\"; echo; node ../node_modules/@mathjax/src/components/bin/makeAll --$2 $3 $4 build/$1; }; one",
     "make:font": "font() { pnpm -- make:one chtml $1 $2 $3 && pnpm -- make:one svg $1 $2 $3; }; font",
     "cjs:make-font": "pnpm -s log:msg 'Making cjs font'; pnpm -s -- make:font cjs --bundle-cjs",
     "mjs:make-font": "pnpm -s log:msg 'Making mjs font'; pnpm -s -- make:font mjs",

@@ -75,6 +75,9 @@ export declare class MathJaxAsanaFont extends Base {
         '.ASNA-S6': {
             'font-family': string;
         };
+        '.ASNA-MI': {
+            'font-family': string;
+        };
         '.ASNA-C': {
             'font-family': string;
         };
@@ -177,6 +180,10 @@ export declare class MathJaxAsanaFont extends Base {
             src: string;
         };
         '@font-face /* MJX-ASNA-S6 */': {
+            'font-family': string;
+            src: string;
+        };
+        '@font-face /* MJX-ASNA-MI */': {
             'font-family': string;
             src: string;
         };

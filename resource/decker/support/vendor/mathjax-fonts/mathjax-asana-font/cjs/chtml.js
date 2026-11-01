@@ -74,6 +74,7 @@ var size3_js_1 = require("./chtml/size3.js");
 var size4_js_1 = require("./chtml/size4.js");
 var size5_js_1 = require("./chtml/size5.js");
 var size6_js_1 = require("./chtml/size6.js");
+var tex_mathit_js_1 = require("./chtml/tex-mathit.js");
 var tex_calligraphic_js_1 = require("./chtml/tex-calligraphic.js");
 var tex_calligraphic_bold_js_1 = require("./chtml/tex-calligraphic-bold.js");
 var tex_oldstyle_js_1 = require("./chtml/tex-oldstyle.js");
@@ -112,6 +113,7 @@ var MathJaxAsanaFont = (function (_super) {
         '-size4': 'S4',
         '-size5': 'S5',
         '-size6': 'S6',
+        '-tex-mathit': 'MI',
         '-tex-calligraphic': 'C',
         '-tex-bold-calligraphic': 'CB',
         '-tex-oldstyle': 'OS',
@@ -140,6 +142,7 @@ var MathJaxAsanaFont = (function (_super) {
         '-size4': size4_js_1.size4,
         '-size5': size5_js_1.size5,
         '-size6': size6_js_1.size6,
+        '-tex-mathit': tex_mathit_js_1.texMathit,
         '-tex-calligraphic': tex_calligraphic_js_1.texCalligraphic,
         '-tex-bold-calligraphic': tex_calligraphic_bold_js_1.texCalligraphicBold,
         '-tex-oldstyle': tex_oldstyle_js_1.texOldstyle,
@@ -188,6 +191,8 @@ var MathJaxAsanaFont = (function (_super) {
             'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-S5'
         }, '.ASNA-S6': {
             'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-S6'
+        }, '.ASNA-MI': {
+            'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-MI'
         }, '.ASNA-C': {
             'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-C'
         }, '.ASNA-CB': {
@@ -265,6 +270,9 @@ var MathJaxAsanaFont = (function (_super) {
         }, '@font-face /* MJX-ASNA-S6 */': {
             'font-family': 'MJX-ASNA-S6',
             src: 'url("%%URL%%/mjx-asna-s6.woff2") format("woff2")'
+        }, '@font-face /* MJX-ASNA-MI */': {
+            'font-family': 'MJX-ASNA-MI',
+            src: 'url("%%URL%%/mjx-asna-mi.woff2") format("woff2")'
         }, '@font-face /* MJX-ASNA-C */': {
             'font-family': 'MJX-ASNA-C',
             src: 'url("%%URL%%/mjx-asna-c.woff2") format("woff2")'

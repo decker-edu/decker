@@ -32,7 +32,7 @@ export class MathJaxTexFont extends Base {
     }
 }
 MathJaxTexFont.NAME = 'MathJaxTex';
-MathJaxTexFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-tex-font/svg/dynamic' });
+MathJaxTexFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-tex-font/js/svg/dynamic' });
 MathJaxTexFont.defaultDelimiters = delimiters;
 MathJaxTexFont.defaultChars = {
     'normal': normal,

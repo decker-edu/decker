@@ -60,6 +60,7 @@ var size3_js_1 = require("./svg/size3.js");
 var size4_js_1 = require("./svg/size4.js");
 var size5_js_1 = require("./svg/size5.js");
 var size6_js_1 = require("./svg/size6.js");
+var tex_mathit_js_1 = require("./svg/tex-mathit.js");
 var tex_calligraphic_js_1 = require("./svg/tex-calligraphic.js");
 var tex_calligraphic_bold_js_1 = require("./svg/tex-calligraphic-bold.js");
 var tex_oldstyle_js_1 = require("./svg/tex-oldstyle.js");
@@ -90,7 +91,7 @@ var MathJaxAsanaFont = (function (_super) {
         return _this;
     }
     MathJaxAsanaFont.NAME = 'MathJaxAsana';
-    MathJaxAsanaFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-asana-font/svg/dynamic' });
+    MathJaxAsanaFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-asana-font/js/svg/dynamic' });
     MathJaxAsanaFont.defaultDelimiters = delimiters_js_1.delimiters;
     MathJaxAsanaFont.defaultChars = {
         'normal': normal_js_1.normal,
@@ -113,6 +114,7 @@ var MathJaxAsanaFont = (function (_super) {
         '-size4': size4_js_1.size4,
         '-size5': size5_js_1.size5,
         '-size6': size6_js_1.size6,
+        '-tex-mathit': tex_mathit_js_1.texMathit,
         '-tex-calligraphic': tex_calligraphic_js_1.texCalligraphic,
         '-tex-bold-calligraphic': tex_calligraphic_bold_js_1.texCalligraphicBold,
         '-tex-oldstyle': tex_oldstyle_js_1.texOldstyle,
@@ -270,6 +272,7 @@ var MathJaxAsanaFont = (function (_super) {
         '-size4': 'S4',
         '-size5': 'S5',
         '-size6': 'S6',
+        '-tex-mathit': 'MI',
         '-tex-calligraphic': 'C',
         '-tex-bold-calligraphic': 'CB',
         '-tex-oldstyle': 'OS',

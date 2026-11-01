@@ -28,6 +28,7 @@ try {
     .addGlyph(Font.buildH('ASNA-M', [0x21C1], 0x21C1, 'uni21C1.ext', 0, -92))
     .addGlyph(Font.buildH('ASNA-M', [0x10FF6D], 0xE001, 'uniE001.ext', 0, 0, 72))
     .addGlyph(Font.buildH('ASNA-M', [0x20D3], 0xE002, 'uniE002.ext'))
+    .addGlyph(Font.buildH('ASNA-M', [0x1D453], 0x66, 'uni66.var', -111, 0, -111))
   ;
 
   const integralIC = (variant: string, large: number, small: number) => {
@@ -42,10 +43,11 @@ try {
 
   const AsanaVariants = Variants.define({
     normal: ['ASNA-M', [
-      CHARS.InRange(0x20, 0x4000, 'ASNA-M').minus(CHARS.Range(0x2032, 0x2037), CHARS.At(0x2057, 0x20D3)),
+      CHARS.InRange(0x20, 0x4000, 'ASNA-M').minus(CHARS.Range(0x2032, 0x2037), CHARS.At(0xA0, 0x2057, 0x20D3)),
       CHARS.InRange(0x10140, 0x1D7FF, 'ASNA-M'),
       CHARS.Map({0x237: 0x10FEE9}).feature('dtls'),  // dotless j
       CHARS.Map({
+        0x00A0: 0x0020,
         0x00AF: 0x02C9,
         0x2032: 0x2019,
         0x2033: '\u2019\u2019',
@@ -175,6 +177,9 @@ try {
       CHARS.Map({
         0x007C: 0x10FD75,
       })
+    ]],
+    '-tex-mathit': ['ASNA-M', [
+      CHARS.At(0x66).feature('var')
     ]],
     '-tex-calligraphic': ['ASNA-M', [
       CHARS.MapTo(0x10FEA2, CHARSET.AlphaUC, 0x41).feature('salt')   // Upper-case calligraphic

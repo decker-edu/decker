@@ -85,7 +85,7 @@ var MathJaxTexFont = (function (_super) {
         return _this;
     }
     MathJaxTexFont.NAME = 'MathJaxTex';
-    MathJaxTexFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-tex-font/svg/dynamic' });
+    MathJaxTexFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-tex-font/js/svg/dynamic' });
     MathJaxTexFont.defaultDelimiters = delimiters_js_1.delimiters;
     MathJaxTexFont.defaultChars = {
         'normal': normal_js_1.normal,

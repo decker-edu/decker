@@ -20,6 +20,7 @@ import { size3 } from './svg/size3.js';
 import { size4 } from './svg/size4.js';
 import { size5 } from './svg/size5.js';
 import { size6 } from './svg/size6.js';
+import { texMathit } from './svg/tex-mathit.js';
 import { texCalligraphic } from './svg/tex-calligraphic.js';
 import { texCalligraphicBold } from './svg/tex-calligraphic-bold.js';
 import { texOldstyle } from './svg/tex-oldstyle.js';
@@ -37,7 +38,7 @@ export class MathJaxAsanaFont extends Base {
     }
 }
 MathJaxAsanaFont.NAME = 'MathJaxAsana';
-MathJaxAsanaFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-asana-font/svg/dynamic' });
+MathJaxAsanaFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-asana-font/js/svg/dynamic' });
 MathJaxAsanaFont.defaultDelimiters = delimiters;
 MathJaxAsanaFont.defaultChars = {
     'normal': normal,
@@ -60,6 +61,7 @@ MathJaxAsanaFont.defaultChars = {
     '-size4': size4,
     '-size5': size5,
     '-size6': size6,
+    '-tex-mathit': texMathit,
     '-tex-calligraphic': texCalligraphic,
     '-tex-bold-calligraphic': texCalligraphicBold,
     '-tex-oldstyle': texOldstyle,
@@ -217,6 +219,7 @@ MathJaxAsanaFont.variantCacheIds = {
     '-size4': 'S4',
     '-size5': 'S5',
     '-size6': 'S6',
+    '-tex-mathit': 'MI',
     '-tex-calligraphic': 'C',
     '-tex-bold-calligraphic': 'CB',
     '-tex-oldstyle': 'OS',

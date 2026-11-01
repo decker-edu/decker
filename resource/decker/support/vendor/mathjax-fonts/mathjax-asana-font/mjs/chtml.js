@@ -20,6 +20,7 @@ import { size3 } from './chtml/size3.js';
 import { size4 } from './chtml/size4.js';
 import { size5 } from './chtml/size5.js';
 import { size6 } from './chtml/size6.js';
+import { texMathit } from './chtml/tex-mathit.js';
 import { texCalligraphic } from './chtml/tex-calligraphic.js';
 import { texCalligraphicBold } from './chtml/tex-calligraphic-bold.js';
 import { texOldstyle } from './chtml/tex-oldstyle.js';
@@ -57,6 +58,7 @@ MathJaxAsanaFont.defaultVariantLetters = {
     '-size4': 'S4',
     '-size5': 'S5',
     '-size6': 'S6',
+    '-tex-mathit': 'MI',
     '-tex-calligraphic': 'C',
     '-tex-bold-calligraphic': 'CB',
     '-tex-oldstyle': 'OS',
@@ -85,6 +87,7 @@ MathJaxAsanaFont.defaultChars = {
     '-size4': size4,
     '-size5': size5,
     '-size6': size6,
+    '-tex-mathit': texMathit,
     '-tex-calligraphic': texCalligraphic,
     '-tex-bold-calligraphic': texCalligraphicBold,
     '-tex-oldstyle': texOldstyle,
@@ -133,6 +136,8 @@ MathJaxAsanaFont.defaultStyles = Object.assign(Object.assign({}, ChtmlFontData.d
         'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-S5'
     }, '.ASNA-S6': {
         'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-S6'
+    }, '.ASNA-MI': {
+        'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-MI'
     }, '.ASNA-C': {
         'font-family': 'MJX-ASNA-ZERO, MJX-ASNA-C'
     }, '.ASNA-CB': {
@@ -210,6 +215,9 @@ MathJaxAsanaFont.defaultFonts = Object.assign(Object.assign({}, ChtmlFontData.de
     }, '@font-face /* MJX-ASNA-S6 */': {
         'font-family': 'MJX-ASNA-S6',
         src: 'url("%%URL%%/mjx-asna-s6.woff2") format("woff2")'
+    }, '@font-face /* MJX-ASNA-MI */': {
+        'font-family': 'MJX-ASNA-MI',
+        src: 'url("%%URL%%/mjx-asna-mi.woff2") format("woff2")'
     }, '@font-face /* MJX-ASNA-C */': {
         'font-family': 'MJX-ASNA-C',
         src: 'url("%%URL%%/mjx-asna-c.woff2") format("woff2")'

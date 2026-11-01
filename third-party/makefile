@@ -23,8 +23,10 @@ mathjax:
 	@for i in tex-svg-nofont.js a11y/ input/ output/ sre/ ui/; do \
 		rsync --recursive --delete $(third)/MathJax/$$i $(support)/mathjax/$$i; \
 	done
+	@(cd mathjax-fonts; v=$$(node -p "require('../MathJax/package.json').version"); \
+		npm install --save-exact @mathjax/mathjax-{asana,fira,newcm,tex}-font@$$v)
 	@mkdir -p $(support)/mathjax-fonts
-	rsync --recursive --delete $(third)/mathjax-fonts/node_modules/@mathjax/* $(support)/mathjax-fonts/
+	@rsync --recursive --delete $(third)/mathjax-fonts/node_modules/@mathjax/* $(support)/mathjax-fonts/
 
 reveal.js:
 	@echo "Update reveal.js"

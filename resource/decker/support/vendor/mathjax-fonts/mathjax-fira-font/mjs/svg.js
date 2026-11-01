@@ -46,7 +46,7 @@ export class MathJaxFiraFont extends Base {
     }
 }
 MathJaxFiraFont.NAME = 'MathJaxFira';
-MathJaxFiraFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-fira-font/svg/dynamic' });
+MathJaxFiraFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-fira-font/js/svg/dynamic' });
 MathJaxFiraFont.defaultDelimiters = delimiters;
 MathJaxFiraFont.defaultChars = {
     'normal': normal,

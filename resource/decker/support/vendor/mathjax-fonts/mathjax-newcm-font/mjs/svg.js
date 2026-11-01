@@ -45,7 +45,7 @@ export class MathJaxNewcmFont extends Base {
     }
 }
 MathJaxNewcmFont.NAME = 'MathJaxNewcm';
-MathJaxNewcmFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-newcm-font/svg/dynamic' });
+MathJaxNewcmFont.OPTIONS = Object.assign(Object.assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-newcm-font/js/svg/dynamic' });
 MathJaxNewcmFont.defaultDelimiters = delimiters;
 MathJaxNewcmFont.defaultChars = {
     'normal': normal,

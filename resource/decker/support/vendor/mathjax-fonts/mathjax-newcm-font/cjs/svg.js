@@ -98,7 +98,7 @@ var MathJaxNewcmFont = (function (_super) {
         return _this;
     }
     MathJaxNewcmFont.NAME = 'MathJaxNewcm';
-    MathJaxNewcmFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-newcm-font/svg/dynamic' });
+    MathJaxNewcmFont.OPTIONS = __assign(__assign({}, Base.OPTIONS), { dynamicPrefix: '@mathjax/mathjax-newcm-font/js/svg/dynamic' });
     MathJaxNewcmFont.defaultDelimiters = delimiters_js_1.delimiters;
     MathJaxNewcmFont.defaultChars = {
         'normal': normal_js_1.normal,

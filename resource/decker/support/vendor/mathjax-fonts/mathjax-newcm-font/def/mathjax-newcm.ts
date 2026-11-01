@@ -90,7 +90,7 @@ try {
   //
   // Characters not to take from the text fonts
   //
-  CHARSET.NonNormal = CHARS.At().plus(
+  CHARSET.NonNormal = CHARS.At(0xA0).plus(
     CHARSET.Alpha, CHARSET.Greek, CHARSET.Dotless, CHARSET.SpacingAccents, CHARSET.Braille
   );
 
@@ -110,9 +110,10 @@ try {
           CHARS.At(0x2061),         // there is a visible glyph at this location (should be variant form)
           CHARSET.MathScriptUC,     // these are calligraphic
           CHARSET.MathBoldScriptUC  // these are bold calligraphic
-        ).minus(CHARS.At(0x275A)),
+        ).minus(CHARS.At(0xA0, 0x275A)),
         CHARSET.SpacingAccents,
         CHARS.Map({
+          0x00A0: 0x0020,         // non-breaking space same as space
           0x00AD: 0x002D,         // soft hyphen is same as actual hyphen
           0x2758: 0x275A,         // move vertical bar
         }),
@@ -137,7 +138,8 @@ try {
       ['NCM-B', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-B').minus(CHARSET.NonNormal, CHARSET.Numbers, CHARS.At(0x3DC, 0x3DD)),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-B'),
-        CHARSET.SpacingAccents
+        CHARSET.SpacingAccents,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     italic: [
@@ -147,7 +149,8 @@ try {
       ['NCM-I', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-I').minus(CHARSET.NonNormal),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-I'),
-        CHARSET.SpacingAccents
+        CHARSET.SpacingAccents,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     'bold-italic': [
@@ -157,7 +160,8 @@ try {
       ['NCM-BI', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-BI').minus(CHARSET.NonNormal),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-BI'),
-        CHARSET.SpacingAccents
+        CHARSET.SpacingAccents,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     'double-struck': ['NCM-M', [
@@ -177,7 +181,8 @@ try {
         CHARS.InRange(0x20, 0x2FFF, 'NCM-SS').minus(CHARSET.NonNormal, CHARSET.Numbers).plus(CHARSET.Greek),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-SS'),
         CHARSET.SpacingAccents,
-        CHARSET.Braille
+        CHARSET.Braille,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     'bold-sans-serif': [
@@ -187,7 +192,8 @@ try {
       ['NCM-SSB', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-SSB').minus(CHARSET.NonNormal, CHARSET.Numbers),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-SSB'),
-        CHARSET.SpacingAccents
+        CHARSET.SpacingAccents,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     'sans-serif-italic': [
@@ -197,7 +203,8 @@ try {
       ['NCM-SSI', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-SSI').minus(CHARSET.NonNormal).plus(CHARSET.Greek),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-SSI'),
-        CHARSET.SpacingAccents
+        CHARSET.SpacingAccents,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     'sans-serif-bold-italic': [
@@ -207,7 +214,8 @@ try {
       ['NCM-SSBI', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-SSBI').minus(CHARSET.NonNormal),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-SSBI'),
-        CHARSET.SpacingAccents
+        CHARSET.SpacingAccents,
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     'monospace': [
@@ -217,6 +225,7 @@ try {
       ['NCM-T', [
         CHARS.InRange(0x20, 0x2FFF, 'NCM-T').minus(CHARSET.NonNormal).plus(CHARSET.Greek),
         CHARS.InRange(0xE800, 0xFEFF, 'NCM-T'),
+        CHARS.Map({0xA0: 0x20})
       ]]
     ],
     '-smallop': ['NCM-M', [
