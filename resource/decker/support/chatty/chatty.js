@@ -1,6 +1,7 @@
 export default setup;
 export { getChattyIdentity, getLocalizedText, renderIcon, setButtonIcon };
 import "./marked.min.js";
+import "./purify.min.js";
 
 // config
 let server;
@@ -10,9 +11,10 @@ let config = {};
 let setupOptions = {};
 let identity;
 
-// access to Reveal and slide with annottions
+// access to Reveal and whiteboard annotations (SVG markup) sent to the bot
 let Reveal;
-let currentAnnotationSlide;
+let sentAnnotations; // annotations the bot has received
+let pendingAnnotations; // annotations sent with the current request
 
 // HTML elements
 let dialog;
@@ -45,13 +47,13 @@ const englishLocalization = {
   greeting:
     "I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material. *But be aware that my answers might be wrong.*",
   greetingDeck: `I'm **Prof. Bot**, your AI-based tutor. You can ask questions related to the course material.<br>
-    I know which slide your are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
+    I know which slide you are on, so you can ask me about the current slide. If it contains additional whiteboard pages with annotations, you can also ask me about these.<br>
     **But be aware that my answers might be wrong.**`,
   sources: "Relevant Sources",
   thisFile: "current slide deck"
 };
-const lang = Decker.meta.lang || navigator.language;
-const l10n = lang === "de" ? germanLocalization : englishLocalization;
+const lang = window.Decker?.meta?.lang || navigator.language;
+const l10n = lang.startsWith("de") ? germanLocalization : englishLocalization;
 
 const useFirst = Decker?.meta?.chatty
   ? Decker.meta.chatty["use-first-annotation-page"]
@@ -149,9 +151,7 @@ function newMessage(role) {
   const avatar = wrap.querySelector(".avatar");
   renderRoleAvatar(avatar, role);
   const content = wrap.querySelector(".content");
-  content.add = (text) => {
-    addToMessage(content, text);
-  };
+  content.add = (text) => addToMessage(content, text);
 
   chatEl.appendChild(wrap);
   chatEl.scrollTop = chatEl.scrollHeight;
@@ -169,17 +169,22 @@ async function addToMessage(msg, text) {
   });
 
   // convert markdown text to html
-  let html = marked.parse(protectedText, {
-    mangle: false,
-    headerIds: false
-  });
+  let html = marked.parse(protectedText);
 
-  // restore math content
-  html = html.replace(/@@MATH_(\d+)@@/g, (_, i) => tokens[Number(i)]);
+  // restore math content (escaped, since it is inserted into HTML)
+  html = html.replace(/@@MATH_(\d+)@@/g, (_, i) =>
+    escapeHtml(tokens[Number(i)])
+  );
+
+  // sanitize model output (raw HTML, javascript: links, event handlers)
+  html = DOMPurify.sanitize(html);
 
   if (typeof setupOptions.postProcessMarkdown === "function") {
     html = setupOptions.postProcessMarkdown(html, msg) ?? html;
   }
+
+  // drop MathJax's references to the old content first
+  if (window.MathJax?.typesetClear) MathJax.typesetClear([msg]);
 
   // add to DOM element
   msg.innerHTML = html;
@@ -196,21 +201,25 @@ async function addToMessage(msg, text) {
   }
 }
 
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function waitForRedraw() {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
 async function send(userInput) {
+  // ignore requests while a response is still pending
+  if (abortController) return;
+
   if (!userInput) {
     userInput = promptEl.value.trim();
     if (!userInput) return;
   }
-  let input =
-    typeof setupOptions.buildInput === "function"
-      ? await setupOptions.buildInput(userInput)
-      : Reveal
-        ? await combineUserInputAndSlideInfo(userInput)
-        : userInput;
 
   // adjust button states
   sendBtn.disabled = true;
@@ -218,13 +227,26 @@ async function send(userInput) {
   abortController = new AbortController();
 
   // add user question to chat and clear prompt
-  newMessage("user").add(userInput);
+  const userRendered = newMessage("user").add(userInput);
   promptEl.value = "";
 
   // add bot message to chat; content will be filled below
   const botMsg = newMessage("bot");
 
+  // annotations are only considered sent once the response is completed
+  pendingAnnotations = null;
+
   try {
+    // finish typesetting the question before rendering the answer
+    await userRendered;
+
+    const input =
+      typeof setupOptions.buildInput === "function"
+        ? await setupOptions.buildInput(userInput)
+        : Reveal
+          ? await combineUserInputAndSlideInfo(userInput)
+          : userInput;
+
     // New decks carry a sealed config blob: the proxy decrypts model,
     // instructions and the vector store from it. Old decks (no sealed blob)
     // fall back to the legacy stored-prompt shape, which the proxy still
@@ -256,12 +278,11 @@ async function send(userInput) {
       return;
     }
 
-    previous_response_id = response.id;
-
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = ""; // buffer gets decoded stream
     let mdText = ""; // accumulate response text
+    let dirty = false;
 
     while (true) {
       const { value, done } = await reader.read();
@@ -281,13 +302,15 @@ async function send(userInput) {
           const evt = JSON.parse(data);
           // console.log(evt);
 
+          // remember response ID (only some events carry the response object)
+          if (evt.response?.id) previous_response_id = evt.response.id;
+
           switch (evt.type) {
             // receive more text
             case "response.output_text.delta": {
               if (typeof evt.delta === "string") {
                 mdText += evt.delta;
-                await botMsg.add(mdText);
-                chatEl.scrollTop = chatEl.scrollHeight;
+                dirty = true;
               }
               break;
             }
@@ -302,18 +325,26 @@ async function send(userInput) {
             }
 
             case "error": {
-              botMsg.innerText = "[Error] " + (evt.error?.message ?? "Unknown error");
+              botMsg.innerText =
+                "[Error] " + (evt.error?.message ?? "Unknown error");
+              dirty = false;
               break;
             }
 
             case "response.failed": {
               const msg = evt.response?.error?.message;
-              if (msg) botMsg.innerText = "[Error] " + msg;
+              if (msg) {
+                botMsg.innerText = "[Error] " + msg;
+                dirty = false;
+              }
               break;
             }
 
             // response complete: list used source files
             case "response.completed": {
+              // the bot has received the annotations of this request
+              if (pendingAnnotations) sentAnnotations = pendingAnnotations;
+
               // collect searched files
               let files = new Set();
               if (evt.response.output)
@@ -323,13 +354,13 @@ async function send(userInput) {
                       for (const content of output.content)
                         if (content.annotations)
                           for (const annot of content.annotations)
-                            files.add(annot.filename);
+                            if (annot.filename) files.add(annot.filename);
               // console.log(files);
 
               if (files.size) {
                 // path to project root and array of source files
                 const meta = window.Decker.meta;
-                const sources = meta.targets.sources;
+                const sources = meta.targets?.sources ?? [];
                 let projectPath = meta.projectPath || "";
                 if (!projectPath.endsWith("/")) projectPath += "/";
 
@@ -352,17 +383,21 @@ async function send(userInput) {
                     : `- ${file}${comment}\n`;
                 });
 
-                await botMsg.add(mdText);
-                await waitForRedraw();
-                chatEl.scrollTop = chatEl.scrollHeight;
+                dirty = true;
               }
               break;
             }
           }
+        } catch (err) {
+          console.warn("chatty: cannot handle stream event", err, data);
+        }
+      }
 
-          // remember response ID
-          previous_response_id = evt.response.id;
-        } catch {}
+      // re-render if necessary
+      if (dirty) {
+        dirty = false;
+        await botMsg.add(mdText);
+        chatEl.scrollTop = chatEl.scrollHeight;
       }
     }
 
@@ -408,7 +443,8 @@ function getChattyConfig(options = {}) {
 
 function getGreeting() {
   if (typeof setupOptions.greeting === "string") return setupOptions.greeting;
-  if (Reveal) return config.greetingDeck || config.greeting || l10n.greetingDeck;
+  if (Reveal)
+    return config.greetingDeck || config.greeting || l10n.greetingDeck;
   return config.greeting || l10n.greeting;
 }
 
@@ -578,14 +614,14 @@ function closeDialog() {
 async function combineUserInputAndSlideInfo(userInput) {
   const url = location.pathname;
   const fragment = location.hash;
-  const filename = url.split("\\").pop().split("/").pop().split(".")[0];
-  const deck = filename.replace("deck.html", "deck.md");
+  const filename = decodeURIComponent(url.split("/").pop());
+  const deck = filename.replace(/\.html$/, ".md");
   const slide = Reveal.getCurrentSlide();
   const h1 = slide.querySelector("h1");
 
   if (!deck || !h1 || !fragment) return userInput;
 
-  // we wil construct an array of inputs
+  // we will construct an array of inputs
   let input = [];
 
   // add deck and slide
@@ -611,32 +647,12 @@ async function combineUserInputAndSlideInfo(userInput) {
     // does this slide have extra whiteboard pages?
     if (numAnnotPages > 0) {
       slideHasAnnotations = true;
-      // did we not send annotations already?
-      if (slide != currentAnnotationSlide) {
-        // remember slide, so we don't send slide annotations again
-        currentAnnotationSlide = slide;
+      // send annotations unless the bot already has exactly these
+      const annotSvg = annot.innerHTML;
+      if (annotSvg !== sentAnnotations) {
+        pendingAnnotations = annotSvg;
 
-        // construct annotation info per page (I think this is not needed)
-        // let content = [
-        //   {
-        //     type: "input_text",
-        //     text:
-        //       `In addition to the content from ${deck} the current slide also contains ${numAnnotPages} ` +
-        //       (numAnnotPages > 1 ? "pages " : "page ") +
-        //       "of hand-written annotations or drawings that are provided in the following image.",
-        //   },
-        // ];
-        // const annotWidth = annot.clientWidth;
-        // for (let top = pageHeight; top < annotHeight; top += pageHeight) {
-        //   const bbox = { x: 0, y: top, width: annotWidth, height: pageHeight };
-        //   const png = await svgToPng(annot, bbox);
-        //   content.push({
-        //     type: "input_image",
-        //     image_url: png,
-        //   });
-        // }
-
-        // Render as one big image (alternative to the code above).
+        // Render as one big image.
         // Number of tokens is computed as follows (with integer division):
         //   (width+32-1)/32 * (height+32-1)/32
         // Since we render at half resolution, a whiteboard page at 1280x720
@@ -727,6 +743,9 @@ async function svgToPng(svgElement, bbox) {
       // Load svg into image element
       const img = new Image();
       img.onload = () => {
+        // free memory
+        URL.revokeObjectURL(url);
+
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
