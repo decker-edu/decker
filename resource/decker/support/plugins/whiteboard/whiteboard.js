@@ -47,7 +47,6 @@ let isLaserStroke = false;
 
 // canvas for dynamic cursor generation
 let cursorCanvas = document.createElement("canvas");
-cursorCanvas.id = "CursorCanvas";
 cursorCanvas.width = 20;
 cursorCanvas.height = 20;
 
@@ -124,17 +123,6 @@ function readConfig() {
 }
 
 /************************************************************************
- * Check browser features
- ************************************************************************/
-
-const weHavePointerEvents = !!window.PointerEvent;
-const weHaveCoalescedEvents = !!(
-  window.PointerEvent && new PointerEvent("pointermove").getCoalescedEvents
-);
-let userShouldBeWarned = !weHavePointerEvents || !weHaveCoalescedEvents;
-let userHasBeenWarned = false;
-
-/************************************************************************
  * Localization
  ************************************************************************/
 
@@ -143,8 +131,8 @@ const germanLocalization = {
   toggle_autosave: "Automatisches Speichern umschalten",
   toggle_grid: "Raster ein-/ausblenden",
   add_page: "Whiteboard Seite hinzufügen",
-  pen_settings: "Stifteinstellungen",
   pick_pen: "Stift auswählen",
+  pen_settings: "Stifteinstellungen (Farbe & Größe)",
   pick_eraser: "Radierer auswählen",
   pick_laserpointer: "Laserpointer auswählen",
   toggle_whiteboard_mode: "Whiteboardmodus umschalten",
@@ -159,7 +147,7 @@ const germanLocalization = {
     clear: "Whiteboard: Folie reinigen",
     laserpointer: "Whiteboard: Laserpointer umschalten",
     eraser: "Whiteboard: Radierer umschalten",
-    whitebard: "Whiteboard: An-/Abschalten",
+    whiteboard: "Whiteboard: An-/Abschalten",
     color: "Whiteboard: Farbe ",
     radius2: "Whiteboard: Stiftgröße Radius 2",
     radius4: "Whiteboard: Stiftgröße Radius 4",
@@ -172,8 +160,8 @@ const englishLocalization = {
   toggle_autosave: "Toggle Auto-Save",
   toggle_grid: "Toggle Grid",
   add_page: "Add Page",
-  pen_settings: "Pen settings",
   pick_pen: "Pick Pen",
+  pen_settings: "Pen Settings (Color & Size)",
   pick_eraser: "Pick Eraser",
   pick_laserpointer: "Pick Laserpointer",
   toggle_whiteboard_mode: "Toggle Whiteboard Mode",
@@ -188,7 +176,7 @@ const englishLocalization = {
     clear: "Whiteboard: Clear slide",
     laserpointer: "Whiteboard: Toggle laserpointer",
     eraser: "Whiteboard: Toggle eraser",
-    whitebard: "Whiteboard: De-/Activate",
+    whiteboard: "Whiteboard: De-/Activate",
     color: "Whiteboard: Color ",
     radius2: "Whiteboard: Pen radius 2",
     radius4: "Whiteboard: Pen radius 4",
@@ -200,35 +188,16 @@ const lang = Decker.meta.lang || navigator.language;
 const l10n = lang === "de" ? germanLocalization : englishLocalization;
 
 /************************************************************************
- * Functionality
- ************************************************************************/
-
-function warnUser() {
-  if (!weHavePointerEvents) {
-    alert(
-      "Your browser does not support pointer events.\nWhiteboard will not work.\nBetter use Chrome/Chromium or Firefox."
-    );
-  } else if (!weHaveCoalescedEvents) {
-    alert(
-      "Your browser does not support coalesced pointer events.\nWhiteboard drawing might be laggy.\nBetter use Chrome/Chromium or Firefox."
-    );
-  }
-  userHasBeenWarned = true;
-}
-
-/************************************************************************
  * Setup GUI
  ************************************************************************/
 
 let buttons;
 let buttonWhiteboard;
 let buttonSave;
-let buttonDownload;
 let buttonGrid;
 let buttonAdd;
 let buttonUndo;
 let buttonPen;
-let buttonPenSettings;
 let buttonEraser;
 let buttonLaser;
 let colorPicker;
@@ -299,7 +268,7 @@ function createGUI() {
   buttons.id = "whiteboardButtons";
   buttons.classList.add("presenter-only");
 
-  buttonDownload = createActionButton(
+  createActionButton(
     "fas fa-download",
     () => saveAnnotations(true),
     l10n.manual_save
@@ -327,28 +296,26 @@ function createGUI() {
 
   buttonUndo = createActionButton("fas fa-undo", undo, l10n.undo);
 
-  buttonPenSettings = createActionButton(
-    "fas fa-palette",
-    () => {
-      if (tool !== PEN) selectTool(PEN);
-    },
-    l10n.pen_settings
-  );
-  buttonPenSettings.setAttribute("popovertarget", "whiteboardColorPicker");
-
+  // clicking the already selected pen toggles the pen settings popover
+  // (via popovertarget), otherwise the popover toggle is cancelled
   buttonPen = createRadioButton(
     "fas fa-pen radiobutton",
-    () => {
+    (evt) => {
       if (!buttons.classList.contains("showMenu")) {
+        evt.preventDefault();
         showPanel();
         buttonPen.focus();
         return;
       }
-      selectTool(PEN);
+      if (tool !== PEN) {
+        evt.preventDefault();
+        selectTool(PEN);
+      }
     },
     false,
     l10n.pick_pen
   );
+  buttonPen.setAttribute("popovertarget", "whiteboardColorPicker");
   buttonEraser = createRadioButton(
     "fas fa-eraser radiobutton",
     () => {
@@ -380,7 +347,6 @@ function createGUI() {
   buttonWhiteboard = createActionButton(
     "fas fa-edit checkbox",
     toggleWhiteboard,
-    false,
     l10n.toggle_whiteboard_mode
   );
   buttonWhiteboard.id = "whiteboardButton";
@@ -453,7 +419,7 @@ function setupSlides() {
 
 // create whiteboard SVG for current slide
 // is currently called for each slide, even if we don't have strokes yet
-function setupSVG(slide, height) {
+function setupSVG(slide) {
   // get slide
   if (!slide) slide = Reveal.getCurrentSlide();
   if (!slide) return;
@@ -472,8 +438,7 @@ function setupSVG(slide, height) {
 
   // SVG dimensions
   svg.style.width = "100%";
-  if (!height) height = pageHeight;
-  svg.style.height = height + "px";
+  svg.style.height = pageHeight + "px";
 
   // prevent accidental click, double-click, and context menu
   svg.oncontextmenu = killEvent;
@@ -482,11 +447,6 @@ function setupSVG(slide, height) {
 
   // add SVG to slide
   slide.appendChild(svg);
-
-  // slide indices (used for saving)
-  let idx = Reveal.getIndices(slide);
-  svg.h = idx.h;
-  svg.v = idx.v ? idx.v : 0;
 
   return svg;
 }
@@ -640,6 +600,11 @@ function selectTool(newTool) {
   buttonEraser.setAttribute("aria-checked", "false");
   buttonPen.setAttribute("aria-checked", "false");
 
+  // clicking the selected pen opens its settings -> adjust tooltip
+  const penTooltip = tool === PEN ? l10n.pen_settings : l10n.pick_pen;
+  buttonPen.title = penTooltip;
+  buttonPen.setAttribute("aria-label", penTooltip);
+
   switch (tool) {
     case PEN:
       buttonPen.setAttribute("aria-checked", "true");
@@ -707,7 +672,6 @@ function selectPenRadius(radius) {
 function enableWhiteboard() {
   // do only prevent activation of whiteboard mode - deactivation should always be possible
   if (!Decker?.isPresenterMode?.()) return;
-  if (userShouldBeWarned && !userHasBeenWarned) warnUser();
 
   whiteboardActive = true;
   clearTimeout(autoToggleTimer);
@@ -715,8 +679,9 @@ function enableWhiteboard() {
   // show scrollbar
   slides.classList.add("whiteboard-active");
 
-  // show buttons
+  // show buttons, whiteboard button now closes the whiteboard
   buttons.classList.add("active");
+  buttonWhiteboard.classList.replace("fa-edit", "fa-xmark");
 
   // activate SVG
   if (svg) {
@@ -733,8 +698,9 @@ function disableWhiteboard() {
   // hide scrollbar
   slides.classList.remove("whiteboard-active");
 
-  // hide buttons
+  // hide buttons, whiteboard button now opens the whiteboard
   buttons.classList.remove("active");
+  buttonWhiteboard.classList.replace("fa-xmark", "fa-edit");
   hideColorPicker();
 
   // reset SVG
@@ -815,7 +781,6 @@ function adjustWhiteboardHeight() {
   // get height of current annotations (w/o grid).
   const bbox = svg.getBBox();
   const scribbleHeight = bbox.y + bbox.height;
-  // console.log("scribble height " + scribbleHeight);
 
   // restore previous visibility
   if (rect) rect.style.display = display;
@@ -964,7 +929,7 @@ function toggleAutoSave() {
 
 function clearUndoHistory() {
   undoHistory = [];
-  buttonUndo.ariaDisabled = false;
+  buttonUndo.ariaDisabled = true;
   buttonUndo.title = l10n.undo;
 }
 
@@ -1005,6 +970,7 @@ function undo() {
  */
 async function loadAnnotations() {
   const filename = annotationURL();
+  if (!filename) return;
   let response;
   try {
     response = await fetch(filename);
@@ -1051,35 +1017,24 @@ async function loadAnnotations() {
 }
 
 /*
- * filename for loading/saving annotations
+ * URL for loading/saving annotations: foo-deck.html -> foo-annot.json
+ * (null if the page is not a *-deck.html)
  */
-function annotationFilename() {
-  let url = location.pathname;
-  let basename = url.split("\\").pop().split("/").pop().split(".")[0];
-
-  // decker filenames vs. Mario filenames
-  let filename;
-  if (basename.endsWith("-deck"))
-    filename = basename.substring(0, basename.length - 5) + "-annot.json";
-  else filename = basename + ".json";
-
-  return filename;
+function annotationURL() {
+  const url = new URL(location.href);
+  if (!/-deck\.html$/.test(url.pathname)) return null;
+  url.search = "";
+  url.hash = "";
+  url.pathname = url.pathname.replace(/-deck\.html$/, "-annot.json");
+  return url.href;
 }
 
 /*
- * URL for loading/saving annotations
+ * filename for downloading annotations (last segment of annotationURL)
  */
-function annotationURL() {
-  let url = location.origin + location.pathname;
-  let basename = url.substring(0, url.lastIndexOf("."));
-
-  // decker filenames vs. Mario filenames
-  let filename;
-  if (basename.endsWith("-deck"))
-    filename = basename.substring(0, basename.length - 5) + "-annot.json";
-  else filename = basename + ".json";
-
-  return filename;
+function annotationFilename(url) {
+  const path = new URL(url).pathname;
+  return decodeURIComponent(path.split("/").pop());
 }
 
 /*
@@ -1104,46 +1059,61 @@ function annotationBlob() {
 
 /*
  * save annotations to decker server
+ * (force: save even if there are no unsaved changes)
  */
-async function saveAnnotations() {
-  if (!unsavedAnnotations) return;
+async function saveAnnotations(force = false) {
+  if (!unsavedAnnotations && !force) return;
 
   // cannot save annotations in electron app
   if (window.Decker.isElectron()) return;
 
+  // no annotation file for this page
+  const url = annotationURL();
+  if (!url) return;
+
   // clear remaining laser strokes
   clearLaserStrokes();
+
+  // snapshot annotations now, such that strokes drawn while saving
+  // keep the unsaved flag
+  const blob = annotationBlob();
+  needToSave(false);
 
   // also save to downloads folder (just to be save(r))
   let a = document.createElement("a");
   a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
   document.body.appendChild(a);
   try {
-    a.download = annotationFilename();
-    a.href = window.URL.createObjectURL(annotationBlob());
+    a.download = annotationFilename(url);
+    a.href = window.URL.createObjectURL(blob);
     a.click();
-    needToSave(false);
+    const href = a.href;
+    setTimeout(() => window.URL.revokeObjectURL(href), 0);
   } catch (error) {
     console.error("whiteboard annotations could not be downloaded: " + error);
   }
   document.body.removeChild(a);
 
   // save to decker server
+  // (keepalive lets the request survive page unload, but browsers reject
+  // keepalive requests with bodies above 64 KiB, so use it only below that)
   try {
-    const response = await fetch(annotationURL(), {
+    const response = await fetch(url, {
       method: "PUT",
-      body: annotationBlob()
+      body: blob,
+      keepalive: blob.size < 64 * 1024
     });
     if (response.ok) {
       console.log("whiteboard annotations saved to deck directory");
-      needToSave(false);
     } else {
+      needToSave(true);
       console.warn(
         "whiteboard annotations could not be saved to decker: HTTP " +
           response.status
       );
     }
   } catch (error) {
+    needToSave(true);
     console.warn(
       "whiteboard annotations could not be saved to decker: " + error
     );
@@ -1175,7 +1145,6 @@ function printPoint(p) {
 function renderStroke(points, stroke) {
   const n = points.length;
   if (n < 2) {
-    alert("fuck");
     return;
   }
 
@@ -1227,8 +1196,6 @@ function isPointInStroke(path, point) {
  * compute mouse position, setup new stroke
  */
 function startStroke(evt) {
-  // console.log("start stroke");
-
   // don't start stroke if one is still active
   if (stroke) return;
 
@@ -1316,13 +1283,13 @@ function stopStroke(evt) {
       renderStroke(points, stroke);
     }
 
-    // add timer to laser stroke
+    // add timer to laser stroke,
+    // new pen stroke -> we have to save (laser strokes are never saved)
     if (isLaserStroke) {
       stroke.style.opacity = "0";
+    } else {
+      needToSave(true);
     }
-
-    // new stroke -> we have to save
-    needToSave(true);
   }
 
   // Always reset drawing state, including on interrupted input.
@@ -1400,8 +1367,6 @@ function pointerMode(evt) {
 }
 
 function pointerdown(evt) {
-  // console.log("pointerdown");
-
   // only when whiteboard is active
   if (!whiteboardActive) return;
 
@@ -1434,8 +1399,6 @@ function pointerdown(evt) {
 }
 
 function pointermove(evt) {
-  // console.log("pointermove");
-
   // only when whiteboard is active
   if (!whiteboardActive) return;
 
@@ -1480,8 +1443,6 @@ function pointermove(evt) {
 }
 
 function pointerup(evt) {
-  // console.log("pointerup");
-
   // only when whiteboard is active
   if (!whiteboardActive) return;
   // event has to happen for SVG
@@ -1561,10 +1522,6 @@ function preventPenScroll(evt) {
 function slideChanged(evt) {
   stopStroke();
 
-  // if (!printMode && autosave && unsavedAnnotations) {
-  //   void saveAnnotations(false);
-  // }
-
   if (!printMode) {
     // hide pen dialog
     hideColorPicker();
@@ -1593,9 +1550,6 @@ function slideChanged(evt) {
     // setup slides container
     slides.classList.remove("animateScroll");
     slides.scrollTop = 0;
-    if (svg.clientHeight > slides.clientHeight)
-      slides.classList.add("needScrollbar");
-    else slides.classList.remove("needScrollbar");
 
     // adjust fragment visibility
     fragmentChanged();
@@ -1633,7 +1587,7 @@ function setupCallbacks() {
     if (unsavedAnnotations) {
       if (autosave) {
         console.log("whiteboard: auto-saving annotations");
-        saveAnnotations(true);
+        saveAnnotations();
       } else {
         evt.preventDefault();
         evt.returnValue = "You have unsaved annotations";
@@ -1765,8 +1719,6 @@ const Plugin = {
   id: "whiteboard",
 
   init: (deck) => {
-    // console.log("initialize whiteboard");
-
     // store reference to Reveal deck
     Reveal = deck;
 
