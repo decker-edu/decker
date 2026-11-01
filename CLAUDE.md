@@ -30,7 +30,7 @@ The entry point is `app/Decker.hs` which calls `runDecker` from `Text.Decker.Pro
 
 - `*-deck.md` → `*-deck.html` (slide deck), `*-handout.html`, `*-deck.pdf`
 - `*-page.md` → `*-page.html`
-- `*-quest.md` → `*-quest.html` (exam questions)
+- `*-quest.yaml` → `private/*-quest.html` (exam question preview), `public/exam-builder/questions.json` (catalog)
 
 The `Targets` type in `Text.Decker.Project.Project` tracks all source-to-output mappings via lenses (`decks`, `pages`, `handouts`, `questions`, `static`, etc.).
 

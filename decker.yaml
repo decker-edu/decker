@@ -11,6 +11,7 @@ exclude-directories:
   - src-unix
   - src-win
   - test/minimal
+  - test/fixtures
   - third-party
   - users-guide
   - website

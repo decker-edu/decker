@@ -11,7 +11,8 @@
 -- user to paste back into decker.yaml.
 --
 -- In addition to the generated markdown under chatty/, every file in the
--- directories listed in the chatty.extra meta variable is uploaded as is.
+-- directories listed in the chatty.extra meta variable is uploaded as is,
+-- except dotfiles and files whose type OpenAI file search does not accept.
 --
 -- Incremental: each attached vector-store file carries the source's relative
 -- path and md5 as attributes, so the remote store *is* the manifest. Each run:
@@ -19,7 +20,7 @@
 --   - detaches and deletes files that vanished locally,
 --   - leaves unchanged files alone,
 --   - waits for indexing to complete.
-module Text.Decker.Chatty.Upload (runChatty, syncChattyToStore) where
+module Text.Decker.Chatty.Upload (danglingFiles, runChatty, syncChattyToStore) where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens hiding ((.=))
@@ -31,10 +32,12 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Digest.Pure.MD5 (md5)
-import Data.List (partition, sort, (\\))
+import Data.Char (toLower)
+import Data.List (isPrefixOf, nub, partition, sort, (\\))
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
 import Data.Maybe (fromMaybe, mapMaybe)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -68,22 +71,49 @@ findMarkdownFiles = do
     then Map.fromList . map (\p -> (makeRelative chattyDir p, p)) <$> walk (== ".md") chattyDir
     else return Map.empty
 
--- | All files under the given `chatty.extra` directory, to be uploaded as is.
--- The store path is the file's project-relative path (which equals the local
--- path), so files keep their identity across runs.
+-- | File extensions accepted by OpenAI file search. Files in `chatty.extra`
+-- directories with any other extension would fail to index (and fail the whole
+-- sync), so they are skipped.
+extraExtensions :: [String]
+extraExtensions =
+  [ ".c", ".cpp", ".cs", ".css", ".doc", ".docx", ".go", ".html", ".java",
+    ".js", ".json", ".md", ".pdf", ".php", ".pptx", ".py", ".rb", ".sh",
+    ".tex", ".ts", ".txt"
+  ]
+
+-- | All files with a supported extension (see 'extraExtensions') under the
+-- given `chatty.extra` directory, to be uploaded as is. The store path is the
+-- file's project-relative path (which equals the local path), so files keep
+-- their identity across runs.
 findExtraFiles :: FilePath -> IO (Map FilePath FilePath)
 findExtraFiles dir = do
   exists <- doesDirectoryExist dir
   if exists
-    then Map.fromList . map (\p -> (p, p)) <$> walk (const True) dir
+    then do
+      (keep, skip) <- partition supported <$> walk (const True) dir
+      unless (null skip) $
+        putStrLn $
+          "# chatty.extra: skipping "
+            <> show (length skip)
+            <> " file(s) with unsupported extensions in "
+            <> dir
+            <> ": "
+            <> unwords (nub (sort (map extensionLabel skip)))
+      return (Map.fromList (map (\p -> (p, p)) keep))
     else do
       putStrLn $ "# chatty.extra: directory does not exist, skipping: " <> dir
       return Map.empty
+  where
+    supported p = map toLower (takeExtension p) `elem` extraExtensions
+    extensionLabel p = case takeExtension p of
+      "" -> "(none)"
+      ext -> ext
 
 -- | Recursively collect files below `dir` whose extension passes `keep`.
+-- Dotfiles and dot directories (@.DS_Store@, @.git@, …) are skipped.
 walk :: (String -> Bool) -> FilePath -> IO [FilePath]
 walk keep dir = do
-  entries <- listDirectory dir
+  entries <- filter (not . isPrefixOf ".") <$> listDirectory dir
   fmap (sort . concat) . forM entries $ \e -> do
     let p = dir </> e
     isDir <- doesDirectoryExist p
@@ -326,17 +356,52 @@ listAssistantFiles client = page Nothing []
       let name = v ^? key "filename" . _String
       return (fid, fromMaybe fid name)
 
--- | Delete every @assistants@ file object that is not currently attached to the
--- given vector store. Run after 'reconcileStore' so the store holds exactly the
--- files that should survive; everything else (e.g. files orphaned when a store
--- was deleted in the GUI) is removed. Destructive: this touches all
--- assistant-purpose files in the OpenAI project, not just decker's.
+-- | The ids of all vector stores in the OpenAI project. Proxies predating this
+-- route answer 404; that aborts the caller, so nothing is pruned on a partial
+-- view of the project.
+listVectorStores :: SyncClient -> IO [Text]
+listVectorStores client = page Nothing []
+  where
+    page cursor acc = do
+      let path = "/vector_stores?limit=100" <> maybe "" (\c -> "&after=" <> T.unpack c) cursor
+      r <- relay client False "GET" path Nothing
+      let code = r ^. responseStatus . statusCode
+      when (code == 404) $
+        fail "the chatty proxy cannot list vector stores; update decker-chatty to use --prune-files"
+      when (code >= 400) $
+        fail $
+          "OpenAI via chatty proxy: status " <> show code <> " listing vector stores"
+      let acc' = acc ++ r ^.. responseBody . key "data" . _Array . traverse . key "id" . _String
+      let hasMore = r ^? responseBody . key "has_more" . _Bool
+      let lastId = r ^? responseBody . key "last_id" . _String
+      case (hasMore, lastId) of
+        (Just True, Just lid) -> page (Just lid) acc'
+        _ -> return acc'
+
+-- | The ids of all files attached to the given vector store.
+attachedFileIds :: SyncClient -> Text -> IO [Text]
+attachedFileIds client storeId = do
+  (remote, orphans) <- listStoreFiles client storeId
+  return (orphans ++ concatMap (map fst) (Map.elems remote))
+
+-- | The files, given as @(id, name)@, that are not in the attached set.
+danglingFiles :: [Text] -> [(Text, Text)] -> [(Text, Text)]
+danglingFiles attached = filter ((`Set.notMember` Set.fromList attached) . fst)
+
+-- | Delete every @assistants@ file object that is not attached to any vector
+-- store in the OpenAI project, e.g. files orphaned when a store was deleted in
+-- the GUI. Files attached to other stores (other lectures sharing the project)
+-- are kept. Destructive: this touches all assistant-purpose files in the
+-- project, not just decker's.
+--
+-- Files are listed before attachments: a file that another sync attaches while
+-- this runs then shows up as attached rather than dangling.
 pruneOrphanFiles :: SyncClient -> Text -> IO ()
 pruneOrphanFiles client storeId = do
-  (remote, orphans) <- listStoreFiles client storeId
-  let attached = orphans ++ concatMap (map fst) (Map.elems remote)
   all' <- listAssistantFiles client
-  let danglers = [(fid, name) | (fid, name) <- all', fid `notElem` attached]
+  stores <- listVectorStores client
+  attached <- concat <$> mapM (attachedFileIds client) (nub (storeId : stores))
+  let danglers = danglingFiles attached all'
   if null danglers
     then putStrLn "# prune: no dangling assistant files."
     else do
@@ -423,7 +488,7 @@ data Outcome = Unchanged | Uploaded deriving (Eq)
 
 -- | Sync the local chatty files to the configured vector store. When @prune@ is
 -- set (the @--prune-files@ flag), also delete any assistant-purpose OpenAI file
--- objects left dangling, i.e. not attached to the store.
+-- objects left dangling, i.e. not attached to any store in the project.
 runChatty :: Bool -> IO ()
 runChatty prune = do
   meta <- readDeckerMetaIO deckerMetaFile

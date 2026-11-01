@@ -12,7 +12,9 @@ where
 
 import Control.Monad
 import Control.Monad.Loops
+import Data.Char (isAlphaNum, isDigit)
 import Data.Maybe
+import Data.Text qualified as Text
 import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
 import Relude
@@ -32,16 +34,17 @@ import Text.Decker.Filter.Select (dropSolutionContent, filterSelectedSlides)
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Template (expandTemplateMacros)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Diagnostics
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.MetaExtra (expandMeta, mergeDocumentMeta, needMetaTargets)
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
-import Text.Pandoc hiding (lookupMeta)
+import Text.Pandoc hiding (lookupMeta, report)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (query, walk)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -52,7 +55,7 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
   readMarkdownFile globalMeta docPath
     >>= mergeDocumentMeta globalMeta
     >>= processMeta
-    >>= processCites
+    >>= processCites docPath
     >>= runNewFilter disp filterSelectedSlides docPath
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
@@ -68,19 +71,42 @@ processMeta (Pandoc meta blocks) = do
   let processed = computeCssColorVariables $ computeCssVariables meta
   return (Pandoc processed blocks)
 
--- | Provide default CSL data from the resources if csl: is not set.
-processCites :: Pandoc -> Action Pandoc
-processCites pandoc@(Pandoc meta blocks) = do
+-- | Provide default CSL data from the resources if csl: is not set. Citeproc
+-- warnings (e.g. unresolved keys) are reported as diagnostics for @docPath@.
+-- Without a bibliography citations are left alone, which is reported, too.
+processCites :: FilePath -> Pandoc -> Action Pandoc
+processCites docPath pandoc@(Pandoc meta blocks) = do
   putVerbose "processCites"
-  liftIO $
-    if
-      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
-          runIOorExplode $ processCitations pandoc
-      | isMetaSet "bibliography" meta -> do
-          defaultCSL <- installDefaultCSL meta
-          let cslMeta = setMetaValue "csl" defaultCSL meta
-          runIOorExplode $ processCitations (Pandoc cslMeta blocks)
-      | otherwise -> return pandoc
+  if
+    | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+        citeproc pandoc
+    | isMetaSet "bibliography" meta -> do
+        defaultCSL <- liftIO $ installDefaultCSL meta
+        let cslMeta = setMetaValue "csl" defaultCSL meta
+        citeproc (Pandoc cslMeta blocks)
+    | otherwise -> do
+        let keys = ordNub $ query bracketedCitationKeys pandoc
+        unless (null keys)
+          $ report meta
+          $ warning
+            "citation-without-bibliography"
+            docPath
+            Nothing
+            ( "citation "
+                <> Text.intercalate ", " keys
+                <> " rendered literally: no bibliography is configured"
+            )
+        return pandoc
+  where
+    citeproc document = do
+      result <- liftIO $ runPandocCollecting docPath (processCitations document)
+      (processed, diagnostics) <- liftIO $ handleError result
+      reportAll meta diagnostics
+      return processed
+    -- Bare in-text @key is ignored; it is too often meant literally.
+    bracketedCitationKeys (Cite citations _) =
+      [citationId c | c <- citations, citationMode c /= AuthorInText]
+    bracketedCitationKeys _ = []
 
 installDefaultCSL :: Meta -> IO FilePath
 installDefaultCSL meta = do
@@ -100,7 +126,7 @@ readMarkdownFile' :: Meta -> FilePath -> FilePath -> Action Pandoc
 readMarkdownFile' globalMeta top path = do
   let base = takeDirectory path
   putVerbose "readMarkdownFile"
-  parseMarkdownFile path
+  parseMarkdownFile globalMeta path
     >>= addDocumentPath globalMeta path
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
@@ -160,16 +186,89 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
-parseMarkdownFile :: FilePath -> Action Pandoc
-parseMarkdownFile path = do
+-- Pandoc's parser warnings and the 'setextHints' are reported as diagnostics
+-- for the file.
+parseMarkdownFile :: Meta -> FilePath -> Action Pandoc
+parseMarkdownFile globalMeta path = do
   markdown <- liftIO $ Text.readFile path
-  liftIO $ parseMarkdown markdown
+  reportAll globalMeta (setextHints path markdown)
+  result <- liftIO $ runPandocCollecting path (readMarkdown pandocReaderOpts markdown)
+  (pandoc, diagnostics) <- liftIO $ handleError result
+  reportAll globalMeta diagnostics
+  return pandoc
 
-parseMarkdown :: Text -> IO Pandoc
-parseMarkdown text = runIOorExplode (readMarkdown pandocReaderOpts text)
-
-parseMarkdownWithOpts :: Text -> ReaderOptions -> IO Pandoc
-parseMarkdownWithOpts text opts = runIOorExplode (readMarkdown opts text)
+-- | Finds lines of dashes directly below a line of text. Pandoc reads them as
+-- a setext level-2 heading, not as a slide break. This is a heuristic (it
+-- cannot see everything the parser sees), so it only produces hints. Fenced
+-- code, YAML blocks and multiline tables (blocks that start with a dash line)
+-- are skipped.
+setextHints :: FilePath -> Text -> [Diagnostic]
+setextHints path markdown = go Nothing "" (zip [1 ..] (Text.lines markdown))
+  where
+    -- The state is the closing line of the fenced code or YAML block we are in
+    -- (if any) and the previous line.
+    go :: Maybe Text -> Text -> [(Int, Text)] -> [Diagnostic]
+    go _ _ [] = []
+    go (Just close) _ ((_, line) : rest)
+      | close `Text.isPrefixOf` Text.strip line = go Nothing "" rest
+      | close == "---" && Text.stripEnd line == "..." = go Nothing "" rest
+      | otherwise = go (Just close) line rest
+    go Nothing previous ((n, line) : rest)
+      | Just fence <- openingFence line = go (Just fence) line rest
+      | isYamlStart n previous line rest = go (Just "---") line rest
+      | isMultilineTableStart previous line rest = skipTable rest
+      | isDashLine line && isParagraphText previous =
+          hint
+            "setext-heading"
+            path
+            (Just (n - 1))
+            ( "the dash line below \""
+                <> Text.strip previous
+                <> "\" turns it into a level-2 heading; add a blank line before the dashes if a slide break was intended"
+            )
+            : go Nothing line rest
+      | otherwise = go Nothing line rest
+    -- A multiline table starts with a dash line after a blank line, directly
+    -- followed by text, and ends with a dash line followed by a blank line.
+    isMultilineTableStart previous line rest =
+      isDashLine line
+        && isBlank previous
+        && case rest of
+          ((_, next) : _) -> not (isBlank next) && not ("#" `Text.isPrefixOf` next)
+          [] -> False
+    skipTable ((_, line) : rest@((_, next) : _))
+      | isDashLine line && isBlank next = go Nothing line rest
+      | otherwise = skipTable rest
+    skipTable _ = []
+    isBlank = Text.null . Text.strip
+    openingFence line =
+      let stripped = Text.stripStart line
+          fence c = Text.takeWhile (== c) stripped
+       in listToMaybe [f | c <- ['`', '~'], let f = fence c, Text.length f >= 3]
+    isDashLine line = let s = Text.stripEnd line in Text.length s >= 3 && Text.all (== '-') s
+    -- Front matter at the top of the file, or a YAML block further down that
+    -- starts with a key.
+    isYamlStart n previous line rest =
+      Text.stripEnd line == "---"
+        && isBlank previous
+        && case rest of
+          ((_, next) : _) -> not (isBlank next) && (n == 1 || looksLikeYamlKey next)
+          [] -> False
+    looksLikeYamlKey next =
+      let (key, colon) = Text.break (== ':') next
+       in not (Text.null key)
+            && not (Text.null colon)
+            && Text.all (\c -> isAlphaNum c || c `elem` ['-', '_', '.']) key
+    isParagraphText previous =
+      let stripped = Text.strip previous
+          first = Text.take 1 stripped
+       in not (Text.null stripped)
+            && not ("    " `Text.isPrefixOf` previous || "\t" `Text.isPrefixOf` previous)
+            && first `notElem` ["#", "|", "+", "-", "*", ":", "<", ">"]
+            && not (isOrderedListItem stripped)
+    isOrderedListItem text =
+      let (digits, rest) = Text.span isDigit text
+       in not (Text.null digits) && (Text.take 1 rest `elem` [".", ")"])
 
 -- | Writes a Pandoc document to a file in Markdown format. Throws an exception
 -- if something goes wrong

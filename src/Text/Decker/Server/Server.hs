@@ -95,12 +95,19 @@ runHttpServer context = do
   let meta = context ^. globalMeta
   (Resources deckerSource packSource) <- deckerResources meta
   let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
-  let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
+  -- Bind IPv4 loopback explicitly. With "localhost", a second server on a
+  -- port in use silently binds the other address family (IPv4/IPv6) instead
+  -- of failing, and browsers reach whichever server holds ::1.
+  let BindFlag bind = fromMaybe (BindFlag "127.0.0.1") $ find aBind (context ^. extra)
+  -- Advertise localhost for the default bind: browsers fall back from ::1 to
+  -- 127.0.0.1, and the origin (and with it localStorage) stays the same as
+  -- with earlier versions.
+  let host = if any aBind (context ^. extra) then bind else "localhost"
   exists <- liftIO $ Dir.doesFileExist indexSource
   when exists $
     putStrLn $
-      printf "Generated index at: http://%s:%d/index-generated.html" bind port
-  putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port
+      printf "Generated index at: http://%s:%d/index-generated.html" host port
+  putStrLn $ printf "Index at: http://%s:%d/index.html\n" host port
   sources <- liftIO $ deckerResources meta
   putStrLn $ "Loading resources from: " <> show sources
   let state = context ^. server

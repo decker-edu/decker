@@ -6,6 +6,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base16 as B16
 import Test.Hspec
 import Text.Decker.Chatty.Sync
+import Text.Decker.Chatty.Upload (danglingFiles)
 
 -- The frozen request-signing contract, mirrored from
 -- test/fixtures/chatty-sync-fixture.json and decker-chatty's
@@ -43,3 +44,9 @@ syncTests = describe "Chatty.Sync" $ do
     signature "DELETE" "/vector_stores/vs_1/files" "{}" `shouldNotBe` base
     signature "POST" "/vector_stores/vs_2/files" "{}" `shouldNotBe` base
     signature "POST" "/vector_stores/vs_1/files" "{ }" `shouldNotBe` base
+
+  it "prunes only files attached to no vector store" $ do
+    danglingFiles
+      ["file-this-lecture", "file-other-lecture"]
+      [("file-this-lecture", "a.md"), ("file-other-lecture", "b.md"), ("file-dangling", "c.md")]
+      `shouldBe` [("file-dangling", "c.md")]

@@ -1,5 +1,4 @@
 ---
-decker-version: 0.12.0
 abstract: This slideset is used to test layout changes
 affiliation: Chair for Human-Computer Interaction
 author: Marc Erich Latoschik

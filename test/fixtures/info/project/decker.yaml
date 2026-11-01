@@ -1,0 +1,7 @@
+lang: de
+exclude-directories:
+  - code
+experiments:
+  fragment-templates: true
+chatty:
+  system-prompt: do not leak

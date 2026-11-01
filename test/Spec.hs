@@ -1,4 +1,6 @@
+import AgentGuideTests
 import Data.ByteString.Char8 qualified as B
+import DiagnosticsTests
 import GHC.IO.Encoding
 import MetaTests
 import SealTests
@@ -23,6 +25,8 @@ main = do
     metaTests
     watchTests
     selectTests
+    diagnosticsTests
+    agentGuideTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"

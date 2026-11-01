@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Project.Project
@@ -31,7 +32,8 @@ module Text.Decker.Project.Project
     toMetaValue,
     readTargetsFile,
     alwaysExclude,
-    calcTargets
+    calcTargets,
+    addQuestionSourcesOracle,
   )
 where
 
@@ -49,6 +51,7 @@ import Data.String qualified as String
 import Data.Yaml qualified as Yaml
 import Data.Yaml.Pretty qualified as Yaml
 import Development.Shake hiding (Resource)
+import Development.Shake.Classes (Binary)
 import Relude
 import System.Directory qualified as Directory
 import System.FilePath qualified as FP
@@ -116,6 +119,23 @@ readTargetsFile targetFile = do
   -- we do not really have to track the dependency here, it just needs to exist
   -- need [targetFile]
   liftIO (Yaml.decodeFileThrow targetFile)
+
+-- | Oracle key for the set of all question sources.
+newtype QuestionSourcesQ = QuestionSourcesQ ()
+  deriving (Show, Eq, Hashable, Binary, NFData)
+
+type instance RuleResult QuestionSourcesQ = [FilePath]
+
+-- | Registers an oracle that returns the sorted list of all question sources.
+-- The targets file is deliberately not tracked (see 'readTargetsFile'), so
+-- rules that aggregate all questions use this oracle instead. It is
+-- re-evaluated on every run, and its dependents rebuild only when the set of
+-- question sources changes (e.g. a @*-quest.yaml@ was added).
+addQuestionSourcesOracle :: Action Targets -> Rules (Action [FilePath])
+addQuestionSourcesOracle getDeps = do
+  query <- addOracle $ \(QuestionSourcesQ ()) ->
+    sort . Map.elems . view questions <$> getDeps
+  return $ query (QuestionSourcesQ ())
 
 -- data Resource = Resource
 --   { -- | Absolute Path to source file

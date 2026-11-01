@@ -51,8 +51,8 @@ cols (Header 2 attr [Str wa, Space, Str wb]:a:b:rest)
     pa = (100 * wa') `div` total
     pb = (100 * wb') `div` total
     outerDiv = Div attr [makeDiv pa a, makeDiv pb b, clearDiv]
-cols (Header 3 attr [Str wa, Space, Str wb, Space, Str wc]:a:b:c:rest) =
-  outerDiv : rest
+cols (Header 3 attr [Str wa, Space, Str wb, Space, Str wc]:a:b:c:rest)
+  | isInt wa && isInt wb && isInt wc = outerDiv : rest
   where
     wa' = fromMaybe 1 (readMaybe $ Text.unpack wa) :: Int
     wb' = fromMaybe 1 (readMaybe $ Text.unpack wb) :: Int

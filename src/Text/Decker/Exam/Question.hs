@@ -8,13 +8,18 @@ module Text.Decker.Exam.Question where
 
 import Control.Exception
 import Control.Lens hiding (Choice)
+import Data.Aeson.KeyMap qualified as KeyMap
+import Data.Aeson.Key qualified as Key
 import Data.Aeson.TH
 import Data.Aeson.Types
+import Data.Char (toLower)
+import Data.List qualified as List
 import Data.Typeable
 import Data.Yaml qualified as Y
 import GHC.Generics hiding (Meta)
 import Relude
 import System.Directory
+import Text.Decker.Internal.Diagnostics (Diagnostic, warning)
 import Text.Decker.Internal.Meta
 
 data Choice = Choice
@@ -122,3 +127,75 @@ readQuestion file = do
         ++ file
         ++ ", "
         ++ show exception
+
+-- | The top-level fields of a question file.
+questionFields :: [Text]
+questionFields =
+  [ "TopicId",
+    "LectureId",
+    "Title",
+    "Points",
+    "Question",
+    "Answer",
+    "Difficulty",
+    "Comment",
+    "ShuffleAnswers",
+    "CurrentNumber",
+    "FilePath",
+    "Exam"
+  ]
+
+-- | The fields of each answer type, keyed by its @tag@.
+answerFields :: [(Text, [Text])]
+answerFields =
+  [ ("MultipleChoice", ["Choices"]),
+    ("FillText", ["FillText", "CorrectWords"]),
+    ("FreeForm", ["HeightInMm", "CorrectAnswer"]),
+    ("Numerical", ["CorrectNumber"]),
+    ("MultipleAnswers", ["WidthInMm", "Answers"])
+  ]
+
+-- | Reports fields of a question file that the parser silently ignores, e.g. a
+-- misspelled @ShuffleAnswer@. Parse errors are left to 'readQuestion'.
+questionDiagnostics :: FilePath -> IO [Diagnostic]
+questionDiagnostics file = do
+  result <- Y.decodeFileEither file
+  return $ case result of
+    Right (Object q) -> unknown "" questionFields q <> answer (KeyMap.lookup "Answer" q)
+    _ -> []
+  where
+    answer (Just (Object a))
+      | Just (String tag) <- KeyMap.lookup "tag" a,
+        Just fields <- List.lookup tag answerFields =
+          unknown "Answer." ("tag" : fields) a
+    answer _ = []
+    unknown prefix known object =
+      [ warning "quest-unknown-field" file Nothing (message prefix known key)
+        | key <- map Key.toText (KeyMap.keys object),
+          key `notElem` known
+      ]
+    message prefix known key =
+      "unknown field "
+        <> prefix
+        <> key
+        <> " is ignored"
+        <> maybe "" (\k -> " (did you mean " <> prefix <> k <> "?)") (closest known key)
+
+-- | The known field closest to a misspelled one, if any is close enough.
+closest :: [Text] -> Text -> Maybe Text
+closest known key =
+  fmap snd
+    $ viaNonEmpty head
+    $ sortOn fst
+      [(d, k) | k <- known, let d = distance (lower k) (lower key), d <= 2]
+  where
+    lower = map toLower . toString
+
+-- | Levenshtein distance.
+distance :: String -> String -> Int
+distance a b = fromMaybe 0 $ viaNonEmpty last $ foldl' step [0 .. length a] b
+  where
+    step prev@(p : ps) c = scanl compute (p + 1) (zip3 a prev ps)
+      where
+        compute left (x, diag, up) = min (up + 1) $ min (left + 1) (diag + if x == c then 0 else 1)
+    step [] _ = []

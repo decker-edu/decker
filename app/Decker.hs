@@ -35,6 +35,7 @@ import Text.Decker.Exam.Xml
 import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Diagnostics (reportFor, withDiagnostics)
 import Text.Decker.Internal.External (
     runExternal,
     runExternalForSVG,
@@ -42,7 +43,7 @@ import Text.Decker.Internal.External (
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.PdfExport
-import Text.Decker.Project.ActionContext (Flags (LectureFlag, ProjectDirFlag), actionContext, extra)
+import Text.Decker.Project.ActionContext (Flags (LectureFlag, PortFlag, ProjectDirFlag), actionContext, extra)
 import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -51,6 +52,7 @@ import Text.Decker.Chatty.Upload (syncChattyToStore)
 import Text.Decker.Reader.Markdown (generateChattyMarkdown)
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
+import Text.Decker.Server.Server (aPort)
 import Text.Decker.Writer.Layout
 import Text.Groom
 import Text.Pandoc (Meta)
@@ -125,7 +127,7 @@ removeFileA target = do
 
 serverPort = 8888
 
-serverUrl = "http://localhost:" ++ show serverPort
+serverUrl port = "http://localhost:" ++ show port
 
 generatedIndex = publicDir </> "index-generated.html"
 
@@ -144,6 +146,7 @@ runArgs args = do
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   addTargetInfoOracles getGlobalMeta
+  getQuestionSources <- addQuestionSourcesOracle getDeps
   transient <- liftIO transientDir
   devRun <- liftIO isDevelopmentRun
 
@@ -167,11 +170,13 @@ deckerRules = do
   addHelpSuffix "  - format - Format Decker Markdown from stdin to stdout. Use with your favourite text editor."
   addHelpSuffix "  - chatty - Build and sync chatty markdown files to an OpenAI vector store."
   addHelpSuffix "  - exam-builder - Browse exam questions and compose *-exam.yaml collections in a web app."
-  addHelpSuffix "  - agent-docs - Write version-stamped AI agent guide (.decker/agent-guide.md) and Claude skill (.claude/skills/decker/SKILL.md)."
+  addHelpSuffix "  - agent-guide [TOPIC] - Print the guide for AI agents that author Decker content (--all: every topic)."
+  addHelpSuffix "  - agent-docs - Write the Claude skill (.claude/skills/decker/SKILL.md) and an AGENTS.md section that point agents to `decker agent-guide`."
+  addHelpSuffix "  - info --json - Print project facts (targets, configuration, fragment templates) as JSON."
   addHelpSuffix ""
-  addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
+  addHelpSuffix "For additional information see: https://decker-edu.github.io/decker/users-guide/decker-users-guide.html"
   --
-  withTargetDocs "Build HTML versions of all question (*-quest.md)." $
+  withTargetDocs "Build HTML previews of all questions (*-quest.yaml)." $
     phony "questions" $ do
       need ["support"]
       getDeps >>= needTargets questions
@@ -187,7 +192,7 @@ deckerRules = do
       need ["support"]
       getDeps >>= needTargets decks
   --
-  withTargetDocs "Build HTML versions of all handouts (*-handout.md)." $
+  withTargetDocs "Build HTML versions of all handouts (from *-deck.md)." $
     phony "handouts" $ do
       need ["support", "questions"]
       getDeps >>= needTargets' [handouts]
@@ -268,7 +273,9 @@ deckerRules = do
         exists <- doesFileExist annot
         when exists $ need [annot]
         need [src]
-        let url = serverUrl </> makeRelative publicDir src
+        context <- actionContext
+        let PortFlag port = fromMaybe (PortFlag serverPort) $ find aPort (context ^. extra)
+        let url = serverUrl port </> makeRelative publicDir src
         withResource chromeResource 1 $ do
           putInfo $ "# chrome started ... (for " <> out <> ")"
           liftIO $ exportPdf url out "127.0.0.1" 9222 websocketLock
@@ -309,43 +316,43 @@ deckerRules = do
       whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
         copyFile' (src <.> "map") (out <.> "map")
     --
-    privateDir <//> "*-quest.html" %> \out -> do
+    privateDir <//> "*-quest.html" %> \out -> withDiagnostics out $ do
       src <- lookupSource questions out <$> getDeps
       need [src]
+      liftIO (questionDiagnostics src) >>= mapM_ (reportFor (Just out))
       meta <- getGlobalMeta
       renderQuestion meta src out
     --
     privateDir <//> "quest-catalog.html" %> \out -> do
       meta <- getGlobalMeta
-      deps <- getDeps
-      let sources = Map.elems (deps ^. questions)
+      sources <- getQuestionSources
       need sources
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
-      deps <- getDeps
-      let sources = Map.elems (deps ^. questions)
+      sources <- getQuestionSources
       need sources
       qs <- liftIO $ mapM readQuestion sources
       renderXmlCatalog _qstExam qs out
     --
     privateDir <//> "*-exam.xml" %> \out -> do
       deps <- getDeps
+      questionSrcs <- getQuestionSources
       let examSrc = lookupSource exams out deps
-          questionSrcs = Map.elems (deps ^. questions)
       need (examSrc : questionSrcs)
       exam <- liftIO $ readExam examSrc
       qs <- liftIO $ mapM readQuestion questionSrcs
       renderXmlCatalog (matchesExam exam) qs out
     --
-    phony "catalog" $ do
-      need ["private/quest-catalog.html"]
+    withTargetDocs "Build a browsable page of all questions (private/quest-catalog.html)." $
+      phony "catalog" $ do
+        need ["private/quest-catalog.html"]
     --
-    (publicDir </> "exam-builder" </> "questions.json") %> \out -> do
+    (publicDir </> "exam-builder" </> "questions.json") %> \out -> withDiagnostics out $ do
       meta <- getGlobalMeta
-      deps <- getDeps
-      let sources = Map.elems (deps ^. questions)
+      sources <- getQuestionSources
       need sources
+      liftIO (concat <$> mapM questionDiagnostics sources) >>= mapM_ (reportFor (Just out))
       renderQuestionCatalogJson meta sources out
     --
     phony "exam-builder" $ do
@@ -353,9 +360,10 @@ deckerRules = do
       -- public/, then render the question catalog the web app consumes.
       need ["html", publicDir </> "exam-builder" </> "questions.json"]
     --
-    phony "moodle-xml" $ do
-      deps <- getDeps
-      need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
+    withTargetDocs "Build Moodle XML of all questions and exams (private/quest-catalog.xml, private/*-exam.xml)." $
+      phony "moodle-xml" $ do
+        deps <- getDeps
+        need ("private/quest-catalog.xml" : Map.keys (deps ^. exams))
     --
     indexFile %> \out -> do
       targetsPath <- liftIO targetsFile
@@ -454,7 +462,7 @@ deckerRules = do
       sources <- withIndexSource publishable
       generateChattyMarkdown meta sources
   --
-  withTargetDocs "Stop chrome remote session" $
+  withTargetDocs "Build PDF versions of all decks (*-deck.md)." $
     phony "pdf" $ do
       need ["pdf-start"]
 
@@ -468,7 +476,7 @@ deckerRules = do
       deps <- getDeps
       need $ Map.keys (deps ^. static)
   --
-  withTargetDocs "Provide information about project parameters, sources and targets" $
+  withTargetDocs "Print the directories of the project and where its resources come from." $
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
       meta <- getGlobalMeta
@@ -481,7 +489,7 @@ deckerRules = do
         putStrLn $ "transient directory: " ++ transient
         putStrLn $ "template source: " <> show resources
   --
-  withTargetDocs "Provide information about project parameters, sources and targets" $
+  withTargetDocs "Like info, and also print the global meta data." $
     phony "more-info" $ do
       need ["info"]
       meta <- getGlobalMeta
@@ -489,7 +497,7 @@ deckerRules = do
         putStrLn "\ntop level meta data:\n"
         putStrLn (groom meta)
   --
-  withTargetDocs "Provide information about project parameters, sources and targets" $
+  withTargetDocs "Like more-info, and also print all sources and targets." $
     phony "even-more-info" $ do
       need ["more-info"]
       deps <- getDeps

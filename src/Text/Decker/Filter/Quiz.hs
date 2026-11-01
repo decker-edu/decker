@@ -13,6 +13,7 @@ where
 import Control.Exception (throw)
 import Control.Lens (makeLenses, set, view, (^.))
 import Data.Map.Strict qualified as M
+import Data.Maybe (listToMaybe)
 import Data.Text qualified as T
 import Data.Text.Encoding as E (encodeUtf8)
 import Data.Yaml (decodeEither')
@@ -21,7 +22,7 @@ import Text.Decker.Internal.Common (Decker)
 import Text.Decker.Internal.Meta
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (stringify)
-import Text.Pandoc.Walk (Walkable (walk))
+import Text.Pandoc.Walk (Walkable (query, walk))
 
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
@@ -165,10 +166,17 @@ parseAndSetQuizFields :: Quiz -> Block -> Quiz
 parseAndSetQuizFields q (Header 2 (id_, cls, kvs) text)
   | "fancy" `elem` cls = set quizMeta (set style "fancy" (q ^. quizMeta)) $ set title text q
   | "plain" `elem` cls = set quizMeta (set style "plain" (q ^. quizMeta)) $ set title text q
--- Set the meta information
-parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
-  if "yaml" `elem` cls then setQuizMeta q (decodeYaml code) else q
+-- Set the meta information. The media filter has already wrapped code blocks.
+parseAndSetQuizFields q block
+  | Just code <- yamlBlock block = setQuizMeta q (decodeYaml code)
   where
+    yamlBlock :: Block -> Maybe T.Text
+    yamlBlock (Div (_, cls, _) blocks)
+      | "media" `elem` cls = listToMaybe (query yamlCode blocks)
+    yamlBlock b = listToMaybe (yamlCode b)
+    yamlCode :: Block -> [T.Text]
+    yamlCode (CodeBlock (_, cls, _) code) | "yaml" `elem` cls = [code]
+    yamlCode _ = []
     decodeYaml :: T.Text -> Meta
     decodeYaml text =
       case decodeEither' (encodeUtf8 text) of
