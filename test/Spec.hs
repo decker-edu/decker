@@ -3,6 +3,7 @@ import Data.ByteString.Char8 qualified as B
 import DiagnosticsTests
 import GHC.IO.Encoding
 import MetaTests
+import NotesTests
 import SealTests
 import SyncTests
 import SelectTests
@@ -25,6 +26,7 @@ main = do
     metaTests
     watchTests
     selectTests
+    notesTests
     diagnosticsTests
     agentGuideTests
     describe "makeRelativeTo" $
