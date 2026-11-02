@@ -1,13 +1,14 @@
 let observer = undefined;
 
 function initPage() {
-  let options = {
-    root: document.documentElement,
-    rootMargin: "0px",
-    threshold: 1.0,
-  };
-
-  observer = new IntersectionObserver(cameIntoView, options);
+  // Use the viewport as root, because the scrolling element differs between
+  // resource packs. Trigger on the first visible pixel, because elements can be
+  // taller than the viewport and may never be fully visible. Extend the root by
+  // one viewport height, to start loading before an element scrolls into view.
+  observer = new IntersectionObserver(cameIntoView, {
+    rootMargin: "100% 0px",
+    threshold: 0,
+  });
   let targets = document.querySelectorAll("[data-src]");
   for (const target of targets) {
     observer.observe(target);
@@ -17,7 +18,8 @@ function initPage() {
 function cameIntoView(entries, observer) {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
-      entry.setAttribute("src", entry.getAttribute("data-src"));
+      entry.target.setAttribute("src", entry.target.getAttribute("data-src"));
+      observer.unobserve(entry.target);
     }
   });
 }

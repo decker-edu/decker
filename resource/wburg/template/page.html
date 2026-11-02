@@ -125,7 +125,7 @@ $endif$
     $header-includes$
     $endfor$
   </head>
-  <body class="page">
+  <body class="page" onload="initPage()">
     $for(include-before)$
     $include-before$
     $endfor$
@@ -167,6 +167,7 @@ $body$
     $include-after$
     $endfor$
 
+    <script src="$decker-support-dir$/js/page.js"></script>
     <script>
       var socket = new WebSocket("ws://" + location.host + "/reload");
       socket.onmessage = function (event) {
