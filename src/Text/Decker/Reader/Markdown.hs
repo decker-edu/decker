@@ -13,6 +13,7 @@ where
 import Control.Monad
 import Control.Monad.Loops
 import Data.Char (isAlphaNum, isDigit)
+import Data.List qualified as List
 import Data.Maybe
 import Data.Text qualified as Text
 import Data.Text.IO qualified as Text
@@ -25,6 +26,7 @@ import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
+import Text.Decker.Filter.Local qualified as Local
 import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Paths
@@ -44,7 +46,8 @@ import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.Pandoc hiding (lookupMeta, report)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
-import Text.Pandoc.Walk (query, walk)
+import Text.Pandoc.Walk (query, walk, walkM)
+import Text.URI (mkURI)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -154,7 +157,58 @@ generateChattyMarkdown globalMeta = mapM_ generate
       pandoc <- readMarkdownFile globalMeta path
       Pandoc mergedMeta _ <- mergeDocumentMeta globalMeta pandoc
       unless (lookupMetaOrElse False "chatty.exclude" mergedMeta) $
-        writeToMarkdownFile path "chatty" path (dropSolutionContent mergedMeta pandoc)
+        inlineMediaSources (dropSolutionContent mergedMeta pandoc)
+          >>= writeToMarkdownFile path "chatty" path
+
+-- | Inlines the source of external media that the slides show rendered or as
+-- highlighted code (@![](plot.gnuplot){.render}@, @![](main.hs){.code}@). In
+-- the chatty markdown such an image is just a link, so the vector store (and
+-- the agent) would never see the source. The source is added as a fenced
+-- code block directly after the block that holds the image, in the same form
+-- as an inline @{.dot .render}@ code block, with a @source-file@ attribute
+-- that names the file. Remote URLs are left alone. Missing files are skipped,
+-- because the regular build already reports them.
+inlineMediaSources :: Pandoc -> Action Pandoc
+inlineMediaSources = walkM (fmap concat . mapM expand)
+  where
+    -- walkM is bottom-up, so the Plain inside a figure has already been
+    -- expanded. Move its source blocks out, after the figure.
+    expand :: Block -> Action [Block]
+    expand (Figure attr caption body) =
+      let (sources, rest) = List.partition isSource body
+       in return (Figure attr caption rest : sources)
+    expand block@(Para inlines) = (block :) <$> sourcesOf inlines
+    expand block@(Plain inlines) = (block :) <$> sourcesOf inlines
+    expand block = return [block]
+    sourcesOf :: [Inline] -> Action [Block]
+    sourcesOf inlines = catMaybes <$> mapM sourceBlock (query images inlines)
+    images (Image (_, classes, _) _ (url, _)) = [(classes, url)]
+    images _ = []
+    sourceBlock (classes, url) =
+      case mkURI url of
+        Just uri
+          | isNothing (uriScheme uri),
+            Just ext <- uriPathExtension uri,
+            Just codeClasses <- codeClassesFor classes ext -> do
+              let file = uriFilePath uri
+              exists <- liftIO $ Dir.doesFileExist file
+              if exists
+                then do
+                  need [file]
+                  code <- liftIO $ Text.readFile file
+                  return $ Just $ CodeBlock ("", codeClasses, [(sourceKey, url)]) (Text.stripEnd code)
+                else return Nothing
+        _ -> return Nothing
+    codeClassesFor classes ext
+      | "code" `elem` classes = Just [ext]
+      | "render" `elem` classes && ext `elem` Local.renderExt = Just [language ext, "render"]
+      | otherwise = Nothing
+    -- The inline code block class for mermaid is not the file extension.
+    language "mmd" = "mermaid"
+    language ext = ext
+    sourceKey = "source-file"
+    isSource (CodeBlock (_, _, kvs) _) = isJust (List.lookup sourceKey kvs)
+    isSource _ = False
 
 addDocumentPath :: Meta -> FilePath -> Pandoc -> Action Pandoc
 addDocumentPath globalMeta documentPath pandoc@(Pandoc meta blocks) = do
