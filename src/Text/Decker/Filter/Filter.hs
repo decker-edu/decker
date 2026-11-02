@@ -123,17 +123,14 @@ wrapBoxes slide@(Slide header body dir) = do
     Disposition _ Html -> return $ Slide header (concatMap wrap boxes) dir
     Disposition _ _ -> return slide
   where
-    boxes = split (keepDelimsL $ whenElt isBoxDelim) body
+    boxes = split (keepDelimsL $ whenElt isBoxDelim) (map nestedHeaderNotes body)
     wrap [] = []
     wrap ((Header 2 attr@(id, cls, kvs) text) : blocks)
       | "details" `elem` cls = [makeFramedDetail attr text blocks]
-    wrap ((Header 2 (id_, cls, kvs) text) : blocks)
+    wrap (header@(Header 2 (_, cls, _) _) : blocks)
       | "notes" `elem` cls =
-          [ tag "aside"
-              $ Div
-                (id_, ["notes"], [])
-                (Header 2 (id_, deFragment cls, kvs) text : blocks)
-          ]
+          let (notes, rest) = break isPause blocks
+           in headerNotes header notes : wrap rest
     wrap ((Header 2 (id_, cls, kvs) text) : blocks) =
       [ Div
           (id_, ["box", "block"] ++ cls, mangle kvs)
@@ -144,6 +141,35 @@ wrapBoxes slide@(Slide header body dir) = do
       case List.lookup "width" kvs of
         Just w -> ("style", "width:" <> w <> ";") : List.filter ((/=) "width" . fst) kvs
         Nothing -> kvs
+
+-- | Converts a `## Title {.notes}` header and the blocks that follow it into
+-- speaker notes.
+headerNotes :: Block -> [Block] -> Block
+headerNotes (Header n (id_, cls, kvs) text) blocks =
+  notesAside (id_, ["notes"], []) (Header n (id_, deFragment cls, kvs) text : blocks)
+headerNotes block blocks = notesAside ("", ["notes"], []) (block : blocks)
+
+-- | A notes section ends at the next level 2 header or at a `. . .` pause.
+-- Without the pause boundary, notes would swallow all later fragments.
+isPause :: Block -> Bool
+isPause (Div attr _) = attr == pauseAttr
+isPause _ = False
+
+-- | `wrapBoxes` only sees level 2 headers at the top level of a slide. This
+-- converts `## Title {.notes}` sections nested in Divs, such as the fragment
+-- Divs `pauseDots` creates or fenced Divs written by the author. A nested
+-- section ends at the next level 2 header or the end of its Div.
+nestedHeaderNotes :: Block -> Block
+nestedHeaderNotes (Div attr@(_, cls, _) blocks)
+  | "notes" `notElem` cls =
+      Div attr $ concatMap convert $ split (keepDelimsL $ whenElt isBoxDelim) blocks
+  where
+    convert (header@(Header 2 (_, hcls, _) _) : rest)
+      | "notes" `elem` hcls =
+          let (notes, after) = break isPause rest
+           in headerNotes header notes : map nestedHeaderNotes after
+    convert chunk = map nestedHeaderNotes chunk
+nestedHeaderNotes block = block
 
 -- | Map over all active slides in a deck.
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
@@ -221,9 +247,13 @@ pauseDots (Slide header body dir) = do
         bls : blss ->
           concat
             $ bls
-            : map ((: []) . Div ("", ["fragment"], [])) blss
+            : map ((: []) . Div pauseAttr) blss
         blss -> concat blss
   return (Slide header blocks dir)
+
+-- | The attributes of the fragment Divs that `pauseDots` creates.
+pauseAttr :: Attr
+pauseAttr = ("", ["fragment"], [])
 
 selectActiveContent :: (HasAttr a) => [a] -> Decker [a]
 selectActiveContent fragments = do
