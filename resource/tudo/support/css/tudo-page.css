@@ -459,9 +459,11 @@ details[open] > summary {
   border-bottom-right-radius: 0;
 }
 
-details summary:hover {
-  background-color: var(--summary-hover-color);
-  color: var(--background-color);
+@media (hover: hover) {
+  details summary:hover {
+    background-color: var(--summary-hover-color);
+    color: var(--background-color);
+  }
 }
 
 details input {
@@ -548,9 +550,11 @@ details[open].demo summary {
   color: white;
 }
 
-details.demo summary:hover {
-  background-color: var(--accent3);
-  color: white;
+@media (hover: hover) {
+  details.demo summary:hover {
+    background-color: var(--accent3);
+    color: white;
+  }
 }
 
 /* links in text and equations */
@@ -578,12 +582,14 @@ mjx-container[jax="SVG"] > svg a {
   float: right;
 }
 
-.theorem details summary:hover {
-  background: rgba(1, 1, 1, 0.1);
-}
+@media (hover: hover) {
+  .theorem details summary:hover {
+    background: rgba(1, 1, 1, 0.1);
+  }
 
-.example details summary:hover {
-  background: rgba(1, 1, 1, 0.1);
+  .example details summary:hover {
+    background: rgba(1, 1, 1, 0.1);
+  }
 }
 
 .theorem details summary::after {
@@ -605,8 +611,10 @@ details summary[icon]::marker {
   color: var(--primary-color);
   content: attr(icon);
 }
-details summary[icon]:hover::marker {
-  color: white;
+@media (hover: hover) {
+  details summary[icon]:hover::marker {
+    color: white;
+  }
 }
 
 img {
