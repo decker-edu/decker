@@ -437,6 +437,11 @@ recordingRoutes sessions transcode = do
               chan <- lift $ asks channel
               atomically $ writeTChan chan (TranscodeRecording (base <> "-recording.webm"))
             json $ object ["fragment" .= fragment, "transcoding" .= converting]
+  -- The running session, so that the browser can offer to recover it
+  -- before it asks whether to append or replace.
+  Scotty.get (regex "^/recording/(.+)/session$") $ withDeck $ \base -> do
+    running <- liftIO $ locked base $ sessionInfo base
+    maybe noSession json running
   Scotty.delete (regex "^/recording/(.+)$") $ withDeck $ \base -> do
     existed <- liftIO $ locked base $ discardSession base
     if existed then json (object ["discarded" .= True]) else noSession

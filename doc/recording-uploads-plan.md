@@ -1,7 +1,7 @@
 # Recording uploads: implementation plan
 
-Status: steps 1–4 implemented (2026-11-04), step 5 planned. Line references are
-against `490aa38a`. See Implementation notes at the end.
+Status: steps 1–5 implemented (2026-11-04), except speech recognition (5.5).
+Line references are against `490aa38a`. See Implementation notes at the end.
 
 ## Goal
 
@@ -583,3 +583,61 @@ Manual checklist:
   times continue), and with an unfinished session on the server (409,
   discard, upload). `-P` with an H.264 file: replace gives a 5 s MP4, append
   a concatenated 10 s MP4.
+
+### Step 5 (2026-11-04)
+
+- `RecordingSession` in `explain.js` holds the queue of unconfirmed chunks,
+  each with its byte offset (assigned when queued) and its length in seconds
+  of recording time. `request` retries network errors and 5xx with a backoff
+  from 0.5 s, capped at 5 s, until the server answers. 200 and 409 both
+  confirm the server's size: chunks stored completely are dropped, and the
+  next chunk must start exactly there, else (a partly stored chunk, or the
+  server has less) the session fails. 404 ends it as lost, other 4xx fail it
+  as recoverable. A failed session stops the recording.
+- Addition: `GET /recording/<deck>/session` returns the running session or
+  404. The recovery dialog has to come before the append/replace dialog
+  (the recovered recording counts as existing), but `start` needs the mode,
+  which that dialog decides. The browser asks first, then starts.
+- A session with an empty video part (the recorder failed right after
+  `start`) is discarded without asking.
+- Starting fails early, with a message, if the server cannot be reached or is
+  not a Decker server, instead of losing the recording at the stop.
+- Addition: a timing snapshot is also sent with every chunk, not only on
+  slide changes and pause, so a recovered recording's timings end within a
+  chunk of its video even after a long time on one slide. `SnapshotUploader`
+  sends one at a time, and a newer snapshot replaces one still waiting. The
+  final snapshot waits for the one in flight before it is sent.
+- Fix: `Timing.timeStamp()` stands still while paused. Before, a stop while
+  paused added the pause to the last `timeOut`, and slide changes during a
+  pause got times beyond the video. Needed for the pause snapshot anyway.
+- Backlog indicator: a number next to the record indicator, which stays
+  visible while the panel is closed, shown above 10 s, yellow above 15 s,
+  red and blinking above 60 s or after a failure. The panel is opaque while
+  it warns. The estimate counts whole chunks, so it rises in 5 s steps.
+- Stop: the progress dialog opens after 1 s, so a normal stop does not flash
+  it. After 10 s without an answer from the server it says how much video
+  the server has and how to recover. It can be hidden; the upload continues.
+  A new recording is refused while the last one is still uploading.
+- `finish` is retried like the chunks. A 404 after a retried finish counts as
+  success (the answer of the first attempt was lost).
+- Removed: the WebM and `times.json` downloads at stop, the in-memory
+  `blobs`, the step 4 bridge and `download()`. The whiteboard's save at stop
+  (with its download) stays.
+- Not done: 5.5 for speech recognition. `speechrecognition.js` was taken out
+  of the explain plugin in 2022 (`8cb15fef`, "until further confirmation
+  about quality of service") and references globals that no longer exist.
+  Wiring it back in is a product decision, not part of this step. The
+  `/captions` and `/transcript` snapshot endpoints are ready for it.
+- Tests: `test/ServerTests.hs` checks the session endpoint. The manual
+  checklist ran in headless Chromium with a faked screen, driven over CDP by a
+  script that also kills and restarts the server: the part grows in 5 s steps
+  and stop gives the WebM and matching timings, no reload, no downloads; a
+  25 s outage raises the backlog to the warning and drains after the restart,
+  and the video decodes without a gap (43.3 s for 43.2 s of timings);
+  closing the tab and recovering gives the part file as the recording, with
+  timings within 0.1 s, and it converts to MP4 (ffmpeg warns that the WebM
+  "ended prematurely", as expected for a cut stream); discarding keeps the
+  old video and timings byte for byte; append makes `-0`/`-1`, the timings
+  continue at the old end and the pause is excluded; a stop with the server
+  down shows the unreachable text, `beforeunload` prompts, and the upload
+  finishes after the restart and closes the dialog.

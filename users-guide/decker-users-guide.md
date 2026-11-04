@@ -3502,15 +3502,24 @@ result back on the slides.
 4. Press `R` to pause and resume.
 5. Press `Z` three times in quick succession to stop.
 
-The result is `x-recording.webm` and `x-times.json` for the deck `x-deck.md`, both next
-to its source and in the downloads folder of the browser. The times say which slide was
-shown when. Adding to a recording makes numbered fragments, `x-recording-0.webm`,
-`x-recording-1.webm` and so on, and the times continue where the old ones ended.
+The result is `x-recording.webm` and `x-times.json` for the deck `x-deck.md`, next to
+its source. The times say which slide was shown when. Adding to a recording makes
+numbered fragments, `x-recording-0.webm`, `x-recording-1.webm` and so on, and the times
+continue where the old ones ended.
 
-The server swaps in the new video and times together, and only once the upload is
-complete. Until then the previous recording stays as it was, also if the upload fails.
-The parts of an upload in progress are `.part` files next to the deck source. If an
-upload was interrupted, the next one offers to discard its parts.
+The video goes to the server while you record, every five seconds. Nothing is kept in
+the browser or put into its downloads folder, so recording needs the server. If the
+server can not be reached for a while, the panel shows how many seconds of video wait
+for the upload, in yellow above 15 seconds and in red above a minute, and the upload
+catches up once the server is back. After the stop, a dialog shows the rest of the
+upload if it takes longer than a second.
+
+The server swaps in the new video and times together, and only once the recording is
+stopped and completely uploaded. Until then the previous recording stays as it was.
+The parts of a recording in progress are `.part` files next to the deck source. If a
+recording was interrupted, because the browser crashed, the tab was closed or the
+upload could not be completed, the next press of `R` to start offers to recover it,
+with the video and times up to the last few seconds, or to discard it.
 
 A recording in the browser's format is not what gets played. Turn it into
 `x-recording.mp4` with [`decker crunch`](#decker-crunch), or at once with the option

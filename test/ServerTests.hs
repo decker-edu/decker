@@ -33,11 +33,15 @@ serverTests =
               start = "{\"mode\":\"replace\"}"
           answer "POST" "recording/nope/start" start `shouldReturn` (404, "ERROR: no such deck")
           answer "PUT" "recording/a/chunk?offset=0" "x" `shouldReturn` (404, "ERROR: no recording session")
+          answer "GET" "recording/a/session" "" `shouldReturn` (404, "ERROR: no recording session")
           answer "POST" "recording/a/start" start `shouldReturn` (200, "{\"size\":0}")
           (busy, info) <- answer "POST" "recording/a/start" start
           busy `shouldBe` 409
           info `shouldSatisfy` (("\"mode\":\"replace\"" `BS.isInfixOf`) . LBS.toStrict)
           answer "PUT" "recording/a/chunk?offset=0" "0123" `shouldReturn` (200, "{\"size\":4}")
+          (running, session) <- answer "GET" "recording/a/session" ""
+          running `shouldBe` 200
+          session `shouldSatisfy` (("\"size\":4" `BS.isInfixOf`) . LBS.toStrict)
           answer "PUT" "recording/a/chunk?offset=0" "0123" `shouldReturn` (200, "{\"size\":4}")
           answer "PUT" "recording/a/chunk?offset=9" "9" `shouldReturn` (409, "{\"size\":4}")
           fst <$> answer "PUT" "recording/a/times" "[]" `shouldReturn` 200
