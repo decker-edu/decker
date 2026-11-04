@@ -1,6 +1,6 @@
 # Recording uploads: implementation plan
 
-Status: steps 1 and 2 implemented (2026-11-04), steps 3–5 planned. Line references are
+Status: steps 1–3 implemented (2026-11-04), steps 4 and 5 planned. Line references are
 against `490aa38a`. See Implementation notes at the end.
 
 ## Goal
@@ -485,3 +485,41 @@ Manual checklist:
   public copy stays old for 2 s, while a deck edit, the control, does build),
   no leftover part files, the single backup, the 404 for a stale public copy
   and a Range request (206) on an MP4.
+
+### Step 3 (2026-11-04)
+
+- `persistAnnotations` PUTs without a download. `saveAnnotations` (the Save
+  button, and `explain.js` when a recording stops) downloads and then goes
+  through `persistAnnotations`, so manual saves share the one-at-a-time queue.
+- Deviation: the server answers OPTIONS with an `X-Decker-Server: 1` header,
+  and the probe checks for it. A plain OPTIONS answer is not enough: Apache
+  answers OPTIONS with 200 too. This is the only server change.
+- Triggers: 8 s idle timer, `slidechanged`, a 60 s ceiling, `pagehide`,
+  `visibilitychange` (hidden) and `beforeunload`. A failed PUT is retried by
+  the next trigger, at the latest by the ceiling timer, not every 8 s.
+- The dirty flag is cleared only when a PUT succeeded and no change was made
+  since its snapshot (a change counter). A change during a running PUT
+  sends again right after it.
+- Page hide while a PUT is running: if that PUT does not contain the latest
+  changes, the latest snapshot is sent next to it, because the page may not
+  live long enough to wait. Its success does not clear the flag, and the queue
+  waits for it before sending again, so the last PUT to complete is always the
+  latest snapshot.
+- Every PUT uses `keepalive` when the body is under 64 KiB, as before, so a
+  running autosave survives an unload.
+- Load before save: 404 and 204 count as "no annotations yet". A network
+  error, another HTTP error, a parse error or the old format keep autosave off.
+  The Auto-save button is disabled and its tooltip carries the warning, which
+  is also flashed once and logged. The annotations of the session can still be
+  saved with the Save button.
+- `beforeunload`: with active autosave it saves and only prompts if the last
+  PUT failed. With autosave on but no Decker server (static hosting) it only
+  downloads, as the only way to keep the annotations; it no longer PUTs. With
+  autosave on but a failed load, it prompts.
+- Snapshots leave out laser strokes instead of removing them from the DOM, so
+  an autosave does not cut a laser stroke that is still fading or being drawn.
+- Tests: `test/ServerTests.hs` checks the header. The manual checklist ran in
+  headless Chromium over CDP: idle save (one PUT, no download, no reload, public
+  copy untouched), slide change saves at once, a corrupt `-annot.json` keeps
+  autosave off and the file untouched, and a server restart: the PUT during
+  the outage fails, the next trigger uploads.

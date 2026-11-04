@@ -39,6 +39,9 @@ serverTests =
           get "a-annot.json" `shouldReturn` "{\"v\":2}"
 
           status "OPTIONS" "a-poll.json" "" `shouldReturn` 204
+          -- The whiteboard enables autosave only for a server with this marker.
+          probe <- request "OPTIONS" "a-annot.json" ""
+          lookup "X-Decker-Server" (responseHeaders probe) `shouldBe` Just "1"
           status "PUT" "a-poll.json" "{}" `shouldReturn` 200
           status "OPTIONS" "a-poll.json" "" `shouldReturn` 200
 

@@ -3388,17 +3388,23 @@ The first time a running server overwrites an existing `x-annot.json`, or any ot
 uploaded companion, it keeps the old version in the `backup` directory of the project's transient directory (`decker info`
 shows where), in a subdirectory named after the time the server started.
 
-With auto-save, which is the default, this happens when you leave the deck, not on every
-change. Without it, the browser warns about unsaved annotations when you leave. Without
-a Decker server only the download works, and the file has to be copied next to the
-source by hand.
+Auto-save, which is the default, only uploads, without a download. With a Decker server
+it saves 8 seconds after the last change, when the slide changes, at least once a minute
+while there are unsaved changes, and when you leave the deck. If the server is not
+reachable, the next of these tries again. If the deck could not load its existing
+annotations, auto-save stays off for the session, so that it does not replace them with
+an empty set. The Auto-save button then says so.
+
+Without auto-save, the browser warns about unsaved annotations when you leave. Without a
+Decker server, auto-save puts the file into the downloads folder when you leave, and the
+file has to be copied next to the source by hand.
 
 ### Options
 
 ``` yaml
 whiteboard:
   colors: ["var(--base07)", "red", "#00ff00"]  # the colors of the pen settings
-  autosave: false       # default is true
+  autosave: false       # save automatically, default is true
   autotoggle: true      # switch on when a stylus hovers, default is false
 ```
 

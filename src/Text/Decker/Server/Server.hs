@@ -399,12 +399,14 @@ deleteExam = do
 
 -- | Answers OPTIONS with 200 if the file exists and with 204 if it does not.
 -- Companions and recordings are looked up in the project dir, all other files
--- in public/.
+-- in public/. The X-Decker-Server header tells the browser that this server
+-- accepts uploads; a generic web server may answer OPTIONS with 200 too.
 headDirectory :: AppActionM ()
 headDirectory = do
   path <- captureParam "1"
   let directory = if isServedFromProject path then projectDir else publicDir
   exists <- liftIO $ doesFileExist (directory </> path)
+  Scotty.setHeader "X-Decker-Server" "1"
   if exists
     then status status200
     else status status204
