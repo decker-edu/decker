@@ -1,6 +1,7 @@
 # Recording uploads: implementation plan
 
-Status: planned (2026-11-04). Line references are against `490aa38a`.
+Status: step 1 implemented (2026-11-04), steps 2–5 planned. Line references are
+against `490aa38a`. See Implementation notes at the end.
 
 ## Goal
 
@@ -420,3 +421,36 @@ Manual checklist:
   `ffprobe` at finish time.
 - The untracked `targets` meta in rendered decks (`addMetaKeyValue "targets"`)
   is a separate staleness issue.
+
+--------------------------------------------------------------------------------
+
+## Implementation notes
+
+### Step 1 (2026-11-04)
+
+- `Text.Decker.Internal.Companions` holds `publishedSuffixes`,
+  `uploadableSuffixes`, `isCompanion`, `isRecordingArtifact` and
+  `isCompanionOf` (the deck-specific match the scanner uses). `Server.hs` uses
+  `isUploadable` instead of its own list.
+- Deviation: `uploadableSuffixes` does not contain the `-recording-*.vtt`
+  pattern. Those captions come from `decker transcribe`, the old `uploadable`
+  list did not accept them, and the browser never uploads them.
+- Deviation: `observed` (the dev server) also `need`s `companions` for now.
+  Without it, step 1 alone would stop companions from reaching `public/` while
+  serving, and the server still reads them from there until step 2.1. Remove it
+  in step 2 (marked with a TODO in `app/Decker.hs`).
+- `publish -l` copies only the companions of the selected decks
+  (`companionsOfDecks`), as the deck rule did before. `publish` without `-l`
+  needs `companions`.
+- Pruning skips `public/support` and keeps files that are static targets, so a
+  static resource that happens to match a companion suffix is not deleted.
+- The `publicDir <//> "*-recording-*.vtt"` rule in `Transcribe.hs` stays. It
+  belongs to `transcriptionRules`, which nothing uses (`decker transcribe`
+  calls `transcribeAllRecordings`), and its `vtts` phony needs the public
+  paths. Removing dead code is out of scope here.
+- `info --json` does not list companions. Its entries are keyed by source
+  document, and companions are not documents.
+- Tests: `test/CompanionTests.hs` covers the suffix logic and a build sequence
+  (add, change, pattern caption, `-poll.json`, delete) that checks the deck
+  HTML's modification time stays the same. The PDF rule change is not covered
+  by a test.

@@ -16,6 +16,8 @@ module Text.Decker.Project.Project
     excludeDirs,
     excludeGlob,
     static,
+    companions,
+    companionsOfDecks,
     sources,
     decks,
     decksPdf,
@@ -58,6 +60,7 @@ import System.FilePath qualified as FP
 import System.FilePath.Glob
 import System.FilePath.Posix
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Companions (isCompanionOf)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
   ( FromMetaValue (..),
@@ -74,6 +77,10 @@ type Dependencies = Map FilePath FilePath
 data Targets = Targets
   { _sources :: [FilePath],
     _static :: Dependencies,
+    -- | Published companion files of the decks (see
+    -- "Text.Decker.Internal.Companions"). Runtime data, copied but never
+    -- used as build inputs.
+    _companions :: Dependencies,
     _decks :: Dependencies,
     _decksPdf :: Dependencies,
     _pages :: Dependencies,
@@ -101,6 +108,7 @@ instance ToMetaValue Targets where
       Map.fromList
         [ ("sources", toMetaValue $ map toText _sources),
           ("static", depsToMeta _static),
+          ("companions", depsToMeta _companions),
           ("decks", depsToMeta _decks),
           ("decksPdf", depsToMeta _decksPdf),
           ("pages", depsToMeta _pages),
@@ -270,10 +278,12 @@ scanTargets meta = do
   srcs <- fastGlobFiles' (excludeDirs meta) anySource projectDir
   supportFiles <- Map.mapKeys ((publicDir </> "support") </>) <$> publicSupportFiles meta
   staticSrc <- concat <$> mapM (fastGlobFiles [] [] . normalise) (staticResources meta)
+  companionSrc <- scanCompanions (filter (deckSuffix `List.isSuffixOf`) srcs)
   return
     Targets
       { _sources = sort srcs,
         _static = Map.fromList $ map publicDep staticSrc,
+        _companions = Map.fromList $ map publicDep companionSrc,
         _decks = calcTargets deckSuffix deckHTMLSuffix srcs,
         _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs,
         _pages = calcTargets pageSuffix pageHTMLSuffix srcs,
@@ -285,6 +295,23 @@ scanTargets meta = do
       }
   where
     publicDep src = (publicDir </> src, src)
+
+-- | The existing published companions of the deck sources. Lists each deck
+-- directory once.
+scanCompanions :: [FilePath] -> IO [FilePath]
+scanCompanions deckSrcs = do
+  let byDir = Map.fromListWith (<>) [(takeDirectory src, [src]) | src <- deckSrcs]
+  found <- forM (Map.toList byDir) $ \(dir, srcs) -> do
+    names <- Directory.listDirectory dir
+    let files = map (normalise . (dir </>)) names
+    filterM Directory.doesFileExist
+      [file | file <- files, any (`isCompanionOf` file) srcs]
+  return $ sort $ concat found
+
+-- | The companions (target and source) that belong to the given deck sources.
+companionsOfDecks :: [FilePath] -> Dependencies -> Dependencies
+companionsOfDecks deckSrcs =
+  Map.filter (\file -> any (`isCompanionOf` file) deckSrcs)
 
 calcTargets = calcTargets' publicDir
 

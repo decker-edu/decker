@@ -18,14 +18,12 @@ import GHC.IO.Encoding
 import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
 import System.Directory.Extra (getFileSize)
-import System.FilePath.Glob qualified as Glob
 
 -- import System.FilePath.Posix
 
 import Network.Socket.Wait (wait)
 import Path (parseRelDir)
 import Path.IO (copyDirRecur)
-import System.Directory (makeRelativeToCurrentDirectory)
 import System.FilePath
 import System.IO
 import Text.Decker.Exam.Exam
@@ -35,6 +33,7 @@ import Text.Decker.Exam.Xml
 import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Companions (isPublishedCompanion)
 import Text.Decker.Internal.Diagnostics (reportFor, withDiagnostics)
 import Text.Decker.Internal.External (
     runExternal,
@@ -103,27 +102,19 @@ needTargets' sels targets = do
   let ts = concatMap (\s -> Map.keys (targets ^. s)) sels
   need ts
 
-needPublicIfExists :: FilePath -> Action ()
-needPublicIfExists source = do
-  let target = publicDir </> source
-  exists <- doesFileExist source
-  if exists
-    then do
-      need [target]
-    else do
-      removeFileA target
-
-needPublicIfExistsGlob :: FilePath -> Action ()
-needPublicIfExistsGlob source = do
-  files <- liftIO $ Glob.glob source
-  relative <- liftIO $ mapM makeRelativeToCurrentDirectory files
-  forM_ relative needPublicIfExists
-
--- | Remove a file, but don't worry if it fails
-removeFileA :: FilePath -> Action ()
-removeFileA target = do
-  didIt <- liftIO $ (removeFile target >> return True) `catch` \(SomeException e) -> return False
-  when didIt $ putNormal $ "# rm (for " <> target <> ")"
+-- | Copies the given companions to public/ and deletes public copies of
+-- companions that are no longer in the set. Companions are runtime data (see
+-- "Text.Decker.Internal.Companions"), so no rule depends on them.
+needCompanions :: Targets -> Dependencies -> Action ()
+needCompanions deps wanted = do
+  need $ Map.keys wanted
+  let keep target = Map.member target wanted || Map.member target (deps ^. static)
+  published <-
+    liftIO $
+      fastGlobFiles' ["support"] isPublishedCompanion publicDir
+  forM_ (filter (not . keep) published) $ \target -> do
+    liftIO $ removeFile target `catch` \(SomeException _) -> return ()
+    putNormal $ "# rm (for " <> target <> ")"
 
 serverPort = 8888
 
@@ -181,15 +172,19 @@ deckerRules = do
       need ["support"]
       getDeps >>= needTargets questions
   --
+  withTargetDocs "Copy the companion files of all decks (annotations, recordings, ...) to the public dir." $
+    phony "companions" $ do
+      deps <- getDeps
+      needCompanions deps (deps ^. companions)
+  --
   withTargetDocs "Build HTML versions of all decks and pages (*-deck.md, *-page.md)." $
     phony "html" $ do
-      need ["support", "questions"]
+      need ["support", "questions", "companions"]
       getDeps >>= needTargets' [decks, pages]
   --
   withTargetDocs "Build HTML versions of all decks (*-deck.md)." $
     phony "decks" $ do
-      meta <- getGlobalMeta
-      need ["support"]
+      need ["support", "companions"]
       getDeps >>= needTargets decks
   --
   withTargetDocs "Build HTML versions of all handouts (from *-deck.md)." $
@@ -234,7 +229,9 @@ deckerRules = do
   withTargetDocs "If a tree falls in a forest and no one is there to hear, does it make a sound?" $
     phony "observed" $ do
       watchChangesAndRepeat
-      need ["support"]
+      -- TODO(recording uploads, step 2): drop "companions" once the server
+      -- serves companions from the project dir.
+      need ["support", "companions"]
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
   --
@@ -256,22 +253,16 @@ deckerRules = do
       need [src]
       meta <- addMetaKeyValue "targets" targets <$> getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
-      needPublicIfExists $ replaceSuffix "-deck.md" "-annot.json" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-manip.json" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-times.json" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-transcript.json" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
-      needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
-      needPublicIfExistsGlob $ replaceSuffix "-deck.md" "-recording-*.vtt" src
     --
     publicDir <//> "*-deck.pdf" %> \out ->
       do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
         -- This is the right way to depend on an optional file. Just check for the
-        -- files existence with the Shake function `doesFileExist`.
+        -- files existence with the Shake function `doesFileExist`. Chrome
+        -- loads the annotations from public/, so depend on that copy.
         exists <- doesFileExist annot
-        when exists $ need [annot]
+        when exists $ need [publicDir </> annot]
         need [src]
         context <- actionContext
         let PortFlag port = fromMaybe (PortFlag serverPort) $ find aPort (context ^. extra)
@@ -536,6 +527,7 @@ deckerRules = do
               -- let decksPdf = calcTargets deckSuffix deckPDFSuffix selected
               let pages' = calcTargets pageSuffix pageHTMLSuffix selected
               need (Map.keys decks <> Map.keys pages')
+              needCompanions deps $ companionsOfDecks selected (deps ^. companions)
               -- need (Map.keys decks <> Map.keys decksPdf <> Map.keys pages')
               createPublicManifest
               let src = publicDir ++ "/"
@@ -543,7 +535,7 @@ deckerRules = do
               -- sync the annotated markdown of the published (non-draft) decks and pages
               syncChattyVectorStore meta selected
             else do
-              need ["support"]
+              need ["support", "companions"]
               getDeps >>= needTargets' [decks, pages]
               createPublicManifest
               let src = publicDir ++ "/"

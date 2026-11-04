@@ -389,16 +389,19 @@ These are the files that can be given as a target:
 
 Most targets build the index page, which reads all questions. A question file
 that does not parse therefore fails them, including `decks` and `pages`. Only
-`static-files`, `search-index` and the `info` targets are not affected.
+`static-files`, `companions`, `search-index` and the `info` targets are not
+affected.
 
 ## `> decker html`
 
 The default target. Builds all decks and pages, the question previews, the index
-page and the support files. It does not build handouts or PDFs.
+page and the support files, and copies the [companion files](#decker-companions)
+of the decks. It does not build handouts or PDFs.
 
 ## `> decker decks`
 
-Builds all decks (`*-deck.md`), the index page and the support files.
+Builds all decks (`*-deck.md`), the index page and the support files, and copies
+the [companion files](#decker-companions) of the decks.
 
 ## `> decker pages`
 
@@ -438,10 +441,20 @@ files to `public/support`. The other build targets include this one.
 
 Copies the directories listed in `static-resource-dirs` to `public/`.
 
+## `> decker companions`
+
+Copies the companion files of all decks to `public/`. For a deck `x-deck.md`,
+these are the files next to it that the deck loads in the browser:
+`x-annot.json`, `x-manip.json`, `x-times.json`, `x-transcript.json`,
+`x-recording.mp4`, `x-recording.vtt` and `x-recording-<lang>.vtt`. Copies of
+companions that no longer exist are deleted from `public/`. Decks are not rebuilt
+when a companion changes. `x-poll.json` is never copied.
+
 ## `> decker observed`
 
 Meant to build only the pages that are open in a connected browser. No page is
-ever registered as open at the moment, so this does the same as `decker support`.
+ever registered as open at the moment, so this does the same as `decker support`,
+plus `decker companions`.
 
 ## `> decker search-index`
 

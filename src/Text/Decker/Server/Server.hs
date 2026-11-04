@@ -37,6 +37,7 @@ import System.FilePath
 import System.Random
 import Text.Decker.Exam.Exam (Exam, etLectureId, etTopicId, examTitle, examTopics, readExam)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Companions (isUploadable)
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
@@ -86,8 +87,6 @@ aPort _ = False
 aBind :: Flags -> Bool
 aBind (BindFlag _) = True
 aBind _ = False
-
-uploadable = ["-manip.json", "-annot.json", "-times.json", "-transcript.json", "-recording.vtt", "-poll.json"]
 
 -- Runs the server. Never returns.
 runHttpServer :: ActionContext -> IO ()
@@ -146,7 +145,7 @@ runHttpServer context = do
     Scotty.delete "/api/exam-builder/exam/:file" deleteExam
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
-    Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
+    Scotty.put (regex "^/(.*)$") $ uploadResource isUploadable
 
 useState state x = runReaderT x state
 
@@ -186,13 +185,13 @@ startUpdater state = do
   return ()
 
 -- | Save the request body in the project directory under the request path. But
--- only if the request path ends on one of the suffixes and the local directory
--- already exists. Do this atomically.
-uploadResource :: [String] -> AppActionM ()
-uploadResource suffixes = do
+-- only if the request path is accepted and the local directory already exists.
+-- Do this atomically.
+uploadResource :: (FilePath -> Bool) -> AppActionM ()
+uploadResource accepted = do
   destination <- captureParam "1"
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
-  if exists && any (`isSuffixOf` destination) suffixes
+  if exists && accepted destination
     then do
       tmp <- liftIO $ uniqueTransientFileName destination
       reader <- bodyReader
