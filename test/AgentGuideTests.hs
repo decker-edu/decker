@@ -390,13 +390,15 @@ agentGuideTests = describe "Agent guide" $ do
         ]
         $ \expected -> html `shouldSatisfy` T.isInfixOf expected
 
-    it "loads videos and iframes directly on a page" $
+    it "loads videos and iframes lazily on a page" $
       withProject (("a-page.md", "![](m.mp4)\n\n![](f.html)\n\n![](youtube:ID)\n") : mediaFiles) $ \dir -> do
         run <- buildTargets dir ["a-page.md"]
         runExit run `shouldBe` ExitSuccess
         html <- T.readFile (dir </> "public/a-page.html")
-        html `shouldNotSatisfy` T.isInfixOf "data-src"
-        forM_ ["src=\"m.mp4\"", "src=\"f.html\"", "src=\"https://www.youtube.com/embed/ID?"] $ \expected ->
+        -- page.js sets src from data-src when the element comes into view.
+        html `shouldSatisfy` T.isInfixOf "src=\"support/js/page.js\""
+        html `shouldSatisfy` T.isInfixOf "onload=\"initPage()\""
+        forM_ ["data-src=\"m.mp4\"", "data-src=\"f.html\"", "data-src=\"https://www.youtube.com/embed/ID?"] $ \expected ->
           html `shouldSatisfy` T.isInfixOf expected
 
     it "applies align only to images" $ do
