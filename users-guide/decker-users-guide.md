@@ -450,11 +450,13 @@ these are the files next to it that the deck loads in the browser:
 companions that no longer exist are deleted from `public/`. Decks are not rebuilt
 when a companion changes. `x-poll.json` is never copied.
 
+The Decker server does not need these copies. It serves companions and recordings
+from next to the deck sources, so they are always current there.
+
 ## `> decker observed`
 
 Meant to build only the pages that are open in a connected browser. No page is
-ever registered as open at the moment, so this does the same as `decker support`,
-plus `decker companions`.
+ever registered as open at the moment, so this does the same as `decker support`.
 
 ## `> decker search-index`
 
@@ -561,7 +563,9 @@ empty directory. To start exploring Decker:
 
 Starts just the HTTP server for the existing `public/` directory, on the address
 and port given by `-b` and `-p`. It builds nothing, does not watch any files and
-does not reload browsers, so run a build first. The server also receives recordings
+does not reload browsers, so run a build first. Companions and recordings are the
+exception: the server serves them from next to the deck sources, see [`decker
+companions`](#decker-companions). The server also receives recordings
 from the browser (see [`-P`](#p---poser)). It runs until it is interrupted, and
 exits with status 7 if the port is in use.
 
@@ -789,6 +793,11 @@ string:
 Runs the build, then serves the public directory via HTTP on
 `http://localhost:8888` and watches for changes like `--watch`. Open pages reload
 after every rebuild. Stop it with `^C`. Without a target it builds `html`.
+
+Uploads from the browser, such as saved annotations and recordings, are stored next
+to the deck source and served from there. They do not start a build and do not
+reload the page. For the same reason, editing a companion such as `x-annot.json` by
+hand does not reload the page either.
 
 To serve without building, use [`decker serve`](#decker-serve).
 
@@ -3371,9 +3380,13 @@ tip the eraser.
 
 Saving does two things. It puts `x-annot.json` of the deck `x-deck.md` into the
 downloads folder of the browser, and it uploads the same file next to the source of the
-deck. A deck loads this file when it starts. The next build copies it to `public/`, and
-[`decker pdf`](#decker-pdf) prints the annotations too. To see saved annotations with
-`decker serve`, build first, because it serves `public/` as it is.
+deck. A deck loads this file when it starts. The Decker server serves it from there
+right away, without a build, and [`decker pdf`](#decker-pdf) prints the annotations too.
+The next build copies it to `public/` for publishing.
+
+The first time a running server overwrites an existing `x-annot.json`, or any other
+uploaded companion, it keeps the old version in the `backup` directory of the project's transient directory (`decker info`
+shows where), in a subdirectory named after the time the server started.
 
 With auto-save, which is the default, this happens when you leave the deck, not on every
 change. Without it, the browser warns about unsaved annotations when you leave. Without

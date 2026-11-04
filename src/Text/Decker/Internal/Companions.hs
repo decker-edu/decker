@@ -13,13 +13,16 @@ module Text.Decker.Internal.Companions
     isUploadable,
     isCompanion,
     isRecordingArtifact,
+    isRecordingPart,
+    isServedFromProject,
     deckBase,
     isCompanionOf,
   )
 where
 
-import Data.List (isInfixOf, isSuffixOf, stripPrefix)
-import System.FilePath.Posix (splitFileName, takeFileName)
+import Data.List (isInfixOf, isPrefixOf, isSuffixOf, stripPrefix)
+import System.FilePath.Posix (normalise, splitFileName, takeFileName)
+import Text.Decker.Internal.Common (privateDir, publicDir)
 
 -- | A file name suffix that follows the deck base name (the deck source path
 -- without @-deck.md@).
@@ -83,15 +86,32 @@ isUploadable path = any (`matchesSuffix` path) uploadableSuffixes
 isCompanion :: FilePath -> Bool
 isCompanion path = isPublishedCompanion path || isUploadable path
 
--- | Video files and the parts of a running recording session:
--- @*-recording*.webm@, @*-recording.mp4@, @*.part@, @*.part.json@.
+-- | Video files, the parts of a running recording session and the list files
+-- of the MP4 concatenation: @*-recording*.webm@, @*-recording.mp4@,
+-- @*-recording.mp4.list@, @*.part@, @*.part.json@.
 isRecordingArtifact :: FilePath -> Bool
 isRecordingArtifact path =
   (".webm" `isSuffixOf` name && "-recording" `isInfixOf` drop 1 name)
     || matchesSuffix (Exact "-recording.mp4") name
-    || any (`isSuffixOf` name) [".part", ".part.json"]
+    || matchesSuffix (Exact "-recording.mp4.list") name
+    || isRecordingPart name
   where
     name = takeFileName path
+
+-- | Files that are still being written: the parts of a recording session and
+-- the temporary files of uploads.
+isRecordingPart :: FilePath -> Bool
+isRecordingPart path = any (`isSuffixOf` path) [".part", ".part.json"]
+
+-- | Request paths that the dev server serves from the project directory
+-- instead of @public/@: companions and finished recordings, but nothing in
+-- the build output directories.
+isServedFromProject :: FilePath -> Bool
+isServedFromProject path =
+  not (any (`isPrefixOf` normalise path) [publicDir <> "/", privateDir <> "/"])
+    && not (isRecordingPart path)
+    && not (".list" `isSuffixOf` path)
+    && (isCompanion path || isRecordingArtifact path)
 
 -- | The deck base name of a deck source path: @dir/foo-deck.md@ → @dir/foo@.
 deckBase :: FilePath -> Maybe FilePath

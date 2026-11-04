@@ -229,9 +229,8 @@ deckerRules = do
   withTargetDocs "If a tree falls in a forest and no one is there to hear, does it make a sound?" $
     phony "observed" $ do
       watchChangesAndRepeat
-      -- TODO(recording uploads, step 2): drop "companions" once the server
-      -- serves companions from the project dir.
-      need ["support", "companions"]
+      -- No "companions": the server serves them from the project dir.
+      need ["support"]
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
   --
@@ -259,10 +258,10 @@ deckerRules = do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
         -- This is the right way to depend on an optional file. Just check for the
-        -- files existence with the Shake function `doesFileExist`. Chrome
-        -- loads the annotations from public/, so depend on that copy.
+        -- files existence with the Shake function `doesFileExist`. The server
+        -- serves the annotations to Chrome from the project dir.
         exists <- doesFileExist annot
-        when exists $ need [publicDir </> annot]
+        when exists $ need [annot]
         need [src]
         context <- actionContext
         let PortFlag port = fromMaybe (PortFlag serverPort) $ find aPort (context ^. extra)

@@ -49,6 +49,22 @@ companionTests = do
       map isRecordingArtifact ["a-annot.json", "a.webm", "a-recording.vtt"]
         `shouldBe` [False, False, False]
 
+    it "serves companions and finished recordings from the project dir" $ do
+      map
+        isServedFromProject
+        ["a-annot.json", "d/a-poll.json", "a-recording.mp4", "a-recording-2.webm", "a-recording-de.vtt"]
+        `shouldBe` replicate 5 True
+      map
+        isServedFromProject
+        [ "public/a-annot.json",
+          "private/a-annot.json",
+          ".a-annot.json.123.part",
+          "a-recording.webm.part",
+          "a-recording.mp4.list",
+          "a-deck.html"
+        ]
+        `shouldBe` replicate 6 False
+
     it "matches companions to their deck" $ do
       deckBase "dir/a-deck.md" `shouldBe` Just "dir/a"
       deckBase "dir/-deck.md" `shouldBe` Nothing

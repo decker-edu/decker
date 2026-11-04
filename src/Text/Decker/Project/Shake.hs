@@ -59,6 +59,7 @@ import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.AgentDocs (AgentDocsOpts (..), defaultAgentDocsOpts, runAgentDocs, runAgentGuide)
 import Text.Decker.Project.Info (printProjectInfo)
+import Text.Decker.Internal.Companions (isCompanion, isRecordingArtifact)
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
@@ -205,10 +206,10 @@ runShakeForever last context rules = do
           (\(SomeException _) -> return ())
       -- putStrLn $ "# Server: Reload because of: " <> path
       reloadClients (context ^. server)
+    -- Uploads are runtime data, nothing to rebuild or reload.
     UploadComplete operation -> do
       let transcode = PoserFlag `elem` (context ^. extra)
       applyVideoOperation transcode operation
-      reloadClients (context ^. server)
     ServerExit port -> do
       putStrLn $ "# Server: " <> show port
       exitWith (ExitFailure 7)
@@ -254,9 +255,16 @@ startWatcher manager context = do
     $ \event ->
       atomically $ writeTChan (context ^. actionChan) (FileChanged (Notify.eventTime event) (show event))
   where
+    -- Companions and recordings are runtime data that the server stores. They
+    -- trigger neither a build nor a reload.
     filter base dirs globs event =
       let path = makeRelative base (Notify.eventPath event)
-       in not (any (`isPrefixOf` path) dirs || any (`match` path) globs)
+       in not
+            ( any (`isPrefixOf` path) dirs
+                || any (`match` path) globs
+                || isCompanion path
+                || isRecordingArtifact path
+            )
 
 forkServer :: ActionContext -> IO ThreadId
 forkServer context = do

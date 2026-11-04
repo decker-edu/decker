@@ -1,6 +1,6 @@
 # Recording uploads: implementation plan
 
-Status: step 1 implemented (2026-11-04), steps 2–5 planned. Line references are
+Status: steps 1 and 2 implemented (2026-11-04), steps 3–5 planned. Line references are
 against `490aa38a`. See Implementation notes at the end.
 
 ## Goal
@@ -454,3 +454,34 @@ Manual checklist:
   (add, change, pattern caption, `-poll.json`, delete) that checks the deck
   HTML's modification time stays the same. The PDF rule change is not covered
   by a test.
+
+### Step 2 (2026-11-04)
+
+- `isServedFromProject` (in `Companions`) decides what the server takes from
+  the project dir: companions and finished recordings, but no `.part` files,
+  no `-recording.mp4.list` and nothing under `public/` or `private/`. It is
+  the one predicate for the static middleware, OPTIONS and uploads.
+- Stale public copies: a middleware after the project-dir one answers GET and
+  HEAD with 404 when the companion is missing from the project dir but
+  `public/` has a copy. It only blocks in that case, so routes such as
+  `/recordings/*` (whose paths also look like recordings) still work.
+- Uploads are written to `.<name>.<random>.part` in the destination
+  directory and renamed into place, so EXDEV cannot happen. A failed body read
+  removes the part file. Uploads into `public/` or `private/` are rejected.
+- Deviation: backups go to `<transientDir>/backup/<server start time>/<path>`,
+  not `<transientDir>/backup/<path>`. With one fixed path, the next session's
+  first overwrite would replace the good backup of the previous session.
+- Addition: `isRecordingArtifact` also covers `*-recording.mp4.list`, which
+  `concatVideoMp4` writes into the project dir. Otherwise an append upload
+  with `-P` would still trigger the watcher.
+- The temporary `companions` need of `observed` from step 1 is removed.
+- PDF rule: back to `need [annot]` on the source. Chrome gets the annotations
+  from the server, which now reads them from the project dir, so the public
+  copy is no longer what the export reads. This reverses the step 1 change.
+- `explain.js` uses HEAD in `resourceExists`; the static middleware handles
+  GET and HEAD, so HEAD goes through the project-dir lookup.
+- Tests: `test/ServerTests.hs` runs `decker --server` on a temporary project
+  and checks PUT/GET/OPTIONS/HEAD, rejected uploads, the absence of a build (the
+  public copy stays old for 2 s, while a deck edit, the control, does build),
+  no leftover part files, the single backup, the 404 for a stale public copy
+  and a Range request (206) on an MP4.

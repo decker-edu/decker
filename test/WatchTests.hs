@@ -20,6 +20,7 @@ watchTests =
         , "test/NotesTests.hs"
         , "test/SealTests.hs"
         , "test/SelectTests.hs"
+        , "test/ServerTests.hs"
         , "test/ShortLinkTests.hs"
         , "test/Spec.hs"
         , "test/SyncTests.hs"

@@ -37,15 +37,17 @@ import System.FilePath
 import System.Random
 import Text.Decker.Exam.Exam (Exam, etLectureId, etTopicId, examTitle, examTopics, readExam)
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Companions (isUploadable)
+import Text.Decker.Internal.Companions (isServedFromProject, isUploadable)
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Printf
 import Web.Scotty.Trans as Scotty
-import Text.Decker.Internal.Helper (uniqueTransientFileName)
-import Network.Wai (modifyResponse, mapResponseHeaders)
+import Text.Decker.Filter.Util (randomId)
+import Network.Wai (Middleware, mapResponseHeaders, modifyResponse, pathInfo, requestMethod, responseLBS)
+import Data.Set qualified as Set
+import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =
@@ -118,6 +120,7 @@ runHttpServer context = do
   -- reconnects with a Last-Event-ID that does not match, the server has been
   -- restarted and we tell the browser to reload.
   bootId <- (show :: Int -> Text) <$> randomIO
+  uploads <- newUploads
   scottyOptsT opts (useState server) $ do
     -- TODO this middleware business is not the right way to do this.
     -- middleware is ecvaluated BEFORE any routes are resolved. so, if
@@ -130,12 +133,17 @@ runHttpServer context = do
       resourceMiddleware "support" packSource
       -- then the decker default resources
       resourceMiddleware "support" deckerSource
+    -- Companions and recordings are runtime data. Uploads store them in the
+    -- project dir, and they are served from there. A stale copy in public/
+    -- must never win, so a missing one is a 404 even if public/ has it.
+    middleware $ staticPolicy (noDots >-> predicate isServedFromProject >-> addBase projectDir)
+    middleware staleCompanions
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
 
     Scotty.get "/reload" $ sseReload bootId state
     Scotty.get "/" $ redirect "index.html"
-    Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
+    Scotty.options (regex "^/(.*)$") headDirectory
     -- when (context ^. devRun) $
     -- Scotty.get (regex "^/support/(.*)$") $ serveSupport context
     Scotty.get (regex "^/recordings/(.*)$") listRecordings
@@ -145,7 +153,7 @@ runHttpServer context = do
     Scotty.delete "/api/exam-builder/exam/:file" deleteExam
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
-    Scotty.put (regex "^/(.*)$") $ uploadResource isUploadable
+    Scotty.put (regex "^/(.*)$") $ uploadResource uploads
 
 useState state x = runReaderT x state
 
@@ -184,19 +192,69 @@ startUpdater state = do
       pingAll state
   return ()
 
+-- | Answers GET and HEAD requests for companions and recordings that are not
+-- in the project dir with 404, if a copy in public/ would answer them
+-- otherwise. Runs after the middleware that serves them from the project dir.
+staleCompanions :: Middleware
+staleCompanions app req respond = do
+  let path = toString $ T.intercalate "/" $ pathInfo req
+      getOrHead = requestMethod req `elem` [methodGet, methodHead]
+  stale <-
+    if getOrHead && isServedFromProject path
+      then Dir.doesFileExist (publicDir </> path)
+      else return False
+  if stale
+    then respond $ responseLBS status404 [] ""
+    else app req respond
+
+-- | State of the companion uploads of one server process.
+data Uploads = Uploads
+  { -- | Where the first overwrite of each companion saves the old version.
+    backupDir :: FilePath,
+    -- | The companions that were already backed up (or created) by this
+    -- server process.
+    backedUp :: TVar (Set FilePath)
+  }
+
+-- | Backups go to a directory per server session below the transient dir,
+-- outside the project, so they never end up in git.
+newUploads :: IO Uploads
+newUploads = do
+  transient <- transientDir
+  now <- getCurrentTime
+  let session = formatTime defaultTimeLocale "%Y%m%d-%H%M%S" now
+  Uploads (transient </> "backup" </> session) <$> newTVarIO mempty
+
+-- | Copies the existing version of the companion to the backup dir, the first
+-- time this server process overwrites it.
+backupOnce :: Uploads -> FilePath -> IO ()
+backupOnce uploads path = do
+  let key = normalise path
+  first <- atomically $ do
+    done <- readTVar (backedUp uploads)
+    writeTVar (backedUp uploads) (Set.insert key done)
+    return $ not (Set.member key done)
+  exists <- doesFileExist path
+  when (first && exists) $ do
+    let backup = backupDir uploads </> key
+    createDirectoryIfMissing True (takeDirectory backup)
+    copyFileWithMetadata path backup
+
 -- | Save the request body in the project directory under the request path. But
--- only if the request path is accepted and the local directory already exists.
--- Do this atomically.
-uploadResource :: (FilePath -> Bool) -> AppActionM ()
-uploadResource accepted = do
+-- only if the path is an uploadable companion outside the build output and the
+-- local directory already exists. The body goes to a temporary file in the
+-- same directory, which is then renamed atomically. The watcher ignores both.
+uploadResource :: Uploads -> AppActionM ()
+uploadResource uploads = do
   destination <- captureParam "1"
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
-  if exists && accepted destination
+  if exists && isUploadable destination && isServedFromProject destination
     then do
-      tmp <- liftIO $ uniqueTransientFileName destination
       reader <- bodyReader
       liftIO $ do
-        writeBody tmp reader
+        backupOnce uploads destination
+        tmp <- uploadPartName destination
+        writeBody tmp reader `onException` removePathForcibly tmp
         renamePath tmp destination
     else do
       text "ERROR: directory does not exist or file (suffix) is not uploadable"
@@ -339,9 +397,13 @@ deleteExam = do
           liftIO $ removeFile path
           Scotty.json $ object ["path" Aeson..= T.pack name, "deleted" Aeson..= True]
 
-headDirectory :: FilePath -> AppActionM ()
-headDirectory directory = do
+-- | Answers OPTIONS with 200 if the file exists and with 204 if it does not.
+-- Companions and recordings are looked up in the project dir, all other files
+-- in public/.
+headDirectory :: AppActionM ()
+headDirectory = do
   path <- captureParam "1"
+  let directory = if isServedFromProject path then projectDir else publicDir
   exists <- liftIO $ doesFileExist (directory </> path)
   if exists
     then status status200
@@ -421,3 +483,10 @@ sseReload bootId state = do
         forever $ do
           msg <- atomically $ readTQueue queue
           send (encodeUtf8 (event msg))
+
+-- | A temporary name next to the upload destination: hidden, unique, and
+-- ending on @.part@, so neither the watcher nor the scanner sees it.
+uploadPartName :: FilePath -> IO FilePath
+uploadPartName destination = do
+  id <- toString <$> randomId
+  return $ takeDirectory destination </> ("." <> takeFileName destination <> "." <> id <> ".part")

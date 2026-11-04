@@ -8,6 +8,7 @@ import NotesTests
 import SealTests
 import SyncTests
 import SelectTests
+import ServerTests
 import ShortLinkTests
 import System.FilePath.Posix
 import Test.Hspec
@@ -31,6 +32,7 @@ main = do
     diagnosticsTests
     agentGuideTests
     companionTests
+    serverTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
