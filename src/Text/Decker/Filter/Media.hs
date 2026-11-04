@@ -362,14 +362,11 @@ codeBlock code caption = do
     $ wrapFigure figureAttr caption
     $ mkPre codeAttr code
 
--- | The attribute that holds the source of a video or an iframe. Reveal.js and
--- the handout plugin set `src` from `data-src` when the element comes into view.
--- Nothing does that on a page. NOT TRUE FOR MARIO'S PAGES!
+-- | The attribute that holds the source of a video or an iframe. Reveal.js, the
+-- handout plugin and `page.js` set `src` from `data-src` when the element comes
+-- into view.
 lazySrc :: Attrib Text
-lazySrc = do
-  -- disp <- lift $ gets dispo
-  -- return $ if layout disp == Page then "src" else "data-src"
-  return "data-src"
+lazySrc = return "data-src"
 
 -- |  Compiles the image data to an iframe.
 iframeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
