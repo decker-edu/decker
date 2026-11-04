@@ -5,6 +5,7 @@ import DiagnosticsTests
 import GHC.IO.Encoding
 import MetaTests
 import NotesTests
+import RecordingTests
 import SealTests
 import SyncTests
 import SelectTests
@@ -32,6 +33,7 @@ main = do
     diagnosticsTests
     agentGuideTests
     companionTests
+    recordingTests
     serverTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do

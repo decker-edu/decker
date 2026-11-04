@@ -672,46 +672,47 @@ async function startRecording() {
     recordingTime.innerText = time.toISOString().substr(11, 8);
   }
 
-  function uploadFile(file) {
-    console.log("[] about to upload: ", file);
-    return fetch(file.filename, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
-      .catch((e) => {
-        console.error("[] cannot upload data to:", file.filename, "reason:", e);
-        return false;
+  // Uploads the finished recording as one recording session: start, the
+  // whole video as one chunk, the timings, finish. The server moves video
+  // and timings into place together. (Streaming the video while recording
+  // replaces this in a later step.)
+  async function uploadSession(vblob, tblob, mode) {
+    const base = "/recording" + deckUrlBase();
+    const post = (path, data) =>
+      fetch(base + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
       });
-  }
+    const check = (response, step) => {
+      if (!response.ok) throw new Error(`${step}: HTTP ${response.status}`);
+      return response;
+    };
+    const start = {
+      mode,
+      offset: mode === "append" ? parseFloat(recordingResumeTime) || 0 : 0
+    };
 
-  function replaceVideo(file) {
-    console.log("[] about to upload (replace): ", file);
-    let path = `/replace${file.filename}`;
-    return fetch(path, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
-      .catch((e) => {
-        console.error(
-          "[] cannot upload (replace) video to:",
-          path,
-          "reason:",
-          e
-        );
-        return false;
-      });
-  }
+    let response = await post("/start", start);
+    if (response.status === 409) {
+      // An earlier upload was interrupted. Its parts are still on the server.
+      if (!confirm(localization.unfinished_session)) return false;
+      check(await fetch(base, { method: "DELETE" }), "discard");
+      response = await post("/start", start);
+    }
+    check(response, "start");
 
-  function appendVideo(file) {
-    console.log("[] about to upload (append): ", file);
-    let path = `/append${file.filename}`;
-    return fetch(path, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
-      .catch((e) => {
-        console.error(
-          "[] cannot upload (append) video to:",
-          path,
-          "reason:",
-          e
-        );
-        return false;
-      });
+    response = check(
+      await fetch(base + "/chunk?offset=0", { method: "PUT", body: vblob }),
+      "video"
+    );
+    const { size } = await response.json();
+    check(
+      await fetch(base + "/times", { method: "PUT", body: tblob }),
+      "times"
+    );
+    check(await post("/finish", { size }), "finish");
+    return true;
   }
 
   recorder.onstop = async () => {
@@ -723,26 +724,14 @@ async function startRecording() {
     download(tblob, videoFilenameBase() + "-times.json");
     try {
       let exists = await resourceExists(explainTimesUrl);
-      /* Upload slide timings */
-      await uploadFile({ data: tblob, filename: explainTimesUrl });
-      if (exists && recordingType === "APPEND") {
-        appendVideo({
-          data: vblob,
-          filename: deckRecordingUrl()
-        });
-      } else {
-        replaceVideo({
-          data: vblob,
-          filename: deckRecordingUrl()
-        });
-      }
+      let mode = exists && recordingType === "APPEND" ? "append" : "replace";
+      if (await uploadSession(vblob, tblob, mode))
+        console.log(`[] uploaded recording (${mode}, ${vblob.size} bytes)`);
     } catch (e) {
       console.error(
-        `[] FAILED to upload ${tblob.size} bytes to ${explainTimesUrl}`
+        `[] FAILED to upload the recording (${vblob.size} bytes): ${e.message}`
       );
-      console.error(
-        `[] FAILED to upload ${vblob.size} bytes to ${deckRecordingUrl()}`
-      );
+      alert(localization.upload_failed);
     }
 
     Reveal.removeEventListener("slidechanged", recordSlideChange);
@@ -1943,6 +1932,10 @@ const Plugin = {
       Do you want to append to the existing recording or replace it?",
       accept: "Accept",
       abort: "Abort",
+      unfinished_session:
+        "The server has an unfinished recording of this presentation from an interrupted upload. Discard it and upload the new recording?",
+      upload_failed:
+        "The recording could not be uploaded. It is in your downloads folder.",
       presenter_mode_error:
         'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.'
     };
@@ -1961,6 +1954,10 @@ const Plugin = {
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        unfinished_session:
+          "Auf dem Server liegt eine unvollständige Aufnahme dieser Präsentation von einem abgebrochenen Upload. Verwerfen und die neue Aufnahme hochladen?",
+        upload_failed:
+          "Die Aufnahme konnte nicht hochgeladen werden. Sie liegt im Download-Ordner.",
         presenter_mode_error:
           'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.'
       };

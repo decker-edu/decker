@@ -22,7 +22,42 @@ import Text.Decker.Internal.Common (mkTmpDirName)
 
 serverTests :: Spec
 serverTests =
-  describe "Dev server uploads (runs the decker executable)" $
+  describe "Dev server uploads (runs the decker executable)" $ do
+    it "runs a recording session over HTTP" $
+      withProject [("a-deck.md", "# Slide\n"), ("a-times.json", "old")] $ \dir ->
+        withServer dir $ \requestWith -> do
+          let request = requestWith []
+              answer method path body = do
+                response <- request method path body
+                return (statusCode (responseStatus response), responseBody response)
+              start = "{\"mode\":\"replace\"}"
+          answer "POST" "recording/nope/start" start `shouldReturn` (404, "ERROR: no such deck")
+          answer "PUT" "recording/a/chunk?offset=0" "x" `shouldReturn` (404, "ERROR: no recording session")
+          answer "POST" "recording/a/start" start `shouldReturn` (200, "{\"size\":0}")
+          (busy, info) <- answer "POST" "recording/a/start" start
+          busy `shouldBe` 409
+          info `shouldSatisfy` (("\"mode\":\"replace\"" `BS.isInfixOf`) . LBS.toStrict)
+          answer "PUT" "recording/a/chunk?offset=0" "0123" `shouldReturn` (200, "{\"size\":4}")
+          answer "PUT" "recording/a/chunk?offset=0" "0123" `shouldReturn` (200, "{\"size\":4}")
+          answer "PUT" "recording/a/chunk?offset=9" "9" `shouldReturn` (409, "{\"size\":4}")
+          fst <$> answer "PUT" "recording/a/times" "[]" `shouldReturn` 200
+          -- Nothing is replaced while the session runs.
+          T.readFile (dir </> "a-times.json") `shouldReturn` "old"
+          answer "POST" "recording/a/finish" "{\"size\":3}" `shouldReturn` (409, "{\"size\":4}")
+          (finished, _) <- answer "POST" "recording/a/finish" "{\"size\":4}"
+          finished `shouldBe` 200
+          LBS.readFile (dir </> "a-recording.webm") `shouldReturn` "0123"
+          T.readFile (dir </> "a-times.json") `shouldReturn` "[]"
+          parts <- filter (\f -> ".part" `isSuffixOf` f || ".part.json" `isSuffixOf` f) <$> listDirectory dir
+          parts `shouldBe` []
+          -- A discarded session leaves the recording alone.
+          fst <$> answer "POST" "recording/a/start" start `shouldReturn` 200
+          fst <$> answer "PUT" "recording/a/chunk?offset=0" "new" `shouldReturn` 200
+          fst <$> answer "DELETE" "recording/a" "" `shouldReturn` 200
+          LBS.readFile (dir </> "a-recording.webm") `shouldReturn` "0123"
+          -- The old upload routes are gone.
+          fst <$> answer "PUT" "replace/a-recording.webm" "x" `shouldReturn` 406
+
     it "stores companions in the project dir without a build" $
       withProject [("a-deck.md", "# Slide\n\nText\n"), ("a-annot.json", "{\"v\":1}")] $ \dir ->
         withServer dir $ \requestWith -> do

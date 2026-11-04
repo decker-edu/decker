@@ -41,6 +41,7 @@ import Text.Decker.Internal.Companions (isServedFromProject, isUploadable)
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
+import Text.Decker.Server.Recording (newSessions, recordingRoutes)
 import Text.Decker.Server.Video
 import Text.Printf
 import Web.Scotty.Trans as Scotty
@@ -121,6 +122,8 @@ runHttpServer context = do
   -- restarted and we tell the browser to reload.
   bootId <- (show :: Int -> Text) <$> randomIO
   uploads <- newUploads
+  sessions <- newSessions
+  let transcode = PoserFlag `elem` (context ^. extra)
   scottyOptsT opts (useState server) $ do
     -- TODO this middleware business is not the right way to do this.
     -- middleware is ecvaluated BEFORE any routes are resolved. so, if
@@ -151,8 +154,8 @@ runHttpServer context = do
     Scotty.get "/api/exam-builder/exams" listExams
     Scotty.get "/api/exam-builder/project" projectInfo
     Scotty.delete "/api/exam-builder/exam/:file" deleteExam
-    Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
-    Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
+    -- Before the catch-all PUT of companions.
+    recordingRoutes sessions transcode
     Scotty.put (regex "^/(.*)$") $ uploadResource uploads
 
 useState state x = runReaderT x state

@@ -1,6 +1,6 @@
 # Recording uploads: implementation plan
 
-Status: steps 1–3 implemented (2026-11-04), steps 4 and 5 planned. Line references are
+Status: steps 1–4 implemented (2026-11-04), step 5 planned. Line references are
 against `490aa38a`. See Implementation notes at the end.
 
 ## Goal
@@ -523,3 +523,63 @@ Manual checklist:
   copy untouched), slide change saves at once, a corrupt `-annot.json` keeps
   autosave off and the file untouched, and a server restart: the PUT during
   the outage fails, the next trigger uploads.
+
+### Step 4 (2026-11-04)
+
+- New module `Text.Decker.Server.Recording`: the session files, the pure
+  `decideChunk`, start/chunk/snapshot/finish/discard as IO functions, the
+  routes (`recordingRoutes`) and `transcodeRecording`. A session exists while
+  its sidecar exists.
+- Deviation: finish moves the files in the request handler, under the deck's
+  lock, and answers 200 `{fragment, transcoding}`, not 202. Only the MP4
+  conversion (with `-P`) goes to the action loop, as `TranscodeRecording`, so
+  it stays serialized with builds. Doing the moves in the loop would leave a
+  window in which a new start or chunk could interleave with an unfinished
+  finish.
+- Deviation: chunk bodies are read completely before anything is written,
+  not streamed into the file. A dropped connection then never leaves a
+  partial chunk, which the client could only treat as a protocol error. A
+  failed write truncates the file to its old size. Each append is synced
+  (`ensureFileDurable` from unliftio, a no-op on Windows).
+- Addition: `start` takes an optional `offset` (the seconds at which the
+  session starts in the recording, the end of the old one for append). It is
+  stored in the sidecar, and the 409 answer reports `duration` as the end of
+  the timing snapshot minus the offset, or null without a snapshot.
+- Finish with an empty video part discards the session, so stopping right
+  after the start does not replace a recording with nothing. A missing video
+  part (a finish interrupted after moving it) only moves the snapshots. A
+  sidecar that cannot be read counts as append, so finishing never deletes
+  the existing recording by mistake.
+- Leftover parts without a sidecar are removed on start.
+- Files are written with plain `writeFile`/`withBinaryFile` and then synced.
+  unliftio's own durable writers create files with mode 0600 (atomic write)
+  or 0100 (`withBinaryFileDurable`), which broke the next append and would
+  carry over to `public/`.
+- Removed: `/replace/*`, `/append/*`, `uploadRecording`, `replaceVideoUpload`,
+  `appendVideoUpload`, `VideoOperation` and `UploadComplete`. The fragment
+  numbering moved into finish (`moveVideo`).
+- Bridge until step 5: `explain.js` uploads the finished recording as one
+  session (start, the whole video as one chunk at offset 0, times, finish).
+  On a 409 it asks whether to discard the unfinished session. It still
+  downloads the WebM and `times.json` at stop. Without this, recording would
+  be broken between steps 4 and 5.
+- Fix: `mkListFile` wrote `file '../<fragment>'`, which resolves outside the
+  project for a deck in the project root, so `-P` concatenation failed there.
+  It now writes the bare file name, as `Crunch.hs` does.
+- Not changed: `-P` copies the video stream (`tomp4-copy`), which only works
+  for H.264. Chromium records VP8 with `mimeType: "video/webm"`, so `-P`
+  fails for that and leaves the WebM fragments for `decker crunch`. The loop
+  now catches the failure instead of dying.
+- `speechrecognition.js` is not loaded by any template, and its `uploadFile`
+  was never defined. Step 5.5 has to wire it in first.
+- Tests: `test/RecordingTests.hs` covers `decideChunk`, a chunk sequence with
+  duplicates and out-of-order chunks, no session, the 409 info with duration,
+  replace and append finish (names, no parts left, readable permissions), an
+  empty or discarded session keeping the old recording, an unreadable
+  sidecar, and the deck path validation. `test/ServerTests.hs` runs a session
+  over HTTP and checks that `/replace` is gone. Manual: headless Chromium
+  with a faked screen and fake camera and microphone recorded through the
+  real `explain.js` UI in replace mode, append mode (fragments `-0`/`-1`,
+  times continue), and with an unfinished session on the server (409,
+  discard, upload). `-P` with an H.264 file: replace gives a 5 s MP4, append
+  a concatenated 10 s MP4.

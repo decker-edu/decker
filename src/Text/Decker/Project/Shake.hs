@@ -68,7 +68,7 @@ import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
-import Text.Decker.Server.Video
+import Text.Decker.Server.Recording (transcodeRecording)
 import Text.Pandoc (Meta)
 import Text.Pandoc.Definition (nullMeta)
 
@@ -206,10 +206,8 @@ runShakeForever last context rules = do
           (\(SomeException _) -> return ())
       -- putStrLn $ "# Server: Reload because of: " <> path
       reloadClients (context ^. server)
-    -- Uploads are runtime data, nothing to rebuild or reload.
-    UploadComplete operation -> do
-      let transcode = PoserFlag `elem` (context ^. extra)
-      applyVideoOperation transcode operation
+    -- Recordings are runtime data, nothing to rebuild or reload.
+    TranscodeRecording webm -> transcode webm
     ServerExit port -> do
       putStrLn $ "# Server: " <> show port
       exitWith (ExitFailure 7)
@@ -229,18 +227,20 @@ handleUploads context = do
   forever $ do
     dod <- atomically $ readTChan (context ^. actionChan)
     case dod of
-      UploadComplete operation -> do
-        let transcode = PoserFlag `elem` (context ^. extra)
-        applyVideoOperation transcode operation
+      TranscodeRecording webm -> transcode webm
       ServerExit reason -> do
         BS.hPutStrLn stderr $ UTF8.fromString $ "# Server: " <> reason
         exitWith (ExitFailure 7)
       _ -> return ()
 
-applyVideoOperation transcode op@(Replace tmp destination) = do
-  replaceVideoUpload transcode tmp destination
-applyVideoOperation transcode op@(Append tmp destination) = do
-  appendVideoUpload transcode tmp destination
+-- | Converts a finished recording to MP4. A failing conversion must not end
+-- the loop: the WEBM fragments are in place, and @decker crunch@ can convert
+-- them later.
+transcode :: FilePath -> IO ()
+transcode webm =
+  catchAll
+    (transcodeRecording webm)
+    (\(SomeException e) -> putStrLn $ "# Server: cannot convert " <> webm <> ": " <> show e)
 
 startWatcher :: Notify.WatchManager -> ActionContext -> IO ()
 startWatcher manager context = do

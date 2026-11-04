@@ -18,6 +18,7 @@ watchTests =
         , "test/DiagnosticsTests.hs"
         , "test/MetaTests.hs"
         , "test/NotesTests.hs"
+        , "test/RecordingTests.hs"
         , "test/SealTests.hs"
         , "test/SelectTests.hs"
         , "test/ServerTests.hs"

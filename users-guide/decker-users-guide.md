@@ -3504,7 +3504,13 @@ result back on the slides.
 
 The result is `x-recording.webm` and `x-times.json` for the deck `x-deck.md`, both next
 to its source and in the downloads folder of the browser. The times say which slide was
-shown when.
+shown when. Adding to a recording makes numbered fragments, `x-recording-0.webm`,
+`x-recording-1.webm` and so on, and the times continue where the old ones ended.
+
+The server swaps in the new video and times together, and only once the upload is
+complete. Until then the previous recording stays as it was, also if the upload fails.
+The parts of an upload in progress are `.part` files next to the deck source. If an
+upload was interrupted, the next one offers to discard its parts.
 
 A recording in the browser's format is not what gets played. Turn it into
 `x-recording.mp4` with [`decker crunch`](#decker-crunch), or at once with the option
