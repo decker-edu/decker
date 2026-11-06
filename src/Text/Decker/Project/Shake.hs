@@ -59,6 +59,7 @@ import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.AgentDocs (AgentDocsOpts (..), defaultAgentDocsOpts, runAgentDocs, runAgentGuide)
 import Text.Decker.Project.Info (printProjectInfo)
+import Text.Decker.Internal.Companions (isCompanion, isRecordingArtifact)
 import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
@@ -67,7 +68,7 @@ import Text.Decker.Reader.Markdown (formatStdin)
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
-import Text.Decker.Server.Video
+import Text.Decker.Server.Recording (transcodeRecording)
 import Text.Pandoc (Meta)
 import Text.Pandoc.Definition (nullMeta)
 
@@ -205,10 +206,8 @@ runShakeForever last context rules = do
           (\(SomeException _) -> return ())
       -- putStrLn $ "# Server: Reload because of: " <> path
       reloadClients (context ^. server)
-    UploadComplete operation -> do
-      let transcode = PoserFlag `elem` (context ^. extra)
-      applyVideoOperation transcode operation
-      reloadClients (context ^. server)
+    -- Recordings are runtime data, nothing to rebuild or reload.
+    TranscodeRecording webm -> transcode webm
     ServerExit port -> do
       putStrLn $ "# Server: " <> show port
       exitWith (ExitFailure 7)
@@ -228,18 +227,20 @@ handleUploads context = do
   forever $ do
     dod <- atomically $ readTChan (context ^. actionChan)
     case dod of
-      UploadComplete operation -> do
-        let transcode = PoserFlag `elem` (context ^. extra)
-        applyVideoOperation transcode operation
+      TranscodeRecording webm -> transcode webm
       ServerExit reason -> do
         BS.hPutStrLn stderr $ UTF8.fromString $ "# Server: " <> reason
         exitWith (ExitFailure 7)
       _ -> return ()
 
-applyVideoOperation transcode op@(Replace tmp destination) = do
-  replaceVideoUpload transcode tmp destination
-applyVideoOperation transcode op@(Append tmp destination) = do
-  appendVideoUpload transcode tmp destination
+-- | Converts a finished recording to MP4. A failing conversion must not end
+-- the loop: the WEBM fragments are in place, and @decker crunch@ can convert
+-- them later.
+transcode :: FilePath -> IO ()
+transcode webm =
+  catchAll
+    (transcodeRecording webm)
+    (\(SomeException e) -> putStrLn $ "# Server: cannot convert " <> webm <> ": " <> show e)
 
 startWatcher :: Notify.WatchManager -> ActionContext -> IO ()
 startWatcher manager context = do
@@ -254,9 +255,16 @@ startWatcher manager context = do
     $ \event ->
       atomically $ writeTChan (context ^. actionChan) (FileChanged (Notify.eventTime event) (show event))
   where
+    -- Companions and recordings are runtime data that the server stores. They
+    -- trigger neither a build nor a reload.
     filter base dirs globs event =
       let path = makeRelative base (Notify.eventPath event)
-       in not (any (`isPrefixOf` path) dirs || any (`match` path) globs)
+       in not
+            ( any (`isPrefixOf` path) dirs
+                || any (`match` path) globs
+                || isCompanion path
+                || isRecordingArtifact path
+            )
 
 forkServer :: ActionContext -> IO ThreadId
 forkServer context = do

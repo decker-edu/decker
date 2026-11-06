@@ -389,16 +389,19 @@ These are the files that can be given as a target:
 
 Most targets build the index page, which reads all questions. A question file
 that does not parse therefore fails them, including `decks` and `pages`. Only
-`static-files`, `search-index` and the `info` targets are not affected.
+`static-files`, `companions`, `search-index` and the `info` targets are not
+affected.
 
 ## `> decker html`
 
 The default target. Builds all decks and pages, the question previews, the index
-page and the support files. It does not build handouts or PDFs.
+page and the support files, and copies the [companion files](#decker-companions)
+of the decks. It does not build handouts or PDFs.
 
 ## `> decker decks`
 
-Builds all decks (`*-deck.md`), the index page and the support files.
+Builds all decks (`*-deck.md`), the index page and the support files, and copies
+the [companion files](#decker-companions) of the decks.
 
 ## `> decker pages`
 
@@ -437,6 +440,18 @@ files to `public/support`. The other build targets include this one.
 ## `> decker static-files`
 
 Copies the directories listed in `static-resource-dirs` to `public/`.
+
+## `> decker companions`
+
+Copies the companion files of all decks to `public/`. For a deck `x-deck.md`,
+these are the files next to it that the deck loads in the browser:
+`x-annot.json`, `x-manip.json`, `x-times.json`, `x-transcript.json`,
+`x-recording.mp4`, `x-recording.vtt` and `x-recording-<lang>.vtt`. Copies of
+companions that no longer exist are deleted from `public/`. Decks are not rebuilt
+when a companion changes. `x-poll.json` is never copied.
+
+The Decker server does not need these copies. It serves companions and recordings
+from next to the deck sources, so they are always current there.
 
 ## `> decker observed`
 
@@ -548,7 +563,9 @@ empty directory. To start exploring Decker:
 
 Starts just the HTTP server for the existing `public/` directory, on the address
 and port given by `-b` and `-p`. It builds nothing, does not watch any files and
-does not reload browsers, so run a build first. The server also receives recordings
+does not reload browsers, so run a build first. Companions and recordings are the
+exception: the server serves them from next to the deck sources, see [`decker
+companions`](#decker-companions). The server also receives recordings
 from the browser (see [`-P`](#p---poser)). It runs until it is interrupted, and
 exits with status 7 if the port is in use.
 
@@ -776,6 +793,11 @@ string:
 Runs the build, then serves the public directory via HTTP on
 `http://localhost:8888` and watches for changes like `--watch`. Open pages reload
 after every rebuild. Stop it with `^C`. Without a target it builds `html`.
+
+Uploads from the browser, such as saved annotations and recordings, are stored next
+to the deck source and served from there. They do not start a build and do not
+reload the page. For the same reason, editing a companion such as `x-annot.json` by
+hand does not reload the page either.
 
 To serve without building, use [`decker serve`](#decker-serve).
 
@@ -3358,21 +3380,31 @@ tip the eraser.
 
 Saving does two things. It puts `x-annot.json` of the deck `x-deck.md` into the
 downloads folder of the browser, and it uploads the same file next to the source of the
-deck. A deck loads this file when it starts. The next build copies it to `public/`, and
-[`decker pdf`](#decker-pdf) prints the annotations too. To see saved annotations with
-`decker serve`, build first, because it serves `public/` as it is.
+deck. A deck loads this file when it starts. The Decker server serves it from there
+right away, without a build, and [`decker pdf`](#decker-pdf) prints the annotations too.
+The next build copies it to `public/` for publishing.
 
-With auto-save, which is the default, this happens when you leave the deck, not on every
-change. Without it, the browser warns about unsaved annotations when you leave. Without
-a Decker server only the download works, and the file has to be copied next to the
-source by hand.
+The first time a running server overwrites an existing `x-annot.json`, or any other
+uploaded companion, it keeps the old version in the `backup` directory of the project's transient directory (`decker info`
+shows where), in a subdirectory named after the time the server started.
+
+Auto-save, which is the default, only uploads, without a download. With a Decker server
+it saves 8 seconds after the last change, when the slide changes, at least once a minute
+while there are unsaved changes, and when you leave the deck. If the server is not
+reachable, the next of these tries again. If the deck could not load its existing
+annotations, auto-save stays off for the session, so that it does not replace them with
+an empty set. The Auto-save button then says so.
+
+Without auto-save, the browser warns about unsaved annotations when you leave. Without a
+Decker server, auto-save puts the file into the downloads folder when you leave, and the
+file has to be copied next to the source by hand.
 
 ### Options
 
 ``` yaml
 whiteboard:
   colors: ["var(--base07)", "red", "#00ff00"]  # the colors of the pen settings
-  autosave: false       # default is true
+  autosave: false       # save automatically, default is true
   autotoggle: true      # switch on when a stylus hovers, default is false
 ```
 
@@ -3470,9 +3502,24 @@ result back on the slides.
 4. Press `R` to pause and resume.
 5. Press `Z` three times in quick succession to stop.
 
-The result is `x-recording.webm` and `x-times.json` for the deck `x-deck.md`, both next
-to its source and in the downloads folder of the browser. The times say which slide was
-shown when.
+The result is `x-recording.webm` and `x-times.json` for the deck `x-deck.md`, next to
+its source. The times say which slide was shown when. Adding to a recording makes
+numbered fragments, `x-recording-0.webm`, `x-recording-1.webm` and so on, and the times
+continue where the old ones ended.
+
+The video goes to the server while you record, every five seconds. Nothing is kept in
+the browser or put into its downloads folder, so recording needs the server. If the
+server can not be reached for a while, the panel shows how many seconds of video wait
+for the upload, in yellow above 15 seconds and in red above a minute, and the upload
+catches up once the server is back. After the stop, a dialog shows the rest of the
+upload if it takes longer than a second.
+
+The server swaps in the new video and times together, and only once the recording is
+stopped and completely uploaded. Until then the previous recording stays as it was.
+The parts of a recording in progress are `.part` files next to the deck source. If a
+recording was interrupted, because the browser crashed, the tab was closed or the
+upload could not be completed, the next press of `R` to start offers to recover it,
+with the video and times up to the last few seconds, or to discard it.
 
 A recording in the browser's format is not what gets played. Turn it into
 `x-recording.mp4` with [`decker crunch`](#decker-crunch), or at once with the option

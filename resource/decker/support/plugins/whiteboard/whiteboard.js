@@ -143,6 +143,8 @@ const germanLocalization = {
   delete_confirmation: "Alle Whiteboard-Anmerkungen auf dieser Folie löschen?",
   pick_color: "Farbe auswählen",
   pick_radius: "Radius auswählen",
+  load_failed:
+    "Anmerkungen konnten nicht geladen werden. Automatisches Speichern ist abgeschaltet, damit sie nicht überschrieben werden.",
   keybinds: {
     clear: "Whiteboard: Folie reinigen",
     laserpointer: "Whiteboard: Laserpointer umschalten",
@@ -172,6 +174,8 @@ const englishLocalization = {
   delete_confirmation: "Delete all whiteboard annotations on this slide?",
   pick_color: "Pick Color",
   pick_radius: "Pick Radius",
+  load_failed:
+    "Annotations could not be loaded. Auto-save is off, so that they are not overwritten.",
   keybinds: {
     clear: "Whiteboard: Clear slide",
     laserpointer: "Whiteboard: Toggle laserpointer",
@@ -745,9 +749,12 @@ function autoToggleOn(evt) {
   }
 }
 
-// set unsavedAnnotations and update save icon
-function needToSave(b) {
-  unsavedAnnotations = b;
+// the annotations changed: mark them unsaved and (re)start the autosave timers
+function annotationsChanged() {
+  unsavedAnnotations = true;
+  changeCount++;
+  if (upload) uploadAgain = true;
+  scheduleAutosave();
 }
 
 /*
@@ -850,13 +857,13 @@ function clearSlide() {
       strokes.forEach((stroke) => {
         stroke.remove();
       });
-      needToSave(true);
+      annotationsChanged();
     }
 
     if (grid) {
       grid.remove();
       buttonGrid.ariaPressed = false;
-      needToSave(true);
+      annotationsChanged();
     }
 
     setWhiteboardHeight(pageHeight);
@@ -912,7 +919,7 @@ function toggleGrid() {
     buttonGrid.setAttribute("aria-pressed", "true");
   }
 
-  needToSave(true);
+  annotationsChanged();
 }
 
 /*
@@ -921,6 +928,8 @@ function toggleGrid() {
 function toggleAutoSave() {
   autosave = !autosave;
   buttonSave.ariaPressed = autosave;
+  if (autosave) scheduleAutosave();
+  else cancelAutosave();
 }
 
 /*****************************************************************
@@ -956,7 +965,7 @@ function undo() {
       buttonUndo.title = l10n.undo;
     }
 
-    needToSave(true);
+    annotationsChanged();
   }
 }
 
@@ -964,23 +973,113 @@ function undo() {
  ** Load and save
  ******************************************************************/
 
+// Autosave PUTs the annotations to the Decker server, without a download. It
+// only runs if the server accepts uploads (probed once at startup) and the
+// annotations were loaded. Saving after a failed load would replace the
+// annotations on the server with an empty set.
+const AUTOSAVE_IDLE = 8000; // ms after the last change
+const AUTOSAVE_CEILING = 60000; // ms at the latest while changes are unsaved
+const KEEPALIVE_LIMIT = 64 * 1024; // browsers reject larger keepalive bodies
+
+let uploadsAccepted = false; // a Decker server answered the OPTIONS probe
+let annotationsLoaded = false; // loadAnnotations finished positively
+let uploadFailed = false; // the last PUT did not succeed
+let changeCount = 0; // number of changes so far
+let idleTimer = null;
+let ceilingTimer = null;
+let upload = null; // the running PUT: { count, done }
+let uploadAgain = false; // send again when the running PUT is done
+let detached = null; // a PUT sent next to the running one (page hide)
+
+function autosaveActive() {
+  return autosave && uploadsAccepted && annotationsLoaded;
+}
+
+// (re)start the idle timer, and the ceiling timer if it is not running
+function scheduleAutosave() {
+  if (!autosaveActive() || !unsavedAnnotations) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(autosaveNow, AUTOSAVE_IDLE);
+  if (!ceilingTimer) ceilingTimer = setTimeout(autosaveNow, AUTOSAVE_CEILING);
+}
+
+function cancelAutosave() {
+  clearTimeout(idleTimer);
+  clearTimeout(ceilingTimer);
+  idleTimer = null;
+  ceilingTimer = null;
+}
+
+// save now if autosave is on and there are unsaved changes
+// (urgent: the page may go away before a running PUT is done)
+function autosaveNow({ urgent = false } = {}) {
+  cancelAutosave();
+  if (autosaveActive() && unsavedAnnotations) {
+    persistAnnotations({ urgent }).then((ok) => {
+      // retry at the latest after the ceiling interval
+      if (!ok && unsavedAnnotations && autosaveActive() && !ceilingTimer)
+        ceilingTimer = setTimeout(autosaveNow, AUTOSAVE_CEILING);
+    });
+  }
+}
+
+/*
+ * Ask the server whether it accepts uploads. Only a Decker server answers
+ * OPTIONS with the X-Decker-Server header. Static hosting never does.
+ */
+async function probeUploads() {
+  const url = annotationURL();
+  if (!url || printMode || window.Decker.isElectron()) return false;
+  try {
+    const response = await fetch(url, { method: "OPTIONS" });
+    return response.headers.has("X-Decker-Server");
+  } catch (err) {
+    return false;
+  }
+}
+
+/*
+ * Autosave stays off: the server has annotations we could not load.
+ */
+function warnAutosaveOff() {
+  console.warn("whiteboard: " + l10n.load_failed);
+  buttonSave.ariaDisabled = true;
+  buttonSave.title = l10n.load_failed;
+  buttonSave.setAttribute("aria-label", l10n.load_failed);
+  // the flash panel is set up when Reveal is ready
+  const flash = () =>
+    setTimeout(() =>
+      window.Decker?.flashMessage?.(`<span>${l10n.load_failed}</span>`)
+    );
+  if (Reveal.isReady()) flash();
+  else Reveal.addEventListener("ready", flash);
+}
+
 /*
  * load scribbles from default URL
  * use Promise to ensure loading in init()
+ * Resolves to true if the annotations were loaded or if there are none yet,
+ * and to false if loading failed.
  */
 async function loadAnnotations() {
   const filename = annotationURL();
-  if (!filename) return;
+  if (!filename) return false;
   let response;
   try {
     response = await fetch(filename);
   } catch (err) {
     console.warn("Cannot load " + filename + ": " + err);
-    return;
+    return false;
   }
 
+  // No annotations yet.
+  if (response.status === 404 || response.status === 204) return true;
+
   // Annotation files are optional; HTTP errors must not block initialization.
-  if (!response.ok) return;
+  if (!response.ok) {
+    console.warn("Cannot load " + filename + ": HTTP " + response.status);
+    return false;
+  }
 
   try {
     const storage = await response.json();
@@ -1000,7 +1099,7 @@ async function loadAnnotations() {
       });
     } else {
       console.warn("Old whiteboard annotations are not supported anymore");
-      return;
+      return false;
     }
 
     // adjust height for PDF export
@@ -1011,9 +1110,25 @@ async function loadAnnotations() {
         adjustWhiteboardHeight();
       });
     }
+    return true;
   } catch (err) {
     console.error("Cannot parse " + filename + ": " + err);
+    return false;
   }
+}
+
+/*
+ * Load the annotations and probe for the server, then enable autosave.
+ * Only the load delays the start of the deck.
+ */
+async function setupPersistence() {
+  const probe = probeUploads();
+  annotationsLoaded = await loadAnnotations();
+  probe.then((accepted) => {
+    uploadsAccepted = accepted;
+    if (uploadsAccepted && !annotationsLoaded) warnAutosaveOff();
+    else scheduleAutosave();
+  });
 }
 
 /*
@@ -1039,15 +1154,18 @@ function annotationFilename(url) {
 
 /*
  * return annotations as Blob
+ * (laser strokes are never saved; they stay on the slide until they fade)
  */
 function annotationBlob() {
   let storage = { whiteboardVersion: 3.0, annotations: [] };
 
   slides.querySelectorAll("svg.whiteboard").forEach((svg) => {
-    if (svg.children.length) {
+    const copy = svg.cloneNode(true);
+    copy.querySelectorAll("path.laser").forEach((stroke) => stroke.remove());
+    if (copy.children.length) {
       storage.annotations.push({
         slide: svg.parentElement.id,
-        svg: svg.innerHTML
+        svg: copy.innerHTML
       });
     }
   });
@@ -1058,34 +1176,19 @@ function annotationBlob() {
 }
 
 /*
- * save annotations to decker server
- * (force: save even if there are no unsaved changes)
+ * save annotations to the downloads folder (just to be save(r))
  */
-async function saveAnnotations(force = false) {
-  if (!unsavedAnnotations && !force) return;
-
-  // cannot save annotations in electron app
+function downloadAnnotations() {
   if (window.Decker.isElectron()) return;
-
-  // no annotation file for this page
   const url = annotationURL();
   if (!url) return;
 
-  // clear remaining laser strokes
-  clearLaserStrokes();
-
-  // snapshot annotations now, such that strokes drawn while saving
-  // keep the unsaved flag
-  const blob = annotationBlob();
-  needToSave(false);
-
-  // also save to downloads folder (just to be save(r))
   let a = document.createElement("a");
   a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
   document.body.appendChild(a);
   try {
     a.download = annotationFilename(url);
-    a.href = window.URL.createObjectURL(blob);
+    a.href = window.URL.createObjectURL(annotationBlob());
     a.click();
     const href = a.href;
     setTimeout(() => window.URL.revokeObjectURL(href), 0);
@@ -1093,31 +1196,95 @@ async function saveAnnotations(force = false) {
     console.error("whiteboard annotations could not be downloaded: " + error);
   }
   document.body.removeChild(a);
+}
 
-  // save to decker server
-  // (keepalive lets the request survive page unload, but browsers reject
-  // keepalive requests with bodies above 64 KiB, so use it only below that)
+/*
+ * PUT a snapshot of the annotations. Resolves to whether it succeeded.
+ * (keepalive lets the request survive page unload, but browsers reject
+ * keepalive requests with bodies above 64 KiB, so use it only below that)
+ */
+async function putAnnotations(url) {
+  const blob = annotationBlob();
   try {
     const response = await fetch(url, {
       method: "PUT",
       body: blob,
-      keepalive: blob.size < 64 * 1024
+      keepalive: blob.size < KEEPALIVE_LIMIT
     });
-    if (response.ok) {
-      console.log("whiteboard annotations saved to deck directory");
-    } else {
-      needToSave(true);
-      console.warn(
-        "whiteboard annotations could not be saved to decker: HTTP " +
-          response.status
-      );
-    }
+    if (response.ok) return true;
+    console.warn(
+      "whiteboard annotations could not be saved to decker: HTTP " +
+        response.status
+    );
   } catch (error) {
-    needToSave(true);
     console.warn(
       "whiteboard annotations could not be saved to decker: " + error
     );
   }
+  return false;
+}
+
+/*
+ * Save annotations to the decker server, without a download.
+ * (force: save even if there are no unsaved changes)
+ *
+ * One PUT at a time: a request during a running PUT sends again after it,
+ * so that two PUTs never complete in the wrong order. The unsaved flag is
+ * cleared only after a PUT succeeded for the latest changes.
+ *
+ * urgent: the page is being hidden or unloaded. If the running PUT does not
+ * contain the latest changes, send them right away next to it. Its success
+ * does not clear the flag, since the two might complete in any order. If
+ * the page survives, the normal loop sends once more after both are done.
+ *
+ * Resolves to whether the server has the latest changes.
+ */
+function persistAnnotations({ force = false, urgent = false } = {}) {
+  if (!unsavedAnnotations && !force) return Promise.resolve(true);
+
+  // cannot save annotations in electron app
+  if (window.Decker.isElectron()) return Promise.resolve(false);
+
+  // no annotation file for this page
+  const url = annotationURL();
+  if (!url) return Promise.resolve(false);
+
+  if (upload) {
+    if (urgent && upload.count !== changeCount && !detached) {
+      detached = putAnnotations(url).finally(() => (detached = null));
+    }
+    uploadAgain = true;
+    return upload.done;
+  }
+
+  const run = async () => {
+    let ok;
+    do {
+      uploadAgain = false;
+      if (detached) await detached;
+      upload.count = changeCount;
+      ok = await putAnnotations(url);
+      if (ok && upload.count === changeCount) unsavedAnnotations = false;
+    } while (ok && uploadAgain && unsavedAnnotations);
+    uploadFailed = !ok;
+    if (ok && !unsavedAnnotations)
+      console.log("whiteboard annotations saved to deck directory");
+    return ok && !unsavedAnnotations;
+  };
+
+  upload = { count: changeCount, done: null };
+  upload.done = run().finally(() => (upload = null));
+  return upload.done;
+}
+
+/*
+ * Save button: save to the downloads folder and to the decker server
+ * (force: save even if there are no unsaved changes)
+ */
+async function saveAnnotations(force = false) {
+  if (!unsavedAnnotations && !force) return;
+  downloadAnnotations();
+  return persistAnnotations({ force: true });
 }
 
 /*****************************************************************
@@ -1288,7 +1455,7 @@ function stopStroke(evt) {
     if (isLaserStroke) {
       stroke.style.opacity = "0";
     } else {
-      needToSave(true);
+      annotationsChanged();
     }
   }
 
@@ -1319,7 +1486,7 @@ function eraseStroke(evt) {
         eraserUndo = true;
       }
       stroke.remove();
-      needToSave(true);
+      annotationsChanged();
     }
   });
 }
@@ -1582,18 +1749,28 @@ function setupCallbacks() {
     slides.addEventListener("pointerout", autoToggleOff);
   }
 
-  // Intercept page leave when data is not saved
+  // Intercept page leave when data is not saved. Autosave tries a last time.
+  // Without a Decker server, autosave downloads the annotations instead.
   window.addEventListener("beforeunload", function (evt) {
-    if (unsavedAnnotations) {
-      if (autosave) {
-        console.log("whiteboard: auto-saving annotations");
-        saveAnnotations();
-      } else {
-        evt.preventDefault();
-        evt.returnValue = "You have unsaved annotations";
-        return evt.returnValue;
-      }
+    if (!unsavedAnnotations) return;
+    if (autosaveActive()) {
+      console.log("whiteboard: auto-saving annotations");
+      autosaveNow({ urgent: true });
+      // the server was not reachable recently, the save may fail too
+      if (!uploadFailed) return;
+    } else if (autosave && !uploadsAccepted) {
+      downloadAnnotations();
+      return;
     }
+    evt.preventDefault();
+    evt.returnValue = "You have unsaved annotations";
+    return evt.returnValue;
+  });
+
+  // The page may be discarded without beforeunload (mobile, tab freezing).
+  window.addEventListener("pagehide", () => autosaveNow({ urgent: true }));
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") autosaveNow({ urgent: true });
   });
 
   // when drawing, stop ANY context menu from being opened
@@ -1634,6 +1811,7 @@ function setupCallbacks() {
   Reveal.addEventListener("ready", setupSlides);
   Reveal.addEventListener("ready", slideChanged);
   Reveal.addEventListener("slidechanged", slideChanged);
+  Reveal.addEventListener("slidechanged", () => autosaveNow());
 
   // whenever fragment changes, update stroke visibility
   Reveal.addEventListener("fragmentshown", fragmentChanged);
@@ -1763,8 +1941,8 @@ const Plugin = {
 
     slidesElement.addEventListener("keydown", suppressor);
 
-    // load annotations
-    return new Promise((resolve) => loadAnnotations().then(resolve));
+    // load annotations, then enable autosave
+    return setupPersistence();
   },
 
   saveAnnotations: saveAnnotations

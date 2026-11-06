@@ -15,6 +15,7 @@ let playPanel, playButton, player;
 let recordPanel,
   recordToggle,
   recordIndicator,
+  uploadBacklog,
   voiceIndicator,
   desktopIndicator;
 let recordButton, pauseButton, stopButton;
@@ -22,8 +23,8 @@ let voiceGainSlider, desktopGainSlider;
 let cameraPanel, cameraVideo, cameraCanvas;
 
 // recording stuff
-let blobs;
 let recorder;
+let session; // the upload of the current or last recording
 let stream;
 let voiceStream, desktopStream, cameraStream;
 let voiceGain, desktopGain;
@@ -155,14 +156,6 @@ function deckCaptionsUrl() {
   return deckUrlBase() + "-recording.vtt";
 }
 
-// Derives the basename for explain data downloads from the document location.
-function videoFilenameBase() {
-  const pathname = window.location.pathname;
-  let filename = pathname.substring(pathname.lastIndexOf("/") + 1);
-  filename = filename.substring(0, filename.lastIndexOf("-"));
-  return filename;
-}
-
 // Navigates Reveal to the indexed slide in the explainTimes array.
 function goToSlide(index) {
   if (explainTimesPlay[index]) {
@@ -278,14 +271,27 @@ class Timing {
   // initiated.
   resume() {
     this.pauseDuration += Date.now() - this.pauseStart;
+    this.pauseStart = null;
     goToSlideId(this.pauseSlideId);
   }
 
-  // Calculates the video stamp stamp for right now.
+  // Calculates the video stamp stamp for right now. The video does not
+  // advance while paused, so neither does the time stamp.
   timeStamp() {
+    let now = this.pauseStart ? this.pauseStart : Date.now();
     return String(
-      (Date.now() - this.startTime - this.pauseDuration + this.offset) / 1000
+      (now - this.startTime - this.pauseDuration + this.offset) / 1000
     );
+  }
+
+  // The intervals as a complete times.json, with the open interval ending
+  // now. Nothing is changed, recording continues.
+  snapshot() {
+    let now = this.timeStamp();
+    let intervals = this.timeIntervals.map((interval) =>
+      interval === this.previousSlide ? { ...interval, timeOut: now } : interval
+    );
+    return JSON.stringify(intervals, null, 4);
   }
 
   // Records a time stamp.
@@ -578,23 +584,410 @@ async function setupRecorder() {
   }
 }
 
-function download(blob, name) {
-  let url = URL.createObjectURL(blob);
-  let anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = name;
+// The recording session endpoints of the dev server for this deck.
+function recordingSessionUrl() {
+  return "/recording" + deckUrlBase();
+}
 
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function postJSON(url, data) {
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+}
+
+function formatDuration(seconds) {
+  let time = new Date(null);
+  time.setSeconds(Math.round(seconds));
+  return time.toISOString().substr(11, 8);
+}
+
+function formatMegabytes(bytes) {
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+// Uploads snapshots (the slide timings) one at a time. A snapshot that is
+// produced while another one is being sent replaces any snapshot still
+// waiting, so the last request to arrive is always the latest snapshot.
+// Failures are ignored: the next snapshot is complete anyway.
+class SnapshotUploader {
+  constructor(url) {
+    this.url = url;
+    this.next = null;
+    this.running = null;
+  }
+
+  send(produce) {
+    this.next = produce;
+    if (!this.running) this.running = this.flush();
+  }
+
+  async flush() {
+    while (this.next) {
+      let body = this.next();
+      this.next = null;
+      try {
+        await fetch(this.url, { method: "PUT", body });
+      } catch (_) {}
+    }
+    this.running = null;
+  }
+
+  // Waits until no snapshot is in flight, and stops taking new ones.
+  async close() {
+    this.send = () => {};
+    this.next = null;
+    while (this.running) await this.running;
+  }
+}
+
+// Streams a recording into the server's recording session for this deck.
+// The chunks of the MediaRecorder are queued and uploaded one at a time at
+// their byte offset. Memory only holds the chunks the server has not
+// confirmed yet. Network errors and server errors are retried until the
+// server answers. The server's part file is the only copy of what was
+// uploaded, so nothing is downloaded locally.
+class RecordingSession {
+  constructor(base, onChange, onFatal) {
+    this.base = base;
+    this.onChange = onChange;
+    this.onFatal = onFatal;
+    this.queue = []; // {blob, start, seconds}, start is the byte offset
+    this.queued = 0; // bytes queued so far
+    this.confirmed = 0; // bytes the server has stored
+    this.confirmedSeconds = 0;
+    this.failingSince = null; // when the server stopped answering
+    this.fatal = null; // why the session cannot continue
+    this.recoverable = false; // whether the server still has the session
+    this.done = false;
+    this.pumping = false;
+    this.waiters = [];
+    this.times = new SnapshotUploader(base + "/times");
+  }
+
+  // Whether the session still has something to do.
+  busy() {
+    return !this.done && !this.fatal;
+  }
+
+  backlogSeconds() {
+    return this.queue.reduce((sum, chunk) => sum + chunk.seconds, 0);
+  }
+
+  backlogBytes() {
+    return this.queued - this.confirmed;
+  }
+
+  // Whether the server did not answer for more than the given time (ms).
+  unreachableFor(ms) {
+    return this.failingSince !== null && Date.now() - this.failingSince > ms;
+  }
+
+  push(blob, seconds) {
+    if (this.fatal) return;
+    this.queue.push({ blob, start: this.queued, seconds });
+    this.queued += blob.size;
+    this.onChange();
+    this.pump();
+  }
+
+  // Sends requests until the server answers: retries network errors and 5xx
+  // with a backoff capped at 5 s. Returns the answer.
+  async request(send) {
+    let delay = 500;
+    while (true) {
+      try {
+        let response = await send();
+        if (response.status < 500) {
+          this.failingSince = null;
+          return response;
+        }
+      } catch (_) {}
+      if (this.failingSince === null) this.failingSince = Date.now();
+      this.onChange();
+      await sleep(delay);
+      delay = Math.min(2 * delay, 5000);
+    }
+  }
+
+  fail(message, recoverable) {
+    if (this.fatal) return;
+    this.fatal = message;
+    this.recoverable = recoverable;
+    this.queue = [];
+    this.wake();
+    this.onChange();
+    this.onFatal(message);
+  }
+
+  wake() {
+    let waiters = this.waiters;
+    this.waiters = [];
+    waiters.forEach((resolve) => resolve());
+  }
+
+  // The server has `size` bytes. Drops the chunks it has stored completely.
+  // The next chunk must start exactly there.
+  confirm(size) {
+    while (this.queue.length > 0) {
+      let head = this.queue[0];
+      if (head.start + head.blob.size > size) break;
+      this.queue.shift();
+      this.confirmedSeconds += head.seconds;
+    }
+    this.confirmed = size;
+    let head = this.queue[0];
+    if (head && head.start !== size) {
+      this.fail(
+        `the server has ${size} bytes, but the next chunk starts at ${head.start}`,
+        true
+      );
+    }
+  }
+
+  async pump() {
+    if (this.pumping) return;
+    this.pumping = true;
+    while (this.queue.length > 0 && !this.fatal) {
+      let chunk = this.queue[0];
+      let response = await this.request(() =>
+        fetch(`${this.base}/chunk?offset=${chunk.start}`, {
+          method: "PUT",
+          body: chunk.blob
+        })
+      );
+      if (this.fatal) break;
+      if (response.ok || response.status === 409) {
+        try {
+          let { size } = await response.json();
+          this.confirm(size);
+        } catch (e) {
+          this.fail(`invalid answer: ${e.message}`, true);
+        }
+      } else if (response.status === 404) {
+        // Without the session, the header in the first chunk is gone, and
+        // later chunks are useless on their own.
+        this.fail(localization.session_lost, false);
+      } else {
+        this.fail(`HTTP ${response.status}`, true);
+      }
+      this.onChange();
+    }
+    this.pumping = false;
+    this.wake();
+  }
+
+  // Resolves when every queued chunk is stored, or the session failed.
+  drained() {
+    if (this.queue.length === 0 || this.fatal) return Promise.resolve();
+    return new Promise((resolve) => this.waiters.push(resolve));
+  }
+
+  // Waits for the queue, stores the final timings and finishes the session.
+  // The server then moves video and timings into place together. Returns
+  // the server's answer ({fragment, transcoding}).
+  async finish(times) {
+    await this.drained();
+    if (this.fatal) throw new Error(this.fatal);
+    await this.times.close();
+    let response = await this.request(() =>
+      fetch(this.base + "/times", { method: "PUT", body: times })
+    );
+    if (!response.ok) {
+      this.fail(`times: HTTP ${response.status}`, response.status !== 404);
+      throw new Error(this.fatal);
+    }
+    let attempts = 0;
+    response = await this.request(() => {
+      attempts++;
+      return postJSON(this.base + "/finish", { size: this.confirmed });
+    });
+    // A finish whose answer got lost leaves no session for the next attempt.
+    let lostAnswer = response.status === 404 && attempts > 1;
+    if (!response.ok && !lostAnswer) {
+      this.fail(`finish: HTTP ${response.status}`, response.status !== 404);
+      throw new Error(this.fatal);
+    }
+    this.done = true;
+    this.onChange();
+    return lostAnswer ? {} : response.json().catch(() => ({}));
+  }
+}
+
+// Checks the server for an unfinished recording session of this deck (from
+// a crash or a closed tab) and lets the user recover or discard it. Returns
+// false if the recording must not start: the user cancelled, or the server
+// cannot be reached.
+async function resolveUnfinishedSession(base) {
+  let info;
+  try {
+    let response = await fetch(base + "/session");
+    // 404: no session, or no Decker server. In the latter case, starting the
+    // session fails and says so.
+    if (response.status === 404) return true;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    info = await response.json();
+  } catch (e) {
+    alert(`${localization.server_unreachable}\n(${e.message})`);
+    return false;
+  }
+
+  // A session without video holds nothing worth asking about.
+  if (info.size === 0) {
+    await fetch(base, { method: "DELETE" }).catch(() => {});
+    return true;
+  }
+
+  let message = document.createElement("div");
+  let text = document.createElement("p");
+  let duration =
+    info.duration === null || info.duration === undefined
+      ? localization.unknown_duration
+      : formatDuration(info.duration);
+  text.innerText = localization.unfinished_session
+    .replace("{started}", new Date(info.startedAt).toLocaleString())
+    .replace("{duration}", duration)
+    .replace("{size}", formatMegabytes(info.size))
+    .replace(
+      "{mode}",
+      info.mode === "append"
+        ? localization.recover_appends
+        : localization.recover_replaces
+    );
+  message.appendChild(text);
+  let choice = await window.showDialog(
+    localization.unfinished_title,
+    message,
+    [
+      { text: localization.recover, value: "RECOVER" },
+      { text: localization.discard, value: "DISCARD" },
+      { text: localization.cancel, value: "CANCEL" }
+    ],
+    "warning"
+  );
+
+  try {
+    if (choice.submit === "RECOVER") {
+      let response = await postJSON(base + "/finish", { size: info.size });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      Decker.flashMessage(`<span>${localization.recovered}</span>`);
+      return true;
+    } else if (choice.submit === "DISCARD") {
+      let response = await fetch(base, { method: "DELETE" });
+      if (!response.ok && response.status !== 404)
+        throw new Error(`HTTP ${response.status}`);
+      return true;
+    }
+  } catch (e) {
+    alert(`${localization.server_unreachable}\n(${e.message})`);
+  }
+  return false;
+}
+
+// Starts the recording session on the server. Recording without it is not
+// possible: there is no local copy of the video.
+async function startServerSession(base, mode, offset) {
+  try {
+    let response = await postJSON(base + "/start", { mode, offset });
+    if (response.ok) return true;
+    if (response.status === 404) {
+      alert(localization.server_required);
+    } else if (response.status === 409) {
+      alert(localization.session_running);
+    } else {
+      alert(`${localization.server_unreachable}\n(HTTP ${response.status})`);
+    }
+  } catch (e) {
+    alert(`${localization.server_unreachable}\n(${e.message})`);
+  }
+  return false;
+}
+
+function updateUploadIndicator() {
+  let seconds = session && session.busy() ? session.backlogSeconds() : 0;
+  let level = "ok";
+  if (session && session.fatal) level = "alarm";
+  else if (seconds > 60) level = "alarm";
+  else if (seconds > 15) level = "warning";
+  else if (seconds > 10) level = "pending";
+  recordPanel.dataset.backlog = level;
+  if (level === "ok") {
+    uploadBacklog.textContent = "";
+    uploadBacklog.removeAttribute("title");
+  } else {
+    uploadBacklog.textContent = session.fatal
+      ? "!"
+      : `${Math.round(seconds)} s`;
+    uploadBacklog.title = session.fatal
+      ? `${localization.upload_failed} ${session.fatal}`
+      : localization.upload_backlog.replace("{seconds}", Math.round(seconds));
+  }
+}
+
+// Waits for the rest of the upload after the recording stopped, then
+// finishes the session. A dialog shows the progress if this takes longer
+// than a second.
+async function finishUpload(current, times) {
+  let status = document.createElement("p");
+  let dialog = null;
+
+  let showProgress = () => {
+    if (current.unreachableFor(10000)) {
+      status.innerText = localization.upload_unreachable
+        .replace("{size}", formatMegabytes(current.confirmed))
+        .replace("{duration}", formatDuration(current.confirmedSeconds));
+    } else {
+      status.innerText = localization.upload_progress
+        .replace("{seconds}", Math.round(current.backlogSeconds()))
+        .replace("{size}", formatMegabytes(current.backlogBytes()));
+    }
+  };
+  let timer = setInterval(showProgress, 500);
+  let opener = setTimeout(() => {
+    showProgress();
+    window.showDialog(
+      localization.upload_title,
+      status,
+      [{ text: localization.hide, value: "HIDE" }],
+      "information"
+    );
+    dialog = status.closest("dialog");
+  }, 1000);
+
+  try {
+    let result = await current.finish(times);
+    let message = result.transcoding
+      ? localization.upload_done_transcoding
+      : localization.upload_done;
+    Decker.flashMessage(`<span>${message}</span>`);
+  } catch (e) {
+    console.error(`[] FAILED to upload the recording: ${e.message}`);
+    alert(
+      `${localization.upload_failed} ${e.message}\n\n` +
+        (current.recoverable ? localization.upload_recoverable : "")
+    );
+  } finally {
+    clearTimeout(opener);
+    clearInterval(timer);
+    if (dialog && dialog.open) dialog.close();
+    updateUploadIndicator();
+  }
 }
 
 async function startRecording() {
-  // Stop Decker from auto reloading the page if we recorded something
-  window.Decker.addReloadInhibitor(() => false);
+  // Only one upload at a time. The previous one may still be draining.
+  if (session && session.busy()) {
+    Decker.flashMessage(`<span>${localization.upload_running}</span>`);
+    return false;
+  }
 
-  // clear blobs array
-  blobs = [];
+  const base = recordingSessionUrl();
+  if (!(await resolveUnfinishedSession(base))) return false;
 
   let timesExists = await resourceExists(explainTimesUrl);
   let existingRecordings = await listRecordings(deckWEBMUrl());
@@ -641,24 +1034,57 @@ async function startRecording() {
     closeRecordPanel();
   }
 
+  const mode = recordingType === "APPEND" ? "append" : "replace";
+  const offset = mode === "append" ? parseFloat(recordingResumeTime) || 0 : 0;
+  if (!(await startServerSession(base, mode, offset))) return false;
+
+  // Stop Decker from auto reloading the page if we recorded something
+  window.Decker.addReloadInhibitor(() => false);
+
+  const current = new RecordingSession(base, updateUploadIndicator, () => {
+    // The upload cannot continue. Stop recording, the stop handler reports.
+    if (uiState.in("RECORDING", "RECORDER_PAUSED")) uiState.transition("stop");
+  });
+  session = current;
+  updateUploadIndicator();
+
+  const timing = new Timing();
+  if (recordingType === "APPEND") {
+    timing.offset = offset * 1000;
+    timing.timeIntervals = explainTimes;
+  }
+  const sendTimes = () => current.times.send(() => timing.snapshot());
+  // The recording time at the end of the last chunk.
+  let chunkEnd = 0;
+
   // setup recorder (let the browser choose the codec)
   recorder = new MediaRecorder(stream, {
     // mimeType: "video/webm; codecs=h264",
     mimeType: "video/webm"
   });
+  recorder.timing = timing;
 
-  recorder.ondataavailable = (e) => blobs.push(e.data);
+  // Every 5 s, and before a pause and at the stop: upload the chunk, and a
+  // timing snapshot that matches it.
+  recorder.ondataavailable = (e) => {
+    let now = parseFloat(timing.timeStamp());
+    let seconds = Math.max(0, now - chunkEnd);
+    chunkEnd = now;
+    if (e.data.size === 0) return;
+    current.push(e.data, seconds);
+    sendTimes();
+  };
 
-  let recordSlideChange = () => recorder.timing.record();
+  let recordSlideChange = () => {
+    timing.record();
+    sendTimes();
+  };
 
   recorder.onstart = () => {
     console.log("[] recorder started");
-    recorder.timing = new Timing();
-    if (recordingType === "APPEND") {
-      recorder.timing.offset = parseFloat(recordingResumeTime) * 1000;
-      recorder.timing.timeIntervals = explainTimes;
-    }
-    recorder.timing.start();
+    timing.start();
+    chunkEnd = parseFloat(timing.timeStamp());
+    sendTimes();
     Reveal.addEventListener("slidechanged", recordSlideChange);
 
     updateRecordIndicator();
@@ -666,102 +1092,31 @@ async function startRecording() {
   };
 
   function updateRecordingTimer() {
-    let seconds = recorder.timing.timeStamp();
-    let time = new Date(null);
-    time.setSeconds(seconds);
-    recordingTime.innerText = time.toISOString().substr(11, 8);
+    recordingTime.innerText = formatDuration(timing.timeStamp());
   }
 
-  function uploadFile(file) {
-    console.log("[] about to upload: ", file);
-    return fetch(file.filename, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
-      .catch((e) => {
-        console.error("[] cannot upload data to:", file.filename, "reason:", e);
-        return false;
-      });
-  }
-
-  function replaceVideo(file) {
-    console.log("[] about to upload (replace): ", file);
-    let path = `/replace${file.filename}`;
-    return fetch(path, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
-      .catch((e) => {
-        console.error(
-          "[] cannot upload (replace) video to:",
-          path,
-          "reason:",
-          e
-        );
-        return false;
-      });
-  }
-
-  function appendVideo(file) {
-    console.log("[] about to upload (append): ", file);
-    let path = `/append${file.filename}`;
-    return fetch(path, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
-      .catch((e) => {
-        console.error(
-          "[] cannot upload (append) video to:",
-          path,
-          "reason:",
-          e
-        );
-        return false;
-      });
-  }
-
+  // The last dataavailable event comes before this.
   recorder.onstop = async () => {
     console.log("[] recorder stopped");
-    let vblob = new Blob(blobs, { type: "video/webm" });
-    let tblob = recorder.timing.finish();
-
-    download(vblob, videoFilenameBase() + "-recording.webm");
-    download(tblob, videoFilenameBase() + "-times.json");
-    try {
-      let exists = await resourceExists(explainTimesUrl);
-      /* Upload slide timings */
-      await uploadFile({ data: tblob, filename: explainTimesUrl });
-      if (exists && recordingType === "APPEND") {
-        appendVideo({
-          data: vblob,
-          filename: deckRecordingUrl()
-        });
-      } else {
-        replaceVideo({
-          data: vblob,
-          filename: deckRecordingUrl()
-        });
-      }
-    } catch (e) {
-      console.error(
-        `[] FAILED to upload ${tblob.size} bytes to ${explainTimesUrl}`
-      );
-      console.error(
-        `[] FAILED to upload ${vblob.size} bytes to ${deckRecordingUrl()}`
-      );
-    }
-
     Reveal.removeEventListener("slidechanged", recordSlideChange);
     clearInterval(recordingTimer);
 
     recorder = null;
     stream = null;
-
     updateRecordIndicator();
+
+    await finishUpload(current, timing.finish());
   };
 
   recorder.onpause = () => {
-    recorder.timing.pause();
+    timing.pause();
+    sendTimes();
     clearInterval(recordingTimer);
     updateRecordIndicator();
   };
 
   recorder.onresume = () => {
-    recorder.timing.resume();
+    timing.resume();
     recordingTimer = setInterval(updateRecordingTimer, 1000);
     updateRecordIndicator();
   };
@@ -771,7 +1126,7 @@ async function startRecording() {
     uiState.transition("cancel");
   };
 
-  recorder.start();
+  recorder.start(5000);
   recordButton.ariaDisabled = "true";
   pauseButton.ariaDisabled = "false";
   stopButton.ariaDisabled = "false";
@@ -781,6 +1136,8 @@ async function startRecording() {
 }
 
 function pauseRecording() {
+  // Upload the seconds before the pause right away.
+  recorder.requestData();
   recorder.pause();
   recordButton.ariaDisabled = "true";
   pauseButton.ariaDisabled = "false";
@@ -1149,6 +1506,13 @@ async function createRecordingGUI() {
     type: "i",
     id: "record-indicator",
     classes: "fas indicator",
+    parent: row
+  });
+
+  // The video that is recorded but not yet on the server (seconds).
+  uploadBacklog = createElement({
+    type: "span",
+    id: "upload-backlog",
     parent: row
   });
 
@@ -1833,9 +2197,12 @@ function setupCallbacks() {
   // Store video player volume on page leave
   window.addEventListener("beforeunload", storePlayerVolume);
 
-  // Intercept page leave when we are recording
+  // Intercept page leave when we are recording or still uploading
   window.addEventListener("beforeunload", (evt) => {
-    if (uiState.in("RECORDER_PAUSED", "RECORDING")) {
+    if (
+      uiState.in("RECORDER_PAUSED", "RECORDING") ||
+      (session && session.busy())
+    ) {
       evt.preventDefault();
       evt.returnValue = "We are recording!";
       return evt.returnValue;
@@ -1943,6 +2310,34 @@ const Plugin = {
       Do you want to append to the existing recording or replace it?",
       accept: "Accept",
       abort: "Abort",
+      server_unreachable: "The Decker server cannot be reached.",
+      server_required:
+        "Recording needs the Decker server (decker --server). The video is uploaded to it while recording.",
+      session_running:
+        "Another recording of this presentation is being uploaded.",
+      session_lost: "the server no longer has the recording session",
+      unfinished_title: "Unfinished recording",
+      unfinished_session:
+        "The server has an unfinished recording of this presentation, started {started}: {duration} of video, {size}. Recovering it {mode}.",
+      unknown_duration: "unknown length",
+      recover_appends: "appends it to the existing recording",
+      recover_replaces: "replaces the existing recording",
+      recover: "Recover",
+      discard: "Discard",
+      recovered: "The unfinished recording was recovered.",
+      upload_title: "Uploading the recording",
+      upload_progress: "Still to upload: {seconds} s of video ({size}).",
+      upload_unreachable:
+        "The server cannot be reached. It has {duration} of video ({size}). Uploading continues while this page stays open. If the server does not come back, restart it and press record: the recording can then be recovered.",
+      upload_backlog: "{seconds} s of video not yet uploaded",
+      upload_running: "The last recording is still being uploaded.",
+      upload_done: "The recording is saved.",
+      upload_done_transcoding:
+        "The recording is saved and is being converted to MP4.",
+      upload_failed: "The recording could not be uploaded completely:",
+      upload_recoverable:
+        "What reached the server can be recovered: press record again.",
+      hide: "Hide",
       presenter_mode_error:
         'Please activate <strong style="color: var(--color-info)">presenter mode</strong> first.'
     };
@@ -1961,6 +2356,35 @@ const Plugin = {
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        server_unreachable: "Der Decker-Server ist nicht erreichbar.",
+        server_required:
+          "Die Aufnahme benötigt den Decker-Server (decker --server). Das Video wird während der Aufnahme dorthin hochgeladen.",
+        session_running:
+          "Eine andere Aufnahme dieser Präsentation wird gerade hochgeladen.",
+        session_lost: "der Server hat die Aufnahmesitzung nicht mehr",
+        unfinished_title: "Unvollständige Aufnahme",
+        unfinished_session:
+          "Auf dem Server liegt eine unvollständige Aufnahme dieser Präsentation, begonnen {started}: {duration} Video, {size}. Wiederherstellen {mode}.",
+        unknown_duration: "unbekannte Länge",
+        recover_appends: "hängt sie an die bestehende Aufnahme an",
+        recover_replaces: "ersetzt die bestehende Aufnahme",
+        recover: "Wiederherstellen",
+        discard: "Verwerfen",
+        recovered: "Die unvollständige Aufnahme wurde wiederhergestellt.",
+        upload_title: "Die Aufnahme wird hochgeladen",
+        upload_progress: "Noch hochzuladen: {seconds} s Video ({size}).",
+        upload_unreachable:
+          "Der Server ist nicht erreichbar. Er hat {duration} Video ({size}). Das Hochladen geht weiter, solange diese Seite offen bleibt. Wenn der Server nicht wiederkommt: neu starten und Aufnahme drücken, dann lässt sich die Aufnahme wiederherstellen.",
+        upload_backlog: "{seconds} s Video noch nicht hochgeladen",
+        upload_running: "Die letzte Aufnahme wird noch hochgeladen.",
+        upload_done: "Die Aufnahme ist gespeichert.",
+        upload_done_transcoding:
+          "Die Aufnahme ist gespeichert und wird nach MP4 konvertiert.",
+        upload_failed:
+          "Die Aufnahme konnte nicht vollständig hochgeladen werden:",
+        upload_recoverable:
+          "Was den Server erreicht hat, lässt sich wiederherstellen: erneut Aufnahme drücken.",
+        hide: "Ausblenden",
         presenter_mode_error:
           'Bitte aktivieren Sie zuerst den <strong style="color: var(--color-info)">Präsentationsmodus</strong>.'
       };

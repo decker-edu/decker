@@ -25,15 +25,12 @@ data ServerState = ServerState
 
 makeLenses ''ServerState
 
-data VideoOperation
-  = Replace FilePath FilePath
-  | Append FilePath FilePath
-  deriving (Show)
-
 data ActionMsg
   = ServerExit String
   | FileChanged UTCTime FilePath
-  | UploadComplete VideoOperation
+  | -- | A recording session finished. Convert the fragments of this WEBM
+    -- recording to MP4.
+    TranscodeRecording FilePath
   deriving (Show)
 
 data Server = Server

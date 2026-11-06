@@ -2,14 +2,11 @@
 
 module Text.Decker.Server.Video where
 
-import Control.Concurrent.STM (writeTChan)
 import Control.Monad.State
 import Data.ByteString qualified as BS
 import Data.List qualified as List
 import Data.Maybe
-import Network.HTTP.Types
 import Relude
-import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
 import Text.Decker.Internal.Common
@@ -26,24 +23,6 @@ listRecordings = do
   webm <- captureParam "1"
   webms <- liftIO $ existingVideos webm
   json webms
-
--- | Accepts the upload of a recording fragment. Either appends to existing
--- recordings or replaces them.
-uploadRecording :: Bool -> AppActionM ()
-uploadRecording append = do
-  destination <- captureParam "1"
-  chan <- reader channel
-  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
-  if exists && "-recording.webm" `List.isSuffixOf` destination
-    then do
-      tmp <- liftIO $ uniqueTransientFileName destination
-      reader <- bodyReader
-      liftIO $ writeBody tmp reader
-      let operation = if append then Append tmp destination else Replace tmp destination
-      atomically $ writeTChan chan (UploadComplete operation)
-    else do
-      text "ERROR: directory does not exist or file (suffix) is not uploadable"
-      status status406
 
 -- | Returns the list of video fragments under the same name.
 existingVideos :: FilePath -> IO [FilePath]
@@ -125,9 +104,11 @@ concatVideoMp4 files mp4 = do
   putStrLn $ "# concat (" <> intercalate ", " sorted <> " -> " <> mp4 <> ")"
   concatVideoMp4' listFile mp4
 
+-- | The fragments and the list file are in the same directory, and ffmpeg
+-- resolves the names relative to the list file.
 mkListFile webms mp4 = do
   let listFile = mp4 <.> "list"
-  writeFile listFile (List.unlines $ map (\f -> "file '../" <> f <> "'") webms)
+  writeFile listFile (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") webms)
   return listFile
 
 concatVideoMp4' :: FilePath -> FilePath -> IO ()
@@ -139,36 +120,6 @@ concatVideoMp4' listFile mp4 = do
       tmp <- uniqueTransientFileName dst
       runExternal "tomp4-concat" listFile tmp meta
       safeRenameFile tmp dst
-
--- | Atomically moves the transcoded upload into place.  All existing parts of
--- previous uploads are removed.
-replaceVideoUpload :: Bool -> FilePath -> FilePath -> IO ()
-replaceVideoUpload transcode upload webm = do
-  webms <- existingVideos webm
-  mapM_ removeFile webms
-  let mp4 = replaceExtension webm ".mp4"
-  when transcode $ convertVideoMp4 upload mp4
-  safeRenameFile upload webm
-
--- | Appends the uploaded WEBM video to potentially already existing fragments.
-appendVideoUpload :: Bool -> FilePath -> FilePath -> IO ()
-appendVideoUpload transcode upload webm = do
-  let mp4 = replaceExtension webm ".mp4"
-  existing <- existingVideos webm
-  case existing of
-    [] -> do
-      replaceVideoUpload transcode upload webm
-    [single] -> do
-      let name0 = setSequenceNumber 0 webm
-      let name1 = setSequenceNumber 1 webm
-      renameFile single name0
-      renameFile upload name1
-      when transcode $ concatVideoMp4 [name0, name1] mp4
-    multiple -> do
-      let number = getHighestSequenceNumber multiple
-      let name = setSequenceNumber (number + 1) webm
-      renameFile upload name
-      when transcode $ concatVideoMp4 (multiple <> [name]) mp4
 
 -- | Sets the sequence number of a file. The number is appended to the base file
 -- name just before the extension.

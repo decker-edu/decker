@@ -102,6 +102,7 @@ dependencies:
   - text
   - time
   - transformers
+  - unliftio
   - unordered-containers
   - uri-encode
   - utf8-string
