@@ -140,16 +140,30 @@ renderQuestion attr meta base qst =
       ]
     -- For now, use OS drop-downs. Later maybe use
     -- https://github.com/vorotina/vanilla-select.
+    --
+    -- The table is built from tagged Divs (turned into table elements by the
+    -- HTML writer), not raw HTML, so the prompts stay Pandoc blocks and their
+    -- images go through the media filter like the question stem does.
     renderAnswer (MultipleAnswers width answers) =
-      let select = H.select $ H.optgroup $ toHtml $ map mkOption answers
+      let select = rawHtml' $ H.select $ H.optgroup $ toHtml $ map mkOption answers
           mkOption (OneAnswer _ correct) = H.option $ toHtml correct
           mkDetail (OneAnswer detail correct) =
-            H.tr ! A.class_ "detail" ! dataAttribute "correct" (toValue $ correct) $
-              toHtml [H.td ! A.class_ "result" $ "", H.td $ toHtml $ parseToBlocks base detail, H.td select]
-       in rawHtml' $
-            H.table ! A.class_ "answer exa-ma" $
-              H.tbody $
-                toHtml $ map mkDetail $ filter (not . Text.null . _oneDetail) answers
+            tag "tr" $
+              Div
+                ("", ["detail"], [("data-correct", correct)])
+                [ tag "td" $ Div ("", ["result"], []) [],
+                  tag "td" $ Div nullAttr $ parseToBlocks base detail,
+                  tag "td" $ Div nullAttr [select]
+                ]
+       in [ tag "table" $
+              Div
+                ("", ["answer", "exa-ma"], [])
+                [ tag "tbody" $
+                    Div nullAttr $
+                      map mkDetail $
+                        filter (not . Text.null . _oneDetail) answers
+                ]
+          ]
 
 -- | Left-biased merge of attribute blocks.
 mergeAttr :: Attr -> Attr -> Attr
