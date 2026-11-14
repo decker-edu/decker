@@ -24,8 +24,9 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - macos-latest
+          - ubuntu-latest     # Linux X64
+          - ubuntu-24.04-arm  # Linux ARM64 (containers on Apple Silicon)
+          - macos-latest      # macOS ARM64
           - windows-latest
     name: Decker latest (${{ matrix.os }})
     steps:
@@ -63,13 +64,14 @@ jobs:
             ~/.stack
             .stack-work
             ~/AppData/Local/Programs/stack
-          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml', 'stack.yaml.lock', 'package.yaml') }}
+          # runner.arch keeps the two Linux runners from sharing build artifacts.
+          key: ${{ runner.os }}-${{ runner.arch }}-stack-${{ hashFiles('stack.yaml', 'stack.yaml.lock', 'package.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-stack-
+            ${{ runner.os }}-${{ runner.arch }}-stack-
 
       # bzlib-conduit (via the Stackage snapshot) needs the system bz2 C library.
       - name: Install bzip2 with dev headers
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y bzip2 libbz2-dev
 
       # The macOS runner ships Command Line Tools with the macOS 27 SDK while
