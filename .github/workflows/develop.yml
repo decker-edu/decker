@@ -98,9 +98,11 @@ jobs:
 
       # On Windows GHC links against Stack's bundled MSYS2/mingw toolchain, so
       # bz2 must be installed there (after stack setup has provisioned MSYS2).
+      # --refresh: a freshly provisioned MSYS2 ships an old package database
+      # whose versions the mirrors no longer carry (404 on a cold cache).
       - name: Install libbz2 (Windows)
         if: runner.os == 'Windows'
-        run: stack exec -- pacman --sync --noconfirm --needed mingw-w64-x86_64-bzip2
+        run: stack exec -- pacman --sync --refresh --noconfirm --needed mingw-w64-x86_64-bzip2
 
       - name: Build & test
         run: |
