@@ -15,7 +15,7 @@ Using this plugin, you can draw on your to add annotations, and you can append e
 - Support for multiple pen colors and stroke widths.
 - Annotations can be exported to PDF (see [reveal.js PDF export](https://github.com/hakimel/reveal.js/#pdf-export)). 
 - Automatic hiding of mouse cursor after 3 seconds.
-- Automatic saving when leaving the presentation, or a warning about unsaved annotations.
+- Automatic saving to the Decker server while presenting, or a warning about unsaved annotations.
 
 
 ## Requirements
@@ -55,14 +55,14 @@ We also have the following keyboard shortcuts:
 
 Saving puts `<deck>-annot.json` into your browser's download directory. With a Decker server, it also uploads the file next to the source of the deck, from where the next build copies it to `public/`. Without one, you have to copy the file there yourself.
 
-With automatic saving, which is on by default, this happens when you leave the presentation, not on every change. Without it, the browser warns about unsaved annotations when you leave.
+Automatic saving, which is on by default, only uploads, without a download. With a Decker server it saves 8 seconds after the last change, on every slide change, at least once a minute while there are unsaved changes, and when you leave or hide the presentation. It is only enabled if the server answers an `OPTIONS` request with the `X-Decker-Server` header and the existing annotations were loaded, so a failed load never overwrites them. Without a Decker server, it downloads the annotations when you leave. Without automatic saving, the browser warns about unsaved annotations when you leave.
 
 ## Options
 
 Set these below the meta data key `whiteboard`:
 
 - `colors`: the list of pen colors. The keys `1` to `7` expect the 16 default colors.
-- `autosave`: save when leaving the presentation, default is `true`.
+- `autosave`: save automatically, default is `true`.
 - `autotoggle`: turn on when a stylus hovers over the slide, default is `false`.
 
 ## License

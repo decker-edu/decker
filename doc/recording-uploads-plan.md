@@ -1,6 +1,7 @@
 # Recording uploads: implementation plan
 
-Status: planned (2026-11-04). Line references are against `490aa38a`.
+Status: steps 1–5 implemented (2026-11-04), except speech recognition (5.5).
+Line references are against `490aa38a`. See Implementation notes at the end.
 
 ## Goal
 
@@ -420,3 +421,223 @@ Manual checklist:
   `ffprobe` at finish time.
 - The untracked `targets` meta in rendered decks (`addMetaKeyValue "targets"`)
   is a separate staleness issue.
+
+--------------------------------------------------------------------------------
+
+## Implementation notes
+
+### Step 1 (2026-11-04)
+
+- `Text.Decker.Internal.Companions` holds `publishedSuffixes`,
+  `uploadableSuffixes`, `isCompanion`, `isRecordingArtifact` and
+  `isCompanionOf` (the deck-specific match the scanner uses). `Server.hs` uses
+  `isUploadable` instead of its own list.
+- Deviation: `uploadableSuffixes` does not contain the `-recording-*.vtt`
+  pattern. Those captions come from `decker transcribe`, the old `uploadable`
+  list did not accept them, and the browser never uploads them.
+- Deviation: `observed` (the dev server) also `need`s `companions` for now.
+  Without it, step 1 alone would stop companions from reaching `public/` while
+  serving, and the server still reads them from there until step 2.1. Remove it
+  in step 2 (marked with a TODO in `app/Decker.hs`).
+- `publish -l` copies only the companions of the selected decks
+  (`companionsOfDecks`), as the deck rule did before. `publish` without `-l`
+  needs `companions`.
+- Pruning skips `public/support` and keeps files that are static targets, so a
+  static resource that happens to match a companion suffix is not deleted.
+- The `publicDir <//> "*-recording-*.vtt"` rule in `Transcribe.hs` stays. It
+  belongs to `transcriptionRules`, which nothing uses (`decker transcribe`
+  calls `transcribeAllRecordings`), and its `vtts` phony needs the public
+  paths. Removing dead code is out of scope here.
+- `info --json` does not list companions. Its entries are keyed by source
+  document, and companions are not documents.
+- Tests: `test/CompanionTests.hs` covers the suffix logic and a build sequence
+  (add, change, pattern caption, `-poll.json`, delete) that checks the deck
+  HTML's modification time stays the same. The PDF rule change is not covered
+  by a test.
+
+### Step 2 (2026-11-04)
+
+- `isServedFromProject` (in `Companions`) decides what the server takes from
+  the project dir: companions and finished recordings, but no `.part` files,
+  no `-recording.mp4.list` and nothing under `public/` or `private/`. It is
+  the one predicate for the static middleware, OPTIONS and uploads.
+- Stale public copies: a middleware after the project-dir one answers GET and
+  HEAD with 404 when the companion is missing from the project dir but
+  `public/` has a copy. It only blocks in that case, so routes such as
+  `/recordings/*` (whose paths also look like recordings) still work.
+- Uploads are written to `.<name>.<random>.part` in the destination
+  directory and renamed into place, so EXDEV cannot happen. A failed body read
+  removes the part file. Uploads into `public/` or `private/` are rejected.
+- Deviation: backups go to `<transientDir>/backup/<server start time>/<path>`,
+  not `<transientDir>/backup/<path>`. With one fixed path, the next session's
+  first overwrite would replace the good backup of the previous session.
+- Addition: `isRecordingArtifact` also covers `*-recording.mp4.list`, which
+  `concatVideoMp4` writes into the project dir. Otherwise an append upload
+  with `-P` would still trigger the watcher.
+- The temporary `companions` need of `observed` from step 1 is removed.
+- PDF rule: back to `need [annot]` on the source. Chrome gets the annotations
+  from the server, which now reads them from the project dir, so the public
+  copy is no longer what the export reads. This reverses the step 1 change.
+- `explain.js` uses HEAD in `resourceExists`; the static middleware handles
+  GET and HEAD, so HEAD goes through the project-dir lookup.
+- Tests: `test/ServerTests.hs` runs `decker --server` on a temporary project
+  and checks PUT/GET/OPTIONS/HEAD, rejected uploads, the absence of a build (the
+  public copy stays old for 2 s, while a deck edit, the control, does build),
+  no leftover part files, the single backup, the 404 for a stale public copy
+  and a Range request (206) on an MP4.
+
+### Step 3 (2026-11-04)
+
+- `persistAnnotations` PUTs without a download. `saveAnnotations` (the Save
+  button, and `explain.js` when a recording stops) downloads and then goes
+  through `persistAnnotations`, so manual saves share the one-at-a-time queue.
+- Deviation: the server answers OPTIONS with an `X-Decker-Server: 1` header,
+  and the probe checks for it. A plain OPTIONS answer is not enough: Apache
+  answers OPTIONS with 200 too. This is the only server change.
+- Triggers: 8 s idle timer, `slidechanged`, a 60 s ceiling, `pagehide`,
+  `visibilitychange` (hidden) and `beforeunload`. A failed PUT is retried by
+  the next trigger, at the latest by the ceiling timer, not every 8 s.
+- The dirty flag is cleared only when a PUT succeeded and no change was made
+  since its snapshot (a change counter). A change during a running PUT
+  sends again right after it.
+- Page hide while a PUT is running: if that PUT does not contain the latest
+  changes, the latest snapshot is sent next to it, because the page may not
+  live long enough to wait. Its success does not clear the flag, and the queue
+  waits for it before sending again, so the last PUT to complete is always the
+  latest snapshot.
+- Every PUT uses `keepalive` when the body is under 64 KiB, as before, so a
+  running autosave survives an unload.
+- Load before save: 404 and 204 count as "no annotations yet". A network
+  error, another HTTP error, a parse error or the old format keep autosave off.
+  The Auto-save button is disabled and its tooltip carries the warning, which
+  is also flashed once and logged. The annotations of the session can still be
+  saved with the Save button.
+- `beforeunload`: with active autosave it saves and only prompts if the last
+  PUT failed. With autosave on but no Decker server (static hosting) it only
+  downloads, as the only way to keep the annotations; it no longer PUTs. With
+  autosave on but a failed load, it prompts.
+- Snapshots leave out laser strokes instead of removing them from the DOM, so
+  an autosave does not cut a laser stroke that is still fading or being drawn.
+- Tests: `test/ServerTests.hs` checks the header. The manual checklist ran in
+  headless Chromium over CDP: idle save (one PUT, no download, no reload, public
+  copy untouched), slide change saves at once, a corrupt `-annot.json` keeps
+  autosave off and the file untouched, and a server restart: the PUT during
+  the outage fails, the next trigger uploads.
+
+### Step 4 (2026-11-04)
+
+- New module `Text.Decker.Server.Recording`: the session files, the pure
+  `decideChunk`, start/chunk/snapshot/finish/discard as IO functions, the
+  routes (`recordingRoutes`) and `transcodeRecording`. A session exists while
+  its sidecar exists.
+- Deviation: finish moves the files in the request handler, under the deck's
+  lock, and answers 200 `{fragment, transcoding}`, not 202. Only the MP4
+  conversion (with `-P`) goes to the action loop, as `TranscodeRecording`, so
+  it stays serialized with builds. Doing the moves in the loop would leave a
+  window in which a new start or chunk could interleave with an unfinished
+  finish.
+- Deviation: chunk bodies are read completely before anything is written,
+  not streamed into the file. A dropped connection then never leaves a
+  partial chunk, which the client could only treat as a protocol error. A
+  failed write truncates the file to its old size. Each append is synced
+  (`ensureFileDurable` from unliftio, a no-op on Windows).
+- Addition: `start` takes an optional `offset` (the seconds at which the
+  session starts in the recording, the end of the old one for append). It is
+  stored in the sidecar, and the 409 answer reports `duration` as the end of
+  the timing snapshot minus the offset, or null without a snapshot.
+- Finish with an empty video part discards the session, so stopping right
+  after the start does not replace a recording with nothing. A missing video
+  part (a finish interrupted after moving it) only moves the snapshots. A
+  sidecar that cannot be read counts as append, so finishing never deletes
+  the existing recording by mistake.
+- Leftover parts without a sidecar are removed on start.
+- Files are written with plain `writeFile`/`withBinaryFile` and then synced.
+  unliftio's own durable writers create files with mode 0600 (atomic write)
+  or 0100 (`withBinaryFileDurable`), which broke the next append and would
+  carry over to `public/`.
+- Removed: `/replace/*`, `/append/*`, `uploadRecording`, `replaceVideoUpload`,
+  `appendVideoUpload`, `VideoOperation` and `UploadComplete`. The fragment
+  numbering moved into finish (`moveVideo`).
+- Bridge until step 5: `explain.js` uploads the finished recording as one
+  session (start, the whole video as one chunk at offset 0, times, finish).
+  On a 409 it asks whether to discard the unfinished session. It still
+  downloads the WebM and `times.json` at stop. Without this, recording would
+  be broken between steps 4 and 5.
+- Fix: `mkListFile` wrote `file '../<fragment>'`, which resolves outside the
+  project for a deck in the project root, so `-P` concatenation failed there.
+  It now writes the bare file name, as `Crunch.hs` does.
+- Not changed: `-P` copies the video stream (`tomp4-copy`), which only works
+  for H.264. Chromium records VP8 with `mimeType: "video/webm"`, so `-P`
+  fails for that and leaves the WebM fragments for `decker crunch`. The loop
+  now catches the failure instead of dying.
+- `speechrecognition.js` is not loaded by any template, and its `uploadFile`
+  was never defined. Step 5.5 has to wire it in first.
+- Tests: `test/RecordingTests.hs` covers `decideChunk`, a chunk sequence with
+  duplicates and out-of-order chunks, no session, the 409 info with duration,
+  replace and append finish (names, no parts left, readable permissions), an
+  empty or discarded session keeping the old recording, an unreadable
+  sidecar, and the deck path validation. `test/ServerTests.hs` runs a session
+  over HTTP and checks that `/replace` is gone. Manual: headless Chromium
+  with a faked screen and fake camera and microphone recorded through the
+  real `explain.js` UI in replace mode, append mode (fragments `-0`/`-1`,
+  times continue), and with an unfinished session on the server (409,
+  discard, upload). `-P` with an H.264 file: replace gives a 5 s MP4, append
+  a concatenated 10 s MP4.
+
+### Step 5 (2026-11-04)
+
+- `RecordingSession` in `explain.js` holds the queue of unconfirmed chunks,
+  each with its byte offset (assigned when queued) and its length in seconds
+  of recording time. `request` retries network errors and 5xx with a backoff
+  from 0.5 s, capped at 5 s, until the server answers. 200 and 409 both
+  confirm the server's size: chunks stored completely are dropped, and the
+  next chunk must start exactly there, else (a partly stored chunk, or the
+  server has less) the session fails. 404 ends it as lost, other 4xx fail it
+  as recoverable. A failed session stops the recording.
+- Addition: `GET /recording/<deck>/session` returns the running session or
+  404. The recovery dialog has to come before the append/replace dialog
+  (the recovered recording counts as existing), but `start` needs the mode,
+  which that dialog decides. The browser asks first, then starts.
+- A session with an empty video part (the recorder failed right after
+  `start`) is discarded without asking.
+- Starting fails early, with a message, if the server cannot be reached or is
+  not a Decker server, instead of losing the recording at the stop.
+- Addition: a timing snapshot is also sent with every chunk, not only on
+  slide changes and pause, so a recovered recording's timings end within a
+  chunk of its video even after a long time on one slide. `SnapshotUploader`
+  sends one at a time, and a newer snapshot replaces one still waiting. The
+  final snapshot waits for the one in flight before it is sent.
+- Fix: `Timing.timeStamp()` stands still while paused. Before, a stop while
+  paused added the pause to the last `timeOut`, and slide changes during a
+  pause got times beyond the video. Needed for the pause snapshot anyway.
+- Backlog indicator: a number next to the record indicator, which stays
+  visible while the panel is closed, shown above 10 s, yellow above 15 s,
+  red and blinking above 60 s or after a failure. The panel is opaque while
+  it warns. The estimate counts whole chunks, so it rises in 5 s steps.
+- Stop: the progress dialog opens after 1 s, so a normal stop does not flash
+  it. After 10 s without an answer from the server it says how much video
+  the server has and how to recover. It can be hidden; the upload continues.
+  A new recording is refused while the last one is still uploading.
+- `finish` is retried like the chunks. A 404 after a retried finish counts as
+  success (the answer of the first attempt was lost).
+- Removed: the WebM and `times.json` downloads at stop, the in-memory
+  `blobs`, the step 4 bridge and `download()`. The whiteboard's save at stop
+  (with its download) stays.
+- Not done: 5.5 for speech recognition. `speechrecognition.js` was taken out
+  of the explain plugin in 2022 (`8cb15fef`, "until further confirmation
+  about quality of service") and references globals that no longer exist.
+  Wiring it back in is a product decision, not part of this step. The
+  `/captions` and `/transcript` snapshot endpoints are ready for it.
+- Tests: `test/ServerTests.hs` checks the session endpoint. The manual
+  checklist ran in headless Chromium with a faked screen, driven over CDP by a
+  script that also kills and restarts the server: the part grows in 5 s steps
+  and stop gives the WebM and matching timings, no reload, no downloads; a
+  25 s outage raises the backlog to the warning and drains after the restart,
+  and the video decodes without a gap (43.3 s for 43.2 s of timings);
+  closing the tab and recovering gives the part file as the recording, with
+  timings within 0.1 s, and it converts to MP4 (ffmpeg warns that the WebM
+  "ended prematurely", as expected for a cut stream); discarding keeps the
+  old video and timings byte for byte; append makes `-0`/`-1`, the timings
+  continue at the old end and the pause is excluded; a stop with the server
+  down shows the unreachable text, `beforeunload` prompts, and the upload
+  finishes after the restart and closes the dialog.
