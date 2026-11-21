@@ -889,14 +889,31 @@ async function resolveUnfinishedSession(base) {
   return false;
 }
 
+// True if a server answers, but without recording sessions: an older Decker
+// server (or a compatible one) that only accepts a recording as a whole after
+// it stopped. All of them list the recordings of a deck as a JSON array, a
+// plain web server does not.
+async function isOlderDeckerServer() {
+  try {
+    let response = await fetch(`/recordings${deckWEBMUrl()}`);
+    return response.ok && Array.isArray(await response.json());
+  } catch (_) {
+    return false;
+  }
+}
+
 // Starts the recording session on the server. Recording without it is not
 // possible: there is no local copy of the video.
 async function startServerSession(base, mode, offset) {
   try {
     let response = await postJSON(base + "/start", { mode, offset });
     if (response.ok) return true;
-    if (response.status === 404) {
-      alert(localization.server_required);
+    if ([404, 405, 501].includes(response.status)) {
+      alert(
+        (await isOlderDeckerServer())
+          ? localization.server_outdated
+          : localization.server_required
+      );
     } else if (response.status === 409) {
       alert(localization.session_running);
     } else {
@@ -2313,6 +2330,8 @@ const Plugin = {
       server_unreachable: "The Decker server cannot be reached.",
       server_required:
         "Recording needs the Decker server (decker --server). The video is uploaded to it while recording.",
+      server_outdated:
+        "The server is too old for recording this presentation. The video is uploaded to the server while recording, which this server does not support. Please update the server.",
       session_running:
         "Another recording of this presentation is being uploaded.",
       session_lost: "the server no longer has the recording session",
@@ -2359,6 +2378,8 @@ const Plugin = {
         server_unreachable: "Der Decker-Server ist nicht erreichbar.",
         server_required:
           "Die Aufnahme benötigt den Decker-Server (decker --server). Das Video wird während der Aufnahme dorthin hochgeladen.",
+        server_outdated:
+          "Der Server ist zu alt für die Aufnahme dieser Präsentation. Das Video wird während der Aufnahme zum Server hochgeladen, was dieser Server nicht unterstützt. Bitte aktualisieren Sie den Server.",
         session_running:
           "Eine andere Aufnahme dieser Präsentation wird gerade hochgeladen.",
         session_lost: "der Server hat die Aufnahmesitzung nicht mehr",
